@@ -1,1 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Addition Sky Mission</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Comic Sans MS',Arial,sans-serif;background:#bdeeff;color:#222;overflow-x:hidden}
+.screen{display:none;min-height:100vh;padding:18px;text-align:center}
+.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.card{background:rgba(255,255,255,.94);border-radius:24px;padding:22px;max-width:850px;width:95%;box-shadow:0 10px 25px rgba(0,0,0,.18)}
+.logo{max-width:150px;margin-bottom:12px}
+h1{color:#d9307f;font-size:clamp(28px,5vw,48px);margin:10px 0}
+h2{color:#0b8043;font-size:clamp(22px,4vw,34px)}
+button{border:0;border-radius:18px;padding:14px 24px;font-size:20px;font-weight:bold;cursor:pointer;background:#ffbf00;color:#4a2b00;box-shadow:0 5px 0 #c58b00;margin:8px}
+button:active{transform:translateY(3px);box-shadow:0 2px 0 #c58b00}
+.game-area{position:relative;min-height:100vh;background:url("assets/sky-bg.png") center/cover no-repeat;padding:12px;overflow:hidden}
+.cloud{position:absolute;width:150px;opacity:.9;animation:floatCloud 24s linear infinite}
+.cloud.one{top:30px;left:-160px}
+.cloud.two{top:100px;left:-320px;animation-delay:8s}
+@keyframes floatCloud{to{transform:translateX(130vw)}}
+.topbar{display:flex;gap:8px;justify-content:space-between;align-items:center;max-width:950px;margin:0 auto 8px;background:rgba(255,255,255,.92);border-radius:16px;padding:10px;font-weight:bold}
+.timer{color:#d93025}.score{color:#188038}.attempts{color:#174ea6}
+.progress-wrap{height:18px;background:#fff;border-radius:20px;overflow:hidden;max-width:950px;margin:8px auto}
+.progress{height:100%;width:0;background:linear-gradient(90deg,#ff69b4,#fbbc04);transition:.4s}
+.flight-zone{position:relative;max-width:950px;height:220px;margin:5px auto}
+.balloon{position:absolute;bottom:10px;left:5%;width:145px;transition:.6s ease;animation:floatBalloon 3s ease-in-out infinite}
+@keyframes floatBalloon{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.question-card{max-width:850px;margin:10px auto;background:rgba(255,255,255,.96);border-radius:24px;padding:18px;box-shadow:0 8px 20px rgba(0,0,0,.2)}
+.qno{font-size:18px;color:#666}
+.question{font-size:clamp(22px,4vw,34px);font-weight:bold;margin:12px 0}
+.options{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.option{background:#fff;border:4px solid #ff9bd2;border-radius:18px;padding:18px;font-size:24px;font-weight:bold;cursor:pointer;min-height:70px}
+.option:hover{background:#fff0fa}
+.feedback{min-height:44px;font-size:20px;font-weight:bold;margin-top:10px}
+.correct{color:#188038}.wrong{color:#d93025}
+.final-badge{background:#ffef99;border:3px dashed #fbbc04;padding:8px 14px;border-radius:14px;display:inline-block;margin-bottom:8px;font-weight:bold}
+.result-stars{font-size:46px}
+@media(max-width:600px){
+.options{grid-template-columns:1fr}
+.balloon{width:115px}
+.flight-zone{height:170px}
+.topbar{font-size:14px;flex-wrap:wrap;justify-content:center}
+}
+.confetti{position:fixed;width:10px;height:10px;top:-10px;animation:fall 1.8s linear forwards;z-index:99}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+</style>
+</head>
 
+<body>
+
+<section id="start" class="screen active">
+  <div class="card">
+    <img src="assets/logo.png" class="logo" onerror="this.style.display='none'">
+    <h1>🎈 Addition Sky Mission</h1>
+    <h2>Grade 1 Maths — Addition up to 100</h2>
+    <p>Help the balloon fly across the sky by solving bigger addition challenges.</p>
+    <p><b>Rules:</b> You get 60 seconds and 2 attempts for each question.</p>
+    <button onclick="startGame()">Start Mission</button>
+  </div>
+</section>
+
+<section id="game" class="screen game-area">
+  <img src="assets/clouds.png" class="cloud one">
+  <img src="assets/clouds.png" class="cloud two">
+
+  <div class="topbar">
+    <div class="timer">⏱ Time: <span id="time">60</span>s</div>
+    <div class="score">⭐ Score: <span id="score">0</span></div>
+    <div class="attempts">🔁 Attempts Left: <span id="attempts">2</span></div>
+  </div>
+
+  <div class="progress-wrap"><div id="progress" class="progress"></div></div>
+
+  <div class="flight-zone">
+    <img src="assets/balloon.png" id="balloon" class="balloon">
+  </div>
+
+  <div class="question-card">
+    <div id="finalBadge" class="final-badge" style="display:none;">Final Challenge</div>
+    <div class="qno">Question <span id="qnum">1</span> of <span id="total"></span></div>
+    <div id="question" class="question"></div>
+    <div id="options" class="options"></div>
+    <div id="feedback" class="feedback"></div>
+  </div>
+</section>
+
+<section id="result" class="screen">
+  <div class="card">
+    <img src="assets/stars.png" style="max-width:140px" onerror="this.style.display='none'">
+    <h1>Mission Complete!</h1>
+    <div id="resultStars" class="result-stars"></div>
+    <h2 id="finalScore"></h2>
+    <p id="resultMsg"></p>
+    <button onclick="restartGame()">Play Again</button>
+  </div>
+</section>
+
+<audio id="correctSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+
+<script>
+const questions = [
+  {q:"A basket has 20 mangoes. Another basket has 40 mangoes. How many mangoes are there in all?",options:["50","60","70","80"],answer:"60",hint:"Add the tens: 2 tens + 4 tens = 6 tens."},
+  {q:"Which sum gives the same answer as 5 + 6?",options:["6 + 5","5 + 5","6 + 6","4 + 6"],answer:"6 + 5",hint:"Changing the order in addition gives the same total."},
+  {q:"Add 32 + 20.",options:["34","42","52","62"],answer:"52",hint:"Add tens to tens. The ones stay 2."},
+  {q:"Add 43 + 21.",options:["54","64","74","84"],answer:"64",hint:"Add tens and ones separately."},
+  {q:"Add 23 + 32.",options:["45","55","65","75"],answer:"55",hint:"20 + 30 = 50 and 3 + 2 = 5."},
+  {q:"A class has 28 boys and 37 girls. How many students are there altogether?",options:["55","65","75","85"],answer:"65",hint:"Add 28 and 37. Regroup the ones."},
+  {q:"Add 59 + 33.",options:["82","92","93","99"],answer:"92",hint:"9 + 3 = 12, carry 1 ten."},
+  {q:"Which sum needs carry over?",options:["23 + 12","41 + 20","48 + 39","32 + 14"],answer:"48 + 39",hint:"8 + 9 is more than 9."},
+  {q:"Ambika has ₹50. Her mother gives her ₹35. How much money does she have now?",options:["₹75","₹80","₹85","₹90"],answer:"₹85",hint:"Add ₹50 and ₹35."},
+  {q:"Which answer is wrong?",options:["25 + 7 = 32","43 + 0 = 43","40 + 40 = 80","57 + 26 = 73"],answer:"57 + 26 = 73",hint:"57 + 26 is 83, not 73."},
+  {q:"Final: A zoo has 68 elephants and 23 giraffes. How many animals are there altogether?",options:["81","91","92","99"],answer:"91",hint:"Add 68 and 23.",final:true},
+  {q:"Final: I am a number with 5 tens and 3 ones. Add the greatest 1-digit number. What is the sum?",options:["60","61","62","63"],answer:"62",hint:"53 + 9 = 62.",final:true}
+];
+
+let current = 0, score = 0, attempts = 2, timeLeft = 60, timer;
+
+function startGame(){
+  document.getElementById("start").classList.remove("active");
+  document.getElementById("game").classList.add("active");
+  document.getElementById("total").textContent = questions.length;
+  loadQuestion();
+}
+
+function loadQuestion(){
+  clearInterval(timer);
+  attempts = 2;
+  timeLeft = 60;
+  document.getElementById("time").textContent = timeLeft;
+  document.getElementById("attempts").textContent = attempts;
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("feedback").className = "feedback";
+  document.getElementById("qnum").textContent = current + 1;
+
+  const q = questions[current];
+  document.getElementById("question").textContent = q.q;
+  document.getElementById("finalBadge").style.display = q.final ? "inline-block" : "none";
+
+  const optionsBox = document.getElementById("options");
+  optionsBox.innerHTML = "";
+  const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+  shuffledOptions.forEach(opt=>{
+    const div = document.createElement("div");
+    div.className = "option";
+    div.textContent = opt;
+    div.onclick = ()=>checkAnswer(opt, div);
+    optionsBox.appendChild(div);
+  });
+
+  updateProgress();
+  moveBalloon();
+  timer = setInterval(updateTimer,1000);
+}
+
+function updateTimer(){
+  timeLeft--;
+  document.getElementById("time").textContent = timeLeft;
+  if(timeLeft<=0){
+    clearInterval(timer);
+    showCorrect("Time is up!");
+  }
+}
+
+function checkAnswer(selected, element){
+  const q = questions[current];
+
+  if(selected === q.answer){
+    clearInterval(timer);
+    score++;
+    document.getElementById("score").textContent = score;
+    element.style.background = "#d7ffd9";
+    element.style.borderColor = "#34a853";
+    document.getElementById("feedback").textContent = "Correct! The balloon flies higher!";
+    document.getElementById("feedback").className = "feedback correct";
+    playSound("correctSound");
+    confetti();
+    setTimeout(nextQuestion,1200);
+  } else {
+    attempts--;
+    document.getElementById("attempts").textContent = attempts;
+    element.style.background = "#ffe0e0";
+    element.style.borderColor = "#d93025";
+    playSound("wrongSound");
+
+    if(attempts > 0){
+      document.getElementById("feedback").textContent = "Try again! Hint: " + q.hint;
+      document.getElementById("feedback").className = "feedback wrong";
+    } else {
+      clearInterval(timer);
+      showCorrect("Good try!");
+    }
+  }
+}
+
+function showCorrect(prefix){
+  const q = questions[current];
+  document.getElementById("feedback").textContent = `${prefix} Correct answer: ${q.answer}`;
+  document.getElementById("feedback").className = "feedback wrong";
+  setTimeout(nextQuestion,1800);
+}
+
+function nextQuestion(){
+  current++;
+  if(current >= questions.length){ endGame(); }
+  else{ loadQuestion(); }
+}
+
+function updateProgress(){
+  document.getElementById("progress").style.width = ((current / questions.length) * 100) + "%";
+}
+
+function moveBalloon(){
+  const percent = current / (questions.length - 1);
+  const left = 5 + percent * 65;
+  const bottom = 10 + percent * 70;
+  const balloon = document.getElementById("balloon");
+  balloon.style.left = left + "%";
+  balloon.style.bottom = bottom + "px";
+}
+
+function endGame(){
+  clearInterval(timer);
+  document.getElementById("game").classList.remove("active");
+  document.getElementById("result").classList.add("active");
+  document.getElementById("finalScore").textContent = `Your Score: ${score} / ${questions.length}`;
+
+  const percent = score / questions.length;
+  document.getElementById("resultStars").textContent = percent >= .85 ? "⭐⭐⭐" : percent >= .6 ? "⭐⭐" : "⭐";
+  document.getElementById("resultMsg").textContent =
+    percent >= .85 ? "Excellent! You are an Addition Sky Champion!" :
+    percent >= .6 ? "Good work! Practise a little more and try again." :
+    "Nice try! Replay the mission to strengthen your addition skills.";
+}
+
+function restartGame(){
+  clearInterval(timer);
+  current = 0;
+  score = 0;
+  attempts = 2;
+  document.getElementById("score").textContent = score;
+  document.getElementById("result").classList.remove("active");
+  document.getElementById("game").classList.add("active");
+  loadQuestion();
+}
+
+function playSound(id){
+  const sound = document.getElementById(id);
+  if(sound){
+    sound.currentTime = 0;
+    sound.play().catch(()=>{});
+  }
+}
+
+function confetti(){
+  for(let i=0;i<25;i++){
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = Math.random()*100 + "vw";
+    c.style.background = ["#fbbc04","#34a853","#4285f4","#ea4335","#ff69b4"][Math.floor(Math.random()*5)];
+    c.style.animationDelay = Math.random()*0.3 + "s";
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),2000);
+  }
+}
+</script>
+</body>
+</html>
