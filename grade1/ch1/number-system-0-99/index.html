@@ -1,1 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Train Number Journey</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Comic Sans MS',Arial,sans-serif;background:#bdeeff;color:#222;overflow-x:hidden}
+.screen{display:none;min-height:100vh;padding:18px;text-align:center}
+.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.card{background:rgba(255,255,255,.93);border-radius:24px;padding:22px;max-width:850px;width:95%;box-shadow:0 10px 25px rgba(0,0,0,.18)}
+.logo{max-width:150px;margin-bottom:12px}
+h1{color:#174ea6;font-size:clamp(28px,5vw,48px);margin:10px 0}
+h2{color:#0b8043;font-size:clamp(22px,4vw,34px)}
+button{border:0;border-radius:18px;padding:14px 24px;font-size:20px;font-weight:bold;cursor:pointer;background:#ffbf00;color:#4a2b00;box-shadow:0 5px 0 #c58b00;margin:8px}
+button:active{transform:translateY(3px);box-shadow:0 2px 0 #c58b00}
+.game-area{position:relative;min-height:100vh;background:url("assets/background.png") center/cover no-repeat;padding:12px;overflow:hidden}
+.cloud{position:absolute;width:150px;opacity:.9;animation:floatCloud 22s linear infinite}
+.cloud.one{top:30px;left:-160px}
+.cloud.two{top:90px;left:-300px;animation-delay:7s}
+@keyframes floatCloud{to{transform:translateX(130vw)}}
+.topbar{display:flex;gap:8px;justify-content:space-between;align-items:center;max-width:950px;margin:0 auto 8px;background:rgba(255,255,255,.9);border-radius:16px;padding:10px;font-weight:bold}
+.timer{color:#d93025}.score{color:#188038}.attempts{color:#174ea6}
+.progress-wrap{height:18px;background:#fff;border-radius:20px;overflow:hidden;max-width:950px;margin:8px auto}
+.progress{height:100%;width:0;background:linear-gradient(90deg,#34a853,#fbbc04);transition:.4s}
+.track-zone{position:relative;max-width:950px;height:170px;margin:5px auto}
+.track{position:absolute;bottom:0;left:0;width:100%;height:90px;object-fit:cover}
+.train{position:absolute;bottom:42px;left:2%;width:180px;transition:.5s ease}
+.question-card{max-width:850px;margin:10px auto;background:rgba(255,255,255,.95);border-radius:24px;padding:18px;box-shadow:0 8px 20px rgba(0,0,0,.2)}
+.qno{font-size:18px;color:#666}
+.question{font-size:clamp(22px,4vw,34px);font-weight:bold;margin:12px 0}
+.options{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.option{background:#fff;border:4px solid #74b9ff;border-radius:18px;padding:18px;font-size:24px;font-weight:bold;cursor:pointer;min-height:70px}
+.option:hover{background:#eaf6ff}
+.feedback{min-height:44px;font-size:20px;font-weight:bold;margin-top:10px}
+.correct{color:#188038}.wrong{color:#d93025}
+.final-badge{background:#ffef99;border:3px dashed #fbbc04;padding:8px 14px;border-radius:14px;display:inline-block;margin-bottom:8px;font-weight:bold}
+.result-stars{font-size:46px}
+@media(max-width:600px){
+.options{grid-template-columns:1fr}
+.train{width:135px}
+.track-zone{height:135px}
+.topbar{font-size:14px;flex-wrap:wrap;justify-content:center}
+}
+.confetti{position:fixed;width:10px;height:10px;top:-10px;animation:fall 1.8s linear forwards;z-index:99}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+</style>
+</head>
+<body>
 
+<section id="start" class="screen active">
+  <div class="card">
+    <img src="assets/logo.png" class="logo" onerror="this.style.display='none'">
+    <h1>🚂 Train Number Journey</h1>
+    <h2>Grade 1 Maths — Number System 0–99</h2>
+    <p>Help the number train move through Math Town by solving number challenges.</p>
+    <p><b>Rules:</b> You get 60 seconds and 2 attempts for each question.</p>
+    <button onclick="startGame()">Start Journey</button>
+  </div>
+</section>
+
+<section id="game" class="screen game-area">
+  <img src="assets/clouds.png" class="cloud one">
+  <img src="assets/clouds.png" class="cloud two">
+
+  <div class="topbar">
+    <div class="timer">⏱ Time: <span id="time">60</span>s</div>
+    <div class="score">⭐ Score: <span id="score">0</span></div>
+    <div class="attempts">🔁 Attempts Left: <span id="attempts">2</span></div>
+  </div>
+
+  <div class="progress-wrap"><div id="progress" class="progress"></div></div>
+
+  <div class="track-zone">
+    <img src="assets/track.png" class="track">
+    <img src="assets/train.png" id="train" class="train">
+  </div>
+
+  <div class="question-card">
+    <div id="finalBadge" class="final-badge" style="display:none;">Final Challenge</div>
+    <div class="qno">Question <span id="qnum">1</span> of <span id="total"></span></div>
+    <div id="question" class="question"></div>
+    <div id="options" class="options"></div>
+    <div id="feedback" class="feedback"></div>
+  </div>
+</section>
+
+<section id="result" class="screen">
+  <div class="card">
+    <img src="assets/stars.png" style="max-width:140px" onerror="this.style.display='none'">
+    <h1>Journey Complete!</h1>
+    <div id="resultStars" class="result-stars"></div>
+    <h2 id="finalScore"></h2>
+    <p id="resultMsg"></p>
+    <button onclick="restartGame()">Play Again</button>
+  </div>
+</section>
+
+<audio id="correctSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+
+<script>
+const questions = [
+  {
+    q:"The train has coach 21, 22, __, 24. Which coach is missing?",
+    options:["20","23","25","26"],
+    answer:"23",
+    hint:"Count forward one step at a time."
+  },
+  {
+    q:"Which number comes just before 38?",
+    options:["36","37","39","40"],
+    answer:"37",
+    hint:"Before means one less."
+  },
+  {
+    q:"Which number comes just after 49?",
+    options:["48","50","59","40"],
+    answer:"50",
+    hint:"After means one more."
+  },
+  {
+    q:"The coaches are 55, __, 57. Which number comes in between?",
+    options:["54","56","58","59"],
+    answer:"56",
+    hint:"In between means the middle number."
+  },
+  {
+    q:"Which is the greatest number?",
+    options:["45","54","39","50"],
+    answer:"54",
+    hint:"Compare the tens first."
+  },
+  {
+    q:"Which is the smallest number?",
+    options:["72","27","70","67"],
+    answer:"27",
+    hint:"The number with fewer tens is smaller."
+  },
+  {
+    q:"Choose the correct sign: 63 __ 36",
+    options:["<",">","=","+"],
+    answer:">",
+    hint:"63 is bigger than 36."
+  },
+  {
+    q:"Which order is ascending?",
+    options:["12, 18, 25","25, 18, 12","18, 12, 25","25, 12, 18"],
+    answer:"12, 18, 25",
+    hint:"Ascending means smallest to greatest."
+  },
+  {
+    q:"Which order is descending?",
+    options:["31, 42, 56","56, 42, 31","42, 56, 31","31, 56, 42"],
+    answer:"56, 42, 31",
+    hint:"Descending means greatest to smallest."
+  },
+  {
+    q:"A number has 4 tens and 6 ones. What is the number?",
+    options:["64","46","40","60"],
+    answer:"46",
+    hint:"4 tens = 40 and 6 ones = 6."
+  },
+  {
+    q:"Final: The train path is 70, 72, 74, __. What comes next?",
+    options:["75","76","77","78"],
+    answer:"76",
+    hint:"The numbers are increasing by 2.",
+    final:true
+  },
+  {
+    q:"Final: Which number sentence is correct?",
+    options:["91 > 99","45 = 54","82 < 28","67 > 57"],
+    answer:"67 > 57",
+    hint:"Compare tens first.",
+    final:true
+  }
+];
+
+let current = 0;
+let score = 0;
+let attempts = 2;
+let timeLeft = 60;
+let timer;
+
+const startScreen = document.getElementById("start");
+const gameScreen = document.getElementById("game");
+const resultScreen = document.getElementById("result");
+
+function startGame(){
+  startScreen.classList.remove("active");
+  gameScreen.classList.add("active");
+  document.getElementById("total").textContent = questions.length;
+  loadQuestion();
+}
+
+function loadQuestion(){
+  clearInterval(timer);
+  attempts = 2;
+  timeLeft = 60;
+
+  document.getElementById("time").textContent = timeLeft;
+  document.getElementById("attempts").textContent = attempts;
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("feedback").className = "feedback";
+  document.getElementById("qnum").textContent = current + 1;
+
+  const q = questions[current];
+  document.getElementById("question").textContent = q.q;
+  document.getElementById("finalBadge").style.display = q.final ? "inline-block" : "none";
+
+  const optionsBox = document.getElementById("options");
+  optionsBox.innerHTML = "";
+
+  const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+  shuffledOptions.forEach(opt=>{
+    const div = document.createElement("div");
+    div.className = "option";
+    div.textContent = opt;
+    div.onclick = ()=>checkAnswer(opt, div);
+    optionsBox.appendChild(div);
+  });
+
+  updateProgress();
+  moveTrain();
+
+  timer = setInterval(updateTimer,1000);
+}
+
+function updateTimer(){
+  timeLeft--;
+  document.getElementById("time").textContent = timeLeft;
+
+  if(timeLeft<=0){
+    clearInterval(timer);
+    showCorrect("Time is up!");
+  }
+}
+
+function checkAnswer(selected, element){
+  const q = questions[current];
+
+  if(selected === q.answer){
+    clearInterval(timer);
+    score++;
+    document.getElementById("score").textContent = score;
+
+    element.style.background = "#d7ffd9";
+    element.style.borderColor = "#34a853";
+
+    document.getElementById("feedback").textContent = "Correct! The train moves ahead!";
+    document.getElementById("feedback").className = "feedback correct";
+
+    playSound("correctSound");
+    confetti();
+
+    setTimeout(nextQuestion,1200);
+  } else {
+    attempts--;
+    document.getElementById("attempts").textContent = attempts;
+
+    element.style.background = "#ffe0e0";
+    element.style.borderColor = "#d93025";
+
+    playSound("wrongSound");
+
+    if(attempts > 0){
+      document.getElementById("feedback").textContent = "Try again! Hint: " + q.hint;
+      document.getElementById("feedback").className = "feedback wrong";
+    } else {
+      clearInterval(timer);
+      showCorrect("Good try!");
+    }
+  }
+}
+
+function showCorrect(prefix){
+  const q = questions[current];
+
+  document.getElementById("feedback").textContent = `${prefix} Correct answer: ${q.answer}`;
+  document.getElementById("feedback").className = "feedback wrong";
+
+  setTimeout(nextQuestion,1800);
+}
+
+function nextQuestion(){
+  current++;
+
+  if(current >= questions.length){
+    endGame();
+  } else {
+    loadQuestion();
+  }
+}
+
+function updateProgress(){
+  const percent = (current / questions.length) * 100;
+  document.getElementById("progress").style.width = percent + "%";
+}
+
+function moveTrain(){
+  const percent = (current / (questions.length - 1)) * 70;
+  document.getElementById("train").style.left = `${2 + percent}%`;
+}
+
+function endGame(){
+  clearInterval(timer);
+
+  gameScreen.classList.remove("active");
+  resultScreen.classList.add("active");
+
+  document.getElementById("finalScore").textContent = `Your Score: ${score} / ${questions.length}`;
+
+  let msg = "";
+  let stars = "";
+  const percent = score / questions.length;
+
+  if(percent >= .85){
+    msg = "Excellent! You are a Number Journey Champion!";
+    stars = "⭐⭐⭐";
+  } else if(percent >= .6){
+    msg = "Good work! Practise a little more and try again.";
+    stars = "⭐⭐";
+  } else {
+    msg = "Nice try! Replay the journey to strengthen your number skills.";
+    stars = "⭐";
+  }
+
+  document.getElementById("resultMsg").textContent = msg;
+  document.getElementById("resultStars").textContent = stars;
+}
+
+function restartGame(){
+  clearInterval(timer);
+
+  current = 0;
+  score = 0;
+  attempts = 2;
+
+  document.getElementById("score").textContent = score;
+
+  resultScreen.classList.remove("active");
+  gameScreen.classList.add("active");
+
+  loadQuestion();
+}
+
+function playSound(id){
+  const sound = document.getElementById(id);
+  if(sound){
+    sound.currentTime = 0;
+    sound.play().catch(()=>{});
+  }
+}
+
+function confetti(){
+  for(let i=0;i<25;i++){
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = Math.random()*100 + "vw";
+    c.style.background = ["#fbbc04","#34a853","#4285f4","#ea4335","#ff69b4"][Math.floor(Math.random()*5)];
+    c.style.animationDelay = Math.random()*0.3 + "s";
+    document.body.appendChild(c);
+
+    setTimeout(()=>c.remove(),2000);
+  }
+}
+</script>
+</body>
+</html>
