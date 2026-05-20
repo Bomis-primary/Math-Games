@@ -1,1 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Apple Basket Rescue</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Comic Sans MS',Arial,sans-serif;background:#d8f8d0;color:#222;overflow-x:hidden}
+.screen{display:none;min-height:100vh;padding:18px;text-align:center}
+.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.card{background:rgba(255,255,255,.94);border-radius:24px;padding:22px;max-width:850px;width:95%;box-shadow:0 10px 25px rgba(0,0,0,.18)}
+.logo{max-width:150px;margin-bottom:12px}
+h1{color:#c5221f;font-size:clamp(28px,5vw,48px);margin:10px 0}
+h2{color:#188038;font-size:clamp(22px,4vw,34px)}
+button{border:0;border-radius:18px;padding:14px 24px;font-size:20px;font-weight:bold;cursor:pointer;background:#ffbf00;color:#4a2b00;box-shadow:0 5px 0 #c58b00;margin:8px}
+button:active{transform:translateY(3px);box-shadow:0 2px 0 #c58b00}
 
+.game-area{position:relative;min-height:100vh;background:url("assets/apples-orchard.png") center/cover no-repeat;padding:12px;overflow:hidden}
+.cloud{position:absolute;width:150px;opacity:.9;animation:floatCloud 24s linear infinite}
+.cloud.one{top:30px;left:-160px}
+.cloud.two{top:100px;left:-320px;animation-delay:8s}
+@keyframes floatCloud{to{transform:translateX(130vw)}}
+
+.topbar{display:flex;gap:8px;justify-content:space-between;align-items:center;max-width:950px;margin:0 auto 8px;background:rgba(255,255,255,.92);border-radius:16px;padding:10px;font-weight:bold}
+.timer{color:#d93025}.score{color:#188038}.attempts{color:#174ea6}
+.progress-wrap{height:18px;background:#fff;border-radius:20px;overflow:hidden;max-width:950px;margin:8px auto}
+.progress{height:100%;width:0;background:linear-gradient(90deg,#34a853,#fbbc04);transition:.4s}
+
+.rescue-zone{position:relative;max-width:950px;height:220px;margin:5px auto}
+.basket{position:absolute;bottom:5px;left:5%;width:190px;transition:.6s ease;animation:bounceBasket 2.6s ease-in-out infinite}
+@keyframes bounceBasket{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+
+.falling-apple{position:absolute;font-size:36px;top:-50px;animation:appleFall 2.4s linear forwards;z-index:3}
+@keyframes appleFall{to{transform:translateY(260px) rotate(360deg);opacity:0}}
+
+.question-card{max-width:850px;margin:10px auto;background:rgba(255,255,255,.96);border-radius:24px;padding:18px;box-shadow:0 8px 20px rgba(0,0,0,.2)}
+.qno{font-size:18px;color:#666}
+.question{font-size:clamp(22px,4vw,34px);font-weight:bold;margin:12px 0}
+.options{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.option{background:#fff;border:4px solid #ff8a80;border-radius:18px;padding:18px;font-size:24px;font-weight:bold;cursor:pointer;min-height:70px}
+.option:hover{background:#fff1f0}
+.feedback{min-height:44px;font-size:20px;font-weight:bold;margin-top:10px}
+.correct{color:#188038}.wrong{color:#d93025}
+.final-badge{background:#ffef99;border:3px dashed #fbbc04;padding:8px 14px;border-radius:14px;display:inline-block;margin-bottom:8px;font-weight:bold}
+.result-stars{font-size:46px}
+
+@media(max-width:600px){
+.options{grid-template-columns:1fr}
+.basket{width:140px}
+.rescue-zone{height:170px}
+.topbar{font-size:14px;flex-wrap:wrap;justify-content:center}
+}
+.confetti{position:fixed;width:10px;height:10px;top:-10px;animation:fall 1.8s linear forwards;z-index:99}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+</style>
+</head>
+
+<body>
+
+<section id="start" class="screen active">
+  <div class="card">
+    <img src="assets/logo.png" class="logo" onerror="this.style.display='none'">
+    <h1>🍎 Apple Basket Rescue</h1>
+    <h2>Grade 1 Maths — Subtraction up to 20</h2>
+    <p>Help Raju save the apple baskets by solving subtraction challenges.</p>
+    <p><b>Rules:</b> You get 60 seconds and 2 attempts for each question.</p>
+    <button onclick="startGame()">Start Rescue</button>
+  </div>
+</section>
+
+<section id="game" class="screen game-area">
+  <img src="assets/clouds.png" class="cloud one">
+  <img src="assets/clouds.png" class="cloud two">
+
+  <div class="topbar">
+    <div class="timer">⏱ Time: <span id="time">60</span>s</div>
+    <div class="score">⭐ Score: <span id="score">0</span></div>
+    <div class="attempts">🔁 Attempts Left: <span id="attempts">2</span></div>
+  </div>
+
+  <div class="progress-wrap"><div id="progress" class="progress"></div></div>
+
+  <div class="rescue-zone" id="rescueZone">
+    <img src="assets/apples-basket.png" id="basket" class="basket">
+  </div>
+
+  <div class="question-card">
+    <div id="finalBadge" class="final-badge" style="display:none;">Final Challenge</div>
+    <div class="qno">Question <span id="qnum">1</span> of <span id="total"></span></div>
+    <div id="question" class="question"></div>
+    <div id="options" class="options"></div>
+    <div id="feedback" class="feedback"></div>
+  </div>
+</section>
+
+<section id="result" class="screen">
+  <div class="card">
+    <img src="assets/stars.png" style="max-width:140px" onerror="this.style.display='none'">
+    <h1>Rescue Complete!</h1>
+    <div id="resultStars" class="result-stars"></div>
+    <h2 id="finalScore"></h2>
+    <p id="resultMsg"></p>
+    <button onclick="restartGame()">Play Again</button>
+  </div>
+</section>
+
+<audio id="correctSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+
+<script>
+const questions = [
+  {
+    q:"Raju has 8 apples. He gives away 3 apples. How many apples are left?",
+    options:["4","5","6","7"],
+    answer:"5",
+    hint:"Take away 3 from 8."
+  },
+  {
+    q:"There are 7 flowers. 0 flowers are taken away. How many are left?",
+    options:["0","6","7","8"],
+    answer:"7",
+    hint:"Subtracting zero does not change the number."
+  },
+  {
+    q:"Start at 9 on a number line. Move 2 steps back. Where do you land?",
+    options:["6","7","8","11"],
+    answer:"7",
+    hint:"For subtraction, move left/backward."
+  },
+  {
+    q:"Which number is the predecessor of 14?",
+    options:["12","13","14","15"],
+    answer:"13",
+    hint:"Predecessor means one less."
+  },
+  {
+    q:"Which subtraction gives 0?",
+    options:["6 - 0","6 - 1","6 - 6","6 - 3"],
+    answer:"6 - 6",
+    hint:"A number minus itself is zero."
+  },
+  {
+    q:"Mia has 10 stickers. She uses 4 stickers. How many stickers remain?",
+    options:["5","6","7","8"],
+    answer:"6",
+    hint:"Subtract 4 from 10."
+  },
+  {
+    q:"Which sentence matches the story? 12 birds were on a tree. 2 flew away.",
+    options:["12 + 2 = 14","12 - 2 = 10","10 - 2 = 8","2 + 10 = 12"],
+    answer:"12 - 2 = 10",
+    hint:"Flew away means subtract."
+  },
+  {
+    q:"Which answer is correct? 18 - 6 =",
+    options:["10","11","12","13"],
+    answer:"12",
+    hint:"Subtract the ones: 8 - 6 = 2, keep 1 ten."
+  },
+  {
+    q:"Which subtraction statement is wrong?",
+    options:["9 - 4 = 5","8 - 0 = 8","7 - 7 = 1","10 - 3 = 7"],
+    answer:"7 - 7 = 1",
+    hint:"A number minus itself gives 0."
+  },
+  {
+    q:"A shopkeeper has ₹20. He gives ₹8 back as change. How much money is left with him?",
+    options:["₹10","₹11","₹12","₹13"],
+    answer:"₹12",
+    hint:"Subtract 8 from 20."
+  },
+  {
+    q:"Final: Anjali had 19 beads. She used 18 beads. How many beads are left?",
+    options:["0","1","2","3"],
+    answer:"1",
+    hint:"19 - 18 = 1.",
+    final:true
+  },
+  {
+    q:"Final: Sasha has 18 stickers. Akira has 10 fewer. How many stickers does Akira have?",
+    options:["6","7","8","9"],
+    answer:"8",
+    hint:"10 fewer means subtract 10.",
+    final:true
+  }
+];
+
+let current = 0;
+let score = 0;
+let attempts = 2;
+let timeLeft = 60;
+let timer;
+
+const startScreen = document.getElementById("start");
+const gameScreen = document.getElementById("game");
+const resultScreen = document.getElementById("result");
+
+function startGame(){
+  startScreen.classList.remove("active");
+  gameScreen.classList.add("active");
+  document.getElementById("total").textContent = questions.length;
+  loadQuestion();
+}
+
+function loadQuestion(){
+  clearInterval(timer);
+  attempts = 2;
+  timeLeft = 60;
+
+  document.getElementById("time").textContent = timeLeft;
+  document.getElementById("attempts").textContent = attempts;
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("feedback").className = "feedback";
+  document.getElementById("qnum").textContent = current + 1;
+
+  const q = questions[current];
+  document.getElementById("question").textContent = q.q;
+  document.getElementById("finalBadge").style.display = q.final ? "inline-block" : "none";
+
+  const optionsBox = document.getElementById("options");
+  optionsBox.innerHTML = "";
+
+  const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+  shuffledOptions.forEach(opt=>{
+    const div = document.createElement("div");
+    div.className = "option";
+    div.textContent = opt;
+    div.onclick = ()=>checkAnswer(opt, div);
+    optionsBox.appendChild(div);
+  });
+
+  updateProgress();
+  moveBasket();
+
+  timer = setInterval(updateTimer,1000);
+}
+
+function updateTimer(){
+  timeLeft--;
+  document.getElementById("time").textContent = timeLeft;
+
+  if(timeLeft<=0){
+    clearInterval(timer);
+    showCorrect("Time is up!");
+  }
+}
+
+function checkAnswer(selected, element){
+  const q = questions[current];
+
+  if(selected === q.answer){
+    clearInterval(timer);
+    score++;
+    document.getElementById("score").textContent = score;
+
+    element.style.background = "#d7ffd9";
+    element.style.borderColor = "#34a853";
+
+    document.getElementById("feedback").textContent = "Correct! The basket is safe!";
+    document.getElementById("feedback").className = "feedback correct";
+
+    playSound("correctSound");
+    confetti();
+    fallingApple();
+
+    setTimeout(nextQuestion,1200);
+  } else {
+    attempts--;
+    document.getElementById("attempts").textContent = attempts;
+
+    element.style.background = "#ffe0e0";
+    element.style.borderColor = "#d93025";
+
+    playSound("wrongSound");
+
+    if(attempts > 0){
+      document.getElementById("feedback").textContent = "Try again! Hint: " + q.hint;
+      document.getElementById("feedback").className = "feedback wrong";
+    } else {
+      clearInterval(timer);
+      showCorrect("Good try!");
+    }
+  }
+}
+
+function showCorrect(prefix){
+  const q = questions[current];
+
+  document.getElementById("feedback").textContent = `${prefix} Correct answer: ${q.answer}`;
+  document.getElementById("feedback").className = "feedback wrong";
+
+  setTimeout(nextQuestion,1800);
+}
+
+function nextQuestion(){
+  current++;
+
+  if(current >= questions.length){
+    endGame();
+  } else {
+    loadQuestion();
+  }
+}
+
+function updateProgress(){
+  const percent = (current / questions.length) * 100;
+  document.getElementById("progress").style.width = percent + "%";
+}
+
+function moveBasket(){
+  const percent = current / (questions.length - 1);
+  const left = 5 + percent * 65;
+  const basket = document.getElementById("basket");
+  basket.style.left = left + "%";
+}
+
+function endGame(){
+  clearInterval(timer);
+
+  gameScreen.classList.remove("active");
+  resultScreen.classList.add("active");
+
+  document.getElementById("finalScore").textContent = `Your Score: ${score} / ${questions.length}`;
+
+  let msg = "";
+  let stars = "";
+  const percent = score / questions.length;
+
+  if(percent >= .85){
+    msg = "Excellent! You are a Subtraction Rescue Champion!";
+    stars = "⭐⭐⭐";
+  } else if(percent >= .6){
+    msg = "Good work! Practise a little more and try again.";
+    stars = "⭐⭐";
+  } else {
+    msg = "Nice try! Replay the rescue to strengthen your subtraction skills.";
+    stars = "⭐";
+  }
+
+  document.getElementById("resultMsg").textContent = msg;
+  document.getElementById("resultStars").textContent = stars;
+}
+
+function restartGame(){
+  clearInterval(timer);
+
+  current = 0;
+  score = 0;
+  attempts = 2;
+
+  document.getElementById("score").textContent = score;
+
+  resultScreen.classList.remove("active");
+  gameScreen.classList.add("active");
+
+  loadQuestion();
+}
+
+function playSound(id){
+  const sound = document.getElementById(id);
+  if(sound){
+    sound.currentTime = 0;
+    sound.play().catch(()=>{});
+  }
+}
+
+function confetti(){
+  for(let i=0;i<25;i++){
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = Math.random()*100 + "vw";
+    c.style.background = ["#fbbc04","#34a853","#4285f4","#ea4335","#ff69b4"][Math.floor(Math.random()*5)];
+    c.style.animationDelay = Math.random()*0.3 + "s";
+    document.body.appendChild(c);
+
+    setTimeout(()=>c.remove(),2000);
+  }
+}
+
+function fallingApple(){
+  const zone = document.getElementById("rescueZone");
+  const apple = document.createElement("div");
+  apple.className = "falling-apple";
+  apple.textContent = "🍎";
+  apple.style.left = Math.random() * 85 + "%";
+  zone.appendChild(apple);
+  setTimeout(()=>apple.remove(),2500);
+}
+</script>
+</body>
+</html>
