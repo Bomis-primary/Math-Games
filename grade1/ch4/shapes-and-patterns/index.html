@@ -1,1 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shape Sorting Factory</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Comic Sans MS',Arial,sans-serif;background:#dff3ff;color:#222;overflow-x:hidden}
+.screen{display:none;min-height:100vh;padding:18px;text-align:center}
+.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.card{background:rgba(255,255,255,.94);border-radius:24px;padding:22px;max-width:850px;width:95%;box-shadow:0 10px 25px rgba(0,0,0,.18)}
+.logo{max-width:150px;margin-bottom:12px}
+h1{color:#174ea6;font-size:clamp(28px,5vw,48px);margin:10px 0}
+h2{color:#0b8043;font-size:clamp(22px,4vw,34px)}
+button{border:0;border-radius:18px;padding:14px 24px;font-size:20px;font-weight:bold;cursor:pointer;background:#ffbf00;color:#4a2b00;box-shadow:0 5px 0 #c58b00;margin:8px}
+button:active{transform:translateY(3px);box-shadow:0 2px 0 #c58b00}
+.game-area{position:relative;min-height:100vh;background:url("assets/factory-bg.png") center/cover no-repeat;padding:12px;overflow:hidden}
+.cloud{position:absolute;width:140px;opacity:.8;animation:floatCloud 24s linear infinite}
+.cloud.one{top:25px;left:-160px}
+.cloud.two{top:90px;left:-320px;animation-delay:8s}
+@keyframes floatCloud{to{transform:translateX(130vw)}}
+.topbar{display:flex;gap:8px;justify-content:space-between;align-items:center;max-width:950px;margin:0 auto 8px;background:rgba(255,255,255,.92);border-radius:16px;padding:10px;font-weight:bold}
+.timer{color:#d93025}.score{color:#188038}.attempts{color:#174ea6}
+.progress-wrap{height:18px;background:#fff;border-radius:20px;overflow:hidden;max-width:950px;margin:8px auto}
+.progress{height:100%;width:0;background:linear-gradient(90deg,#4285f4,#34a853,#fbbc04);transition:.4s}
+.factory-zone{position:relative;max-width:950px;height:210px;margin:5px auto}
+.machine{position:absolute;bottom:0;left:4%;width:180px;transition:.5s ease;animation:pulse 2.5s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+.conveyor{position:absolute;bottom:15px;left:240px;right:20px;height:55px;background:repeating-linear-gradient(90deg,#333 0 35px,#444 35px 70px);border:6px solid #0b57d0;border-radius:18px;box-shadow:0 6px 0 #063b8e}
+.shape-item{position:absolute;bottom:88px;left:50%;font-size:58px;animation:slideShape 4s linear infinite}
+@keyframes slideShape{0%{transform:translateX(-260px)}100%{transform:translateX(260px)}}
+.question-card{max-width:850px;margin:10px auto;background:rgba(255,255,255,.96);border-radius:24px;padding:18px;box-shadow:0 8px 20px rgba(0,0,0,.2)}
+.qno{font-size:18px;color:#666}
+.question{font-size:clamp(22px,4vw,34px);font-weight:bold;margin:12px 0}
+.options{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.option{background:#fff;border:4px solid #74b9ff;border-radius:18px;padding:18px;font-size:22px;font-weight:bold;cursor:pointer;min-height:70px}
+.option:hover{background:#eaf6ff}
+.feedback{min-height:44px;font-size:20px;font-weight:bold;margin-top:10px}
+.correct{color:#188038}.wrong{color:#d93025}
+.final-badge{background:#ffef99;border:3px dashed #fbbc04;padding:8px 14px;border-radius:14px;display:inline-block;margin-bottom:8px;font-weight:bold}
+.result-stars{font-size:46px}
+@media(max-width:600px){
+.options{grid-template-columns:1fr}
+.machine{width:125px}
+.conveyor{left:150px;height:45px}
+.factory-zone{height:160px}
+.shape-item{font-size:42px;bottom:75px}
+.topbar{font-size:14px;flex-wrap:wrap;justify-content:center}
+}
+.confetti{position:fixed;width:10px;height:10px;top:-10px;animation:fall 1.8s linear forwards;z-index:99}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+</style>
+</head>
 
+<body>
+
+<section id="start" class="screen active">
+  <div class="card">
+    <img src="assets/logo.png" class="logo" onerror="this.style.display='none'">
+    <h1>🏭 Shape Sorting Factory</h1>
+    <h2>Grade 1 Maths — Shapes and Patterns</h2>
+    <p>Help the factory sort shapes, patterns, and moving objects correctly.</p>
+    <p><b>Rules:</b> You get 60 seconds and 2 attempts for each question.</p>
+    <button onclick="startGame()">Start Factory</button>
+  </div>
+</section>
+
+<section id="game" class="screen game-area">
+  <img src="assets/clouds.png" class="cloud one">
+  <img src="assets/clouds.png" class="cloud two">
+
+  <div class="topbar">
+    <div class="timer">⏱ Time: <span id="time">60</span>s</div>
+    <div class="score">⭐ Score: <span id="score">0</span></div>
+    <div class="attempts">🔁 Attempts Left: <span id="attempts">2</span></div>
+  </div>
+
+  <div class="progress-wrap"><div id="progress" class="progress"></div></div>
+
+  <div class="factory-zone">
+    <img src="assets/shape-machine.png" id="machine" class="machine">
+    <div class="conveyor"></div>
+    <div id="shapeItem" class="shape-item">🔵</div>
+  </div>
+
+  <div class="question-card">
+    <div id="finalBadge" class="final-badge" style="display:none;">Final Challenge</div>
+    <div class="qno">Question <span id="qnum">1</span> of <span id="total"></span></div>
+    <div id="question" class="question"></div>
+    <div id="options" class="options"></div>
+    <div id="feedback" class="feedback"></div>
+  </div>
+</section>
+
+<section id="result" class="screen">
+  <div class="card">
+    <img src="assets/stars.png" style="max-width:140px" onerror="this.style.display='none'">
+    <h1>Factory Complete!</h1>
+    <div id="resultStars" class="result-stars"></div>
+    <h2 id="finalScore"></h2>
+    <p id="resultMsg"></p>
+    <button onclick="restartGame()">Play Again</button>
+  </div>
+</section>
+
+<audio id="correctSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+
+<script>
+const questions = [
+  {icon:"🔴",q:"This shape is round and has no corners. Which shape is it?",options:["Circle","Square","Triangle","Rectangle"],answer:"Circle",hint:"A circle is round."},
+  {icon:"🔺",q:"Which shape has 3 sides and 3 corners?",options:["Circle","Triangle","Square","Oval"],answer:"Triangle",hint:"Tri means three."},
+  {icon:"🟨",q:"Which object is shaped like a square?",options:["Coin","Dice","Ball","Bottle"],answer:"Dice",hint:"A square has four equal sides."},
+  {icon:"▭",q:"A door looks like which shape?",options:["Circle","Triangle","Rectangle","Oval"],answer:"Rectangle",hint:"A rectangle has two long and two short sides."},
+  {icon:"⚽",q:"Which object can roll?",options:["Book","Box","Ball","Ruler"],answer:"Ball",hint:"Round objects can roll."},
+  {icon:"📦",q:"Which object mostly slides?",options:["Football","Marble","Box","Orange"],answer:"Box",hint:"Flat surfaces slide."},
+  {icon:"🔷",q:"Which is a 3D shape?",options:["Circle","Square","Cube","Triangle"],answer:"Cube",hint:"A cube is solid and can be held."},
+  {icon:"🔁",q:"Complete the pattern: Circle, Square, Circle, Square, __",options:["Circle","Triangle","Rectangle","Oval"],answer:"Circle",hint:"The pattern repeats circle, square."},
+  {icon:"🔁",q:"Complete the number pattern: 3, 6, 9, 12, __",options:["13","14","15","16"],answer:"15",hint:"Add 3 each time."},
+  {icon:"❓",q:"Which one does NOT belong?",options:["Circle","Square","Triangle","Apple"],answer:"Apple",hint:"Three are shapes, one is a fruit."},
+  {icon:"🔁",q:"Final: Complete the pattern: A, Z, A, Z, A, __",options:["A","B","Y","Z"],answer:"Z",hint:"The letters repeat A, Z.",final:true},
+  {icon:"🧠",q:"Final: Which object can both roll and slide?",options:["Cone","Book","Ruler","Notebook"],answer:"Cone",hint:"A cone has a curved surface and a flat surface.",final:true}
+];
+
+let current = 0, score = 0, attempts = 2, timeLeft = 60, timer;
+
+function startGame(){
+  document.getElementById("start").classList.remove("active");
+  document.getElementById("game").classList.add("active");
+  document.getElementById("total").textContent = questions.length;
+  loadQuestion();
+}
+
+function loadQuestion(){
+  clearInterval(timer);
+  attempts = 2;
+  timeLeft = 60;
+  document.getElementById("time").textContent = timeLeft;
+  document.getElementById("attempts").textContent = attempts;
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("feedback").className = "feedback";
+  document.getElementById("qnum").textContent = current + 1;
+
+  const q = questions[current];
+  document.getElementById("question").textContent = q.q;
+  document.getElementById("shapeItem").textContent = q.icon;
+  document.getElementById("finalBadge").style.display = q.final ? "inline-block" : "none";
+
+  const optionsBox = document.getElementById("options");
+  optionsBox.innerHTML = "";
+  const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+  shuffledOptions.forEach(opt=>{
+    const div = document.createElement("div");
+    div.className = "option";
+    div.textContent = opt;
+    div.onclick = ()=>checkAnswer(opt, div);
+    optionsBox.appendChild(div);
+  });
+
+  updateProgress();
+  moveMachine();
+  timer = setInterval(updateTimer,1000);
+}
+
+function updateTimer(){
+  timeLeft--;
+  document.getElementById("time").textContent = timeLeft;
+  if(timeLeft<=0){
+    clearInterval(timer);
+    showCorrect("Time is up!");
+  }
+}
+
+function checkAnswer(selected, element){
+  const q = questions[current];
+  if(selected === q.answer){
+    clearInterval(timer);
+    score++;
+    document.getElementById("score").textContent = score;
+    element.style.background = "#d7ffd9";
+    element.style.borderColor = "#34a853";
+    document.getElementById("feedback").textContent = "Correct! The factory machine is powered!";
+    document.getElementById("feedback").className = "feedback correct";
+    playSound("correctSound");
+    confetti();
+    setTimeout(nextQuestion,1200);
+  } else {
+    attempts--;
+    document.getElementById("attempts").textContent = attempts;
+    element.style.background = "#ffe0e0";
+    element.style.borderColor = "#d93025";
+    playSound("wrongSound");
+    if(attempts > 0){
+      document.getElementById("feedback").textContent = "Try again! Hint: " + q.hint;
+      document.getElementById("feedback").className = "feedback wrong";
+    } else {
+      clearInterval(timer);
+      showCorrect("Good try!");
+    }
+  }
+}
+
+function showCorrect(prefix){
+  const q = questions[current];
+  document.getElementById("feedback").textContent = `${prefix} Correct answer: ${q.answer}`;
+  document.getElementById("feedback").className = "feedback wrong";
+  setTimeout(nextQuestion,1800);
+}
+
+function nextQuestion(){
+  current++;
+  if(current >= questions.length){ endGame(); }
+  else{ loadQuestion(); }
+}
+
+function updateProgress(){
+  document.getElementById("progress").style.width = ((current / questions.length) * 100) + "%";
+}
+
+function moveMachine(){
+  const percent = current / (questions.length - 1);
+  document.getElementById("machine").style.left = (4 + percent * 12) + "%";
+}
+
+function endGame(){
+  clearInterval(timer);
+  document.getElementById("game").classList.remove("active");
+  document.getElementById("result").classList.add("active");
+  document.getElementById("finalScore").textContent = `Your Score: ${score} / ${questions.length}`;
+
+  const percent = score / questions.length;
+  document.getElementById("resultStars").textContent = percent >= .85 ? "⭐⭐⭐" : percent >= .6 ? "⭐⭐" : "⭐";
+  document.getElementById("resultMsg").textContent =
+    percent >= .85 ? "Excellent! You are a Shape Sorting Champion!" :
+    percent >= .6 ? "Good work! Practise a little more and try again." :
+    "Nice try! Replay the factory to strengthen your shape skills.";
+}
+
+function restartGame(){
+  clearInterval(timer);
+  current = 0;
+  score = 0;
+  attempts = 2;
+  document.getElementById("score").textContent = score;
+  document.getElementById("result").classList.remove("active");
+  document.getElementById("game").classList.add("active");
+  loadQuestion();
+}
+
+function playSound(id){
+  const sound = document.getElementById(id);
+  if(sound){
+    sound.currentTime = 0;
+    sound.play().catch(()=>{});
+  }
+}
+
+function confetti(){
+  for(let i=0;i<25;i++){
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = Math.random()*100 + "vw";
+    c.style.background = ["#fbbc04","#34a853","#4285f4","#ea4335","#ff69b4"][Math.floor(Math.random()*5)];
+    c.style.animationDelay = Math.random()*0.3 + "s";
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),2000);
+  }
+}
+</script>
+</body>
+</html>
