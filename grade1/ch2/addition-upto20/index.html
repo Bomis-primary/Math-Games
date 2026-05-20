@@ -1,1 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Balloon Addition Adventure</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Comic Sans MS',Arial,sans-serif;background:#bdeeff;color:#222;overflow-x:hidden}
+.screen{display:none;min-height:100vh;padding:18px;text-align:center}
+.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.card{background:rgba(255,255,255,.94);border-radius:24px;padding:22px;max-width:850px;width:95%;box-shadow:0 10px 25px rgba(0,0,0,.18)}
+.logo{max-width:150px;margin-bottom:12px}
+h1{color:#d9307f;font-size:clamp(28px,5vw,48px);margin:10px 0}
+h2{color:#0b8043;font-size:clamp(22px,4vw,34px)}
+button{border:0;border-radius:18px;padding:14px 24px;font-size:20px;font-weight:bold;cursor:pointer;background:#ffbf00;color:#4a2b00;box-shadow:0 5px 0 #c58b00;margin:8px}
+button:active{transform:translateY(3px);box-shadow:0 2px 0 #c58b00}
 
+.game-area{position:relative;min-height:100vh;background:url("assets/sky-bg.png") center/cover no-repeat;padding:12px;overflow:hidden}
+.cloud{position:absolute;width:150px;opacity:.9;animation:floatCloud 24s linear infinite}
+.cloud.one{top:30px;left:-160px}
+.cloud.two{top:100px;left:-320px;animation-delay:8s}
+@keyframes floatCloud{to{transform:translateX(130vw)}}
+
+.topbar{display:flex;gap:8px;justify-content:space-between;align-items:center;max-width:950px;margin:0 auto 8px;background:rgba(255,255,255,.92);border-radius:16px;padding:10px;font-weight:bold}
+.timer{color:#d93025}.score{color:#188038}.attempts{color:#174ea6}
+.progress-wrap{height:18px;background:#fff;border-radius:20px;overflow:hidden;max-width:950px;margin:8px auto}
+.progress{height:100%;width:0;background:linear-gradient(90deg,#ff69b4,#fbbc04);transition:.4s}
+
+.flight-zone{position:relative;max-width:950px;height:220px;margin:5px auto}
+.balloon{position:absolute;bottom:10px;left:5%;width:145px;transition:.6s ease;animation:floatBalloon 3s ease-in-out infinite}
+@keyframes floatBalloon{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+
+.question-card{max-width:850px;margin:10px auto;background:rgba(255,255,255,.96);border-radius:24px;padding:18px;box-shadow:0 8px 20px rgba(0,0,0,.2)}
+.qno{font-size:18px;color:#666}
+.question{font-size:clamp(22px,4vw,34px);font-weight:bold;margin:12px 0}
+.options{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.option{background:#fff;border:4px solid #ff9bd2;border-radius:18px;padding:18px;font-size:24px;font-weight:bold;cursor:pointer;min-height:70px}
+.option:hover{background:#fff0fa}
+.feedback{min-height:44px;font-size:20px;font-weight:bold;margin-top:10px}
+.correct{color:#188038}.wrong{color:#d93025}
+.final-badge{background:#ffef99;border:3px dashed #fbbc04;padding:8px 14px;border-radius:14px;display:inline-block;margin-bottom:8px;font-weight:bold}
+.result-stars{font-size:46px}
+
+@media(max-width:600px){
+.options{grid-template-columns:1fr}
+.balloon{width:115px}
+.flight-zone{height:170px}
+.topbar{font-size:14px;flex-wrap:wrap;justify-content:center}
+}
+.confetti{position:fixed;width:10px;height:10px;top:-10px;animation:fall 1.8s linear forwards;z-index:99}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+</style>
+</head>
+
+<body>
+
+<section id="start" class="screen active">
+  <div class="card">
+    <img src="assets/logo.png" class="logo" onerror="this.style.display='none'">
+    <h1>🎈 Balloon Addition Adventure</h1>
+    <h2>Grade 1 Maths — Addition up to 20</h2>
+    <p>Help the balloon rise higher by solving addition challenges.</p>
+    <p><b>Rules:</b> You get 60 seconds and 2 attempts for each question.</p>
+    <button onclick="startGame()">Start Adventure</button>
+  </div>
+</section>
+
+<section id="game" class="screen game-area">
+  <img src="assets/clouds.png" class="cloud one">
+  <img src="assets/clouds.png" class="cloud two">
+
+  <div class="topbar">
+    <div class="timer">⏱ Time: <span id="time">60</span>s</div>
+    <div class="score">⭐ Score: <span id="score">0</span></div>
+    <div class="attempts">🔁 Attempts Left: <span id="attempts">2</span></div>
+  </div>
+
+  <div class="progress-wrap"><div id="progress" class="progress"></div></div>
+
+  <div class="flight-zone">
+    <img src="assets/balloon.png" id="balloon" class="balloon">
+  </div>
+
+  <div class="question-card">
+    <div id="finalBadge" class="final-badge" style="display:none;">Final Challenge</div>
+    <div class="qno">Question <span id="qnum">1</span> of <span id="total"></span></div>
+    <div id="question" class="question"></div>
+    <div id="options" class="options"></div>
+    <div id="feedback" class="feedback"></div>
+  </div>
+</section>
+
+<section id="result" class="screen">
+  <div class="card">
+    <img src="assets/stars.png" style="max-width:140px" onerror="this.style.display='none'">
+    <h1>Adventure Complete!</h1>
+    <div id="resultStars" class="result-stars"></div>
+    <h2 id="finalScore"></h2>
+    <p id="resultMsg"></p>
+    <button onclick="restartGame()">Play Again</button>
+  </div>
+</section>
+
+<audio id="correctSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+
+<script>
+const questions = [
+  {
+    q:"Reena has 3 balloons. Prachi gives her 2 more. How many balloons does Reena have now?",
+    options:["4","5","6","7"],
+    answer:"5",
+    hint:"Put 3 and 2 together."
+  },
+  {
+    q:"The basket has 6 apples. 0 more apples are added. How many apples are there?",
+    options:["0","5","6","7"],
+    answer:"6",
+    hint:"Adding zero does not change the number."
+  },
+  {
+    q:"Start at 5 on a number line. Jump 3 steps forward. Where do you land?",
+    options:["7","8","9","10"],
+    answer:"8",
+    hint:"Count 3 steps after 5."
+  },
+  {
+    q:"Which sum gives 9?",
+    options:["4 + 5","3 + 3","6 + 4","2 + 5"],
+    answer:"4 + 5",
+    hint:"Find the pair that makes 9."
+  },
+  {
+    q:"Which is the successor of 12?",
+    options:["11","12","13","14"],
+    answer:"13",
+    hint:"Successor means one more."
+  },
+  {
+    q:"Mia has 7 stars. She gets 3 more. How many stars in all?",
+    options:["9","10","11","12"],
+    answer:"10",
+    hint:"Add 7 and 3."
+  },
+  {
+    q:"Which vertical addition answer is correct? 8 + 2 =",
+    options:["9","10","11","12"],
+    answer:"10",
+    hint:"8 plus 2 makes a ten."
+  },
+  {
+    q:"A box has 4 red balls, 3 blue balls and 2 yellow balls. How many balls altogether?",
+    options:["8","9","10","11"],
+    answer:"9",
+    hint:"Add 4 + 3 + 2."
+  },
+  {
+    q:"Which number sentence matches the story? 5 cats sit. 4 more cats come.",
+    options:["5 - 4 = 1","5 + 4 = 9","4 - 5 = 1","5 + 5 = 10"],
+    answer:"5 + 4 = 9",
+    hint:"More cats come, so we add."
+  },
+  {
+    q:"Which sum is wrong?",
+    options:["3 + 4 = 7","6 + 2 = 8","5 + 5 = 9","9 + 0 = 9"],
+    answer:"5 + 5 = 9",
+    hint:"5 and 5 make 10."
+  },
+  {
+    q:"Final: Riya buys a pencil for ₹4 and an eraser for ₹5. How much does she pay?",
+    options:["₹7","₹8","₹9","₹10"],
+    answer:"₹9",
+    hint:"Add ₹4 and ₹5.",
+    final:true
+  },
+  {
+    q:"Final: Which three numbers make 15?",
+    options:["5 + 5 + 5","4 + 4 + 4","6 + 6 + 6","7 + 3 + 2"],
+    answer:"5 + 5 + 5",
+    hint:"Add each option carefully.",
+    final:true
+  }
+];
+
+let current = 0;
+let score = 0;
+let attempts = 2;
+let timeLeft = 60;
+let timer;
+
+const startScreen = document.getElementById("start");
+const gameScreen = document.getElementById("game");
+const resultScreen = document.getElementById("result");
+
+function startGame(){
+  startScreen.classList.remove("active");
+  gameScreen.classList.add("active");
+  document.getElementById("total").textContent = questions.length;
+  loadQuestion();
+}
+
+function loadQuestion(){
+  clearInterval(timer);
+  attempts = 2;
+  timeLeft = 60;
+
+  document.getElementById("time").textContent = timeLeft;
+  document.getElementById("attempts").textContent = attempts;
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("feedback").className = "feedback";
+  document.getElementById("qnum").textContent = current + 1;
+
+  const q = questions[current];
+  document.getElementById("question").textContent = q.q;
+  document.getElementById("finalBadge").style.display = q.final ? "inline-block" : "none";
+
+  const optionsBox = document.getElementById("options");
+  optionsBox.innerHTML = "";
+
+  const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+  shuffledOptions.forEach(opt=>{
+    const div = document.createElement("div");
+    div.className = "option";
+    div.textContent = opt;
+    div.onclick = ()=>checkAnswer(opt, div);
+    optionsBox.appendChild(div);
+  });
+
+  updateProgress();
+  moveBalloon();
+
+  timer = setInterval(updateTimer,1000);
+}
+
+function updateTimer(){
+  timeLeft--;
+  document.getElementById("time").textContent = timeLeft;
+
+  if(timeLeft<=0){
+    clearInterval(timer);
+    showCorrect("Time is up!");
+  }
+}
+
+function checkAnswer(selected, element){
+  const q = questions[current];
+
+  if(selected === q.answer){
+    clearInterval(timer);
+    score++;
+    document.getElementById("score").textContent = score;
+
+    element.style.background = "#d7ffd9";
+    element.style.borderColor = "#34a853";
+
+    document.getElementById("feedback").textContent = "Correct! The balloon rises higher!";
+    document.getElementById("feedback").className = "feedback correct";
+
+    playSound("correctSound");
+    confetti();
+
+    setTimeout(nextQuestion,1200);
+  } else {
+    attempts--;
+    document.getElementById("attempts").textContent = attempts;
+
+    element.style.background = "#ffe0e0";
+    element.style.borderColor = "#d93025";
+
+    playSound("wrongSound");
+
+    if(attempts > 0){
+      document.getElementById("feedback").textContent = "Try again! Hint: " + q.hint;
+      document.getElementById("feedback").className = "feedback wrong";
+    } else {
+      clearInterval(timer);
+      showCorrect("Good try!");
+    }
+  }
+}
+
+function showCorrect(prefix){
+  const q = questions[current];
+
+  document.getElementById("feedback").textContent = `${prefix} Correct answer: ${q.answer}`;
+  document.getElementById("feedback").className = "feedback wrong";
+
+  setTimeout(nextQuestion,1800);
+}
+
+function nextQuestion(){
+  current++;
+
+  if(current >= questions.length){
+    endGame();
+  } else {
+    loadQuestion();
+  }
+}
+
+function updateProgress(){
+  const percent = (current / questions.length) * 100;
+  document.getElementById("progress").style.width = percent + "%";
+}
+
+function moveBalloon(){
+  const percent = current / (questions.length - 1);
+  const left = 5 + percent * 65;
+  const bottom = 10 + percent * 70;
+  const balloon = document.getElementById("balloon");
+  balloon.style.left = left + "%";
+  balloon.style.bottom = bottom + "px";
+}
+
+function endGame(){
+  clearInterval(timer);
+
+  gameScreen.classList.remove("active");
+  resultScreen.classList.add("active");
+
+  document.getElementById("finalScore").textContent = `Your Score: ${score} / ${questions.length}`;
+
+  let msg = "";
+  let stars = "";
+  const percent = score / questions.length;
+
+  if(percent >= .85){
+    msg = "Excellent! You are an Addition Adventure Champion!";
+    stars = "⭐⭐⭐";
+  } else if(percent >= .6){
+    msg = "Good work! Practise a little more and try again.";
+    stars = "⭐⭐";
+  } else {
+    msg = "Nice try! Replay the adventure to strengthen your addition skills.";
+    stars = "⭐";
+  }
+
+  document.getElementById("resultMsg").textContent = msg;
+  document.getElementById("resultStars").textContent = stars;
+}
+
+function restartGame(){
+  clearInterval(timer);
+
+  current = 0;
+  score = 0;
+  attempts = 2;
+
+  document.getElementById("score").textContent = score;
+
+  resultScreen.classList.remove("active");
+  gameScreen.classList.add("active");
+
+  loadQuestion();
+}
+
+function playSound(id){
+  const sound = document.getElementById(id);
+  if(sound){
+    sound.currentTime = 0;
+    sound.play().catch(()=>{});
+  }
+}
+
+function confetti(){
+  for(let i=0;i<25;i++){
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = Math.random()*100 + "vw";
+    c.style.background = ["#fbbc04","#34a853","#4285f4","#ea4335","#ff69b4"][Math.floor(Math.random()*5)];
+    c.style.animationDelay = Math.random()*0.3 + "s";
+    document.body.appendChild(c);
+
+    setTimeout(()=>c.remove(),2000);
+  }
+}
+</script>
+</body>
+</html>
