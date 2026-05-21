@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Addition Adventure - Grade 4</title>
+<style>
+body {
+  font-family: Arial;
+  margin: 0;
+  text-align: center;
+  background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+  overflow:hidden;
+}
+
+/* Animated math background */
+.bg-symbol {
+  position: absolute;
+  font-size: 40px;
+  opacity: 0.15;
+  animation: float 12s linear infinite;
+}
+
+@keyframes float {
+  0% { transform: translateY(100vh) rotate(0deg); }
+  100% { transform: translateY(-10vh) rotate(360deg); }
+}
+
+.container { padding: 12px; position:relative; z-index:1; }
+button { padding: 10px 16px; margin: 6px; font-size: 15px; border-radius: 10px; }
+input { padding: 10px; font-size: 15px; }
+.card { background:#ffffffee; backdrop-filter: blur(6px); border-radius:12px; padding:10px; margin:8px auto; max-width:520px; box-shadow:0 4px 10px rgba(0,0,0,0.15);} 
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>➕ Addition Adventure</h1>
+
+<div id="start" class="card">
+<input id="playerName" placeholder="Enter student name"><br>
+<button onclick="startGame()">Start Game</button>
+</div>
+
+<div id="game" class="card" style="display:none;">
+<h3 id="levelTitle"></h3>
+<p>Question <span id="qNum">1</span> of 3</p>
+<p id="question"></p>
+<input id="answer"><br>
+<button onclick="submitAnswer()">Submit</button>
+<button onclick="showHint()">Hint</button>
+<p id="feedback"></p>
+<p id="hintBox"></p>
+</div>
+</div>
+
+<script>
+let level=1, score=0, correctAnswer=0;
+let attempts=0;
+let aVal=0,bVal=0;
+let questionCount=1;
+
+// create animated background symbols
+function createBackground(){
+const symbols = ['+', '➕', '✚'];
+for(let i=0;i<20;i++){
+let el=document.createElement('div');
+el.className='bg-symbol';
+el.innerText=symbols[Math.floor(Math.random()*symbols.length)];
+el.style.left=Math.random()*100+'vw';
+el.style.animationDuration=(8+Math.random()*10)+'s';
+el.style.fontSize=(20+Math.random()*40)+'px';
+document.body.appendChild(el);
+}
+}
+createBackground();
+
+function startGame(){
+document.getElementById('start').style.display='none';
+document.getElementById('game').style.display='block';
+loadQuestion();
+}
+
+function getNumbers(){
+let a = Math.floor(Math.random()*9000)+1000;
+let b = Math.floor(Math.random()*9000)+1000;
+return {a,b};
+}
+
+function loadQuestion(){
+attempts=0;
+document.getElementById('feedback').innerText='';
+document.getElementById('hintBox').innerText='';
+document.getElementById('qNum').innerText=questionCount;
+
+let {a,b}=getNumbers();
+aVal=a; bVal=b;
+correctAnswer = a+b;
+
+if(level===1){
+document.getElementById('levelTitle').innerText='Level 1';
+document.getElementById('question').innerText=`${a} + ${b} = ?`;
+}
+else if(level===2){
+document.getElementById('levelTitle').innerText='Level 2';
+document.getElementById('question').innerText=`A library has ${a} books and buys ${b} more. Total books?`;
+}
+else if(level===3){
+document.getElementById('levelTitle').innerText='Level 3';
+document.getElementById('question').innerText=`? + ${b} = ${a+b}`;
+correctAnswer=a;
+}
+else{
+let wrong=a+b+Math.floor(Math.random()*50+10);
+document.getElementById('levelTitle').innerText='Level 4';
+document.getElementById('question').innerText=`${a} + ${b} = ${wrong}. Correct? (yes/no)`;
+correctAnswer='no';
+}
+}
+
+function showHint(){
+document.getElementById('hintBox').innerText = "💡 Add from ones → tens → hundreds → thousands.";
+}
+
+function submitAnswer(){
+let userAns=document.getElementById('answer').value;
+let correct=false;
+attempts++;
+
+if(level===4) correct=(userAns.toLowerCase()==='no');
+else correct=(parseInt(userAns)===correctAnswer);
+
+if(correct){
+score+=10;
+document.getElementById('feedback').innerText='✅ Correct';
+nextQuestion();
+}
+else{
+if(attempts===1){
+document.getElementById('feedback').innerText='❌ Try Again';
+}
+else{
+document.getElementById('feedback').innerText='❌ Correct Answer: '+correctAnswer;
+setTimeout(nextQuestion,2000);
+}
+}
+}
+
+function nextQuestion(){
+document.getElementById('answer').value='';
+questionCount++;
+
+if(questionCount>3){
+level++;
+questionCount=1;
+}
+
+if(level>4){
+document.getElementById('game').innerHTML=`<h2>Game Over</h2><p>Score: ${score}</p>`;
+}
+else{
+loadQuestion();
+}
+}
+</script>
+</body>
+</html>
