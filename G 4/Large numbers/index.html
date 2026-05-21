@@ -1,1 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G4 Large Numbers - Number Kingdom Quest</title>
 
+<style>
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  text-align:center;
+  background:linear-gradient(#bdefff,#fff8dc);
+  overflow:hidden;
+}
+
+.screen{
+  position:fixed;
+  inset:0;
+  background:linear-gradient(#eaf9ff,#ffffff);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  z-index:50;
+  padding:20px;
+}
+
+.logo{
+  width:min(180px,55vw);
+  margin-bottom:18px;
+}
+
+button{
+  border:0;
+  border-radius:14px;
+  background:#0066ff;
+  color:white;
+  font-size:clamp(16px,2.5vw,22px);
+  font-weight:bold;
+  padding:13px 26px;
+  cursor:pointer;
+  min-height:55px;
+}
+
+#hud{
+  display:flex;
+  justify-content:space-around;
+  flex-wrap:wrap;
+  gap:10px;
+  background:#ffffffdd;
+  padding:12px;
+  font-size:clamp(18px,3vw,24px);
+  font-weight:bold;
+}
+
+h1{
+  font-size:clamp(30px,5vw,48px);
+  margin:14px 0;
+}
+
+#questionBox{
+  width:min(900px,94vw);
+  margin:10px auto;
+  background:white;
+  border:4px solid #7b2cbf;
+  border-radius:18px;
+  padding:16px;
+  font-size:clamp(22px,3.5vw,34px);
+  font-weight:bold;
+  min-height:90px;
+}
+
+#gameArea{
+  width:min(1000px,96vw);
+  height:min(500px,68vh);
+  margin:10px auto;
+  background:linear-gradient(#90dbf4 0 55%,#80b918 55% 100%);
+  border:5px solid #333;
+  border-radius:22px;
+  position:relative;
+  overflow:hidden;
+}
+
+.castle{
+  position:absolute;
+  top:25px;
+  width:100%;
+  font-size:clamp(50px,8vw,90px);
+}
+
+.doors{
+  position:absolute;
+  bottom:70px;
+  width:100%;
+  display:flex;
+  justify-content:center;
+  gap:clamp(14px,3vw,36px);
+  flex-wrap:wrap;
+}
+
+.door{
+  width:min(250px,28vw);
+  min-width:170px;
+  height:170px;
+  background:#8d5524;
+  border:6px solid #3b1d00;
+  border-radius:80px 80px 12px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:12px;
+  font-size:clamp(18px,2.5vw,27px);
+  font-weight:bold;
+  color:white;
+  cursor:pointer;
+  position:relative;
+  box-shadow:0 8px 0 #4b2500;
+}
+
+.door:hover{
+  transform:scale(1.04);
+}
+
+.door::after{
+  content:"🔑";
+  position:absolute;
+  bottom:12px;
+  right:16px;
+  font-size:24px;
+}
+
+.open{
+  background:#ffd166;
+  color:#111;
+  animation:openDoor .6s ease forwards;
+}
+
+@keyframes openDoor{
+  0%{transform:rotateY(0)}
+  100%{transform:rotateY(25deg) scale(1.05)}
+}
+
+.shake{
+  animation:shake .4s;
+}
+
+@keyframes shake{
+  0%{transform:translateX(0)}
+  20%{transform:translateX(-10px)}
+  40%{transform:translateX(10px)}
+  60%{transform:translateX(-10px)}
+  80%{transform:translateX(10px)}
+  100%{transform:translateX(0)}
+}
+
+#msg{
+  font-size:clamp(22px,3.5vw,34px);
+  font-weight:bold;
+  min-height:42px;
+}
+
+.instructions{
+  font-size:clamp(18px,3vw,24px);
+  line-height:1.6;
+  max-width:760px;
+}
+
+.coin{
+  position:absolute;
+  font-size:36px;
+  animation:coinBurst 1s ease-out forwards;
+}
+
+@keyframes coinBurst{
+  0%{transform:translateY(0) scale(.5);opacity:1}
+  100%{transform:translateY(-120px) scale(1.5);opacity:0}
+}
+</style>
+</head>
+
+<body>
+
+<div id="loader" class="screen">
+  <img src="assets/logo.png" class="logo">
+  <h2>Loading Number Kingdom Quest...</h2>
+</div>
+
+<div id="instructions" class="screen" style="display:none">
+  <img src="assets/logo.png" class="logo">
+  <h1>🏰 Number Kingdom Quest</h1>
+  <div class="instructions">
+    <p>Read the large number challenge carefully.</p>
+    <p>Click the castle door with the correct answer.</p>
+    <p>You get <b>2 chances for each question</b>.</p>
+    <p>After 2 wrong attempts, the correct answer will be shown.</p>
+  </div>
+  <button onclick="startGame()">Start Quest</button>
+</div>
+
+<div id="end" class="screen" style="display:none">
+  <img src="assets/logo.png" class="logo">
+  <h1>🏆 Quest Complete!</h1>
+  <h2>Your Score: <span id="finalScore"></span></h2>
+  <button onclick="location.reload()">Play Again</button>
+</div>
+
+<div id="hud">
+  <div>⭐ Score: <span id="score">0</span></div>
+  <div>❤️ Chances: <span id="chances">2</span></div>
+  <div>🚩 Question: <span id="qno">1</span>/10</div>
+</div>
+
+<h1>🏰 Number Kingdom Quest</h1>
+
+<div id="questionBox">Choose the correct door.</div>
+
+<div id="gameArea">
+  <div class="castle">🏰</div>
+  <div class="doors" id="doors"></div>
+</div>
+
+<div id="msg"></div>
+
+<audio id="correctSound" src="assets/correct.mp3"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+<audio id="clapSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+
+<script>
+const questions=[
+  {
+    q:"Which is the number name for 54,321?",
+    options:["Fifty-four thousand three hundred twenty-one","Five lakh forty-three thousand twenty-one","Fifty-four hundred thirty-two"],
+    ans:"Fifty-four thousand three hundred twenty-one"
+  },
+  {
+    q:"Expanded form of 68,405 is:",
+    options:["60,000 + 8,000 + 400 + 5","6,000 + 800 + 40 + 5","60,000 + 8,000 + 40 + 5"],
+    ans:"60,000 + 8,000 + 400 + 5"
+  },
+  {
+    q:"Make the largest 5-digit number using 3, 8, 1, 6, 9.",
+    options:["98,631","96,831","98,613"],
+    ans:"98,631"
+  },
+  {
+    q:"Arrange in ascending order: 45,210 ; 45,120 ; 45,012",
+    options:["45,012 ; 45,120 ; 45,210","45,210 ; 45,120 ; 45,012","45,120 ; 45,012 ; 45,210"],
+    ans:"45,012 ; 45,120 ; 45,210"
+  },
+  {
+    q:"Which symbol is correct? 76,432 ___ 67,432",
+    options:[">","<","="],
+    ans:">"
+  },
+  {
+    q:"Round 78,346 to the nearest thousand.",
+    options:["78,000","79,000","80,000"],
+    ans:"78,000"
+  },
+  {
+    q:"Successor of 99,999 is:",
+    options:["1,00,000","99,998","90,000"],
+    ans:"1,00,000"
+  },
+  {
+    q:"Predecessor of 70,000 is:",
+    options:["69,999","70,001","69,000"],
+    ans:"69,999"
+  },
+  {
+    q:"Which number is written in Indian place value system?",
+    options:["5,43,210","543,210","54,3210"],
+    ans:"5,43,210"
+  },
+  {
+    q:"Roman numeral for 50 is:",
+    options:["L","C","X"],
+    ans:"L"
+  }
+];
+
+let current=0;
+let score=0;
+let chances=2;
+let locked=false;
+
+window.onload=()=>{
+  setTimeout(()=>{
+    document.getElementById("loader").style.display="none";
+    document.getElementById("instructions").style.display="flex";
+  },1200);
+};
+
+function startGame(){
+  document.getElementById("instructions").style.display="none";
+  loadQuestion();
+}
+
+function shuffle(arr){
+  return arr.sort(()=>Math.random()-0.5);
+}
+
+function loadQuestion(){
+  locked=false;
+  chances=2;
+  document.getElementById("chances").textContent=chances;
+  document.getElementById("msg").textContent="";
+
+  if(current>=questions.length){
+    endGame();
+    return;
+  }
+
+  document.getElementById("qno").textContent=current+1;
+  document.getElementById("questionBox").textContent="Q"+(current+1)+". "+questions[current].q;
+
+  const doors=document.getElementById("doors");
+  doors.innerHTML="";
+
+  const shuffled=shuffle([...questions[current].options]);
+
+  shuffled.forEach(opt=>{
+    const door=document.createElement("div");
+    door.className="door";
+    door.textContent=opt;
+    door.dataset.answer=opt;
+    door.onclick=()=>selectDoor(door,opt);
+    doors.appendChild(door);
+  });
+}
+
+function selectDoor(door,selected){
+  if(locked)return;
+
+  if(selected===questions[current].ans){
+    locked=true;
+    correctDoor(door);
+  }else{
+    wrongDoor(door);
+  }
+}
+
+function correctDoor(door){
+  document.getElementById("correctSound").play();
+  score+=10;
+  document.getElementById("score").textContent=score;
+  document.getElementById("msg").style.color="green";
+  document.getElementById("msg").textContent="✅ Correct! Door unlocked!";
+  door.classList.add("open");
+  showCoins(door);
+  current++;
+  setTimeout(loadQuestion,1500);
+}
+
+function wrongDoor(door){
+  document.getElementById("wrongSound").play();
+  chances--;
+  document.getElementById("chances").textContent=chances;
+  document.getElementById("msg").style.color="red";
+  door.classList.add("shake");
+
+  if(chances>0){
+    document.getElementById("msg").textContent="❌ Try Again!";
+    setTimeout(()=>door.classList.remove("shake"),700);
+  }else{
+    locked=true;
+    const correctAnswer=questions[current].ans;
+    document.getElementById("msg").textContent="Correct Answer: "+correctAnswer;
+
+    document.querySelectorAll(".door").forEach(d=>{
+      if(d.dataset.answer===correctAnswer){
+        d.classList.add("open");
+        showCoins(d);
+      }
+    });
+
+    current++;
+    setTimeout(loadQuestion,2400);
+  }
+}
+
+function showCoins(door){
+  const area=document.getElementById("gameArea");
+  for(let i=0;i<10;i++){
+    const coin=document.createElement("div");
+    coin.className="coin";
+    coin.textContent="🪙";
+    coin.style.left=(door.offsetLeft+70+Math.random()*60)+"px";
+    coin.style.top=(door.offsetTop+80)+"px";
+    area.appendChild(coin);
+    setTimeout(()=>coin.remove(),1000);
+  }
+}
+
+function endGame(){
+  document.getElementById("clapSound").play();
+  document.getElementById("finalScore").textContent=score+" / 100";
+  document.getElementById("end").style.display="flex";
+}
+</script>
+
+</body>
+</html>
