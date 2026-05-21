@@ -1,1 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Measurement Jungle Adventure</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:'Comic Sans MS',Arial,sans-serif;background:#b7f5c8;color:#222;overflow:hidden}
+.screen{display:none;min-height:100vh;text-align:center}
+.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.card{background:rgba(255,255,255,.94);border-radius:24px;padding:22px;max-width:850px;width:92%;box-shadow:0 10px 25px rgba(0,0,0,.2)}
+.logo{max-width:145px;margin-bottom:10px}
+h1{color:#137333;font-size:clamp(28px,5vw,48px);margin:8px 0}
+h2{color:#174ea6;font-size:clamp(22px,4vw,34px)}
+button{border:0;border-radius:18px;padding:14px 24px;font-size:20px;font-weight:bold;cursor:pointer;background:#ffbf00;color:#4a2b00;box-shadow:0 5px 0 #c58b00;margin:8px}
+button:active{transform:translateY(3px);box-shadow:0 2px 0 #c58b00}
 
+.game-area{
+  position:relative;
+  min-height:100vh;
+  background:url("assets/jungle-bg.png") center/cover no-repeat;
+  padding:10px;
+  overflow:hidden;
+}
+.topbar{
+  display:flex;gap:8px;justify-content:space-between;align-items:center;
+  max-width:980px;margin:0 auto 8px;
+  background:rgba(255,255,255,.92);border-radius:16px;padding:10px;font-weight:bold
+}
+.timer{color:#d93025}.score{color:#188038}.attempts{color:#174ea6}
+.progress-wrap{height:18px;background:#fff;border-radius:20px;overflow:hidden;max-width:980px;margin:8px auto}
+.progress{height:100%;width:0;background:linear-gradient(90deg,#34a853,#fbbc04);transition:.4s}
+
+.question-box{
+  max-width:900px;margin:8px auto;
+  background:rgba(255,255,255,.96);
+  border-radius:22px;padding:14px;
+  box-shadow:0 6px 16px rgba(0,0,0,.18)
+}
+.level{font-size:16px;color:#555;font-weight:bold}
+.question{font-size:clamp(22px,4vw,34px);font-weight:bold;margin:8px 0;color:#0b3d21}
+.hint{font-size:17px;min-height:28px;font-weight:bold}
+.runner-zone{position:relative;max-width:1000px;height:430px;margin:0 auto}
+.explorer{
+  position:absolute;bottom:62px;left:40px;width:150px;z-index:3;
+  animation:runBounce .45s ease-in-out infinite alternate;
+}
+@keyframes runBounce{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+.ground{
+  position:absolute;left:0;right:0;bottom:35px;height:18px;
+  background:rgba(72,39,20,.55);border-radius:20px
+}
+.option-item{
+  position:absolute;
+  right:-180px;
+  width:145px;height:145px;
+  border-radius:24px;
+  background:rgba(255,255,255,.92);
+  border:5px solid #fff;
+  box-shadow:0 8px 18px rgba(0,0,0,.22);
+  cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  animation:moveLeft 5.8s linear forwards;
+}
+.option-item img{max-width:105px;max-height:95px;object-fit:contain}
+.option-label{font-size:18px;font-weight:bold;background:#fff;padding:4px 10px;border-radius:12px;margin-top:3px}
+.option-item.top{top:42px}
+.option-item.bottom{bottom:78px}
+@keyframes moveLeft{to{right:105%}}
+.option-item:hover{transform:scale(1.05)}
+.feedback{
+  position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);
+  background:rgba(255,255,255,.96);border-radius:20px;
+  padding:14px 20px;font-size:24px;font-weight:bold;
+  box-shadow:0 8px 20px rgba(0,0,0,.25);
+  display:none;z-index:10
+}
+.correct{color:#188038}.wrong{color:#d93025}
+.result-stars{font-size:46px}
+.confetti{position:fixed;width:10px;height:10px;top:-10px;animation:fall 1.8s linear forwards;z-index:99}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+
+@media(max-width:700px){
+  .topbar{font-size:13px;flex-wrap:wrap;justify-content:center}
+  .runner-zone{height:360px}
+  .explorer{width:105px;left:16px;bottom:55px}
+  .option-item{width:115px;height:115px}
+  .option-item img{max-width:85px;max-height:75px}
+  .option-label{font-size:14px}
+}
+</style>
+</head>
+
+<body>
+
+<section id="start" class="screen active">
+  <div class="card">
+    <img src="assets/logo.png" class="logo" onerror="this.style.display='none'">
+    <h1>🏃 Measurement Jungle Adventure</h1>
+    <h2>Grade 1 Maths — Measurement</h2>
+    <p>Help the explorer collect the correct object in the jungle.</p>
+    <p><b>Levels:</b> Length • Weight • Capacity</p>
+    <p><b>Rules:</b> Tap the correct moving object. You get 2 attempts for each challenge.</p>
+    <button onclick="startGame()">Start Adventure</button>
+  </div>
+</section>
+
+<section id="game" class="screen game-area">
+  <div class="topbar">
+    <div class="timer">⏱ Time: <span id="time">60</span>s</div>
+    <div class="score">⭐ Score: <span id="score">0</span></div>
+    <div class="attempts">🔁 Attempts Left: <span id="attempts">2</span></div>
+  </div>
+
+  <div class="progress-wrap"><div id="progress" class="progress"></div></div>
+
+  <div class="question-box">
+    <div class="level" id="levelText"></div>
+    <div class="question" id="question"></div>
+    <div class="hint" id="hint"></div>
+  </div>
+
+  <div class="runner-zone" id="runnerZone">
+    <img src="assets/explorer.png" class="explorer">
+    <div class="ground"></div>
+    <div id="feedback" class="feedback"></div>
+  </div>
+</section>
+
+<section id="result" class="screen">
+  <div class="card">
+    <img src="assets/stars.png" style="max-width:140px" onerror="this.style.display='none'">
+    <h1>Adventure Complete!</h1>
+    <div id="resultStars" class="result-stars"></div>
+    <h2 id="finalScore"></h2>
+    <p id="resultMsg"></p>
+    <button onclick="restartGame()">Play Again</button>
+  </div>
+</section>
+
+<audio id="correctSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+
+<script>
+const questions = [
+  {
+    level:"Level 1: Length",
+    q:"Which object is longer?",
+    options:[
+      {name:"Ladder", img:"ladder.png"},
+      {name:"Pencil", img:"pencil.png"}
+    ],
+    answer:"Ladder",
+    hint:"Long means it stretches more from one end to the other."
+  },
+  {
+    level:"Level 1: Length",
+    q:"Which object is shorter?",
+    options:[
+      {name:"Pencil", img:"pencil.png"},
+      {name:"Ladder", img:"ladder.png"}
+    ],
+    answer:"Pencil",
+    hint:"Short means it has less length."
+  },
+  {
+    level:"Level 2: Weight",
+    q:"Which object is heavier?",
+    options:[
+      {name:"Watermelon", img:"watermelon.png"},
+      {name:"Feather", img:"feather.png"}
+    ],
+    answer:"Watermelon",
+    hint:"Heavy things are harder to lift."
+  },
+  {
+    level:"Level 2: Weight",
+    q:"Which object is lighter?",
+    options:[
+      {name:"Feather", img:"feather.png"},
+      {name:"Watermelon", img:"watermelon.png"}
+    ],
+    answer:"Feather",
+    hint:"Light things are easy to lift."
+  },
+  {
+    level:"Level 2: Weight",
+    q:"Which animal is heavier?",
+    options:[
+      {name:"Frog", img:"frog.png"},
+      {name:"Turtle", img:"turtle.png"}
+    ],
+    answer:"Frog",
+    hint:"Look for the bigger animal."
+  },
+  {
+    level:"Level 2: Weight",
+    q:"Which animal is lighter?",
+    options:[
+      {name:"Turtle", img:"turtle.png"},
+      {name:"Frog", img:"frog.png"}
+    ],
+    answer:"Turtle",
+    hint:"The smaller animal is lighter here."
+  },
+  {
+    level:"Level 3: Capacity",
+    q:"Which container can hold more water?",
+    options:[
+      {name:"Bucket", img:"bucket.png"},
+      {name:"Cup", img:"cup.png"}
+    ],
+    answer:"Bucket",
+    hint:"Capacity means how much something can hold."
+  },
+  {
+    level:"Level 3: Capacity",
+    q:"Which container can hold less water?",
+    options:[
+      {name:"Cup", img:"cup.png"},
+      {name:"Bucket", img:"bucket.png"}
+    ],
+    answer:"Cup",
+    hint:"A smaller container usually holds less."
+  },
+  {
+    level:"Final Challenge",
+    q:"Choose the light object.",
+    options:[
+      {name:"Feather", img:"feather.png"},
+      {name:"Watermelon", img:"watermelon.png"}
+    ],
+    answer:"Feather",
+    hint:"Think: easy to lift."
+  },
+  {
+    level:"Final Challenge",
+    q:"Choose the object with more capacity.",
+    options:[
+      {name:"Bucket", img:"bucket.png"},
+      {name:"Cup", img:"cup.png"}
+    ],
+    answer:"Bucket",
+    hint:"More capacity means it can hold more."
+  }
+];
+
+let current = 0;
+let score = 0;
+let attempts = 2;
+let timeLeft = 60;
+let timer;
+let locked = false;
+
+function startGame(){
+  document.getElementById("start").classList.remove("active");
+  document.getElementById("game").classList.add("active");
+  loadQuestion();
+}
+
+function loadQuestion(){
+  clearInterval(timer);
+  locked = false;
+  attempts = 2;
+  timeLeft = 60;
+
+  document.getElementById("time").textContent = timeLeft;
+  document.getElementById("attempts").textContent = attempts;
+  document.getElementById("hint").textContent = "";
+  document.getElementById("feedback").style.display = "none";
+
+  const q = questions[current];
+  document.getElementById("levelText").textContent = `${q.level} | Question ${current+1} of ${questions.length}`;
+  document.getElementById("question").textContent = q.q;
+
+  document.querySelectorAll(".option-item").forEach(el=>el.remove());
+
+  const shuffled = [...q.options].sort(()=>Math.random() - 0.5);
+  shuffled.forEach((opt,index)=>{
+    const item = document.createElement("div");
+    item.className = "option-item " + (index === 0 ? "top" : "bottom");
+    item.innerHTML = `
+      <img src="assets/${opt.img}" alt="${opt.name}">
+      <div class="option-label">${opt.name}</div>
+    `;
+    item.onclick = ()=>checkAnswer(opt.name, item);
+    document.getElementById("runnerZone").appendChild(item);
+  });
+
+  updateProgress();
+  timer = setInterval(updateTimer,1000);
+}
+
+function updateTimer(){
+  timeLeft--;
+  document.getElementById("time").textContent = timeLeft;
+
+  if(timeLeft <= 0){
+    clearInterval(timer);
+    showCorrect("Time is up!");
+  }
+}
+
+function checkAnswer(selected, element){
+  if(locked) return;
+
+  const q = questions[current];
+
+  if(selected === q.answer){
+    locked = true;
+    clearInterval(timer);
+    score++;
+    document.getElementById("score").textContent = score;
+
+    element.style.borderColor = "#34a853";
+    element.style.background = "#d7ffd9";
+
+    showFeedback("Correct! Keep running!", "correct");
+    playSound("correctSound");
+    confetti();
+
+    setTimeout(nextQuestion,1200);
+  } else {
+    attempts--;
+    document.getElementById("attempts").textContent = attempts;
+
+    element.style.borderColor = "#d93025";
+    element.style.background = "#ffe0e0";
+
+    playSound("wrongSound");
+
+    if(attempts > 0){
+      document.getElementById("hint").textContent = "Try again! Hint: " + q.hint;
+    } else {
+      locked = true;
+      clearInterval(timer);
+      showCorrect("Good try!");
+    }
+  }
+}
+
+function showFeedback(text, type){
+  const box = document.getElementById("feedback");
+  box.textContent = text;
+  box.className = "feedback " + type;
+  box.style.display = "block";
+}
+
+function showCorrect(prefix){
+  const q = questions[current];
+  showFeedback(`${prefix} Correct answer: ${q.answer}`, "wrong");
+  setTimeout(nextQuestion,1700);
+}
+
+function nextQuestion(){
+  current++;
+  if(current >= questions.length){
+    endGame();
+  } else {
+    loadQuestion();
+  }
+}
+
+function updateProgress(){
+  const percent = (current / questions.length) * 100;
+  document.getElementById("progress").style.width = percent + "%";
+}
+
+function endGame(){
+  clearInterval(timer);
+  document.getElementById("game").classList.remove("active");
+  document.getElementById("result").classList.add("active");
+
+  document.getElementById("finalScore").textContent = `Your Score: ${score} / ${questions.length}`;
+
+  const percent = score / questions.length;
+  document.getElementById("resultStars").textContent = percent >= .85 ? "⭐⭐⭐" : percent >= .6 ? "⭐⭐" : "⭐";
+  document.getElementById("resultMsg").textContent =
+    percent >= .85 ? "Excellent! You are a Measurement Jungle Champion!" :
+    percent >= .6 ? "Good work! Practise length, weight and capacity once more." :
+    "Nice try! Replay the adventure to strengthen measurement concepts.";
+}
+
+function restartGame(){
+  clearInterval(timer);
+  current = 0;
+  score = 0;
+  attempts = 2;
+  locked = false;
+  document.getElementById("score").textContent = score;
+  document.getElementById("result").classList.remove("active");
+  document.getElementById("game").classList.add("active");
+  loadQuestion();
+}
+
+function playSound(id){
+  const sound = document.getElementById(id);
+  if(sound){
+    sound.currentTime = 0;
+    sound.play().catch(()=>{});
+  }
+}
+
+function confetti(){
+  for(let i=0;i<25;i++){
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = Math.random()*100 + "vw";
+    c.style.background = ["#fbbc04","#34a853","#4285f4","#ea4335","#ff69b4"][Math.floor(Math.random()*5)];
+    c.style.animationDelay = Math.random()*0.3 + "s";
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),2000);
+  }
+}
+</script>
+</body>
+</html>
