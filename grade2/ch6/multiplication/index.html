@@ -1,1 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pizza Factory Frenzy</title>
 
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:'Comic Sans MS',Arial,sans-serif;
+  background:#fff3d6;
+  overflow-x:hidden;
+  color:#2b1b08;
+}
+.screen{display:none;min-height:100vh;padding:16px;text-align:center}
+.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
+.card{
+  background:rgba(255,255,255,.95);
+  border-radius:24px;
+  padding:22px;
+  width:95%;
+  max-width:900px;
+  box-shadow:0 10px 25px rgba(0,0,0,.22);
+}
+.logo{max-width:150px;margin-bottom:10px}
+h1{font-size:clamp(30px,5vw,52px);color:#d84315;margin:8px 0}
+h2{font-size:clamp(22px,4vw,34px);color:#2e7d32}
+button{
+  border:0;
+  border-radius:18px;
+  padding:14px 24px;
+  font-size:20px;
+  font-weight:bold;
+  cursor:pointer;
+  background:#ffbf00;
+  color:#4a2b00;
+  box-shadow:0 5px 0 #c58b00;
+  margin:8px;
+}
+button:active{transform:translateY(3px);box-shadow:0 2px 0 #c58b00}
+
+.game-area{
+  display:none;
+  min-height:100vh;
+  background:url("assets/kitchen-bg.png") center/cover no-repeat;
+  padding:10px;
+}
+.game-area.active{display:block}
+
+.topbar{
+  display:flex;
+  gap:8px;
+  justify-content:space-between;
+  align-items:center;
+  max-width:1000px;
+  margin:0 auto 8px;
+  background:rgba(255,255,255,.92);
+  border-radius:16px;
+  padding:10px;
+  font-weight:bold;
+}
+.timer{color:#d93025}
+.score{color:#188038}
+.attempts{color:#174ea6}
+
+.progress-wrap{
+  height:18px;
+  background:#fff;
+  border-radius:20px;
+  overflow:hidden;
+  max-width:1000px;
+  margin:8px auto;
+}
+.progress{
+  height:100%;
+  width:0;
+  background:linear-gradient(90deg,#ff7043,#fbbc04,#34a853);
+  transition:.4s;
+}
+
+.order-card{
+  max-width:950px;
+  margin:10px auto;
+  background:rgba(255,255,255,.96);
+  border-radius:24px;
+  padding:16px;
+  box-shadow:0 8px 20px rgba(0,0,0,.2);
+}
+.question{
+  font-size:clamp(22px,4vw,34px);
+  font-weight:bold;
+  color:#bf360c;
+}
+.subtext{font-size:20px;margin-top:6px}
+.feedback{
+  min-height:36px;
+  font-size:20px;
+  font-weight:bold;
+  margin-top:8px;
+}
+.correct{color:#188038}
+.wrong{color:#d93025}
+
+.factory{
+  max-width:1050px;
+  margin:10px auto;
+  display:grid;
+  grid-template-columns:160px 1fr 170px;
+  gap:12px;
+  align-items:center;
+}
+.side-img{
+  max-width:150px;
+  width:100%;
+}
+.oven-img{
+  max-width:160px;
+  width:100%;
+}
+.pizza-zone{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:14px;
+  min-height:240px;
+}
+.pizza{
+  position:relative;
+  width:160px;
+  height:120px;
+  background:url("assets/pizza-base.png") center/contain no-repeat;
+  border-radius:50%;
+  filter:drop-shadow(0 6px 5px rgba(0,0,0,.25));
+}
+.pizza-label{
+  position:absolute;
+  bottom:-22px;
+  left:0;
+  right:0;
+  font-weight:bold;
+  background:#fff8dc;
+  border-radius:12px;
+  padding:2px;
+}
+.placed{
+  position:absolute;
+  width:34px;
+  height:34px;
+  object-fit:contain;
+  pointer-events:none;
+}
+
+.topping-bank{
+  max-width:950px;
+  margin:8px auto;
+  background:rgba(255,255,255,.95);
+  border-radius:22px;
+  padding:12px;
+  box-shadow:0 6px 18px rgba(0,0,0,.2);
+}
+.topping-title{
+  font-size:20px;
+  font-weight:bold;
+  margin-bottom:8px;
+}
+.toppings{
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:14px;
+}
+.topping{
+  width:76px;
+  height:76px;
+  object-fit:contain;
+  background:#fff7dd;
+  border:4px solid #ffb74d;
+  border-radius:18px;
+  padding:6px;
+  cursor:grab;
+  touch-action:none;
+}
+.topping:active{cursor:grabbing;transform:scale(1.05)}
+
+.action-row{
+  margin-top:10px;
+}
+.bake-btn{background:#ff7043;color:white;box-shadow:0 5px 0 #bf360c}
+.clear-btn{background:#90caf9;color:#0d47a1;box-shadow:0 5px 0 #1976d2}
+
+.shake{animation:shake .35s}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-8px)}
+  75%{transform:translateX(8px)}
+}
+.glow{animation:glow .8s}
+@keyframes glow{
+  0%,100%{filter:drop-shadow(0 0 0 gold)}
+  50%{filter:drop-shadow(0 0 20px gold)}
+}
+.jump{animation:jump .6s}
+@keyframes jump{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-18px)}
+}
+.confetti{
+  position:fixed;
+  width:10px;
+  height:10px;
+  top:-10px;
+  animation:fall 1.8s linear forwards;
+  z-index:99;
+}
+@keyframes fall{
+  to{transform:translateY(110vh) rotate(720deg)}
+}
+
+.result-stars{font-size:48px}
+
+@media(max-width:800px){
+  .factory{
+    grid-template-columns:1fr;
+  }
+  .side-img,.oven-img{
+    max-width:120px;
+    margin:auto;
+  }
+  .pizza{
+    width:135px;
+    height:105px;
+  }
+  .topbar{
+    font-size:14px;
+    flex-wrap:wrap;
+    justify-content:center;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<section id="start" class="screen active">
+  <div class="card">
+    <img src="assets/logo.png" class="logo" onerror="this.style.display='none'">
+    <h1>🍕 Pizza Factory Frenzy</h1>
+    <h2>Grade 2 Maths — Multiplication</h2>
+    <p>Help the chef make pizza orders using equal groups and repeated addition.</p>
+    <p><b>How to Play:</b> Drag the correct topping onto each pizza. Then tap <b>Bake Pizza</b>.</p>
+    <p><b>Rules:</b> You get 60 seconds and 2 attempts for each order.</p>
+    <button onclick="startGame()">Start Game</button>
+  </div>
+</section>
+
+<section id="game" class="game-area">
+  <div class="topbar">
+    <div class="timer">⏱ Time: <span id="time">60</span>s</div>
+    <div class="score">⭐ Score: <span id="score">0</span></div>
+    <div class="attempts">🔁 Attempts Left: <span id="attempts">2</span></div>
+  </div>
+
+  <div class="progress-wrap"><div id="progress" class="progress"></div></div>
+
+  <div class="order-card">
+    <div>Order <span id="qnum">1</span> of <span id="total"></span></div>
+    <div id="question" class="question"></div>
+    <div id="addition" class="subtext"></div>
+    <div id="feedback" class="feedback"></div>
+  </div>
+
+  <div class="factory">
+    <img id="chef" src="assets/chef.png" class="side-img">
+    <div id="pizzaZone" class="pizza-zone"></div>
+    <img id="oven" src="assets/oven.png" class="oven-img">
+  </div>
+
+  <div class="topping-bank">
+    <div class="topping-title">Drag toppings from here:</div>
+    <div class="toppings">
+      <img src="assets/olive.png" class="topping" draggable="true" data-type="olive">
+      <img src="assets/mushroom.png" class="topping" draggable="true" data-type="mushroom">
+    </div>
+  </div>
+
+  <div class="action-row">
+    <button class="bake-btn" onclick="checkOrder()">Bake Pizza</button>
+    <button class="clear-btn" onclick="clearPizzas()">Clear</button>
+  </div>
+</section>
+
+<section id="result" class="screen">
+  <div class="card">
+    <img src="assets/stars.png" style="max-width:150px" onerror="this.style.display='none'">
+    <h1>Pizza Orders Complete!</h1>
+    <div id="resultStars" class="result-stars"></div>
+    <h2 id="finalScore"></h2>
+    <p id="resultMsg"></p>
+    <button onclick="restartGame()">Play Again</button>
+  </div>
+</section>
+
+<audio id="correctSound" src="assets/correct.mp3"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+
+<script>
+const questions = [
+  {groups:2, each:3, topping:"olive"},
+  {groups:3, each:2, topping:"mushroom"},
+  {groups:4, each:2, topping:"olive"},
+  {groups:2, each:5, topping:"mushroom"},
+  {groups:3, each:4, topping:"olive"},
+  {groups:5, each:2, topping:"mushroom"},
+  {groups:4, each:3, topping:"olive"},
+  {groups:3, each:5, topping:"mushroom"},
+  {groups:2, each:6, topping:"olive"},
+  {groups:5, each:3, topping:"mushroom"}
+];
+
+let current = 0;
+let score = 0;
+let attempts = 2;
+let timeLeft = 60;
+let timer;
+let placed = [];
+
+const startScreen = document.getElementById("start");
+const gameScreen = document.getElementById("game");
+const resultScreen = document.getElementById("result");
+
+function startGame(){
+  startScreen.classList.remove("active");
+  gameScreen.classList.add("active");
+  document.getElementById("total").textContent = questions.length;
+  loadQuestion();
+}
+
+function loadQuestion(){
+  clearInterval(timer);
+  attempts = 2;
+  timeLeft = 60;
+  placed = [];
+
+  document.getElementById("time").textContent = timeLeft;
+  document.getElementById("attempts").textContent = attempts;
+  document.getElementById("feedback").textContent = "";
+  document.getElementById("feedback").className = "feedback";
+  document.getElementById("qnum").textContent = current + 1;
+
+  const q = questions[current];
+  const toppingName = q.topping === "olive" ? "olives" : "mushrooms";
+  document.getElementById("question").textContent =
+    `Make ${q.groups} equal groups of ${q.each} ${toppingName}.`;
+  document.getElementById("addition").textContent =
+    `Repeated addition: ${Array(q.groups).fill(q.each).join(" + ")} = ${q.groups * q.each}`;
+
+  buildPizzas(q.groups);
+  updateProgress();
+
+  timer = setInterval(updateTimer,1000);
+}
+
+function buildPizzas(count){
+  const zone = document.getElementById("pizzaZone");
+  zone.innerHTML = "";
+
+  for(let i=0;i<count;i++){
+    const pizza = document.createElement("div");
+    pizza.className = "pizza";
+    pizza.dataset.index = i;
+
+    pizza.addEventListener("dragover", e => e.preventDefault());
+    pizza.addEventListener("drop", dropTopping);
+
+    pizza.addEventListener("touchmove", touchMove, {passive:false});
+    pizza.addEventListener("touchend", touchEnd);
+
+    const label = document.createElement("div");
+    label.className = "pizza-label";
+    label.textContent = `Pizza ${i+1}: 0`;
+    pizza.appendChild(label);
+
+    zone.appendChild(pizza);
+  }
+}
+
+document.querySelectorAll(".topping").forEach(t=>{
+  t.addEventListener("dragstart", e=>{
+    e.dataTransfer.setData("type", t.dataset.type);
+    e.dataTransfer.setData("src", t.src);
+  });
+
+  t.addEventListener("touchstart", touchStart, {passive:false});
+});
+
+let touchClone = null;
+let touchType = null;
+let touchSrc = null;
+
+function touchStart(e){
+  e.preventDefault();
+  const t = e.currentTarget;
+  touchType = t.dataset.type;
+  touchSrc = t.src;
+  touchClone = t.cloneNode(true);
+  touchClone.style.position = "fixed";
+  touchClone.style.zIndex = "999";
+  touchClone.style.pointerEvents = "none";
+  touchClone.style.width = "70px";
+  document.body.appendChild(touchClone);
+  moveClone(e.touches[0].clientX, e.touches[0].clientY);
+}
+
+function touchMove(e){
+  e.preventDefault();
+}
+
+document.addEventListener("touchmove", e=>{
+  if(touchClone){
+    e.preventDefault();
+    moveClone(e.touches[0].clientX, e.touches[0].clientY);
+  }
+},{passive:false});
+
+document.addEventListener("touchend", e=>{
+  if(!touchClone)return;
+
+  const touch = e.changedTouches[0];
+  const target = document.elementFromPoint(touch.clientX, touch.clientY);
+  const pizza = target?.closest(".pizza");
+
+  if(pizza){
+    addToppingToPizza(pizza, touchType, touchSrc);
+  }
+
+  touchClone.remove();
+  touchClone = null;
+  touchType = null;
+  touchSrc = null;
+});
+
+function moveClone(x,y){
+  touchClone.style.left = x - 35 + "px";
+  touchClone.style.top = y - 35 + "px";
+}
+
+function touchEnd(){}
+
+function dropTopping(e){
+  e.preventDefault();
+  const type = e.dataTransfer.getData("type");
+  const src = e.dataTransfer.getData("src");
+  addToppingToPizza(e.currentTarget,type,src);
+}
+
+function addToppingToPizza(pizza,type,src){
+  const index = Number(pizza.dataset.index);
+  const q = questions[current];
+
+  if(!placed[index]) placed[index] = [];
+  if(placed[index].length >= q.each + 3) return;
+
+  placed[index].push(type);
+
+  const img = document.createElement("img");
+  img.src = src;
+  img.className = "placed";
+
+  const positions = [
+    [38,28],[82,28],[60,48],[35,60],[88,60],[62,20],
+    [20,42],[105,42],[50,75]
+  ];
+
+  const pos = positions[(placed[index].length-1)%positions.length];
+  img.style.left = pos[0] + "px";
+  img.style.top = pos[1] + "px";
+
+  pizza.appendChild(img);
+  updatePizzaLabel(pizza,index);
+}
+
+function updatePizzaLabel(pizza,index){
+  const count = placed[index] ? placed[index].length : 0;
+  pizza.querySelector(".pizza-label").textContent = `Pizza ${index+1}: ${count}`;
+}
+
+function clearPizzas(){
+  placed = [];
+  document.querySelectorAll(".pizza").forEach((pizza,i)=>{
+    pizza.querySelectorAll(".placed").forEach(x=>x.remove());
+    pizza.querySelector(".pizza-label").textContent = `Pizza ${i+1}: 0`;
+  });
+}
+
+function checkOrder(){
+  const q = questions[current];
+  let correct = true;
+
+  for(let i=0;i<q.groups;i++){
+    if(!placed[i] || placed[i].length !== q.each){
+      correct = false;
+      break;
+    }
+    if(!placed[i].every(x=>x === q.topping)){
+      correct = false;
+      break;
+    }
+  }
+
+  if(correct){
+    clearInterval(timer);
+    score++;
+    document.getElementById("score").textContent = score;
+    document.getElementById("feedback").textContent = "Correct! The pizzas are baked perfectly!";
+    document.getElementById("feedback").className = "feedback correct";
+    playSound("correctSound");
+    document.getElementById("chef").classList.add("jump");
+    document.getElementById("oven").classList.add("glow");
+    confetti();
+
+    setTimeout(()=>{
+      document.getElementById("chef").classList.remove("jump");
+      document.getElementById("oven").classList.remove("glow");
+      nextQuestion();
+    },1400);
+  } else {
+    attempts--;
+    document.getElementById("attempts").textContent = attempts;
+    playSound("wrongSound");
+    document.getElementById("pizzaZone").classList.add("shake");
+
+    setTimeout(()=>document.getElementById("pizzaZone").classList.remove("shake"),400);
+
+    if(attempts > 0){
+      document.getElementById("feedback").textContent =
+        `Try again! Make ${q.groups} groups with ${q.each} correct toppings on each pizza.`;
+      document.getElementById("feedback").className = "feedback wrong";
+    } else {
+      clearInterval(timer);
+      showCorrect();
+    }
+  }
+}
+
+function showCorrect(){
+  const q = questions[current];
+  clearPizzas();
+
+  const pizzas = document.querySelectorAll(".pizza");
+  pizzas.forEach((pizza,i)=>{
+    for(let j=0;j<q.each;j++){
+      addToppingToPizza(
+        pizza,
+        q.topping,
+        document.querySelector(`[data-type="${q.topping}"]`).src
+      );
+    }
+  });
+
+  document.getElementById("feedback").textContent =
+    `Correct answer shown: ${q.groups} groups of ${q.each} = ${q.groups*q.each}`;
+  document.getElementById("feedback").className = "feedback wrong";
+
+  setTimeout(nextQuestion,2200);
+}
+
+function updateTimer(){
+  timeLeft--;
+  document.getElementById("time").textContent = timeLeft;
+
+  if(timeLeft <= 0){
+    clearInterval(timer);
+    showCorrect();
+  }
+}
+
+function nextQuestion(){
+  current++;
+  if(current >= questions.length){
+    endGame();
+  } else {
+    loadQuestion();
+  }
+}
+
+function updateProgress(){
+  const percent = (current / questions.length) * 100;
+  document.getElementById("progress").style.width = percent + "%";
+}
+
+function endGame(){
+  clearInterval(timer);
+  gameScreen.classList.remove("active");
+  resultScreen.classList.add("active");
+
+  document.getElementById("finalScore").textContent =
+    `Your Score: ${score} / ${questions.length}`;
+
+  const percent = score / questions.length;
+  let stars = "⭐";
+  let msg = "Good try! Replay to practise equal groups.";
+
+  if(percent >= .85){
+    stars = "⭐⭐⭐";
+    msg = "Excellent! You are a Pizza Multiplication Champion!";
+  } else if(percent >= .6){
+    stars = "⭐⭐";
+    msg = "Good work! Keep practising multiplication groups.";
+  }
+
+  document.getElementById("resultStars").textContent = stars;
+  document.getElementById("resultMsg").textContent = msg;
+}
+
+function restartGame(){
+  current = 0;
+  score = 0;
+  attempts = 2;
+  document.getElementById("score").textContent = score;
+  resultScreen.classList.remove("active");
+  gameScreen.classList.add("active");
+  loadQuestion();
+}
+
+function playSound(id){
+  const sound = document.getElementById(id);
+  if(sound){
+    sound.currentTime = 0;
+    sound.play().catch(()=>{});
+  }
+}
+
+function confetti(){
+  for(let i=0;i<35;i++){
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = Math.random()*100 + "vw";
+    c.style.background = ["#fbbc04","#34a853","#4285f4","#ea4335","#ff69b4","#ff7043"][Math.floor(Math.random()*6)];
+    c.style.animationDelay = Math.random()*0.3 + "s";
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(),2000);
+  }
+}
+</script>
+
+</body>
+</html>
