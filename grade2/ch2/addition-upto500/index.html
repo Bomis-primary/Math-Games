@@ -1,1 +1,124 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Addition Racing Game</title>
+<style>
+  body { font-family: Arial, sans-serif; text-align: center; margin:0; background: linear-gradient(to top, #87ceeb, #ffffff);}
+  #logoScreen {position:fixed; top:0; left:0; width:100%; height:100%; background:white; display:flex; align-items:center; justify-content:center; z-index:10;}
+  #logoScreen img {width:300px;}
+  #race-track {width: 80%; height: 300px; margin: 20px auto; border: 3px solid #333; position: relative; border-radius: 15px; overflow: hidden;}
+  #race-track img#trackBg {position:absolute; top:0; left:0; width:100%; height:100%; z-index:0;}
+  #playerCar {width: 80px; position: absolute; bottom: 20px; left: 0; transition: left 0.5s; z-index:1;}
+  #finishLine {position:absolute; right:0; top:0; bottom:0; width:10px; background:red; border-radius:5px; z-index:2;}
+  .question-box {margin: 20px auto; font-size: 28px; background-color: #ffd700; padding: 15px 25px; border-radius: 15px; width: fit-content;}
+  .options {margin-top: 15px;}
+  .options button {
+    font-size: 26px;
+    padding: 20px 30px;
+    margin: 10px;
+    cursor: pointer;
+    border-radius: 15px;
+    border: none;
+    background: linear-gradient(to right, #ff7f50, #ff6347);
+    color: white;
+    transition: transform 0.2s;
+  }
+  .options button:hover { transform: scale(1.1); }
+  #finishMessage {font-size: 36px; color: green; display:none; margin-top:20px;}
+</style>
+</head>
+<body>
+
+<div id="logoScreen">
+  <img src="assets/logo.png" alt="Innovine Logo">
+</div>
+
+<h1>Addition Racing Game</h1>
+<div id="race-track">
+  <img src="assets/track-bg.png" id="trackBg" alt="Track Background">
+  <img src="assets/car.png" id="playerCar" alt="Player Car">
+  <div id="finishLine"></div>
+</div>
+
+<div class="question-box" id="question">Question</div>
+<div class="options" id="options"></div>
+<div id="finishMessage">🏁 You Win! 🏁</div>
+
+<audio id="correctSound" src="assets/correct.mp3"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+<audio id="clapSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+
+<script>
+const car = document.getElementById('playerCar');
+const questionDiv = document.getElementById('question');
+const optionsDiv = document.getElementById('options');
+const finishMessage = document.getElementById('finishMessage');
+const trackWidth = document.getElementById('race-track').offsetWidth - car.offsetWidth;
+const correctSound = document.getElementById('correctSound');
+const wrongSound = document.getElementById('wrongSound');
+const clapSound = document.getElementById('clapSound');
+
+let carPosition = 0;
+const step = 50;
+
+// Generate random addition question
+function generateQuestion() {
+  const a = Math.floor(Math.random() * 10) + 1;
+  const b = Math.floor(Math.random() * 10) + 1;
+  const correct = a + b;
+
+  questionDiv.textContent = `${a} + ${b} = ?`;
+
+  const answers = [correct];
+  while (answers.length < 4) {
+    const wrong = Math.floor(Math.random() * 20) + 1;
+    if (!answers.includes(wrong)) answers.push(wrong);
+  }
+
+  answers.sort(() => Math.random() - 0.5);
+
+  optionsDiv.innerHTML = '';
+  answers.forEach(ans => {
+    const btn = document.createElement('button');
+    btn.textContent = ans;
+    btn.onclick = () => handleAnswer(ans === correct);
+    optionsDiv.appendChild(btn);
+  });
+}
+
+// Handle user answer
+function handleAnswer(isCorrect) {
+  if (isCorrect) {
+    carPosition += step;
+    correctSound.play();
+    if (carPosition >= trackWidth) {
+      carPosition = trackWidth;
+      finishMessage.style.display = 'block';
+      clapSound.play();
+      optionsDiv.innerHTML = '';
+      questionDiv.innerHTML = '';
+      return;
+    }
+  } else {
+    carPosition -= step;
+    if (carPosition < 0) carPosition = 0;
+    wrongSound.play();
+  }
+  car.style.left = carPosition + 'px';
+  generateQuestion();
+}
+
+// Show Innovine logo for 5 seconds before starting
+window.onload = () => {
+  setTimeout(() => {
+    document.getElementById('logoScreen').style.display = 'none';
+    generateQuestion();
+  }, 5000);
+};
+</script>
+
+</body>
+</html>
