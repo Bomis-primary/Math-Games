@@ -3,12 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Addition Racing Game - Fixed</title>
+<title>Addition Racing Game - Fixed Layout</title>
 <style>
-  body { font-family: Arial, sans-serif; text-align: center; margin:0; background: linear-gradient(to top, #87ceeb, #ffffff);}
-  #logoScreen {position:fixed; top:0; left:0; width:100%; height:100%; background:white; display:flex; align-items:center; justify-content:center; z-index:10;}
-  #logoScreen img {width:300px;}
-  #race-track {width: 80%; height: 300px; margin: 20px auto; border: 3px solid #333; position: relative; border-radius: 15px; overflow: hidden;}
+  body { font-family: Arial, sans-serif; text-align: center; margin:0; background: linear-gradient(to bottom, #a8d8ff, #e0f0ff);}
+  #race-track {width: 90%; height: 300px; margin: 30px auto; position: relative; border-radius: 15px; overflow: hidden; border: 2px solid #333;}
   #race-track img#trackBg {position:absolute; top:0; left:0; width:100%; height:100%; z-index:0;}
   #playerCar {width: 150px; position: absolute; bottom: 20px; left: 0; transform: rotate(180deg); transition: left 0.5s; z-index:1;}
   #finishLine {position:absolute; right:10px; top:0; bottom:0; width:15px; background:red; border-radius:5px; z-index:2;}
@@ -31,19 +29,20 @@
 </head>
 <body>
 
-<div id="logoScreen">
-  <img src="assets/logo.png" alt="Innovine Logo">
-</div>
-
-<h1>Addition Racing Game - Fixed</h1>
+<h1>Addition Racing Game</h1>
 <div id="race-track">
   <img src="assets/track-bg.png" id="trackBg" alt="Track Background">
   <img src="assets/car.png" id="playerCar" alt="Player Car">
   <div id="finishLine"></div>
 </div>
 
-<div class="question-box" id="question">Question</div>
-<div class="options" id="options"></div>
+<div class="question-box" id="question">1 + 2 = ?</div>
+<div class="options" id="options">
+  <button>3</button>
+  <button>7</button>
+  <button>16</button>
+  <button>13</button>
+</div>
 <div id="finishMessage">🏁 You Win! 🏁</div>
 
 <audio id="correctSound" src="assets/correct.mp3"></audio>
@@ -52,42 +51,32 @@
 
 <script>
 const car = document.getElementById('playerCar');
-const questionDiv = document.getElementById('question');
+const finishLine = document.getElementById('finishLine');
 const optionsDiv = document.getElementById('options');
 const finishMessage = document.getElementById('finishMessage');
-const trackWidth = document.getElementById('race-track').offsetWidth - car.offsetWidth;
 const correctSound = document.getElementById('correctSound');
 const wrongSound = document.getElementById('wrongSound');
 const clapSound = document.getElementById('clapSound');
 
 let carPosition = 0;
-const step = 60; // bigger steps for visual effect
+const step = 60; // pixels per correct answer
+const trackWidth = document.getElementById('race-track').offsetWidth - car.offsetWidth - 10;
 
-// Representative Chapter 2 sums for demonstration
+// Sample sums
 const questions = [
-  {q:"78 + 45", a:123},
-  {q:"98 + 86", a:184},
-  {q:"66 + 96", a:162},
-  {q:"69 + 83", a:152},
-  {q:"298 + 375", a:673},
-  {q:"295 + 343", a:638},
-  {q:"358 + 499", a:857},
-  {q:"363 + 382", a:745},
-  {q:"Raju has 567 strawberries. Rita has 345 strawberries. How many altogether?", a:912},
-  {q:"In a pond, 790 crabs and 456 prawns. How many more crabs than prawns?", a:334}
+  {q:"1 + 2", a:3}, {q:"4 + 6", a:10}, {q:"12 + 15", a:27}, {q:"78 + 45", a:123}, {q:"98 + 86", a:184},
+  {q:"66 + 96", a:162}, {q:"69 + 83", a:152}, {q:"298 + 375", a:673}, {q:"295 + 343", a:638}
 ];
 
-// Generate a random question
-function generateQuestion() {
-  const item = questions[Math.floor(Math.random()*questions.length)];
-  questionDiv.textContent = item.q;
-
+function loadQuestion() {
+  const item = questions[Math.floor(Math.random() * questions.length)];
+  document.getElementById('question').textContent = item.q + " = ?";
+  
   const answers = [item.a];
   while (answers.length < 4) {
-    const wrong = Math.floor(item.a - 50 + Math.random()*100);
+    let wrong = Math.floor(item.a - 50 + Math.random()*100);
     if (!answers.includes(wrong) && wrong > 0) answers.push(Math.round(wrong));
   }
-
   answers.sort(() => Math.random() - 0.5);
 
   optionsDiv.innerHTML = '';
@@ -99,35 +88,28 @@ function generateQuestion() {
   });
 }
 
-// Handle answer selection
-function handleAnswer(isCorrect) {
-  if (isCorrect) {
+function handleAnswer(correct) {
+  if(correct) {
     carPosition += step;
     correctSound.play();
-    if (carPosition >= trackWidth) {
+    if(carPosition >= trackWidth){
       carPosition = trackWidth;
       finishMessage.style.display = 'block';
       clapSound.play();
       optionsDiv.innerHTML = '';
-      questionDiv.innerHTML = '';
-      return;
+      document.getElementById('question').innerHTML = '';
     }
   } else {
     carPosition -= step;
-    if (carPosition < 0) carPosition = 0;
+    if(carPosition < 0) carPosition = 0;
     wrongSound.play();
   }
   car.style.left = carPosition + 'px';
-  generateQuestion();
+  loadQuestion();
 }
 
-// Logo splash screen for 5 seconds
-window.onload = () => {
-  setTimeout(() => {
-    document.getElementById('logoScreen').style.display = 'none';
-    generateQuestion();
-  }, 5000);
-};
+// Initialize
+loadQuestion();
 </script>
 
 </body>
