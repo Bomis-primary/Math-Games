@@ -1,18 +1,17 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Addition Racing Game</title>
+<title>Addition Racing Game - Chapter 2</title>
 <style>
   body { font-family: Arial, sans-serif; text-align: center; margin:0; background: linear-gradient(to top, #87ceeb, #ffffff);}
   #logoScreen {position:fixed; top:0; left:0; width:100%; height:100%; background:white; display:flex; align-items:center; justify-content:center; z-index:10;}
   #logoScreen img {width:300px;}
   #race-track {width: 80%; height: 300px; margin: 20px auto; border: 3px solid #333; position: relative; border-radius: 15px; overflow: hidden;}
   #race-track img#trackBg {position:absolute; top:0; left:0; width:100%; height:100%; z-index:0;}
-  #playerCar {width: 80px; position: absolute; bottom: 20px; left: 0; transition: left 0.5s; z-index:1;}
-  #finishLine {position:absolute; right:0; top:0; bottom:0; width:10px; background:red; border-radius:5px; z-index:2;}
+  #playerCar {width: 120px; position: absolute; bottom: 20px; left: 0; transform: rotate(180deg); transition: left 0.5s; z-index:1;}
+  #finishLine {position:absolute; right:20px; top:0; bottom:0; width:15px; background:red; border-radius:5px; z-index:2;}
   .question-box {margin: 20px auto; font-size: 28px; background-color: #ffd700; padding: 15px 25px; border-radius: 15px; width: fit-content;}
   .options {margin-top: 15px;}
   .options button {
@@ -36,7 +35,7 @@
   <img src="assets/logo.png" alt="Innovine Logo">
 </div>
 
-<h1>Addition Racing Game</h1>
+<h1>Addition Racing Game - Chapter 2</h1>
 <div id="race-track">
   <img src="assets/track-bg.png" id="trackBg" alt="Track Background">
   <img src="assets/car.png" id="playerCar" alt="Player Car">
@@ -64,18 +63,29 @@ const clapSound = document.getElementById('clapSound');
 let carPosition = 0;
 const step = 50;
 
-// Generate random addition question
+// Chapter 2 sums (2-digit, 3-digit, story sums)
+const chapter2Questions = [
+  {q:"78 + 45", a:123},
+  {q:"98 + 86", a:184},
+  {q:"66 + 96", a:162},
+  {q:"69 + 83", a:152},
+  {q:"298 + 375", a:673},
+  {q:"295 + 343", a:638},
+  {q:"358 + 499", a:857},
+  {q:"363 + 382", a:745},
+  {q:"Raju has 567 strawberries. Rita has 345 strawberries. How many altogether?", a:912},
+  {q:"In a pond, 790 crabs and 456 prawns. How many more crabs than prawns?", a:334}
+];
+
+// Generate question
 function generateQuestion() {
-  const a = Math.floor(Math.random() * 10) + 1;
-  const b = Math.floor(Math.random() * 10) + 1;
-  const correct = a + b;
+  const item = chapter2Questions[Math.floor(Math.random()*chapter2Questions.length)];
+  questionDiv.textContent = item.q;
 
-  questionDiv.textContent = `${a} + ${b} = ?`;
-
-  const answers = [correct];
+  const answers = [item.a];
   while (answers.length < 4) {
-    const wrong = Math.floor(Math.random() * 20) + 1;
-    if (!answers.includes(wrong)) answers.push(wrong);
+    const wrong = Math.floor(item.a - 50 + Math.random()*100);
+    if (!answers.includes(wrong) && wrong > 0) answers.push(Math.round(wrong));
   }
 
   answers.sort(() => Math.random() - 0.5);
@@ -84,12 +94,12 @@ function generateQuestion() {
   answers.forEach(ans => {
     const btn = document.createElement('button');
     btn.textContent = ans;
-    btn.onclick = () => handleAnswer(ans === correct);
+    btn.onclick = () => handleAnswer(ans === item.a);
     optionsDiv.appendChild(btn);
   });
 }
 
-// Handle user answer
+// Handle answer
 function handleAnswer(isCorrect) {
   if (isCorrect) {
     carPosition += step;
@@ -111,7 +121,7 @@ function handleAnswer(isCorrect) {
   generateQuestion();
 }
 
-// Show Innovine logo for 5 seconds before starting
+// Logo splash for 5 seconds
 window.onload = () => {
   setTimeout(() => {
     document.getElementById('logoScreen').style.display = 'none';
