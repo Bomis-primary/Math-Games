@@ -1,1 +1,560 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Number Crystal Quest</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:linear-gradient(180deg,#87CEEB,#EAF8FF);
+min-height:100vh;
+text-align:center;
+}
+
+.header{
+background:white;
+padding:10px;
+box-shadow:0 2px 6px rgba(0,0,0,0.15);
+}
+
+.logo{
+height:70px;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+padding:20px;
+}
+
+.screen{
+display:none;
+}
+
+.active{
+display:block;
+}
+
+.card{
+background:white;
+padding:25px;
+border-radius:20px;
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
+margin-top:20px;
+}
+
+h1{
+color:#2c3e50;
+margin-bottom:10px;
+}
+
+h2{
+margin-bottom:15px;
+}
+
+.btn{
+background:#3498db;
+color:white;
+border:none;
+padding:14px 25px;
+border-radius:10px;
+font-size:18px;
+cursor:pointer;
+margin-top:15px;
+}
+
+.btn:hover{
+background:#2980b9;
+}
+
+.question{
+font-size:24px;
+margin-bottom:20px;
+}
+
+.option{
+display:block;
+width:100%;
+margin:10px 0;
+padding:15px;
+border:none;
+border-radius:10px;
+background:#3498db;
+color:white;
+font-size:18px;
+cursor:pointer;
+}
+
+.option:hover{
+background:#2980b9;
+}
+
+#message{
+font-size:20px;
+font-weight:bold;
+margin-top:15px;
+height:30px;
+}
+
+.progress-container{
+width:100%;
+background:#ddd;
+border-radius:20px;
+margin:15px 0;
+overflow:hidden;
+}
+
+.progress-bar{
+height:22px;
+width:0%;
+background:#2ecc71;
+transition:0.4s;
+}
+
+#crystals{
+font-size:32px;
+margin-top:10px;
+min-height:40px;
+}
+
+.score{
+font-size:22px;
+font-weight:bold;
+color:#27ae60;
+}
+
+.instructions{
+text-align:left;
+line-height:1.8;
+font-size:18px;
+}
+
+.win-text{
+font-size:30px;
+color:#e67e22;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<img src="assets/innovine-logo.png" class="logo">
+</div>
+
+<div class="container">
+
+<!-- START SCREEN -->
+
+<div id="startScreen" class="screen active">
+
+<div class="card">
+
+<h1>💎 Number Crystal Quest 💎</h1>
+
+<p>
+Collect 10 magical crystals by answering number questions.
+Can you complete the quest?
+</p>
+
+<button class="btn" onclick="showInstructions()">
+Start Adventure
+</button>
+
+</div>
+
+</div>
+
+<!-- INSTRUCTIONS -->
+
+<div id="instructionScreen" class="screen">
+
+<div class="card">
+
+<h2>📖 How to Play</h2>
+
+<div class="instructions">
+
+✔ Answer number questions.<br>
+
+✔ Every correct answer earns 1 crystal.<br>
+
+✔ Collect all 10 crystals.<br>
+
+✔ Reach the end and become a Number Champion.
+
+</div>
+
+<button class="btn" onclick="startGame()">
+Play
+</button>
+
+</div>
+
+</div>
+
+<!-- GAME SCREEN -->
+
+<div id="gameScreen" class="screen">
+
+<div class="card">
+
+<div class="score" id="score">
+Crystals Collected: 0 / 10
+</div>
+
+<div class="progress-container">
+<div class="progress-bar" id="progressBar"></div>
+</div>
+
+<div id="crystals"></div>
+
+<div class="question" id="question"></div>
+
+<div id="options"></div>
+
+<div id="message"></div>
+
+</div>
+
+</div>
+
+<!-- WIN SCREEN -->
+
+<div id="winScreen" class="screen">
+
+<div class="card">
+
+<div class="win-text">
+🏆 Congratulations!
+</div>
+
+<br>
+
+<p>
+You collected all 10 crystals and completed the quest!
+</p>
+
+<br>
+
+<div id="finalCrystals"></div>
+
+<br>
+
+<button class="btn" onclick="location.reload()">
+Play Again
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- AUDIO -->
+
+<audio id="correctSound" src="assets/correct.mp3"></audio>
+
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+
+<audio id="winSound"
+src="assets/freesound_community-claps-44774.mp3">
+</audio>
+
+<script>
+
+let crystals = 0;
+let correctAnswer = "";
+
+function switchScreen(id){
+
+document.querySelectorAll(".screen").forEach(screen=>{
+screen.classList.remove("active");
+});
+
+document.getElementById(id).classList.add("active");
+
+}
+
+function showInstructions(){
+
+switchScreen("instructionScreen");
+
+}
+
+function startGame(){
+
+switchScreen("gameScreen");
+
+generateQuestion();
+
+}
+
+function random(min,max){
+
+return Math.floor(Math.random()*(max-min+1))+min;
+
+}
+
+function shuffle(array){
+
+return array.sort(()=>Math.random()-0.5);
+
+}
+
+function generateQuestion(){
+
+if(crystals>=10){
+
+showWinScreen();
+
+return;
+
+}
+
+document.getElementById("message").innerHTML="";
+
+let type=random(1,9);
+
+let question="";
+let answer="";
+let options=[];
+
+if(type===1){
+
+let n=random(100,500);
+
+question=`How many hundreds are in ${n}?`;
+
+answer=Math.floor(n/100).toString();
+
+options=[
+answer,
+(parseInt(answer)+1).toString(),
+(Math.max(0,parseInt(answer)-1)).toString(),
+random(1,9).toString()
+];
+
+}
+
+if(type===2){
+
+let n=random(101,499);
+
+question=`What comes after ${n}?`;
+
+answer=(n+1).toString();
+
+options=[
+answer,
+(n-1).toString(),
+(n+2).toString(),
+(n+10).toString()
+];
+
+}
+
+if(type===3){
+
+let n=random(102,500);
+
+question=`What comes before ${n}?`;
+
+answer=(n-1).toString();
+
+options=[
+answer,
+(n+1).toString(),
+(n-2).toString(),
+(n+10).toString()
+];
+
+}
+
+if(type===4){
+
+let a=random(100,400);
+
+question=`Which number is between ${a} and ${a+2}?`;
+
+answer=(a+1).toString();
+
+options=[
+answer,
+a.toString(),
+(a+2).toString(),
+(a+3).toString()
+];
+
+}
+
+if(type===5){
+
+let n=random(100,499);
+
+let digit=n.toString()[1];
+
+question=`What is the place value of ${digit} in ${n}?`;
+
+answer=(digit*10).toString();
+
+options=[
+answer,
+digit,
+(digit*100).toString(),
+random(1,99).toString()
+];
+
+}
+
+if(type===6){
+
+let n=random(100,499);
+
+let h=Math.floor(n/100);
+let t=Math.floor((n%100)/10);
+let o=n%10;
+
+question=`Choose the expanded form of ${n}`;
+
+answer=`${h*100} + ${t*10} + ${o}`;
+
+options=[
+answer,
+`${h}+${t}+${o}`,
+`${h*10}+${t*10}+${o}`,
+`${h*100}+${o}`
+];
+
+}
+
+if(type===7){
+
+let a=random(100,500);
+let b=random(100,500);
+
+question=`Choose the correct symbol:<br><br>${a} ___ ${b}`;
+
+answer=a>b?">":"<";
+
+if(a===b) answer="=";
+
+options=[">","<","=","≠"];
+
+}
+
+if(type===8){
+
+let n=random(100,500);
+
+question=`Is ${n} Even or Odd?`;
+
+answer=(n%2===0)?"Even":"Odd";
+
+options=["Even","Odd","Both","Neither"];
+
+}
+
+if(type===9){
+
+let start=random(1,20)*5;
+
+question=
+`Skip count by 5:<br>
+${start}, ${start+5}, ${start+10}, ___`;
+
+answer=(start+15).toString();
+
+options=[
+answer,
+(start+20).toString(),
+(start+25).toString(),
+(start+10).toString()
+];
+
+}
+
+correctAnswer=answer;
+
+options=shuffle(options);
+
+document.getElementById("question").innerHTML=question;
+
+let html="";
+
+options.forEach(option=>{
+
+html+=`
+<button class="option"
+onclick="checkAnswer('${option}')">
+${option}
+</button>
+`;
+
+});
+
+document.getElementById("options").innerHTML=html;
+
+}
+
+function checkAnswer(selected){
+
+if(selected==correctAnswer){
+
+document.getElementById("correctSound").play();
+
+crystals++;
+
+document.getElementById("message").innerHTML=
+"✅ Correct! Crystal earned!";
+
+document.getElementById("score").innerHTML=
+`Crystals Collected: ${crystals} / 10`;
+
+document.getElementById("crystals").innerHTML=
+"💎".repeat(crystals);
+
+document.getElementById("progressBar").style.width=
+(crystals*10)+"%";
+
+}
+else{
+
+document.getElementById("wrongSound").play();
+
+document.getElementById("message").innerHTML=
+`❌ Correct Answer: ${correctAnswer}`;
+
+}
+
+setTimeout(generateQuestion,1200);
+
+}
+
+function showWinScreen(){
+
+document.getElementById("winSound").play();
+
+switchScreen("winScreen");
+
+document.getElementById("finalCrystals").innerHTML=
+"💎".repeat(10);
+
+}
+
+</script>
+
+</body>
+</html>
