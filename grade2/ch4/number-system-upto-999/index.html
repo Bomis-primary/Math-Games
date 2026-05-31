@@ -1,1 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Space Number Explorer</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:linear-gradient(180deg,#0b1d51,#1b3b87,#4b6cb7);
+min-height:100vh;
+text-align:center;
+color:white;
+}
+
+.header{
+background:white;
+padding:10px;
+box-shadow:0 2px 6px rgba(0,0,0,0.15);
+}
+
+.logo{
+height:70px;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+padding:20px;
+}
+
+.screen{
+display:none;
+}
+
+.active{
+display:block;
+}
+
+.card{
+background:white;
+color:black;
+padding:25px;
+border-radius:20px;
+box-shadow:0 5px 15px rgba(0,0,0,0.3);
+margin-top:20px;
+}
+
+.btn{
+background:#3498db;
+color:white;
+border:none;
+padding:14px 25px;
+border-radius:10px;
+font-size:18px;
+cursor:pointer;
+margin-top:15px;
+}
+
+.btn:hover{
+background:#2980b9;
+}
+
+.question{
+font-size:24px;
+margin-bottom:20px;
+}
+
+.option{
+display:block;
+width:100%;
+margin:10px 0;
+padding:15px;
+border:none;
+border-radius:10px;
+background:#3498db;
+color:white;
+font-size:18px;
+cursor:pointer;
+}
+
+.option:hover{
+background:#2980b9;
+}
+
+.progress-container{
+width:100%;
+background:#ddd;
+border-radius:20px;
+overflow:hidden;
+margin:15px 0;
+}
+
+.progress-bar{
+height:22px;
+width:0%;
+background:#2ecc71;
+transition:.4s;
+}
+
+#message{
+font-size:20px;
+font-weight:bold;
+height:30px;
+margin-top:10px;
+}
+
+#fuel{
+font-size:32px;
+margin-top:10px;
+min-height:40px;
+}
+
+.score{
+font-size:22px;
+font-weight:bold;
+color:#27ae60;
+}
+
+.instructions{
+text-align:left;
+line-height:1.8;
+font-size:18px;
+}
+
+.win-text{
+font-size:30px;
+color:#e67e22;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<img src="assets/innovine-logo.png" class="logo">
+</div>
+
+<div class="container">
+
+<div id="startScreen" class="screen active">
+
+<div class="card">
+
+<h1>🚀 Space Number Explorer 🚀</h1>
+
+<p>
+Help Captain Nova collect fuel cells and reach Planet 999.
+</p>
+
+<button class="btn" onclick="showInstructions()">
+Start Mission
+</button>
+
+</div>
+
+</div>
+
+<div id="instructionScreen" class="screen">
+
+<div class="card">
+
+<h2>📖 How to Play</h2>
+
+<div class="instructions">
+
+✔ Solve number challenges up to 999.<br>
+✔ Collect 10 fuel cells.<br>
+✔ Launch your rocket.<br>
+✔ Reach Planet 999.
+
+</div>
+
+<button class="btn" onclick="startGame()">
+Play
+</button>
+
+</div>
+
+</div>
+
+<div id="gameScreen" class="screen">
+
+<div class="card">
+
+<div class="score" id="score">
+Fuel Cells Collected: 0 / 10
+</div>
+
+<div class="progress-container">
+<div class="progress-bar" id="progressBar"></div>
+</div>
+
+<div id="fuel"></div>
+
+<div id="question" class="question"></div>
+
+<div id="options"></div>
+
+<div id="message"></div>
+
+</div>
+
+</div>
+
+<div id="winScreen" class="screen">
+
+<div class="card">
+
+<div class="win-text">
+🏆 Mission Complete!
+</div>
+
+<br>
+
+<p>
+You reached Planet 999!
+</p>
+
+<br>
+
+<div id="finalFuel"></div>
+
+<br>
+
+<button class="btn" onclick="location.reload()">
+Play Again
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<audio id="correctSound" src="assets/correct.mp3"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+<audio id="winSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+
+<script>
+
+let fuelCells = 0;
+let correctAnswer = "";
+
+const fuelIcons = [
+"🔋","🚀","🛰️","🌎","🌕",
+"⭐","☄️","🛸","🌠","🚀"
+];
+
+function switchScreen(id){
+
+document.querySelectorAll(".screen").forEach(screen=>{
+screen.classList.remove("active");
+});
+
+document.getElementById(id).classList.add("active");
+
+}
+
+function showInstructions(){
+switchScreen("instructionScreen");
+}
+
+function startGame(){
+switchScreen("gameScreen");
+generateQuestion();
+}
+
+function random(min,max){
+return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function shuffle(array){
+return array.sort(()=>Math.random()-0.5);
+}
+  function generateQuestion(){
+
+if(fuelCells>=10){
+showWinScreen();
+return;
+}
+
+document.getElementById("message").innerHTML="";
+
+let type=random(1,10);
+
+let question="";
+let answer="";
+let options=[];
+
+if(type===1){
+
+let n=random(100,999);
+
+question=`What number is shown?<br><br><b>${n}</b>`;
+
+answer=n.toString();
+
+options=[
+answer,
+(n+1).toString(),
+(n-1).toString(),
+(n+10).toString()
+];
+
+}
+
+if(type===2){
+
+let n=random(101,999);
+
+question=`What comes before ${n}?`;
+
+answer=(n-1).toString();
+
+options=[
+answer,
+(n+1).toString(),
+(n-2).toString(),
+(n+10).toString()
+];
+
+}
+
+if(type===3){
+
+let n=random(100,998);
+
+question=`What comes after ${n}?`;
+
+answer=(n+1).toString();
+
+options=[
+answer,
+(n-1).toString(),
+(n+2).toString(),
+(n+10).toString()
+];
+
+}
+
+if(type===4){
+
+let n=random(100,997);
+
+question=`${n} __ ${n+2}`;
+
+answer=(n+1).toString();
+
+options=[
+answer,
+n.toString(),
+(n+2).toString(),
+(n+3).toString()
+];
+
+}
+
+if(type===5){
+
+let n=random(100,999);
+
+let digit=n.toString()[1];
+
+question=`What is the place value of ${digit} in ${n}?`;
+
+answer=(digit*10).toString();
+
+options=[
+answer,
+digit,
+(digit*100).toString(),
+random(1,99).toString()
+];
+
+}
+
+if(type===6){
+
+let n=random(100,999);
+
+let digit=n.toString()[random(0,2)];
+
+question=`What is the face value of ${digit} in ${n}?`;
+
+answer=digit;
+
+options=[
+answer,
+(digit*10).toString(),
+(digit*100).toString(),
+random(1,9).toString()
+];
+
+}
+
+if(type===7){
+
+let n=random(100,999);
+
+let h=Math.floor(n/100);
+let t=Math.floor((n%100)/10);
+let o=n%10;
+
+question=`Expanded form of ${n}`;
+
+answer=`${h*100} + ${t*10} + ${o}`;
+
+options=[
+answer,
+`${h}+${t}+${o}`,
+`${h*100}+${o}`,
+`${h*10}+${t*10}+${o}`
+];
+
+}
+
+if(type===8){
+
+let h=random(1,9)*100;
+let t=random(0,9)*10;
+let o=random(0,9);
+
+question=`Convert to standard form:<br><br>${h} + ${t} + ${o}`;
+
+answer=(h+t+o).toString();
+
+options=[
+answer,
+(h+t).toString(),
+(h+o).toString(),
+(h+t+o+10).toString()
+];
+
+}
+
+if(type===9){
+
+let a=random(100,999);
+let b=random(100,999);
+
+answer=a>b?">":"<";
+
+if(a===b) answer="=";
+
+question=`Choose the correct symbol:<br><br>${a} ___ ${b}`;
+
+options=[">","<","=","≠"];
+
+}
+
+if(type===10){
+
+let n=random(1,29);
+
+question=`Which ordinal number comes after ${n}th?`;
+
+answer=(n+1)+"th";
+
+options=[
+answer,
+(n+2)+"th",
+(n)+"th",
+(n+3)+"th"
+];
+
+}
+
+correctAnswer=answer;
+
+options=shuffle(options);
+
+document.getElementById("question").innerHTML=question;
+
+let html="";
+
+options.forEach(option=>{
+
+html += `
+<button class="option"
+onclick="checkAnswer('${option}')">
+${option}
+</button>
+`;
+
+});
+
+document.getElementById("options").innerHTML=html;
+
+}
+
+function checkAnswer(selected){
+
+if(selected==correctAnswer){
+
+document.getElementById("correctSound").play();
+
+fuelCells++;
+
+document.getElementById("message").innerHTML=
+"✅ Fuel Cell Collected!";
+
+document.getElementById("score").innerHTML=
+`Fuel Cells Collected: ${fuelCells} / 10`;
+
+let display="";
+
+for(let i=0;i<fuelCells;i++){
+display += fuelIcons[i];
+}
+
+document.getElementById("fuel").innerHTML=
+display;
+
+document.getElementById("progressBar").style.width=
+(fuelCells*10)+"%";
+
+}
+else{
+  document.getElementById("wrongSound").play();
+
+document.getElementById("message").innerHTML=
+`❌ Correct Answer: ${correctAnswer}`;
+
+}
+
+setTimeout(generateQuestion,1200);
+
+}
+
+function showWinScreen(){
+
+document.getElementById("winSound").play();
+
+switchScreen("winScreen");
+
+let finalDisplay="";
+
+fuelIcons.forEach(icon=>{
+finalDisplay += icon;
+});
+
+document.getElementById("finalFuel").innerHTML=
+finalDisplay;
+
+}
+
+</script>
+
+</body>
+</html>
