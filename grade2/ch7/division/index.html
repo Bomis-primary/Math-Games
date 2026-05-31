@@ -1,1 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Pizza Party Division</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:linear-gradient(180deg,#fff3cd,#ffe8a1);
+min-height:100vh;
+text-align:center;
+}
+
+.header{
+background:white;
+padding:10px;
+box-shadow:0 2px 6px rgba(0,0,0,0.15);
+}
+
+.logo{
+height:70px;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+padding:20px;
+}
+
+.screen{
+display:none;
+}
+
+.active{
+display:block;
+}
+
+.card{
+background:white;
+padding:25px;
+border-radius:20px;
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
+margin-top:20px;
+}
+
+.btn{
+background:#e67e22;
+color:white;
+border:none;
+padding:14px 25px;
+border-radius:10px;
+font-size:18px;
+cursor:pointer;
+margin-top:15px;
+}
+
+.btn:hover{
+background:#ca6b16;
+}
+
+.question{
+font-size:24px;
+margin-bottom:20px;
+}
+
+.option{
+display:block;
+width:100%;
+margin:10px 0;
+padding:15px;
+border:none;
+border-radius:10px;
+background:#e67e22;
+color:white;
+font-size:18px;
+cursor:pointer;
+}
+
+.option:hover{
+background:#ca6b16;
+}
+
+.progress-container{
+width:100%;
+background:#ddd;
+border-radius:20px;
+overflow:hidden;
+margin:15px 0;
+}
+
+.progress-bar{
+height:22px;
+width:0%;
+background:#2ecc71;
+transition:.4s;
+}
+
+#message{
+font-size:20px;
+font-weight:bold;
+height:30px;
+margin-top:10px;
+}
+
+#pizza{
+font-size:32px;
+margin-top:10px;
+min-height:40px;
+}
+
+.score{
+font-size:22px;
+font-weight:bold;
+color:#27ae60;
+}
+
+.instructions{
+text-align:left;
+line-height:1.8;
+font-size:18px;
+}
+
+.win-text{
+font-size:30px;
+color:#e67e22;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<img src="assets/innovine-logo.png" class="logo">
+</div>
+
+<div class="container">
+
+<div id="startScreen" class="screen active">
+
+<div class="card">
+
+<h1>🍕 Pizza Party Division 🍕</h1>
+
+<p>
+Help Chef Marco divide food fairly and complete the giant pizza.
+</p>
+
+<button class="btn" onclick="showInstructions()">
+Start Party
+</button>
+
+</div>
+
+</div>
+
+<div id="instructionScreen" class="screen">
+
+<div class="card">
+
+<h2>📖 How to Play</h2>
+
+<div class="instructions">
+
+✔ Solve division challenges.<br>
+✔ Earn one pizza slice for every correct answer.<br>
+✔ Collect all 10 slices.<br>
+✔ Become Pizza Master.
+
+</div>
+
+<button class="btn" onclick="startGame()">
+Play
+</button>
+
+</div>
+
+</div>
+
+<div id="gameScreen" class="screen">
+
+<div class="card">
+
+<div class="score" id="score">
+Pizza Slices Collected: 0 / 10
+</div>
+
+<div class="progress-container">
+<div class="progress-bar" id="progressBar"></div>
+</div>
+
+<div id="pizza"></div>
+
+<div id="question" class="question"></div>
+
+<div id="options"></div>
+
+<div id="message"></div>
+
+</div>
+
+</div>
+
+<div id="winScreen" class="screen">
+
+<div class="card">
+
+<div class="win-text">
+🏆 Pizza Party Complete!
+</div>
+
+<br>
+
+<p>
+You collected all pizza slices and became a Pizza Master.
+</p>
+
+<br>
+
+<div id="finalPizza"></div>
+
+<br>
+
+<button class="btn" onclick="location.reload()">
+Play Again
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<audio id="correctSound" src="assets/correct.mp3"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+<audio id="winSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+
+<script>
+
+let slices = 0;
+let correctAnswer = "";
+
+const pizzaIcons = [
+"🍕","🍕","🍕","🍕","🍕",
+"🍕","🍕","🍕","🍕","🍕"
+];
+
+function switchScreen(id){
+
+document.querySelectorAll(".screen").forEach(screen=>{
+screen.classList.remove("active");
+});
+
+document.getElementById(id).classList.add("active");
+
+}
+
+function showInstructions(){
+switchScreen("instructionScreen");
+}
+
+function startGame(){
+switchScreen("gameScreen");
+generateQuestion();
+}
+
+function random(min,max){
+return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function shuffle(array){
+return array.sort(()=>Math.random()-0.5);
+}
+function generateQuestion(){
+
+if(slices>=10){
+showWinScreen();
+return;
+}
+
+document.getElementById("message").innerHTML="";
+
+let type=random(1,10);
+
+let question="";
+let answer="";
+let options=[];
+
+if(type===1){
+
+let divisor=random(2,5);
+let quotient=random(2,8);
+let dividend=divisor*quotient;
+
+question=`Using repeated subtraction, how many times can you subtract ${divisor} from ${dividend}?`;
+
+answer=quotient.toString();
+
+options=[
+answer,
+(quotient+1).toString(),
+(quotient-1).toString(),
+(divisor).toString()
+];
+
+}
+
+if(type===2){
+
+let groups=random(2,10);
+let each=random(2,10);
+let total=groups*each;
+
+question=`${total} pizzas are shared equally among ${groups} friends. How many pizzas does each friend get?`;
+
+answer=each.toString();
+
+options=[
+answer,
+(groups).toString(),
+(each+1).toString(),
+(each-1).toString()
+];
+
+}
+
+if(type===3){
+
+let n=random(1,99);
+
+question=`${n} ÷ 1 = ?`;
+
+answer=n.toString();
+
+options=[
+answer,
+"1",
+(n+1).toString(),
+(n-1).toString()
+];
+
+}
+
+if(type===4){
+
+let n=random(2,99);
+
+question=`${n} ÷ ${n} = ?`;
+
+answer="1";
+
+options=[
+"1",
+"0",
+n.toString(),
+"2"
+];
+
+}
+
+if(type===5){
+
+let n=random(1,9);
+
+question=`0 ÷ ${n} = ?`;
+
+answer="0";
+
+options=[
+"0",
+"1",
+n.toString(),
+"Undefined"
+];
+
+}
+
+if(type===6){
+
+let a=random(2,9);
+let b=random(2,9);
+let product=a*b;
+
+question=`${a} × ${b} = ${product}. Therefore ${product} ÷ ${b} = ?`;
+
+answer=a.toString();
+
+options=[
+answer,
+b.toString(),
+product.toString(),
+(a+b).toString()
+];
+
+}
+
+if(type===7){
+
+let divisor=random(2,9);
+let quotient=random(2,20);
+let dividend=divisor*quotient;
+
+question=`${dividend} ÷ ${divisor} = ?`;
+
+answer=quotient.toString();
+
+options=[
+answer,
+(quotient+1).toString(),
+(quotient-1).toString(),
+(divisor).toString()
+];
+
+}
+
+if(type===8){
+
+let divisor=random(2,9);
+let quotient=random(2,10);
+let remainder=random(1,divisor-1);
+
+let dividend=(divisor*quotient)+remainder;
+
+question=`${dividend} ÷ ${divisor} = ?`;
+
+answer=`${quotient} R ${remainder}`;
+
+options=[
+answer,
+`${quotient+1} R ${remainder}`,
+`${quotient} R 0`,
+`${quotient-1} R ${remainder}`
+];
+
+}
+
+if(type===9){
+
+let divisor=random(2,9);
+let quotient=random(15,99);
+
+let dividend=divisor*quotient;
+
+question=`${dividend} ÷ ${divisor} = ?`;
+
+answer=quotient.toString();
+
+options=[
+answer,
+(quotient+1).toString(),
+(quotient-1).toString(),
+(divisor).toString()
+];
+
+}
+
+if(type===10){
+
+let children=random(2,9);
+let each=random(2,12);
+
+let chocolates=children*each;
+
+question=`${chocolates} chocolates are shared equally among ${children} children. How many chocolates does each child get?`;
+
+answer=each.toString();
+
+options=[
+answer,
+(children).toString(),
+(each+1).toString(),
+(each-1).toString()
+];
+
+}
+
+correctAnswer=answer;
+
+options=shuffle(options);
+
+document.getElementById("question").innerHTML=question;
+
+let html="";
+
+options.forEach(option=>{
+
+html += `
+<button class="option"
+onclick="checkAnswer('${option}')">
+${option}
+</button>
+`;
+
+});
+
+document.getElementById("options").innerHTML=html;
+
+}
+
+function checkAnswer(selected){
+
+if(selected==correctAnswer){
+
+document.getElementById("correctSound").play();
+
+slices++;
+
+document.getElementById("message").innerHTML=
+"✅ Pizza Slice Earned!";
+
+document.getElementById("score").innerHTML=
+`Pizza Slices Collected: ${slices} / 10`;
+
+let display="";
+
+for(let i=0;i<slices;i++){
+display += pizzaIcons[i];
+}
+
+document.getElementById("pizza").innerHTML=
+display;
+
+document.getElementById("progressBar").style.width=
+(slices*10)+"%";
+
+}
+else{
+  document.getElementById("wrongSound").play();
+
+document.getElementById("message").innerHTML=
+`❌ Correct Answer: ${correctAnswer}`;
+
+}
+
+setTimeout(generateQuestion,1200);
+
+}
+
+function showWinScreen(){
+
+document.getElementById("winSound").play();
+
+switchScreen("winScreen");
+
+let finalDisplay="";
+
+pizzaIcons.forEach(icon=>{
+finalDisplay += icon;
+});
+
+document.getElementById("finalPizza").innerHTML=
+finalDisplay;
+
+}
+
+</script>
+
+</body>
+</html>
