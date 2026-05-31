@@ -1,1 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Geometry Construction Site</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:url('assets/construction-background.jpg');
+background-size:cover;
+background-position:center;
+min-height:100vh;
+text-align:center;
+}
+
+.header{
+background:white;
+padding:10px;
+box-shadow:0 2px 6px rgba(0,0,0,.2);
+}
+
+.logo{
+height:70px;
+}
+
+.container{
+max-width:1000px;
+margin:auto;
+padding:20px;
+}
+
+.screen{
+display:none;
+}
+
+.active{
+display:block;
+}
+
+.card{
+background:white;
+padding:25px;
+border-radius:20px;
+box-shadow:0 5px 15px rgba(0,0,0,.2);
+margin-top:20px;
+}
+
+.btn{
+background:#f39c12;
+color:white;
+border:none;
+padding:14px 24px;
+border-radius:10px;
+font-size:18px;
+cursor:pointer;
+margin-top:15px;
+}
+
+.btn:hover{
+background:#d68910;
+}
+
+.question{
+font-size:24px;
+margin-bottom:20px;
+}
+
+.option{
+display:block;
+width:100%;
+margin:10px 0;
+padding:15px;
+border:none;
+border-radius:10px;
+background:#f39c12;
+color:white;
+font-size:18px;
+cursor:pointer;
+}
+
+.option:hover{
+background:#d68910;
+}
+
+.image-area{
+margin:20px auto;
+}
+
+.object-image{
+width:250px;
+height:250px;
+object-fit:contain;
+}
+
+.progress-container{
+width:100%;
+background:#ddd;
+border-radius:20px;
+overflow:hidden;
+margin:15px 0;
+}
+
+.progress-bar{
+height:22px;
+width:0%;
+background:#2ecc71;
+transition:.3s;
+}
+
+#message{
+font-size:20px;
+font-weight:bold;
+height:30px;
+margin-top:15px;
+}
+
+.mission{
+font-size:22px;
+font-weight:bold;
+color:#27ae60;
+}
+
+.win-text{
+font-size:32px;
+color:#e67e22;
+}
+
+#cityStatus{
+font-size:20px;
+font-weight:bold;
+margin-top:10px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<img src="assets/innovine-logo.png" class="logo">
+</div>
+
+<div class="container">
+
+<div id="startScreen" class="screen active">
+
+<div class="card">
+
+<h1>🏗️ Geometry Construction Site</h1>
+
+<br>
+
+<p>
+Become a Junior Architect and help build a brand-new city using geometry.
+</p>
+
+<button class="btn" onclick="showInstructions()">
+Enter Site
+</button>
+
+</div>
+
+</div>
+
+<div id="instructionScreen" class="screen">
+
+<div class="card">
+
+<h2>📖 Instructions</h2>
+
+<br>
+
+<p>✔ Identify points and lines</p>
+<p>✔ Recognise line types</p>
+<p>✔ Find intersections</p>
+<p>✔ Build shapes</p>
+<p>✔ Complete city structures</p>
+
+<button class="btn" onclick="startGame()">
+Start Building
+</button>
+
+</div>
+
+</div>
+
+<div id="gameScreen" class="screen">
+
+<div class="card">
+
+<div class="mission" id="missionCount">
+Mission 1 / 15
+</div>
+
+<div class="progress-container">
+<div class="progress-bar" id="progressBar"></div>
+</div>
+
+<div id="cityStatus">
+Structures Built: 0 / 15
+</div>
+
+<div id="question" class="question"></div>
+
+<div class="image-area" id="imageArea"></div>
+
+<div id="options"></div>
+
+<div id="message"></div>
+
+</div>
+
+</div>
+
+<div id="winScreen" class="screen">
+
+<div class="card">
+
+<div class="win-text">
+🏆 Master Architect!
+</div>
+
+<br>
+
+<img src="assets/architect-badge.png" width="180">
+
+<br><br>
+
+<p>
+You completed the city blueprint.
+</p>
+
+<br>
+
+<button class="btn" onclick="location.reload()">
+Play Again
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<audio id="correctSound" src="assets/correct.mp3"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+<audio id="winSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+
+<script>
+
+let level=1;
+let correctAnswer="";
+
+function switchScreen(id){
+document.querySelectorAll(".screen").forEach(screen=>{
+screen.classList.remove("active");
+});
+document.getElementById(id).classList.add("active");
+}
+
+function showInstructions(){
+switchScreen("instructionScreen");
+}
+
+function startGame(){
+switchScreen("gameScreen");
+generateQuestion();
+}
+
+function shuffle(array){
+return array.sort(()=>Math.random()-0.5);
+}
+  function generateQuestion(){
+
+if(level>15){
+showWinScreen();
+return;
+}
+
+document.getElementById("message").innerHTML="";
+
+let question="";
+let answer="";
+let options=[];
+let image="";
+
+if(level===1){
+
+question="🏗️ Mission 1: What is this geometry object?";
+
+image="assets/point.png";
+
+answer="Point";
+
+options=[
+"Point",
+"Line",
+"Ray",
+"Line Segment"
+];
+
+}
+
+if(level===2){
+
+question="🏗️ Mission 2: Identify this line.";
+
+image="assets/vertical-line.png";
+
+answer="Vertical Line";
+
+options=[
+"Vertical Line",
+"Horizontal Line",
+"Slanting Line",
+"Ray"
+];
+
+}
+
+if(level===3){
+
+question="🏗️ Mission 3: Identify this line.";
+
+image="assets/horizontal-line.png";
+
+answer="Horizontal Line";
+
+options=[
+"Vertical Line",
+"Horizontal Line",
+"Slanting Line",
+"Ray"
+];
+
+}
+
+if(level===4){
+
+question="🏗️ Mission 4: Identify this line.";
+
+image="assets/slanting-line.png";
+
+answer="Slanting Line";
+
+options=[
+"Vertical Line",
+"Horizontal Line",
+"Slanting Line",
+"Line Segment"
+];
+
+}
+
+if(level===5){
+
+question="🏗️ Mission 5: What is this figure with two endpoints?";
+
+image="assets/line-segment.png";
+
+answer="Line Segment";
+
+options=[
+"Line Segment",
+"Line",
+"Ray",
+"Point"
+];
+
+}
+
+if(level===6){
+
+question="🏗️ Mission 6: What is this figure with one endpoint and one arrow?";
+
+image="assets/ray.png";
+
+answer="Ray";
+
+options=[
+"Line",
+"Ray",
+"Point",
+"Line Segment"
+];
+
+}
+
+if(level===7){
+
+question="🏗️ Mission 7: What do we call the point where these roads cross?";
+
+image="assets/intersecting-lines.png";
+
+answer="Intersection";
+
+options=[
+"Intersection",
+"Endpoint",
+"Corner",
+"Vertex"
+];
+
+}
+
+if(level===8){
+
+question="🏗️ Mission 8: Measure the road. What is its length?";
+
+image="assets/line-segment.png";
+
+answer="6 cm";
+
+options=[
+"4 cm",
+"5 cm",
+"6 cm",
+"8 cm"
+];
+}
+
+if(level===9){
+
+question="🏗️ Mission 9: How many sides does this shape have?";
+
+image="assets/square.png";
+
+answer="4";
+
+options=[
+"3",
+"4",
+"5",
+"6"
+];
+
+}
+
+if(level===10){
+
+question="🏗️ Mission 10: How many corners does this shape have?";
+
+image="assets/triangle.png";
+
+answer="3";
+
+options=[
+"2",
+"3",
+"4",
+"5"
+];
+
+}
+
+if(level===11){
+
+question="🏗️ Mission 11: How many sides and corners does this rectangle have?";
+
+image="assets/rectangle.png";
+
+answer="4 sides and 4 corners";
+
+options=[
+"4 sides and 4 corners",
+"3 sides and 3 corners",
+"4 sides and 2 corners",
+"2 sides and 4 corners"
+];
+
+}
+
+if(level===12){
+
+question="🏗️ Mission 12: Does this shape have corners?";
+
+image="assets/circle.png";
+
+answer="No";
+
+options=[
+"Yes",
+"No",
+"Only One",
+"Only Two"
+];
+
+}
+
+if(level===13){
+
+question="🏗️ Mission 13: Which shape has been built using tangram pieces?";
+
+image="assets/tangram-set.png";
+
+answer="House";
+
+options=[
+"House",
+"Tree",
+"Flower",
+"Road"
+];
+
+}
+
+if(level===14){
+
+question="🏗️ Mission 14: Which figure extends forever in one direction?";
+
+image="assets/city-blueprint.png";
+
+answer="Ray";
+
+options=[
+"Point",
+"Line Segment",
+"Ray",
+"Square"
+];
+
+}
+
+if(level===15){
+
+question="🏗️ Final Architect Challenge: Which statement is correct?";
+
+image="assets/construction-site.png";
+
+answer="A line segment has two endpoints.";
+
+options=[
+"A line segment has two endpoints.",
+"A ray has two endpoints.",
+"A point has length.",
+"A line ends on both sides."
+];
+
+}
+
+correctAnswer=answer;
+
+options=shuffle(options);
+
+document.getElementById("question").innerHTML=
+question;
+
+document.getElementById("imageArea").innerHTML=
+`<img src="${image}" class="object-image">`;
+
+let html="";
+
+options.forEach(option=>{
+
+html += `
+<button class="option"
+onclick="checkAnswer('${option}')">
+${option}
+</button>
+`;
+
+});
+
+document.getElementById("options").innerHTML=html;
+
+}
+
+function checkAnswer(selected){
+
+if(selected===correctAnswer){
+
+document.getElementById("correctSound").play();
+
+document.getElementById("message").innerHTML=
+"✅ Structure Built!";
+
+level++;
+
+document.getElementById("missionCount").innerHTML=
+`Mission ${Math.min(level,15)} / 15`;
+
+document.getElementById("cityStatus").innerHTML=
+`Structures Built: ${Math.min(level-1,15)} / 15`;
+
+document.getElementById("progressBar").style.width=
+((level-1)*(100/15))+"%";
+
+}
+else{
+
+document.getElementById("wrongSound").play();
+
+document.getElementById("message").innerHTML=
+`❌ Correct Answer: ${correctAnswer}`;
+
+}
+
+setTimeout(generateQuestion,1500);
+
+}
+
+function showWinScreen(){
+
+document.getElementById("winSound").play();
+
+switchScreen("winScreen");
+
+document.getElementById("progressBar").style.width="100%";
+
+}
+
+</script>
+
+</body>
+</html>
