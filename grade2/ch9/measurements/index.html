@@ -1,1 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Measurement Lab</title>
 
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:url('assets/lab-background.jpg');
+background-size:cover;
+background-position:center;
+min-height:100vh;
+text-align:center;
+}
+
+.header{
+background:white;
+padding:10px;
+box-shadow:0 2px 6px rgba(0,0,0,0.2);
+}
+
+.logo{
+height:70px;
+}
+
+.container{
+max-width:1000px;
+margin:auto;
+padding:20px;
+}
+
+.screen{
+display:none;
+}
+
+.active{
+display:block;
+}
+
+.card{
+background:white;
+border-radius:20px;
+padding:25px;
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
+margin-top:20px;
+}
+
+.btn{
+background:#3498db;
+color:white;
+border:none;
+padding:14px 24px;
+border-radius:10px;
+font-size:18px;
+cursor:pointer;
+margin-top:15px;
+}
+
+.btn:hover{
+background:#2980b9;
+}
+
+.question{
+font-size:24px;
+margin-bottom:20px;
+}
+
+.option{
+display:block;
+width:100%;
+margin:10px 0;
+padding:15px;
+border:none;
+border-radius:10px;
+background:#3498db;
+color:white;
+font-size:18px;
+cursor:pointer;
+}
+
+.option:hover{
+background:#2980b9;
+}
+
+.image-area{
+margin:20px auto;
+}
+
+.object-image{
+width:220px;
+height:220px;
+object-fit:contain;
+}
+
+.progress-container{
+width:100%;
+background:#ddd;
+border-radius:20px;
+overflow:hidden;
+margin:15px 0;
+}
+
+.progress-bar{
+height:22px;
+width:0%;
+background:#2ecc71;
+transition:.3s;
+}
+
+#badges{
+font-size:34px;
+margin-top:10px;
+}
+
+#message{
+font-size:20px;
+font-weight:bold;
+margin-top:15px;
+height:30px;
+}
+
+.score{
+font-size:22px;
+font-weight:bold;
+color:#27ae60;
+}
+
+.win-text{
+font-size:32px;
+color:#e67e22;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<img src="assets/innovine-logo.png" class="logo">
+</div>
+
+<div class="container">
+
+<div id="startScreen" class="screen active">
+
+<div class="card">
+
+<h1>🔬 Measurement Lab</h1>
+
+<br>
+
+<p>
+Become a Junior Scientist.
+Complete 10 experiments and earn your Scientist Badge.
+</p>
+
+<button class="btn" onclick="showInstructions()">
+Enter Lab
+</button>
+
+</div>
+
+</div>
+
+<div id="instructionScreen" class="screen">
+
+<div class="card">
+
+<h2>📖 Instructions</h2>
+
+<br>
+
+<p>
+✔ Measure length</p>
+<p>✔ Compare weight</p>
+<p>✔ Estimate capacity</p>
+<p>✔ Choose correct units</p>
+<p>✔ Complete 10 experiments</p>
+
+<button class="btn" onclick="startGame()">
+Start Experiments
+</button>
+
+</div>
+
+</div>
+
+<div id="gameScreen" class="screen">
+
+<div class="card">
+
+<div class="score" id="score">
+Experiments Completed: 0 / 10
+</div>
+
+<div class="progress-container">
+<div class="progress-bar" id="progressBar"></div>
+</div>
+
+<div id="badges"></div>
+
+<div id="question" class="question"></div>
+
+<div class="image-area" id="imageArea"></div>
+
+<div id="options"></div>
+
+<div id="message"></div>
+
+</div>
+
+</div>
+
+<div id="winScreen" class="screen">
+
+<div class="card">
+
+<div class="win-text">
+🏆 Scientist Badge Earned!
+</div>
+
+<br>
+
+<img src="assets/scientist-badge.png" width="180">
+
+<br><br>
+
+<p>
+You completed all experiments successfully.
+</p>
+
+<br>
+
+<button class="btn" onclick="location.reload()">
+Play Again
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<audio id="correctSound" src="assets/correct.mp3"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+<audio id="winSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+
+<script>
+
+let score=0;
+let correctAnswer="";
+
+const badges=[
+"🔬","🧪","📏","⚖️","🥛",
+"📐","🧫","🧬","🔍","🏆"
+];
+
+function switchScreen(id){
+
+document.querySelectorAll('.screen').forEach(s=>{
+s.classList.remove('active');
+});
+
+document.getElementById(id).classList.add('active');
+
+}
+
+function showInstructions(){
+switchScreen("instructionScreen");
+}
+
+function startGame(){
+switchScreen("gameScreen");
+generateQuestion();
+}
+
+function shuffle(array){
+return array.sort(()=>Math.random()-0.5);
+}
+
+function random(min,max){
+return Math.floor(Math.random()*(max-min+1))+min;
+}
+  function generateQuestion(){
+
+if(score>=10){
+showWinScreen();
+return;
+}
+
+document.getElementById("message").innerHTML="";
+
+let type=score+1;
+
+let question="";
+let answer="";
+let options=[];
+let image="";
+
+if(type===1){
+
+question="Which tool should a scientist use to measure this pencil?";
+
+image="assets/pencil.png";
+
+answer="Ruler";
+
+options=[
+"Ruler",
+"Weighing Scale",
+"Measuring Cup",
+"Bucket"
+];
+
+}
+
+if(type===2){
+
+question="The pencil reaches the 8 cm mark on the ruler. What is its length?";
+
+image="assets/ruler.png";
+
+answer="8 cm";
+
+options=[
+"8 cm",
+"5 cm",
+"10 cm",
+"12 cm"
+];
+
+}
+
+if(type===3){
+
+question="Which is the best estimate for the length of this book?";
+
+image="assets/book.png";
+
+answer="20 cm";
+
+options=[
+"2 cm",
+"20 cm",
+"2 m",
+"10 m"
+];
+
+}
+
+if(type===4){
+
+question="Which object is heavier?";
+
+image="assets/watermelon.png";
+
+answer="Watermelon";
+
+options=[
+"Watermelon",
+"Feather",
+"Both Equal",
+"Cannot Tell"
+];
+
+}
+
+if(type===5){
+
+question="Which unit should be used to measure the weight of this school bag?";
+
+image="assets/schoolbag.png";
+
+answer="kg";
+
+options=[
+"kg",
+"g",
+"ml",
+"cm"
+];
+
+}
+
+if(type===6){
+
+question="A weighing scale shows 500. What is the weight?";
+
+image="assets/weighing-scale.png";
+
+answer="500 g";
+
+options=[
+"500 g",
+"500 kg",
+"50 g",
+"5 kg"
+];
+
+}
+
+if(type===7){
+
+question="Which unit is best for measuring the amount of milk in this glass?";
+
+image="assets/glass.png";
+
+answer="ml";
+
+options=[
+"ml",
+"l",
+"kg",
+"cm"
+];
+
+}
+
+if(type===8){
+
+question="Which unit is best for measuring water in this bucket?";
+
+image="assets/bucket.png";
+
+answer="l";
+
+options=[
+"l",
+"ml",
+"g",
+"cm"
+];
+
+}
+
+if(type===9){
+
+question="Which is the better estimate for the capacity of this bottle?";
+
+image="assets/waterbottle.png";
+
+answer="500 ml";
+
+options=[
+"500 ml",
+"500 l",
+"5 kg",
+"5 cm"
+];
+
+}
+
+if(type===10){
+
+question="1 litre is equal to how many millilitres?";
+
+image="assets/measuring-cup.png";
+
+answer="1000 ml";
+
+options=[
+"1000 ml",
+"100 ml",
+"10000 ml",
+"10 ml"
+];
+
+}
+
+correctAnswer=answer;
+
+options=shuffle(options);
+
+document.getElementById("question").innerHTML=
+question;
+
+document.getElementById("imageArea").innerHTML=
+`<img src="${image}" class="object-image">`;
+
+let html="";
+
+options.forEach(option=>{
+
+html+=`
+<button class="option"
+onclick="checkAnswer('${option}')">
+${option}
+</button>
+`;
+
+});
+
+document.getElementById("options").innerHTML=
+html;
+
+}
+
+function checkAnswer(selected){
+
+if(selected===correctAnswer){
+
+document.getElementById("correctSound").play();
+
+score++;
+
+document.getElementById("message").innerHTML=
+"✅ Experiment Completed!";
+
+document.getElementById("score").innerHTML=
+`Experiments Completed: ${score} / 10`;
+
+let badgeDisplay="";
+
+for(let i=0;i<score;i++){
+badgeDisplay+=badges[i];
+}
+
+document.getElementById("badges").innerHTML=
+badgeDisplay;
+
+document.getElementById("progressBar").style.width=
+(score*10)+"%";
+
+}
+else{
+  document.getElementById("wrongSound").play();
+
+document.getElementById("message").innerHTML=
+`❌ Correct Answer: ${correctAnswer}`;
+
+}
+
+setTimeout(generateQuestion,1500);
+
+}
+
+function showWinScreen(){
+
+document.getElementById("winSound").play();
+
+switchScreen("winScreen");
+
+}
+
+</script>
+
+</body>
+</html>
