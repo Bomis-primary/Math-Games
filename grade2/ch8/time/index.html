@@ -1,1 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Time Traveler's Calendar Quest</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:linear-gradient(180deg,#d6eaff,#f5f9ff);
+min-height:100vh;
+text-align:center;
+}
+
+.header{
+background:white;
+padding:10px;
+box-shadow:0 2px 6px rgba(0,0,0,0.15);
+}
+
+.logo{
+height:70px;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+padding:20px;
+}
+
+.screen{
+display:none;
+}
+
+.active{
+display:block;
+}
+
+.card{
+background:white;
+padding:25px;
+border-radius:20px;
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
+margin-top:20px;
+}
+
+.btn{
+background:#3498db;
+color:white;
+border:none;
+padding:14px 25px;
+border-radius:10px;
+font-size:18px;
+cursor:pointer;
+margin-top:15px;
+}
+
+.option{
+display:block;
+width:100%;
+margin:10px 0;
+padding:15px;
+border:none;
+border-radius:10px;
+background:#3498db;
+color:white;
+font-size:18px;
+cursor:pointer;
+}
+
+.option:hover,
+.btn:hover{
+background:#2980b9;
+}
+
+.progress-container{
+width:100%;
+background:#ddd;
+border-radius:20px;
+overflow:hidden;
+margin:15px 0;
+}
+
+.progress-bar{
+height:22px;
+width:0%;
+background:#2ecc71;
+transition:.4s;
+}
+
+.question{
+font-size:24px;
+margin-bottom:20px;
+}
+
+#message{
+font-size:20px;
+font-weight:bold;
+height:30px;
+margin-top:10px;
+}
+
+#crystals{
+font-size:32px;
+margin-top:10px;
+min-height:40px;
+}
+
+.score{
+font-size:22px;
+font-weight:bold;
+color:#27ae60;
+}
+
+.instructions{
+text-align:left;
+line-height:1.8;
+font-size:18px;
+}
+
+.win-text{
+font-size:30px;
+color:#e67e22;
+}
+
+.clock{
+font-size:60px;
+margin:20px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<img src="assets/innovine-logo.png" class="logo">
+</div>
+
+<div class="container">
+
+<div id="startScreen" class="screen active">
+
+<div class="card">
+
+<h1>🕒 Time Traveler's Calendar Quest</h1>
+
+<p>
+Help the Time Keeper restore the Time Crystal.
+</p>
+
+<button class="btn" onclick="showInstructions()">
+Start Quest
+</button>
+
+</div>
+
+</div>
+
+<div id="instructionScreen" class="screen">
+
+<div class="card">
+
+<h2>📖 How to Play</h2>
+
+<div class="instructions">
+
+✔ Solve time and calendar challenges.<br>
+✔ Collect 10 Time Crystals.<br>
+✔ Restore time.<br>
+✔ Become Master Time Keeper.
+
+</div>
+
+<button class="btn" onclick="startGame()">
+Play
+</button>
+
+</div>
+
+</div>
+
+<div id="gameScreen" class="screen">
+
+<div class="card">
+
+<div class="score" id="score">
+Time Crystals: 0 / 10
+</div>
+
+<div class="progress-container">
+<div class="progress-bar" id="progressBar"></div>
+</div>
+
+<div id="crystals"></div>
+
+<div id="question" class="question"></div>
+
+<div id="options"></div>
+
+<div id="message"></div>
+
+</div>
+
+</div>
+
+<div id="winScreen" class="screen">
+
+<div class="card">
+
+<div class="win-text">
+🏆 Time Restored!
+</div>
+
+<br>
+
+<p>
+You collected all Time Crystals and restored the flow of time.
+</p>
+
+<br>
+
+<div id="finalCrystals"></div>
+
+<br>
+
+<button class="btn" onclick="location.reload()">
+Play Again
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<audio id="correctSound" src="assets/correct.mp3"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+<audio id="winSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+
+<script>
+
+let crystals = 0;
+let correctAnswer = "";
+
+const crystalIcons = [
+"⏰","💎","📅","💎","🗓️",
+"💎","🌞","💎","❄️","👑"
+];
+
+function switchScreen(id){
+document.querySelectorAll(".screen").forEach(screen=>{
+screen.classList.remove("active");
+});
+document.getElementById(id).classList.add("active");
+}
+
+function showInstructions(){
+switchScreen("instructionScreen");
+}
+
+function startGame(){
+switchScreen("gameScreen");
+generateQuestion();
+}
+
+function random(min,max){
+return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function shuffle(array){
+return array.sort(()=>Math.random()-0.5);
+}
+</script>
+  <script>
+
+function generateQuestion(){
+
+if(crystals>=10){
+showWinScreen();
+return;
+}
+
+document.getElementById("message").innerHTML="";
+
+let type=random(1,10);
+
+let question="";
+let answer="";
+let options=[];
+
+const days=[
+"Monday","Tuesday","Wednesday",
+"Thursday","Friday","Saturday","Sunday"
+];
+
+const months=[
+"January","February","March","April",
+"May","June","July","August",
+"September","October","November","December"
+];
+
+if(type===1){
+
+let hour=random(1,12);
+
+question=`🕒 What time is shown?<br><br>${hour}:00`;
+
+answer=`${hour} o'clock`;
+
+options=[
+answer,
+`${hour}:30`,
+`${hour+1} o'clock`,
+`${hour-1 || 12} o'clock`
+];
+
+}
+
+if(type===2){
+
+let hour=random(1,12);
+
+question=`🕞 What time is shown?<br><br>${hour}:30`;
+
+answer=`Half past ${hour}`;
+
+options=[
+answer,
+`${hour} o'clock`,
+`Half past ${hour+1}`,
+`${hour+1} o'clock`
+];
+
+}
+
+if(type===3){
+
+let hour=random(1,12);
+
+question=`Which clock shows ${hour} o'clock?`;
+
+answer=`🕒 ${hour}:00`;
+
+options=[
+answer,
+`🕞 ${hour}:30`,
+`🕒 ${hour+1}:00`,
+`🕞 ${hour+1}:30`
+];
+
+}
+
+if(type===4){
+
+let index=random(1,6);
+
+question=`Today is ${days[index]}. What was yesterday?`;
+
+answer=days[index-1];
+
+options=[
+answer,
+days[index],
+days[(index+1)%7],
+days[(index+2)%7]
+];
+
+}
+
+if(type===5){
+
+let index=random(0,5);
+
+question=`Which day comes after ${days[index]}?`;
+
+answer=days[index+1];
+
+options=[
+answer,
+days[index],
+days[index+2],
+days[index+3]
+];
+
+}
+
+if(type===6){
+
+let index=random(0,10);
+
+question=`Which month comes after ${months[index]}?`;
+
+answer=months[index+1];
+
+options=[
+answer,
+months[index],
+months[Math.max(0,index-1)],
+months[Math.min(11,index+2)]
+];
+
+}
+
+if(type===7){
+
+question=`Which month has 28 or 29 days?`;
+
+answer="February";
+
+options=[
+"February",
+"April",
+"June",
+"September"
+];
+
+}
+
+if(type===8){
+
+question=`In a leap year, how many days are in February?`;
+
+answer="29";
+
+options=[
+"29",
+"28",
+"30",
+"31"
+];
+
+}
+
+if(type===9){
+
+question=`How many days are there in one week?`;
+
+answer="7";
+
+options=[
+"7",
+"5",
+"6",
+"8"
+];
+
+}
+
+if(type===10){
+
+const seasons=[
+"Spring",
+"Summer",
+"Autumn",
+"Winter"
+];
+
+question=`Which season comes after Summer?`;
+
+answer="Autumn";
+
+options=[
+"Autumn",
+"Winter",
+"Spring",
+"Summer"
+];
+
+}
+
+correctAnswer=answer;
+
+options=shuffle(options);
+
+document.getElementById("question").innerHTML=question;
+
+let html="";
+
+options.forEach(option=>{
+
+html+=`
+<button class="option"
+onclick="checkAnswer('${option}')">
+${option}
+</button>
+`;
+
+});
+
+document.getElementById("options").innerHTML=html;
+
+}
+
+function checkAnswer(selected){
+
+if(selected==correctAnswer){
+
+document.getElementById("correctSound").play();
+
+crystals++;
+
+document.getElementById("message").innerHTML=
+"✅ Time Crystal Collected!";
+
+document.getElementById("score").innerHTML=
+`Time Crystals: ${crystals} / 10`;
+
+let display="";
+
+for(let i=0;i<crystals;i++){
+display+=crystalIcons[i];
+}
+
+document.getElementById("crystals").innerHTML=
+display;
+
+document.getElementById("progressBar").style.width=
+(crystals*10)+"%";
+
+}
+else{
+  document.getElementById("wrongSound").play();
+
+document.getElementById("message").innerHTML=
+`❌ Correct Answer: ${correctAnswer}`;
+
+}
+
+setTimeout(generateQuestion,1200);
+
+}
+
+function showWinScreen(){
+
+document.getElementById("winSound").play();
+
+switchScreen("winScreen");
+
+let finalDisplay="";
+
+crystalIcons.forEach(icon=>{
+finalDisplay += icon;
+});
+
+document.getElementById("finalCrystals").innerHTML=
+finalDisplay;
+
+}
+
+</script>
+
+</body>
+</html>
