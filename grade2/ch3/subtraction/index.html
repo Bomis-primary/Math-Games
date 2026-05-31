@@ -1,1 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>Subtraction Safari</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:linear-gradient(180deg,#c8f7c5,#eafbea);
+min-height:100vh;
+text-align:center;
+}
+
+.header{
+background:white;
+padding:10px;
+box-shadow:0 2px 6px rgba(0,0,0,0.15);
+}
+
+.logo{
+height:70px;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+padding:20px;
+}
+
+.screen{
+display:none;
+}
+
+.active{
+display:block;
+}
+
+.card{
+background:white;
+padding:25px;
+border-radius:20px;
+box-shadow:0 5px 15px rgba(0,0,0,0.2);
+margin-top:20px;
+}
+
+h1{
+color:#2c3e50;
+margin-bottom:10px;
+}
+
+h2{
+margin-bottom:15px;
+}
+
+.btn{
+background:#27ae60;
+color:white;
+border:none;
+padding:14px 25px;
+border-radius:10px;
+font-size:18px;
+cursor:pointer;
+margin-top:15px;
+}
+
+.btn:hover{
+background:#1e8449;
+}
+
+.question{
+font-size:24px;
+margin-bottom:20px;
+}
+
+.option{
+display:block;
+width:100%;
+margin:10px 0;
+padding:15px;
+border:none;
+border-radius:10px;
+background:#27ae60;
+color:white;
+font-size:18px;
+cursor:pointer;
+}
+
+.option:hover{
+background:#1e8449;
+}
+
+#message{
+font-size:20px;
+font-weight:bold;
+margin-top:15px;
+height:30px;
+}
+
+.progress-container{
+width:100%;
+background:#ddd;
+border-radius:20px;
+margin:15px 0;
+overflow:hidden;
+}
+
+.progress-bar{
+height:22px;
+width:0%;
+background:#2ecc71;
+transition:0.4s;
+}
+
+#animals{
+font-size:32px;
+margin-top:10px;
+min-height:40px;
+}
+
+.score{
+font-size:22px;
+font-weight:bold;
+color:#27ae60;
+}
+
+.instructions{
+text-align:left;
+line-height:1.8;
+font-size:18px;
+}
+
+.win-text{
+font-size:30px;
+color:#e67e22;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+<img src="assets/innovine-logo.png" class="logo">
+</div>
+
+<div class="container">
+
+<div id="startScreen" class="screen active">
+
+<div class="card">
+
+<h1>🦁 Subtraction Safari 🦁</h1>
+
+<p>
+Help rescue jungle animals by solving subtraction challenges.
+Rescue all 10 animals to become a Jungle Hero!
+</p>
+
+<button class="btn" onclick="showInstructions()">
+Start Safari
+</button>
+
+</div>
+
+</div>
+
+<div id="instructionScreen" class="screen">
+
+<div class="card">
+
+<h2>📖 How to Play</h2>
+
+<div class="instructions">
+
+✔ Solve subtraction questions.<br>
+✔ Every correct answer rescues one animal.<br>
+✔ Rescue all 10 animals to win.<br>
+✔ Listen for sound effects as you play.
+
+</div>
+
+<button class="btn" onclick="startGame()">
+Play
+</button>
+
+</div>
+
+</div>
+
+<div id="gameScreen" class="screen">
+
+<div class="card">
+
+<div class="score" id="score">
+Animals Rescued: 0 / 10
+</div>
+
+<div class="progress-container">
+<div class="progress-bar" id="progressBar"></div>
+</div>
+
+<div id="animals"></div>
+
+<div class="question" id="question"></div>
+
+<div id="options"></div>
+
+<div id="message"></div>
+
+</div>
+
+</div>
+
+<div id="winScreen" class="screen">
+
+<div class="card">
+
+<div class="win-text">
+🏆 Jungle Hero!
+</div>
+
+<br>
+
+<p>
+You rescued all 10 jungle animals!
+</p>
+
+<br>
+
+<div id="finalAnimals"></div>
+
+<br>
+
+<button class="btn" onclick="location.reload()">
+Play Again
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<audio id="correctSound" src="assets/correct.mp3"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+<audio id="winSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+
+<script>
+
+let rescued = 0;
+let correctAnswer = "";
+
+const animalList = [
+"🐵","🦁","🐘","🦓","🐼",
+"🦜","🦒","🐯","🦘","🦥"
+];
+
+function switchScreen(id){
+
+document.querySelectorAll(".screen").forEach(screen=>{
+screen.classList.remove("active");
+});
+
+document.getElementById(id).classList.add("active");
+
+}
+
+function showInstructions(){
+switchScreen("instructionScreen");
+}
+
+function startGame(){
+switchScreen("gameScreen");
+generateQuestion();
+}
+
+function random(min,max){
+return Math.floor(Math.random()*(max-min+1))+min;
+}
+
+function shuffle(array){
+return array.sort(()=>Math.random()-0.5);
+}
+  function generateQuestion(){
+
+if(rescued>=10){
+showWinScreen();
+return;
+}
+
+document.getElementById("message").innerHTML="";
+
+let type=random(1,10);
+
+let question="";
+let answer="";
+let options=[];
+
+if(type===1){
+
+let total=random(10,50);
+let removed=random(1,total-1);
+
+question=
+`${total} fruits were on a tree. ${removed} were eaten. How many are left?`;
+
+answer=(total-removed).toString();
+
+options=[
+answer,
+(total-removed+1).toString(),
+(total-removed-1).toString(),
+(total-removed+5).toString()
+];
+
+}
+
+if(type===2){
+
+let n=random(10,500);
+
+question=`${n} - 0 = ?`;
+
+answer=n.toString();
+
+options=[
+answer,
+(n-1).toString(),
+(n+1).toString(),
+"0"
+];
+
+}
+
+if(type===3){
+
+let n=random(10,500);
+
+question=`${n} - ${n} = ?`;
+
+answer="0";
+
+options=[
+"0",
+n.toString(),
+"1",
+(n-1).toString()
+];
+
+}
+
+if(type===4){
+
+let a=random(20,99);
+let b=random(1,8);
+
+while((a%10)<b){
+a=random(20,99);
+}
+
+question=`${a} - ${b} = ?`;
+
+answer=(a-b).toString();
+
+options=[
+answer,
+(a-b+1).toString(),
+(a-b-1).toString(),
+(a-b+10).toString()
+];
+
+}
+
+if(type===5){
+
+let a=random(20,99);
+let b=random(6,9);
+
+while((a%10)>=b){
+a=random(20,99);
+}
+
+question=`${a} - ${b} = ?`;
+
+answer=(a-b).toString();
+
+options=[
+answer,
+(a-b+1).toString(),
+(a-b-1).toString(),
+(a-b+10).toString()
+];
+
+}
+
+if(type===6){
+
+let a=random(40,99);
+let b=random(10,39);
+
+while((a%10)<(b%10)){
+a=random(40,99);
+b=random(10,39);
+}
+
+question=`${a} - ${b} = ?`;
+
+answer=(a-b).toString();
+
+options=[
+answer,
+(a-b+2).toString(),
+(a-b-2).toString(),
+(a-b+10).toString()
+];
+
+}
+
+if(type===7){
+
+let a=random(50,99);
+let b=random(20,49);
+
+while((a%10)>=(b%10)){
+a=random(50,99);
+b=random(20,49);
+}
+
+question=`${a} - ${b} = ?`;
+
+answer=(a-b).toString();
+
+options=[
+answer,
+(a-b+2).toString(),
+(a-b-2).toString(),
+(a-b+10).toString()
+];
+
+}
+
+if(type===8){
+
+let a=random(150,499);
+let b=random(10,99);
+
+question=`${a} - ${b} = ?`;
+
+answer=(a-b).toString();
+
+options=[
+answer,
+(a-b+10).toString(),
+(a-b-10).toString(),
+(a-b+1).toString()
+];
+
+}
+
+if(type===9){
+
+let a=random(300,999);
+let b=random(100,299);
+
+question=`${a} - ${b} = ?`;
+
+answer=(a-b).toString();
+
+options=[
+answer,
+(a-b+10).toString(),
+(a-b-10).toString(),
+(a-b+100).toString()
+];
+
+}
+
+if(type===10){
+
+let total=random(200,500);
+let used=random(50,199);
+
+question=
+`A monkey had ${total} bananas. It ate ${used} bananas. How many bananas are left?`;
+
+answer=(total-used).toString();
+
+options=[
+answer,
+(total-used+10).toString(),
+(total-used-10).toString(),
+(total-used+1).toString()
+];
+
+}
+
+correctAnswer=answer;
+
+options=shuffle(options);
+
+document.getElementById("question").innerHTML=question;
+
+let html="";
+
+options.forEach(option=>{
+
+html += `
+<button class="option"
+onclick="checkAnswer('${option}')">
+${option}
+</button>
+`;
+
+});
+
+document.getElementById("options").innerHTML=html;
+
+}
+
+function checkAnswer(selected){
+
+if(selected==correctAnswer){
+
+document.getElementById("correctSound").play();
+
+rescued++;
+
+document.getElementById("message").innerHTML=
+"✅ Animal Rescued!";
+
+document.getElementById("score").innerHTML=
+`Animals Rescued: ${rescued} / 10`;
+
+let display="";
+
+for(let i=0;i<rescued;i++){
+display+=animalList[i];
+}
+
+document.getElementById("animals").innerHTML=
+display;
+
+document.getElementById("progressBar").style.width=
+(rescued*10)+"%";
+
+}
+else{
+  document.getElementById("wrongSound").play();
+
+document.getElementById("message").innerHTML=
+`❌ Correct Answer: ${correctAnswer}`;
+
+}
+
+setTimeout(generateQuestion,1200);
+
+}
+
+function showWinScreen(){
+
+document.getElementById("winSound").play();
+
+switchScreen("winScreen");
+
+let finalDisplay="";
+
+animalList.forEach(animal=>{
+finalDisplay+=animal;
+});
+
+document.getElementById("finalAnimals").innerHTML=
+finalDisplay;
+
+}
+
+</script>
+
+</body>
+</html>
