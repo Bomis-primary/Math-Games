@@ -13,11 +13,10 @@ body {
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  height:100vh;
+  min-height:100vh;
 }
 #game-container { width:100%; max-width:700px; text-align:center; position:relative; }
-#logo-slide, #end-slide { display:none; }
-#question-slide { display:none; }
+#logo-slide, #end-slide, #question-slide, #timeline-slide { display:none; }
 .option {
   background-color:#fff;
   border:2px solid #cfa;
@@ -39,46 +38,69 @@ body {
 #confetti-canvas { position:absolute; top:0; left:0; pointer-events:none; }
 #instruction { background-color:#ffd; padding:10px; border-radius:8px; font-weight:bold; margin-bottom:15px; }
 #play-again-btn { padding:12px 25px; font-size:1.2em; border-radius:12px; border:none; background-color:#ffcc66; cursor:pointer; margin-top:20px; }
+#timeline-cards { display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:15px; }
+.timeline-card { width:100px; padding:10px; background:#fff; border-radius:10px; cursor:grab; user-select:none; text-align:center; font-weight:bold; border:2px solid #ccc; }
+.timeline-drop { width:100px; height:120px; border:2px dashed #aaa; border-radius:10px; margin:10px; display:inline-block; vertical-align:top; }
 </style>
 </head>
 <body>
+
 <div id="game-container">
 
 <!-- Logo Slide -->
 <div id="logo-slide">
-<img src="logo.png" alt="Innovine Logo" style="width:200px;">
+<img src="assets/logo.png" alt="Innovine Logo" style="width:200px;">
 </div>
 
 <!-- Question Slide -->
 <div id="question-slide">
 <div id="instruction"></div>
+<img id="clock-image" style="width:250px; margin:15px 0;"><br>
 <div id="options-container"></div>
+</div>
+
+<!-- Timeline Slide -->
+<div id="timeline-slide">
+<div id="instruction"></div>
+<div id="timeline-drop-container"></div>
+<div id="timeline-cards"></div>
 </div>
 
 <!-- End Slide -->
 <div id="end-slide">
-<h2>🎉 Well Done! 🎉</h2>
+<h2>🎉 Well Done! All objectives completed! 🎉</h2>
 <button id="play-again-btn">Play Again</button>
 </div>
 
 </div>
 
-<audio id="correct-sound" src="correct.mp3"></audio>
-<audio id="wrong-sound" src="wrong.mp3"></audio>
-<audio id="applause-sound" src="freesound_community-claps-44774.mp3"></audio>
+<audio id="correct-sound" src="assets/correct.mp3"></audio>
+<audio id="wrong-sound" src="assets/wrong.mp3"></audio>
+<audio id="applause-sound" src="assets/freesound_community-claps-44774.mp3"></audio>
 
 <canvas id="confetti-canvas"></canvas>
 
 <script>
-// --- Game Data ---
+// --- Lesson-Aligned Game Data ---
 const rounds = [
-  { instruction:"What time is shown on the analog clock? (3:15)", options:["3:00","3:15","3:30"], answer:1 },
-  { instruction:"What time is shown on the digital clock? (7:45)", options:["7:45","7:30","8:00"], answer:0 },
-  { instruction:"Which time is 1/4 past 2?", options:["2:15","2:30","2:45"], answer:0 },
-  { instruction:"Estimated vs actual: Walk takes 10 min, actual 12 min. Which is correct?", options:["10 min","12 min"], answer:1 },
-  { instruction:"If today is Monday, what is the day after tomorrow?", options:["Tuesday","Wednesday","Thursday"], answer:1 },
-  { instruction:"If this year is 2026, what is the year two years from now?", options:["2027","2028","2029"], answer:1 },
-  { instruction:"Arrange the events in order: Birth, Start School, Festival.", options:["Birth, Start School, Festival","Start School, Birth, Festival","Festival, Birth, Start School"], answer:0 }
+  // Tap-the-correct clock: recall reading analog to minute & quarters
+  { type:'tap', instruction:"Read the clock to the minute:", image:"assets/analog-3-15.png", options:["3:00","3:15","3:30"], answer:1 },
+  { type:'tap', instruction:"Read the clock to the minute:", image:"assets/analog-7-45.png", options:["7:30","7:45","8:00"], answer:1 },
+  { type:'tap', instruction:"Read the clock to the minute:", image:"assets/analog-2-15.png", options:["2:00","2:15","2:30"], answer:1 },
+  { type:'tap', instruction:"Read the clock to the minute:", image:"assets/analog-1-30.png", options:["1:15","1:30","1:45"], answer:1 },
+  
+  // Compare estimated vs actual
+  { type:'tap', instruction:"Walk takes 10 min. Actual: 12 min. Select correct time:", image:"assets/digital-12.png", options:["10 min","12 min"], answer:1 },
+  
+  // Identify today, tomorrow, day after tomorrow
+  { type:'tap', instruction:"If today is Monday, what is the day after tomorrow?", image:"assets/digital-3.png", options:["Tuesday","Wednesday","Thursday"], answer:1 },
+  
+  // Year calculations
+  { type:'tap', instruction:"If this year is 2026, next year is:", image:"assets/digital-6-45.png", options:["2026","2027","2028"], answer:1 },
+  { type:'tap', instruction:"If this year is 2026, the year two years from now is:", image:"assets/digital-8-20.png", options:["2027","2028","2029"], answer:1 },
+  
+  // Timeline sequencing
+  { type:'timeline', instruction:"Arrange the events in correct order:", cards:["Birth","Start School","Win a Prize","Birthday","Family Trip"], order:["Birth","Start School","Win a Prize","Birthday","Family Trip"] }
 ];
 
 let currentRound=-1, attempt=0;
@@ -86,9 +108,13 @@ let currentRound=-1, attempt=0;
 // --- Elements ---
 const logoSlide=document.getElementById("logo-slide");
 const questionSlide=document.getElementById("question-slide");
+const timelineSlide=document.getElementById("timeline-slide");
 const endSlide=document.getElementById("end-slide");
 const instructionEl=document.getElementById("instruction");
 const optionsContainer=document.getElementById("options-container");
+const clockImage=document.getElementById("clock-image");
+const timelineDropContainer=document.getElementById("timeline-drop-container");
+const timelineCardsEl=document.getElementById("timeline-cards");
 const correctSound=document.getElementById("correct-sound");
 const wrongSound=document.getElementById("wrong-sound");
 const applauseSound=document.getElementById("applause-sound");
@@ -97,33 +123,84 @@ const confettiCanvas=document.getElementById("confetti-canvas");
 
 // --- Game Flow ---
 function startGame(){
-  logoSlide.style.display="block"; questionSlide.style.display="none"; endSlide.style.display="none";
+  logoSlide.style.display="block"; questionSlide.style.display="none"; timelineSlide.style.display="none"; endSlide.style.display="none";
   currentRound=-1; attempt=0; setTimeout(nextRound,3000);
 }
 
 function nextRound(){
   currentRound++; attempt=0;
   if(currentRound>=rounds.length){ showEndSlide(); return; }
-  showQuestion(rounds[currentRound]);
+  const round=rounds[currentRound];
+  if(round.type==='tap'){ showTapQuestion(round); }
+  else if(round.type==='timeline'){ showTimeline(round); }
 }
 
-function showQuestion(round){
-  logoSlide.style.display="none"; questionSlide.style.display="block"; endSlide.style.display="none";
+// --- Tap Question ---
+function showTapQuestion(round){
+  logoSlide.style.display="none"; questionSlide.style.display="block"; timelineSlide.style.display="none"; endSlide.style.display="none";
   instructionEl.textContent=round.instruction;
+  clockImage.src=round.image;
   optionsContainer.innerHTML="";
   round.options.forEach((opt,idx)=>{
     const btn=document.createElement("div"); btn.classList.add("option"); btn.textContent=opt;
-    btn.addEventListener("click",()=>handleAnswer(idx)); optionsContainer.appendChild(btn);
+    btn.addEventListener("click",()=>handleTapAnswer(idx)); optionsContainer.appendChild(btn);
   });
 }
 
-function handleAnswer(selectedIdx){
-  const round=rounds[currentRound]; const buttons=optionsContainer.children;
-  if(selectedIdx===round.answer){ buttons[selectedIdx].classList.add("correct"); correctSound.play(); setTimeout(nextRound,1000); }
-  else{ buttons[selectedIdx].classList.add("wrong"); wrongSound.play(); attempt++; if(attempt>=2){ buttons[round.answer].classList.add("correct"); setTimeout(nextRound,1500); } }
+function handleTapAnswer(selectedIdx){
+  const round=rounds[currentRound];
+  const buttons=optionsContainer.children;
+  if(selectedIdx===round.answer){
+    buttons[selectedIdx].classList.add("correct"); correctSound.play(); setTimeout(nextRound,1000);
+  } else {
+    buttons[selectedIdx].classList.add("wrong"); wrongSound.play(); attempt++;
+    if(attempt>=2){ buttons[round.answer].classList.add("correct"); setTimeout(nextRound,1500); }
+  }
 }
 
-function showEndSlide(){ questionSlide.style.display="none"; endSlide.style.display="block"; applauseSound.play(); launchConfetti(); }
+// --- Timeline Drag & Drop ---
+function showTimeline(round){
+  logoSlide.style.display="none"; questionSlide.style.display="none"; timelineSlide.style.display="block"; endSlide.style.display="none";
+  instructionEl.textContent=round.instruction;
+  timelineDropContainer.innerHTML=""; timelineCardsEl.innerHTML="";
+  // create drop zones
+  round.order.forEach(o=>{
+    const div=document.createElement("div"); div.classList.add("timeline-drop"); div.dataset.accept=o; div.addEventListener("dragover",e=>e.preventDefault());
+    div.addEventListener("drop",dropCard); timelineDropContainer.appendChild(div);
+  });
+  // create draggable cards
+  round.cards.forEach(c=>{
+    const div=document.createElement("div"); div.classList.add("timeline-card"); div.draggable=true; div.textContent=c;
+    div.addEventListener("dragstart",dragStart); timelineCardsEl.appendChild(div);
+  });
+}
+
+let dragged=null;
+function dragStart(e){ dragged=e.target; }
+function dropCard(e){
+  e.preventDefault();
+  if(!dragged) return;
+  if(e.target.children.length===0){
+    e.target.appendChild(dragged);
+    dragged.style.cursor="default";
+    dragged.draggable=false;
+  }
+  checkTimelineComplete();
+}
+
+function checkTimelineComplete(){
+  const round=rounds[currentRound];
+  const drops=document.querySelectorAll(".timeline-drop");
+  let correct=true;
+  drops.forEach(d=>{
+    if(d.children.length===0 || d.children[0].textContent!==d.dataset.accept) correct=false;
+  });
+  if(correct){ correctSound.play(); setTimeout(nextRound,1000); }
+}
+
+// --- End Slide ---
+function showEndSlide(){ questionSlide.style.display="none"; timelineSlide.style.display="none"; endSlide.style.display="block"; applauseSound.play(); launchConfetti(); }
+
 playAgainBtn.addEventListener("click",()=>{ clearConfetti(); startGame(); });
 
 // --- Confetti ---
