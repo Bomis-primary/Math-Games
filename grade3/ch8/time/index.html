@@ -5,36 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>G3 Time Explorer</title>
 <style>
-body {
-  margin:0;
-  font-family:'Arial', sans-serif;
-  background: linear-gradient(135deg, #ffe6f0, #e0f7ff);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  min-height:100vh;
-}
+body { margin:0; font-family:'Arial', sans-serif; background: linear-gradient(135deg, #ffe6f0, #e0f7ff); display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; }
 #game-container { width:100%; max-width:700px; text-align:center; position:relative; }
 #logo-slide, #end-slide, #question-slide, #timeline-slide { display:none; }
-.option {
-  background-color:#fff;
-  border:2px solid #cfa;
-  border-radius:10px;
-  padding:15px 25px;
-  margin:10px;
-  display:inline-block;
-  cursor:pointer;
-  font-size:1.2em;
-  transition:transform 0.2s;
-}
+.option { background-color:#fff; border:2px solid #cfa; border-radius:10px; padding:15px 25px; margin:10px; display:inline-block; cursor:pointer; font-size:1.2em; transition:transform 0.2s; }
 .option:hover { transform:scale(1.05); }
 .correct { border-color:green; background-color:#cfc; }
 .wrong { border-color:red; background-color:#fcc; animation:jiggle 0.3s; }
-@keyframes jiggle {
-  0%{transform:translateX(0);} 25%{transform:translateX(-5px);} 50%{transform:translateX(5px);}
-  75%{transform:translateX(-5px);} 100%{transform:translateX(0);}
-}
+@keyframes jiggle {0%{transform:translateX(0);} 25%{transform:translateX(-5px);} 50%{transform:translateX(5px);} 75%{transform:translateX(-5px);} 100%{transform:translateX(0);}}
 #confetti-canvas { position:absolute; top:0; left:0; pointer-events:none; }
 #instruction { background-color:#ffd; padding:10px; border-radius:8px; font-weight:bold; margin-bottom:15px; }
 #play-again-btn { padding:12px 25px; font-size:1.2em; border-radius:12px; border:none; background-color:#ffcc66; cursor:pointer; margin-top:20px; }
@@ -46,34 +24,33 @@ body {
 <body>
 
 <div id="game-container">
+  <!-- Logo Slide -->
+  <div id="logo-slide">
+    <img src="assets/logo.png" alt="Innovine Logo" style="width:200px;">
+  </div>
 
-<!-- Logo Slide -->
-<div id="logo-slide">
-<img src="assets/logo.png" alt="Innovine Logo" style="width:200px;">
+  <!-- Question Slide -->
+  <div id="question-slide">
+    <div id="instruction"></div>
+    <img id="clock-image" style="width:250px; margin:15px 0;"><br>
+    <div id="options-container"></div>
+  </div>
+
+  <!-- Timeline Slide -->
+  <div id="timeline-slide">
+    <div id="instruction"></div>
+    <div id="timeline-drop-container"></div>
+    <div id="timeline-cards"></div>
+  </div>
+
+  <!-- End Slide -->
+  <div id="end-slide">
+    <h2>🎉 Well Done! All objectives completed! 🎉</h2>
+    <button id="play-again-btn">Play Again</button>
+  </div>
 </div>
 
-<!-- Question Slide -->
-<div id="question-slide">
-<div id="instruction"></div>
-<img id="clock-image" style="width:250px; margin:15px 0;"><br>
-<div id="options-container"></div>
-</div>
-
-<!-- Timeline Slide -->
-<div id="timeline-slide">
-<div id="instruction"></div>
-<div id="timeline-drop-container"></div>
-<div id="timeline-cards"></div>
-</div>
-
-<!-- End Slide -->
-<div id="end-slide">
-<h2>🎉 Well Done! All objectives completed! 🎉</h2>
-<button id="play-again-btn">Play Again</button>
-</div>
-
-</div>
-
+<!-- Sounds -->
 <audio id="correct-sound" src="assets/correct.mp3"></audio>
 <audio id="wrong-sound" src="assets/wrong.mp3"></audio>
 <audio id="applause-sound" src="assets/freesound_community-claps-44774.mp3"></audio>
@@ -83,23 +60,14 @@ body {
 <script>
 // --- Lesson-Aligned Game Data ---
 const rounds = [
-  // Tap-the-correct clock: recall reading analog to minute & quarters
   { type:'tap', instruction:"Read the clock to the minute:", image:"assets/analog-3-15.png", options:["3:00","3:15","3:30"], answer:1 },
   { type:'tap', instruction:"Read the clock to the minute:", image:"assets/analog-7-45.png", options:["7:30","7:45","8:00"], answer:1 },
   { type:'tap', instruction:"Read the clock to the minute:", image:"assets/analog-2-15.png", options:["2:00","2:15","2:30"], answer:1 },
   { type:'tap', instruction:"Read the clock to the minute:", image:"assets/analog-1-30.png", options:["1:15","1:30","1:45"], answer:1 },
-  
-  // Compare estimated vs actual
   { type:'tap', instruction:"Walk takes 10 min. Actual: 12 min. Select correct time:", image:"assets/digital-12.png", options:["10 min","12 min"], answer:1 },
-  
-  // Identify today, tomorrow, day after tomorrow
   { type:'tap', instruction:"If today is Monday, what is the day after tomorrow?", image:"assets/digital-3.png", options:["Tuesday","Wednesday","Thursday"], answer:1 },
-  
-  // Year calculations
   { type:'tap', instruction:"If this year is 2026, next year is:", image:"assets/digital-6-45.png", options:["2026","2027","2028"], answer:1 },
   { type:'tap', instruction:"If this year is 2026, the year two years from now is:", image:"assets/digital-8-20.png", options:["2027","2028","2029"], answer:1 },
-  
-  // Timeline sequencing
   { type:'timeline', instruction:"Arrange the events in correct order:", cards:["Birth","Start School","Win a Prize","Birthday","Family Trip"], order:["Birth","Start School","Win a Prize","Birthday","Family Trip"] }
 ];
 
@@ -163,12 +131,10 @@ function showTimeline(round){
   logoSlide.style.display="none"; questionSlide.style.display="none"; timelineSlide.style.display="block"; endSlide.style.display="none";
   instructionEl.textContent=round.instruction;
   timelineDropContainer.innerHTML=""; timelineCardsEl.innerHTML="";
-  // create drop zones
   round.order.forEach(o=>{
     const div=document.createElement("div"); div.classList.add("timeline-drop"); div.dataset.accept=o; div.addEventListener("dragover",e=>e.preventDefault());
     div.addEventListener("drop",dropCard); timelineDropContainer.appendChild(div);
   });
-  // create draggable cards
   round.cards.forEach(c=>{
     const div=document.createElement("div"); div.classList.add("timeline-card"); div.draggable=true; div.textContent=c;
     div.addEventListener("dragstart",dragStart); timelineCardsEl.appendChild(div);
