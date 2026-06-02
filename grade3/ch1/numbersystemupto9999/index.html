@@ -3,586 +3,131 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Number Kingdom</title>
-
+<title>Number Kingdom – Grade 3</title>
 <style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
-}
-
-body{
-background:url('assets/castle-background.jpg');
-background-size:cover;
-background-position:center;
-min-height:100vh;
-text-align:center;
-}
-
-.header{
-background:white;
-padding:10px;
-box-shadow:0 2px 6px rgba(0,0,0,.2);
-}
-
-.logo{
-height:70px;
-}
-
-.container{
-max-width:1000px;
-margin:auto;
-padding:20px;
-}
-
-.screen{
-display:none;
-}
-
-.active{
-display:block;
-}
-
-.card{
-background:white;
-padding:25px;
-border-radius:20px;
-box-shadow:0 5px 15px rgba(0,0,0,.2);
-margin-top:20px;
-}
-
-.btn{
-background:#8e44ad;
-color:white;
-border:none;
-padding:14px 24px;
-border-radius:10px;
-font-size:18px;
-cursor:pointer;
-margin-top:15px;
-}
-
-.btn:hover{
-background:#71368a;
-}
-
-.question{
-font-size:24px;
-margin-bottom:20px;
-}
-
-.option{
-display:block;
-width:100%;
-margin:10px 0;
-padding:15px;
-border:none;
-border-radius:10px;
-background:#8e44ad;
-color:white;
-font-size:18px;
-cursor:pointer;
-}
-
-.option:hover{
-background:#71368a;
-}
-
-.image-area{
-margin:20px auto;
-}
-
-.object-image{
-width:250px;
-height:250px;
-object-fit:contain;
-}
-
-.progress-container{
-width:100%;
-background:#ddd;
-border-radius:20px;
-overflow:hidden;
-margin:15px 0;
-}
-
-.progress-bar{
-height:22px;
-width:0%;
-background:#2ecc71;
-transition:.3s;
-}
-
-#message{
-font-size:20px;
-font-weight:bold;
-height:30px;
-margin-top:15px;
-}
-
-.gate{
-font-size:22px;
-font-weight:bold;
-color:#27ae60;
-}
-
-.win-text{
-font-size:32px;
-color:#e67e22;
-}
-
+body { margin:0; font-family:'Arbutus', cursive; background:#f0f8ff; display:flex; flex-direction:column; align-items:center; min-height:100vh; color:#333; }
+#splash, #game, #endScreen { width:100%; height:100vh; display:none; flex-direction:column; align-items:center; justify-content:center; }
+#splash img { width:200px; height:auto; }
+h1 { font-size:2em; margin:10px; text-align:center; color:#4b2e83; }
+#questionBox { margin:10px 0; font-size:1.2em; text-align:center; display:flex; align-items:center; justify-content:center; gap:10px; flex-wrap:wrap; }
+.option-btn { background: #7b3fbd; color:#fff; border:none; padding:10px 20px; margin:5px; border-radius:5px; cursor:pointer; font-size:1em; width:200px; }
+.option-btn:hover { opacity:0.8; }
+#imageArea img { max-width:80%; height:auto; border-radius:10px; margin:10px 0; }
+#progressContainer { width:80%; background:#ddd; border-radius:10px; margin:10px; height:15px; }
+#progress { width:0%; height:100%; background:#4caf50; border-radius:10px; }
+#endScreen { display:flex; flex-direction:column; align-items:center; justify-content:center; }
+#playAgain { padding:10px 20px; font-size:1.2em; cursor:pointer; background:#4caf50; color:#fff; border:none; border-radius:5px; margin-top:20px; }
 </style>
 </head>
-
 <body>
 
-<div class="header">
-<img src="assets/innovine-logo.png" class="logo">
+<!-- Splash Screen -->
+<div id="splash">
+<img src="assets/logo.png" alt="Logo">
+<h1>Number Kingdom</h1>
 </div>
 
-<div class="container">
-
-<div id="startScreen" class="screen active">
-
-<div class="card">
-
-<h1>🏰 Number Kingdom</h1>
-
-<br>
-
-<p>
-Unlock all kingdom gates and become the Royal Number Keeper.
-</p>
-
-<button class="btn" onclick="showInstructions()">
-Enter Kingdom
-</button>
-
+<!-- Game Screen -->
+<div id="game">
+<div id="progressContainer"><div id="progress"></div></div>
+<h1 id="gateTitle"></h1>
+<div id="imageArea"></div>
+<div id="questionBox"></div>
 </div>
 
-</div>
-
-<div id="instructionScreen" class="screen">
-
-<div class="card">
-
-<h2>📖 Instructions</h2>
-
-<br>
-
-<p>✔ Read 4-digit numbers</p>
-<p>✔ Use place value</p>
-<p>✔ Solve number challenges</p>
-<p>✔ Learn Roman numerals</p>
-<p>✔ Unlock all gates</p>
-
-<button class="btn" onclick="startGame()">
-Start Adventure
-</button>
-
-</div>
-
-</div>
-
-<div id="gameScreen" class="screen">
-
-<div class="card">
-
-<div class="gate" id="gateCount">
-Gate 1 / 15
-</div>
-
-<div class="progress-container">
-<div class="progress-bar" id="progressBar"></div>
-</div>
-
-<div id="question" class="question"></div>
-
-<div class="image-area" id="imageArea"></div>
-
-<div id="options"></div>
-
-<div id="message"></div>
-
-</div>
-
-</div>
-
-<div id="winScreen" class="screen">
-
-<div class="card">
-
-<div class="win-text">
-🏆 Royal Number Keeper
-</div>
-
-<br>
-
-<img src="assets/royal-badge.png" width="180">
-
-<br><br>
-
-<p>
-You unlocked all kingdom gates.
-</p>
-
-<br>
-
-<button class="btn" onclick="location.reload()">
-Play Again
-</button>
-
-</div>
-
-</div>
-
+<!-- End Screen -->
+<div id="endScreen">
+<h1>🎉 Congratulations! You completed Number Kingdom! 🎉</h1>
+<button id="playAgain">Play Again</button>
 </div>
 
 <audio id="correctSound" src="assets/correct.mp3"></audio>
 <audio id="wrongSound" src="assets/wrong.mp3"></audio>
-<audio id="winSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+<audio id="clapSound" src="assets/freesound_community-claps-44774.mp3"></audio>
 
 <script>
+const totalGates = 15;
+let currentGate = 1;
 
-let level=1;
-let correctAnswer="";
-
-function switchScreen(id){
-document.querySelectorAll(".screen").forEach(screen=>{
-screen.classList.remove("active");
-});
-document.getElementById(id).classList.add("active");
-}
-
-function showInstructions(){
-switchScreen("instructionScreen");
-}
-
-function startGame(){
-switchScreen("gameScreen");
-generateQuestion();
-}
-
-function shuffle(array){
-return array.sort(()=>Math.random()-0.5);
-}
-  function generateQuestion(){
-
-if(level>15){
-showWinScreen();
-return;
-}
-
-document.getElementById("message").innerHTML="";
-
-let question="";
-let answer="";
-let options=[];
-let image="assets/castle-gate.png";
-
-if(level===1){
-
-question="🏰 Gate 1: Which number is shown?";
-
-answer="4587";
-
-options=[
-"4587",
-"4857",
-"4578",
-"5487"
+const gates = [
+{question:"Which number is shown?", image:"assets/q1.png", options:["Four thousand five hundred seventy-eight","Four thousand eight hundred and fifty-seven","Four thousand five hundred and eighty-seven","Five thousand four hundred and eighty-seven"], answer:"Four thousand five hundred and eighty-seven"},
+{question:"What number does the abacus show?", image:"assets/q2.png", options:["3264","3245","3524","3254"], answer:"3254"},
+{question:"What is the place value of 5 in 4587?", image:"assets/q3.png", options:["50","5","5000","500"], answer:"500"},
+{question:"What is the face value of 5 in 4587?", image:"assets/q4.png", options:["50","5","5000","500"], answer:"5"},
+{question:"Choose the expanded form of 4587.", image:"assets/q5.png", options:["4000 + 500 + 80 + 7","4000 + 500 + 87","4500 + 80 + 7","4000 + 580 + 7"], answer:"4000 + 500 + 80 + 7"},
+{question:"What is the standard form of 3000 + 100 + 70 + 9?", image:"assets/q6.png", options:["3197","3170","3179","3107"], answer:"3179"},
+{question:"Compare 6346 ▢ 6620", image:"assets/q7.png", options:["=","<",">","≠"], answer:"<"},
+{question:"Arrange numbers in ascending order.", image:"assets/gate8_path.png", options:["2100,1234,3245,4321","1234,2100,3245,4321","1234,3245,2100,4321","4321,3245,2100,1234"], answer:"1234,2100,3245,4321"},
+{question:"What is the successor of 5620?", image:"assets/q9.png", options:["5621","5630","5625","5619"], answer:"5621"},
+{question:"What is the predecessor of 9553?", image:"assets/q10.png", options:["9552","9543","9563","9544"], answer:"9552"},
+{question:"Form the largest 4-digit number using 4, 2, 9, 7.", image:"assets/q11.png", options:["9742","9724","9247","9472"], answer:"9742"},
+{question:"Form the smallest 4-digit number using 4, 2, 9, 7.", image:"assets/q12.png", options:["4279","2479","2794","2947"], answer:"2479"},
+{question:"Is 4587 odd or even?", image:"assets/q13.png", options:["Even","Odd"], answer:"Odd"},
+{question:"Round 4587 to nearest 10, 100, 1000.", image:"assets/q14.png", options:["4590,4600,5000","4580,4500,4000","4587,4500,4000","4590,4500,4000"], answer:"4590,4600,5000"},
+{question:"Convert 24 into Roman Numerals.", image:"assets/q15.png", options:["XLIV","XXIV","XXVI","XIV"], answer:"XXIV"}
 ];
 
+const splash = document.getElementById("splash");
+const game = document.getElementById("game");
+const endScreen = document.getElementById("endScreen");
+const gateTitle = document.getElementById("gateTitle");
+const imageArea = document.getElementById("imageArea");
+const questionBox = document.getElementById("questionBox");
+const progressBar = document.getElementById("progress");
+const correctSound = document.getElementById("correctSound");
+const wrongSound = document.getElementById("wrongSound");
+const clapSound = document.getElementById("clapSound");
+const playAgain = document.getElementById("playAgain");
+
+function showSplash(){
+  splash.style.display="flex";
+  setTimeout(()=>{ splash.style.display="none"; showGate(currentGate); },3000);
 }
 
-if(level===2){
-
-question="🏰 Gate 2: What number does the abacus show?";
-
-image="assets/abacus.png";
-
-answer="3254";
-
-options=[
-"3254",
-"3524",
-"3245",
-"2354"
-];
-
+function showGate(level){
+  game.style.display="flex";
+  const gate = gates[level-1];
+  gateTitle.textContent = `Gate ${level} / ${totalGates} - ${gate.question}`;
+  imageArea.innerHTML = `<img src="${gate.image}">`;
+  questionBox.innerHTML = "";
+  gate.options.forEach(opt=>{
+    const btn = document.createElement("button");
+    btn.textContent = opt;
+    btn.className="option-btn";
+    btn.onclick = ()=>checkAnswer(opt,gate.answer);
+    questionBox.appendChild(btn);
+  });
+  progressBar.style.width = `${(level/totalGates)*100}%`;
 }
 
-if(level===3){
-
-question="🏰 Gate 3: What is the place value of 5 in 4587?";
-
-answer="500";
-
-options=[
-"5",
-"50",
-"500",
-"5000"
-];
-
+function checkAnswer(selected, correct){
+  if(selected===correct){
+    correctSound.play();
+    setTimeout(()=>nextGate(),500);
+  } else {
+    wrongSound.play();
+  }
 }
 
-if(level===4){
-
-question="🏰 Gate 4: What is the face value of 5 in 4587?";
-
-answer="5";
-
-options=[
-"5",
-"50",
-"500",
-"5000"
-];
-
+function nextGate(){
+  currentGate++;
+  if(currentGate>totalGates){
+    game.style.display="none";
+    endScreen.style.display="flex";
+    clapSound.play();
+  } else {
+    showGate(currentGate);
+  }
 }
 
-if(level===5){
-
-question="🏰 Gate 5: Choose the expanded form of 4587.";
-
-answer="4000 + 500 + 80 + 7";
-
-options=[
-"4000 + 500 + 80 + 7",
-"4000 + 500 + 87",
-"4500 + 80 + 7",
-"4000 + 580 + 7"
-];
-
+playAgain.onclick = ()=>{
+  currentGate=1;
+  endScreen.style.display="none";
+  showGate(currentGate);
 }
 
-if(level===6){
-
-question="🏰 Gate 6: What is the standard form of 4000 + 300 + 20 + 1?";
-
-answer="4321";
-
-options=[
-"4321",
-"4231",
-"4312",
-"3421"
-];
-
-}
-
-if(level===7){
-
-question="🏰 Gate 7: Compare 4587 and 4857.";
-
-answer="<";
-
-options=[
-"<",
-">",
-"=",
-"≠"
-];
-
-}
-
-if(level===8){
-
-question="🏰 Gate 8: Arrange in ascending order.";
-
-answer="1234, 2100, 3245, 4321";
-
-options=[
-"1234, 2100, 3245, 4321",
-"4321, 3245, 2100, 1234",
-"2100, 1234, 3245, 4321",
-"1234, 3245, 2100, 4321"
-];
-
-}
-
-if(level===9){
-
-question="🏰 Gate 9: What is the successor of 4587?";
-
-answer="4588";
-
-options=[
-"4588",
-"4586",
-"4597",
-"4687"
-];
-
-}
-
-if(level===10){
-
-question="🏰 Gate 10: What is the predecessor of 4587?";
-
-answer="4586";
-
-options=[
-"4588",
-"4586",
-"4577",
-"4487"
-];
-
-}
-
-if(level===11){
-
-question="🏰 Gate 11: Form the largest 4-digit number using 4, 2, 9, 7.";
-
-answer="9742";
-
-options=[
-"9742",
-"9724",
-"9472",
-"9247"
-];
-
-}
-
-if(level===12){
-
-question="🏰 Gate 12: Form the smallest 4-digit number using 4, 2, 9, 7.";
-
-answer="2479";
-
-options=[
-"2479",
-"2794",
-"2947",
-"4279"
-];
-
-}
-
-if(level===13){
-
-question="🏰 Gate 13: Is 4587 odd or even?";
-
-answer="Odd";
-
-options=[
-"Odd",
-"Even",
-"Both",
-"Neither"
-];
-
-}
-
-if(level===14){
-
-question="🏰 Gate 14: Round 4587 to the nearest 100.";
-
-answer="4600";
-
-options=[
-"4500",
-"4600",
-"5000",
-"4580"
-];
-
-}
-
-if(level===15){
-
-image="assets/roman-scroll.png";
-
-question="🏰 Gate 15: Convert 24 into Roman Numerals.";
-
-answer="XXIV";
-
-options=[
-"XXIV",
-"XIV",
-"XXVI",
-"XLIV"
-];
-
-}
-
-correctAnswer=answer;
-
-options=shuffle(options);
-
-document.getElementById("question").innerHTML=
-question;
-
-document.getElementById("imageArea").innerHTML=
-`<img src="${image}" class="object-image">`;
-
-let html="";
-
-options.forEach(option=>{
-
-html += `
-<button class="option"
-onclick="checkAnswer('${option}')">
-${option}
-</button>
-`;
-
-});
-
-document.getElementById("options").innerHTML=
-html;
-
-}
-
-function checkAnswer(selected){
-
-if(selected===correctAnswer){
-
-document.getElementById("correctSound").play();
-
-document.getElementById("message").innerHTML=
-"✅ Gate Unlocked!";
-
-level++;
-
-document.getElementById("gateCount").innerHTML=
-`Gate ${Math.min(level,15)} / 15`;
-
-document.getElementById("progressBar").style.width=
-((level-1)*(100/15))+"%";
-
-}
-else{
-  document.getElementById("wrongSound").play();
-
-document.getElementById("message").innerHTML=
-`❌ Correct Answer: ${correctAnswer}`;
-
-}
-
-setTimeout(generateQuestion,1500);
-
-}
-
-function showWinScreen(){
-
-document.getElementById("winSound").play();
-
-switchScreen("winScreen");
-
-document.getElementById("progressBar").style.width="100%";
-
-}
-
+window.onload = showSplash;
 </script>
 
 </body>
 </html>
-  
