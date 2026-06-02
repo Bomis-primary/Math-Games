@@ -1,63 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>🏰 Number Kingdom</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Arbutus&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+box-sizing:border-box;
+}
+
+body{
+margin:0;
+font-family:'Arbutus', cursive;
+background:linear-gradient(to bottom,#dbeafe,#f0f9ff);
+color:#333;
+overflow:hidden;
+}
+
+#splash,
+#game,
+#endScreen{
+width:100%;
+height:100vh;
+display:none;
+flex-direction:column;
+align-items:center;
+position:relative;
+overflow:auto;
+}
+
+#splash{
+justify-content:center;
+background:
+linear-gradient(
+to bottom,
+#c4b5fd,
+#ede9fe
+);
+}
+
+#splash img{
+width:220px;
+max-width:70%;
+}
+
+#splash h1{
+font-size:3rem;
+color:#4b2e83;
+margin-top:20px;
+}
+
+#game{
+padding-bottom:40px;
+}
+
+#progressContainer{
+width:90%;
+height:18px;
+background:#ddd;
+border-radius:30px;
+overflow:hidden;
+margin-top:15px;
+}
+
+#progress{
+height:100%;
+width:0%;
+background:#22c55e;
+transition:.4s;
+}
+
+#topBar{
+width:90%;
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-top:10px;
+}
+
+#starDisplay{
+font-size:1.1rem;
+color:#f59e0b;
+font-weight:bold;
+}
+
+#gateCounter{
+font-size:1rem;
+color:#4b2e83;
+}
+
+#gateTitle{
+font-size:1.5rem;
+text-align:center;
+color:#4b2e83;
+margin:15px;
+padding:0 10px;
+}
+
+#imageArea{
+display:flex;
+justify-content:center;
+align-items:center;
+width:100%;
+}
+
+#imageArea img{
+max-width:90%;
+max-height:320px;
+border-radius:12px;
+box-shadow:0 4px 10px rgba(0,0,0,.15);
+}
+
+#feedback{
+height:40px;
+font-size:1.2rem;
+font-weight:bold;
+margin-top:10px;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+#questionBox{
+width:90%;
+display:flex;
+flex-direction:column;
+gap:10px;
+margin-top:10px;
+}
+
+.option-btn{
+padding:15px;
+border:none;
+border-radius:12px;
+background:#7b3fbd;
+color:white;
+font-size:1rem;
+cursor:pointer;
+transition:.2s;
+}
+
+.option-btn:hover{
+transform:scale(1.02);
+}
+
+.option-btn:disabled{
+opacity:.7;
+cursor:not-allowed;
+}
+
+#treasurePopup{
+position:fixed;
+top:50%;
+left:50%;
+transform:translate(-50%,-50%);
+background:white;
+padding:25px;
+border-radius:20px;
+box-shadow:0 0 20px rgba(0,0,0,.3);
+text-align:center;
+display:none;
+z-index:999;
+font-size:1.3rem;
+}
+
+#endScreen{
+justify-content:center;
+text-align:center;
+padding:20px;
+}
+
+#endMessage{
+color:#4b2e83;
+}
+
+#playAgain{
+padding:15px 30px;
+border:none;
+border-radius:12px;
+background:#22c55e;
+color:white;
+font-size:1.2rem;
+cursor:pointer;
+margin-top:20px;
+}
+
+.confetti{
+position:fixed;
+width:10px;
+height:10px;
+top:-10px;
+animation:fall linear forwards;
+}
+
+@keyframes fall{
+to{
+transform:translateY(110vh) rotate(720deg);
+}
+}
+
+@media(max-width:768px){
+
+#gateTitle{
+font-size:1.2rem;
+}
+
+.option-btn{
+font-size:.95rem;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- SPLASH -->
+
+<div id="splash">
+<img src="assets/logo.png" alt="Logo">
+<h1>Number Kingdom</h1>
+</div>
+
+<!-- GAME -->
+
+<div id="game">
+
+<div id="progressContainer">
+<div id="progress"></div>
+</div>
+
+<div id="topBar">
+<div id="starDisplay">⭐ Stars: 0</div>
+<div id="gateCounter">Gate 1</div>
+</div>
+
+<h2 id="gateTitle"></h2>
+
+<div id="imageArea"></div>
+
+<div id="feedback"></div>
+
+<div id="questionBox"></div>
+
+</div>
+
+<!-- TREASURE POPUP -->
+
+<div id="treasurePopup">
+🎁 Treasure Chest Found!<br><br>
+⭐ Bonus Star Earned!
+</div>
+
+<!-- END SCREEN -->
+
+<div id="endScreen">
+<h1 id="endMessage"></h1>
+<button id="playAgain">Play Again</button>
+</div>
+
+<audio id="correctSound" src="assets/correct.mp3"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+<audio id="clapSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+// ==========================
+// GAME VARIABLES
+// ==========================
+
+let currentGate = 1;
+let stars = 0;
+let isAnswered = false;
+
 const gates = [
-  // Gate 1: Identify the number on the gate
-  {question:"Which number is shown?", image:"assets/q1.png",
-   options:["4578","4857","4587","5487"], answer:"4587"},
 
-  // Gate 2: Abacus question
-  {question:"What number does the abacus show?", image:"assets/q2.png",
-   options:["3264","3245","3524","3254"], answer:"3254"},
+  {
+    question:"Which number is shown?",
+    image:"assets/q1.png",
+    options:["4578","4857","4587","5487"],
+    answer:"4587"
+  },
 
-  // Gate 3: Place value of 5
-  {question:"What is the place value of 5 in the given number?", image:"assets/q3.png",
-   options:["5","50","500","5000"], answer:"500"},
+  {
+    question:"What number does the abacus show?",
+    image:"assets/q2.png",
+    options:["3264","3245","3524","3254"],
+    answer:"3254"
+  },
 
-  // Gate 4: Face value of 5
-  {question:"What is the face value of 5 in 4587?", image:"assets/q4.png",
-   options:["50","5","5000","500"], answer:"5"},
+  {
+    question:"What is the place value of 5 in the given number?",
+    image:"assets/q3.png",
+    options:["5","50","500","5000"],
+    answer:"500"
+  },
 
-  // Gate 5: Expanded form
-  {question:"Choose the expanded form of 4587.", image:"assets/q5.png",
-   options:["4000 + 500 + 80 + 7","4000 + 500 + 87","4500 + 80 + 7","4000 + 580 + 7"],
-   answer:"4000 + 500 + 80 + 7"},
+  {
+    question:"What is the face value of 5 in 4587?",
+    image:"assets/q4.png",
+    options:["50","5","5000","500"],
+    answer:"5"
+  },
 
-  // Gate 6: Standard form
-  {question:"What is the standard form of 3000 + 100 + 70 + 9?", image:"assets/q6.png",
-   options:["3197","3170","3179","3107"], answer:"3179"},
+  {
+    question:"Choose the expanded form of 4587.",
+    image:"assets/q5.png",
+    options:[
+      "4000 + 500 + 80 + 7",
+      "4000 + 500 + 87",
+      "4500 + 80 + 7",
+      "4000 + 580 + 7"
+    ],
+    answer:"4000 + 500 + 80 + 7"
+  },
 
-  // Gate 7: Comparison
-  {question:"Compare 6346 ▢ 6620", image:"assets/q7.png",
-   options:["=","<",">","≠"], answer:"<"},
+  {
+    question:"What is the standard form of 3000 + 100 + 70 + 9?",
+    image:"assets/q6.png",
+    options:["3197","3170","3179","3107"],
+    answer:"3179"
+  },
 
-  // Gate 8: Ascending order
-  {question:"Arrange numbers in ascending order.", image:"assets/gate8_path.png",
-   options:["2100,1234,3245,4321","1234,2100,3245,4321","1234,3245,2100,4321","4321,3245,2100,1234"],
-   answer:"1234,2100,3245,4321"},
+  {
+    question:"Compare 6346 ▢ 6620",
+    image:"assets/q7.png",
+    options:["=","<",">","≠"],
+    answer:"<"
+  },
 
-  // Gate 9: Successor
-  {question:"What is the successor of 5620?", image:"assets/q9.png",
-   options:["5621","5630","5625","5619"], answer:"5621"},
+  {
+    question:"Arrange numbers in ascending order.",
+    image:"assets/gate8_path.png",
+    options:[
+      "2100,1234,3245,4321",
+      "1234,2100,3245,4321",
+      "1234,3245,2100,4321",
+      "4321,3245,2100,1234"
+    ],
+    answer:"1234,2100,3245,4321"
+  },
 
-  // Gate 10: Predecessor
-  {question:"What is the predecessor of 9553?", image:"assets/q10.png",
-   options:["9552","9543","9563","9544"], answer:"9552"},
+  {
+    question:"What is the successor of 5620?",
+    image:"assets/q9.png",
+    options:["5621","5630","5625","5619"],
+    answer:"5621"
+  },
 
-  // Gate 11: Largest 4-digit number
-  {question:"Form the largest 4-digit number using 4, 2, 9, 7.", image:"assets/q11.png",
-   options:["9742","9724","9247","9472"], answer:"9742"},
+  {
+    question:"What is the predecessor of 9553?",
+    image:"assets/q10.png",
+    options:["9552","9543","9563","9544"],
+    answer:"9552"
+  },
 
-  // Gate 12: Smallest 4-digit number
-  {question:"Form the smallest 4-digit number using 4, 2, 9, 7.", image:"assets/q12.png",
-   options:["4279","2479","2794","2947"], answer:"2479"},
+  {
+    question:"Form the largest 4-digit number using 4, 2, 9, 7.",
+    image:"assets/q11.png",
+    options:["9742","9724","9247","9472"],
+    answer:"9742"
+  },
 
-  // Gate 13: Odd or even
-  {question:"Is 4587 odd or even?", image:"assets/q13.png",
-   options:["Even","Odd"], answer:"Odd"},
+  {
+    question:"Form the smallest 4-digit number using 4, 2, 9, 7.",
+    image:"assets/q12.png",
+    options:["4279","2479","2794","2947"],
+    answer:"2479"
+  },
 
-  // Gate 14: Rounding
-  {question:"Round 4587 to nearest 10, 100, 1000.", image:"assets/q14.png",
-   options:["4590,4600,5000","4580,4500,4000","4587,4500,4000","4590,4500,4000"], answer:"4590,4600,5000"},
+  {
+    question:"Is 4587 odd or even?",
+    image:"assets/q13.png",
+    options:["Even","Odd"],
+    answer:"Odd"
+  },
 
-  // Gate 15: Roman numerals
-  {question:"Convert 24 into Roman Numerals.", image:"assets/q15.png",
-   options:["XLIV","XXIV","XXVI","XIV"], answer:"XXIV"}
+  {
+    question:"Round 4587 to nearest 10, 100, 1000.",
+    image:"assets/q14.png",
+    options:[
+      "4590,4600,5000",
+      "4580,4500,4000",
+      "4587,4500,4000",
+      "4590,4500,4000"
+    ],
+    answer:"4590,4600,5000"
+  },
+
+  {
+    question:"Convert 24 into Roman Numerals.",
+    image:"assets/q15.png",
+    options:["XLIV","XXIV","XXVI","XIV"],
+    answer:"XXIV"
+  }
+
 ];
+
+const totalGates = gates.length;
+
+// ==========================
+// DOM REFERENCES
+// ==========================
+
+const splash = document.getElementById("splash");
+const game = document.getElementById("game");
+const endScreen = document.getElementById("endScreen");
+
+const gateTitle = document.getElementById("gateTitle");
+const imageArea = document.getElementById("imageArea");
+const questionBox = document.getElementById("questionBox");
+
+const progressBar = document.getElementById("progress");
+const feedback = document.getElementById("feedback");
+
+const starDisplay = document.getElementById("starDisplay");
+const gateCounter = document.getElementById("gateCounter");
+
+const treasurePopup = document.getElementById("treasurePopup");
+const endMessage = document.getElementById("endMessage");
+
+const correctSound = document.getElementById("correctSound");
+const wrongSound = document.getElementById("wrongSound");
+const clapSound = document.getElementById("clapSound");
+
+const playAgain = document.getElementById("playAgain");
+
+// ==========================
+// SPLASH SCREEN
+// ==========================
+
+function showSplash(){
+
+  splash.style.display = "flex";
+
+  setTimeout(()=>{
+
+    splash.style.display = "none";
+
+    showGate(currentGate);
+
+  },3000);
+
+}
+
+// ==========================
+// SHOW GATE
+// ==========================
+
+function showGate(level){
+
+  isAnswered = false;
+
+  feedback.textContent = "";
+
+  game.style.display = "flex";
+
+  const gate = gates[level - 1];
+
+  gateCounter.textContent =
+    `Gate ${level} / ${totalGates}`;
+
+  gateTitle.textContent =
+    gate.question;
+
+  imageArea.innerHTML = `
+    <img
+      src="${gate.image}"
+      alt="Question Image"
+      onerror="this.style.display='none'"
+    >
+  `;
+
+  questionBox.innerHTML = "";
+
+  gate.options.forEach(option => {
+
+    const btn = document.createElement("button");
+
+    btn.className = "option-btn";
+
+    btn.textContent = option;
+
+    btn.onclick = () =>
+      checkAnswer(option, gate.answer);
+
+    questionBox.appendChild(btn);
+
+  });
+
+  progressBar.style.width =
+    `${((level - 1) / totalGates) * 100}%`;
+
+  starDisplay.textContent =
+    `⭐ Stars: ${stars}`;
+
+}
+      // ==========================
+// ANSWER CHECKING
+// ==========================
+
+function checkAnswer(selected, correct){
+
+  // Prevent double clicks
+  if(isAnswered) return;
+
+  if(selected === correct){
+
+    isAnswered = true;
+
+    stars++;
+
+    starDisplay.textContent =
+      `⭐ Stars: ${stars}`;
+
+    feedback.textContent =
+      "🎉 Correct! Gate Unlocked!";
+
+    feedback.style.color = "#16a34a";
+
+    document
+      .querySelectorAll(".option-btn")
+      .forEach(btn => btn.disabled = true);
+
+    correctSound.play().catch(()=>{});
+
+    setTimeout(()=>{
+
+      // Treasure Chest after Gate 5
+      if(currentGate === 5){
+        showTreasureChest();
+      }
+
+      // Treasure Chest after Gate 10
+      else if(currentGate === 10){
+        showTreasureChest();
+      }
+
+      else{
+        nextGate();
+      }
+
+    },1000);
+
+  }
+
+  else{
+
+    wrongSound.play().catch(()=>{});
+
+    feedback.textContent =
+      "❌ Try Again!";
+
+    feedback.style.color = "#dc2626";
+
+  }
+
+}
+
+// ==========================
+// TREASURE CHEST
+// ==========================
+
+function showTreasureChest(){
+
+  stars++;
+
+  starDisplay.textContent =
+    `⭐ Stars: ${stars}`;
+
+  treasurePopup.style.display = "block";
+
+  setTimeout(()=>{
+
+    treasurePopup.style.display = "none";
+
+    nextGate();
+
+  },2500);
+
+}
+
+// ==========================
+// NEXT GATE
+// ==========================
+
+function nextGate(){
+
+  currentGate++;
+
+  if(currentGate > totalGates){
+
+    showEndScreen();
+
+  }
+
+  else{
+
+    showGate(currentGate);
+
+  }
+
+}
+
+// ==========================
+// CONFETTI
+// ==========================
+
+function createConfetti(){
+
+  for(let i=0;i<120;i++){
+
+    const confetti =
+      document.createElement("div");
+
+    confetti.className = "confetti";
+
+    confetti.style.left =
+      Math.random()*100 + "vw";
+
+    confetti.style.background =
+      `hsl(${Math.random()*360},100%,50%)`;
+
+    confetti.style.animationDuration =
+      (Math.random()*3 + 2) + "s";
+
+    document.body.appendChild(confetti);
+
+    setTimeout(()=>{
+
+      confetti.remove();
+
+    },6000);
+
+  }
+
+}
+
+// ==========================
+// END SCREEN
+// ==========================
+
+function showEndScreen(){
+
+  game.style.display = "none";
+
+  endScreen.style.display = "flex";
+
+  clapSound.play().catch(()=>{});
+
+  createConfetti();
+
+  endMessage.innerHTML = `
+    🎉 Congratulations!<br><br>
+    You completed Number Kingdom!<br><br>
+
+    ⭐ Stars Collected:
+    ${stars}
+    / ${totalGates + 2}
+  `;
+
+}
+
+// ==========================
+// PLAY AGAIN
+// ==========================
+
+playAgain.onclick = ()=>{
+
+  currentGate = 1;
+
+  stars = 0;
+
+  isAnswered = false;
+
+  progressBar.style.width = "0%";
+
+  endScreen.style.display = "none";
+
+  feedback.textContent = "";
+
+  showGate(currentGate);
+
+};
+
+// ==========================
+// START GAME
+// ==========================
+
+window.onload = showSplash;
