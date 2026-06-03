@@ -33,6 +33,34 @@
             flex-direction: column;
             padding: 16px;
             gap: 12px;
+            opacity: 0; /* Uncovered after 5-second loading bar completes */
+            transition: opacity 0.5s ease;
+        }
+
+        /* Regulated 5-Second Splash Loader Interface Screen */
+        #hard-splash {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #0f172a;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
+        }
+        .splash-img {
+            width: 100px;
+            height: auto;
+            margin-bottom: 20px;
+            object-fit: contain;
+        }
+        .splash-title {
+            font-size: 1.8rem;
+            color: #38bdf8;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 12px;
         }
 
         .control-panel {
@@ -140,8 +168,20 @@
 </head>
 <body>
 
+    <audio id="s-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+    <div id="hard-splash">
+        <img src="assets/logo.png" class="splash-img" alt="Logo" onerror="this.style.display='none';">
+        <h1 class="splash-title">Metric Highway</h1>
+        <div style="width:140px; height:6px; background-color:#1e293b; border-radius:10px; overflow:hidden;">
+            <div id="loader-progress-fill" style="width:0%; height:100%; background-color:#38bdf8; transition: width 0.1s ease;"></div>
+        </div>
+    </div>
+
     <div id="viewport-root">
         <div class="control-panel">
+            <img src="assets/logo.png" style="width:40px; margin-bottom:8px;" onerror="this.style.display='none';">
             <div class="signpost">
                 <div class="signpost-title">TRAFFIC WEIGHT & TRACK ROUTING</div>
                 <div class="signpost-value" id="lbl-highway-directive">Configuring Junctions...</div>
@@ -188,14 +228,34 @@
             color: '#f43f5e'
         };
 
-        window.onload = () => {
+        // Regulated 5-Second Progress Timeline Engine Loading Sequence
+        let progressVal = 0;
+        const progressTicker = setInterval(() => {
+            progressVal += 2;
+            const fillElement = document.getElementById('loader-progress-fill');
+            if (fillElement) fillElement.style.width = progressVal + '%';
+
+            if (progressVal >= 100) {
+                clearInterval(progressTicker);
+                const splash = document.getElementById('hard-splash');
+                const mainApp = document.getElementById('viewport-root');
+                if (splash) splash.style.opacity = '0';
+                setTimeout(() => {
+                    if (splash.parentNode) splash.parentNode.removeChild(splash);
+                    mainApp.style.opacity = '1';
+                    initGameEngine();
+                }, 500);
+            }
+        }, 100);
+
+        function initGameEngine() {
             canvasElement = document.getElementById('highway-canvas');
             canvasContext = canvasElement.getContext('2d');
             
             setupCanvasSize();
             generateNextHighwayLevel();
             startGameLoop();
-        };
+        }
 
         function setupCanvasSize() {
             const rect = canvasElement.getBoundingClientRect();
@@ -300,18 +360,17 @@
             if (currentVehicle.isMoving) {
                 currentVehicle.progress += 0.015;
                 if (currentVehicle.progress >= 0.85) { 
-                    // Evaluate early near the toll gates to trigger safe passage or crash tumble mechanics
                     evaluateRouteMatch();
                 }
             }
 
             if (currentVehicle.isTumbling) {
                 currentVehicle.tumbleTimer += 1;
-                currentVehicle.rotationAngle += 0.25; // Quick rotational flip spin
-                currentVehicle.offsetX += 2;          // Inertia bounce trajectory forward
-                currentVehicle.offsetY += Math.sin(currentVehicle.tumbleTimer * 0.4) * 4; // Up and down bounce bounce effect
+                currentVehicle.rotationAngle += 0.25; 
+                currentVehicle.offsetX += 2;          
+                currentVehicle.offsetY += Math.sin(currentVehicle.tumbleTimer * 0.4) * 4; 
 
-                if (currentVehicle.tumbleTimer >= 60) { // End crash sequence after 1 second
+                if (currentVehicle.tumbleTimer >= 60) { 
                     currentVehicle.isTumbling = false;
                     resetLevelAfterCrash();
                 }
@@ -319,13 +378,13 @@
         }
 
         function renderCanvasGraphics() {
+            if (!canvasContext) return;
             canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
             const w = canvasElement.width;
             const h = canvasElement.height;
             const laneYPositions = [h * 0.23, h * 0.5, h * 0.77];
 
-            // 1. Draw highway lines
             canvasContext.fillStyle = '#1e293b';
             canvasContext.fillRect(0, h/2 - 25, 60, 50);
 
@@ -348,7 +407,6 @@
                 canvasContext.stroke();
             }
 
-            // 2. Compute path position coordinates
             let p0 = { x: 30, y: h / 2 };
             let p1 = { x: w * 0.4, y: h / 2 };
             let p2 = { x: w * 0.4, y: laneYPositions[selectedLaneIndex] };
@@ -356,7 +414,6 @@
             
             let vehPos = getBezierXY(currentVehicle.progress, p0, p1, p2, p3);
 
-            // 3. Render Vehicle with translation offsets applied
             canvasContext.save();
             canvasContext.translate(vehPos.x + currentVehicle.offsetX, vehPos.y + currentVehicle.offsetY);
             canvasContext.rotate(currentVehicle.rotationAngle);
@@ -375,7 +432,6 @@
             }
             canvasContext.restore();
 
-            // 4. Draw Impact Sparks/Clouds if vehicle is rolling out of control
             if (currentVehicle.isTumbling) {
                 canvasContext.fillStyle = 'rgba(244, 63, 94, 0.4)';
                 canvasContext.beginPath();
@@ -383,7 +439,6 @@
                 canvasContext.fill();
             }
 
-            // 5. Draw Toll Gates
             for (let i = 0; i < 3; i++) {
                 const option = laneOptionsData[i];
 
@@ -416,12 +471,13 @@
         }
 
         function evaluateRouteMatch() {
-            currentVehicle.isMoving = false; // Freeze normal progression tracking
+            currentVehicle.isMoving = false; 
             const chosenPath = laneOptionsData[selectedLaneIndex];
             const feedbackText = document.getElementById('lbl-feedback');
 
             if (chosenPath && chosenPath.isTruePath) {
-                currentVehicle.progress = 1.0; // Instantly finish path travel
+                currentVehicle.progress = 1.0; 
+                playAudioFile('s-correct');
                 feedbackText.innerText = "✓ PASSED TOLL GATE! Conversion cleared.";
                 feedbackText.style.color = "#10b981";
                 
@@ -429,8 +485,8 @@
                     generateNextHighwayLevel();
                 }, 1500);
             } else {
-                // Wrong Option chosen -> Trigger tumbling out of control state
                 currentVehicle.isTumbling = true;
+                playAudioFile('s-wrong');
                 feedbackText.innerText = "💥 ACCIDENT ROADBLOCK! Vehicle is tumbling!";
                 feedbackText.style.color = "#f43f5e";
             }
@@ -439,7 +495,6 @@
         function resetLevelAfterCrash() {
             const feedbackText = document.getElementById('lbl-feedback');
             
-            // Re-align variables back to zero position safely
             currentVehicle.progress = 0;
             currentVehicle.offsetX = 0;
             currentVehicle.offsetY = 0;
@@ -449,6 +504,16 @@
             document.getElementById('btn-dispatch').disabled = false;
             feedbackText.innerText = "Realign connections to safe values and retry.";
             feedbackText.style.color = "#64748b";
+        }
+
+        function playAudioFile(id) {
+            try {
+                const sound = document.getElementById(id);
+                if (sound) {
+                    sound.currentTime = 0;
+                    sound.play().catch(() => {});
+                }
+            } catch (err) {}
         }
     </script>
 </body>
