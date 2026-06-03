@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cosmic Cartography: Geometry Sort</title>
+    <title>Metric Highway: Connection Control</title>
     <style>
         * {
             box-sizing: border-box;
-            font-family: monospace;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
             margin: 0;
             padding: 0;
             user-select: none;
@@ -16,97 +16,65 @@
         body, html {
             width: 100%;
             height: 100%;
-            background-color: #0b0f19;
-            color: #f1f5f9;
+            background-color: #0b0f17;
+            color: #e2e8f0;
             overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         
         #viewport-root {
             width: 100%;
+            max-width: 440px;
             height: 100%;
+            max-height: 720px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 12px;
-            position: relative;
+            padding: 16px;
+            gap: 12px;
         }
 
-        /* Tech Blueprint Minimal Panels */
-        .blueprint-panel {
-            background: rgba(15, 23, 42, 0.9);
-            border: 2px solid #334155;
-            border-radius: 12px;
-            padding: 25px 20px;
-            max-width: 440px;
-            width: 100%;
+        .control-panel {
+            background: #111827;
+            border: 2px solid #1f2937;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             text-align: center;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
-        }
-        
-        .btn-action {
-            background: #f1f5f9;
-            color: #0f172a;
-            border: none;
-            padding: 12px 36px;
-            font-size: 1rem;
-            font-weight: bold;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 20px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
         }
 
-        .game-layout {
-            width: 100%;
-            max-width: 440px;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-        
-        .hud-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.9rem;
-            color: #94a3b8;
-            padding: 6px 2px;
-            letter-spacing: 1px;
-        }
-        .hud-value {
-            color: #f1f5f9;
-            font-weight: bold;
-        }
-
-        .info-panel {
-            background: #0f172a;
-            border: 1px solid #334155;
+        .signpost {
+            background: #022c22;
+            border: 2px solid #059669;
             border-radius: 8px;
             padding: 12px;
-            text-align: center;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
-        .info-tag {
-            font-size: 0.7rem;
-            color: #38bdf8;
-            letter-spacing: 2px;
-            margin-bottom: 2px;
+        .signpost-title {
+            font-size: 0.75rem;
+            color: #34d399;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 700;
         }
-        .info-text {
-            font-size: 1.1rem;
+        .signpost-value {
+            font-size: 1.25rem;
+            font-weight: 800;
             color: #ffffff;
+            margin-top: 4px;
+            text-shadow: 0 0 8px rgba(52, 211, 153, 0.4);
         }
 
-        .canvas-frame {
-            width: 100%;
-            background-color: #020617;
-            border: 2px solid #334155;
-            border-radius: 12px;
-            position: relative;
+        .map-frame {
             flex-grow: 1;
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 16px;
+            position: relative;
             overflow: hidden;
+            min-height: 300px;
         }
         canvas {
             display: block;
@@ -114,359 +82,249 @@
             height: 100%;
         }
 
-        /* Minimal sorting dock steering deck */
-        .deck-controls {
+        .switch-deck {
             display: flex;
+            justify-content: space-between;
+            gap: 10px;
             width: 100%;
-            margin-top: 10px;
-            height: 55px;
-            gap: 12px;
         }
-        .deck-btn {
-            background: #0f172a;
-            border: 1px solid #334155;
-            border-radius: 6px;
-            color: #ffffff;
-            font-size: 0.9rem;
-            font-weight: bold;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .btn-switch {
+            flex: 1;
+            background: #1e293b;
+            border: 1px solid #475569;
+            color: #94a3b8;
+            border-radius: 12px;
+            padding: 14px 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
             cursor: pointer;
-            width: 50%;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease;
         }
-        .deck-btn:active {
-            background: #334155;
-            color: #38bdf8;
+        .btn-switch.active {
+            background: #0284c7;
+            border-color: #38bdf8;
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
         }
 
-        #hard-splash {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #020617;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 99999;
+        .btn-submit {
+            width: 100%;
+            background: #10b981;
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+        .btn-submit:active {
+            background: #059669;
+        }
+
+        .toast-banner {
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            min-height: 20px;
         }
     </style>
 </head>
 <body>
 
-    <audio id="s-correct" src="assets/correct.mp3" preload="auto"></audio>
-    <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+    <div id="viewport-root">
+        <div class="control-panel">
+            <div class="signpost">
+                <div class="signpost-title">TRAFFIC WEIGHT & TRACK ROUTING</div>
+                <div class="signpost-value" id="lbl-highway-directive">Loading Highway Config...</div>
+            </div>
+            <p style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">
+                Select Lane 1, 2, or 3 to realign the asphalt route junctions below.
+            </p>
+        </div>
 
-    <div id="hard-splash">
-        <h1 style="font-size:1.4rem; color:#f1f5f9; letter-spacing:3px;">LOADING MATRIX...</h1>
+        <div class="map-frame">
+            <canvas id="highway-canvas"></canvas>
+        </div>
+
+        <div class="toast-banner" id="lbl-feedback" style="color: #64748b;">Awaiting route alignment...</div>
+
+        <div class="switch-deck">
+            <button class="btn-switch" id="sw-0" onclick="alignRouteLane(0)">Lane 1</button>
+            <button class="btn-switch" id="sw-1" onclick="alignRouteLane(1)">Lane 2</button>
+            <button class="btn-switch" id="sw-2" onclick="alignRouteLane(2)">Lane 3</button>
+        </div>
+
+        <button class="btn-submit" onclick="dispatchVehicles()">Launch Traffic Flow</button>
     </div>
 
-    <div id="viewport-root"></div>
-
     <script>
-        let currentScore = 0;
-        let systemErrors = 0;
-        const maxAllowedErrors = 3;
-        
+        let currentTargetQuery = null;
+        let selectedLaneIndex = 0; // Default active lane route configuration
+        let laneOptionsData = [];
+
         let canvasElement = null;
         let canvasContext = null;
-        let animationFrameHandle = null;
 
-        // Sorting dock configuration parameters
-        let activeTargetShape = null; 
-        let currentTargetCategoryA = "";
-        let currentTargetCategoryB = "";
-        let expectedWinningDockIndex = 0; // 0 = Left Dock, 1 = Right Dock
-        let activeCollectorDockIndex = 0; // Current selection index position
-        
-        let isEngineRunning = false;
-
-        // Force clear layout loading screen state immediately
-        setTimeout(() => {
-            const splashMask = document.getElementById('hard-splash');
-            if (splashMask) splashMask.parentNode.removeChild(splashMask);
-            renderMenuScreen();
-        }, 600);
-
-        function renderMenuScreen() {
-            isEngineRunning = false;
-            if (animationFrameHandle) cancelAnimationFrame(animationFrameHandle);
-            
-            document.getElementById('viewport-root').innerHTML = `
-                <div class="blueprint-panel">
-                    <h1 style="font-size:1.4rem; color:#ffffff; margin-bottom:12px; letter-spacing:2px;">COSMIC CARTOGRAPHY</h1>
-                    <p style="color:#94a3b8; font-size:0.85rem; line-height:1.6; margin-bottom:20px; text-align:justify;">
-                        A grid sorting game covering spatial attributes from Curriculum Lesson 07. Analyze geometric properties—ranging from simple curves to solid shape metrics like faces, edges, and vertices—and dynamically sort elements into their designated docks.
-                    </p>
-                    <button class="btn-action" onclick="initiateGameEngine()">INITIALIZE SORT</button>
-                </div>
-            `;
-        }
-
-        function initiateGameEngine() {
-            currentScore = 0;
-            systemErrors = 0;
-            isEngineRunning = true;
-            activeCollectorDockIndex = 0;
-
-            buildGameLayoutDOM();
-            generateNextSpatialPuzzle();
-            runCanvasGameLoop();
-            attachSteeringControls();
-        }
-
-        function buildGameLayoutDOM() {
-            document.getElementById('viewport-root').innerHTML = `
-                <div class="game-layout">
-                    <div class="hud-row">
-                        <div>DATA LOG: <span id="lbl-score" class="hud-value">0 Sorted</span></div>
-                        <div>ERRORS: <span id="lbl-errors" class="hud-value">0/3</span></div>
-                    </div>
-
-                    <div class="info-panel">
-                        <div class="info-tag">SPATIAL SORT METRIC</div>
-                        <div class="info-text" id="lbl-task-text">IDENTIFY GEOMETRY CHARACTERISTICS</div>
-                    </div>
-
-                    <div class="canvas-frame">
-                        <canvas id="rush-canvas" width="440" height="420"></canvas>
-                    </div>
-
-                    <div class="deck-controls">
-                        <div class="deck-btn" id="btn-left-press">Dock Left</div>
-                        <div class="deck-btn" id="btn-right-press">Dock Right</div>
-                    </div>
-                </div>
-            `;
-
-            canvasElement = document.getElementById('rush-canvas');
+        window.onload = () => {
+            canvasElement = document.getElementById('highway-canvas');
             canvasContext = canvasElement.getContext('2d');
+            
+            setupCanvasSize();
+            generateNextHighwayLevel();
+        };
+
+        function setupCanvasSize() {
+            const rect = canvasElement.getBoundingClientRect();
+            canvasElement.width = rect.width;
+            canvasElement.height = rect.height;
         }
 
-        function generateNextSpatialPuzzle() {
-            // Evaluates curriculum items from image_e6fdbd.png mapping
-            const curriculumPool = [
-                {
-                    metric: "Classify Lines & Curves",
-                    catA: "Straight Line", catB: "Curved Line",
-                    variants: [
-                        { label: "Ruler-drawn segment", wins: 0, drawType: "straight" },
-                        { label: "Wavy path blueprint", wins: 1, drawType: "curved" },
-                        { label: "Circle arc trace", wins: 1, drawType: "curved" }
-                    ]
-                },
-                {
-                    metric: "Parts of a Circle",
-                    catA: "Circle Center", catB: "Circle Diameter",
-                    variants: [
-                        { label: "Absolute middle point", wins: 0, drawType: "center" },
-                        { label: "Line crossing edge-to-edge", wins: 1, drawType: "diameter" }
-                    ]
-                },
-                {
-                    metric: "Differentiate Curves",
-                    catA: "Open Curve", catB: "Closed Curve",
-                    variants: [
-                        { label: "Unsealed loop hook", wins: 0, drawType: "open" },
-                        { label: "Perfect sealed ring", wins: 1, drawType: "closed" }
-                    ]
-                },
-                {
-                    metric: "Solid Shape Properties",
-                    catA: "Has 6 Flat Faces", catB: "Has 0 Flat Faces",
-                    variants: [
-                        { label: "3D Square Cube Block", wins: 0, drawType: "cube" },
-                        { label: "Solid Abyssal Sphere", wins: 1, drawType: "sphere" }
-                    ]
-                }
+        function generateNextHighwayLevel() {
+            document.getElementById('lbl-feedback').innerText = "Adjust lanes, then launch traffic...";
+            document.getElementById('lbl-feedback').style.color = "#64748b";
+
+            // Metric curriculum questions directly referencing image_e59501.png
+            const conversionDatabase = [
+                { directive: "Route vehicles matching 4 meters", correct: "400 cm", wrong: ["40 cm", "4000 cm"] },
+                { directive: "Route vehicles matching 7 kilometers", correct: "7000 m", wrong: ["700 m", "70 m"] },
+                { directive: "Route vehicles matching 3 kilograms", correct: "3000 g", wrong: ["300 g", "30000 g"] },
+                { directive: "Route vehicles matching 2 liters", correct: "2000 ml", wrong: ["200 ml", "20 ml"] },
+                { directive: "Route vehicles matching 50 millimeters", correct: "5 cm", wrong: ["500 cm", "0.5 cm"] },
+                { directive: "Route vehicles matching 8.5 kilograms", correct: "8500 g", wrong: ["850 g", "85 g"] }
             ];
 
-            const group = curriculumPool[Math.floor(Math.random() * curriculumPool.length)];
-            const chosenVariant = group.variants[Math.floor(Math.random() * group.variants.length)];
+            currentTargetQuery = conversionDatabase[Math.floor(Math.random() * conversionDatabase.length)];
+            document.getElementById('lbl-highway-directive').innerText = currentTargetQuery.directive;
 
-            currentTargetCategoryA = group.catA;
-            currentTargetCategoryB = group.catB;
-            expectedWinningDockIndex = chosenVariant.wins;
+            // Generate options structure and scramble
+            let pool = [
+                { text: currentTargetQuery.correct, isTruePath: true },
+                { text: currentTargetQuery.wrong[0], isTruePath: false },
+                { text: currentTargetQuery.wrong[1], isTruePath: false }
+            ].sort(() => Math.random() - 0.5);
 
-            document.getElementById('lbl-task-text').innerText = `${group.metric}`;
-
-            // Initialize the floating target shape dropping into center screen
-            activeTargetShape = {
-                x: canvasElement.width / 2,
-                y: -10,
-                label: chosenVariant.label,
-                drawType: chosenVariant.drawType,
-                fallVelocity: 1.8 + Math.random() * 1.0
-            };
+            laneOptionsData = pool;
+            alignRouteLane(0); // Set lane 1 active by default
         }
 
-        function runCanvasGameLoop() {
-            if (!isEngineRunning) return;
-            updateFramePhysics();
-            renderFrameGraphics();
-            animationFrameHandle = requestAnimationFrame(runCanvasGameLoop);
-        }
+        function alignRouteLane(index) {
+            selectedLaneIndex = index;
 
-        function updateFramePhysics() {
-            if (!activeTargetShape) return;
-
-            // Increment gravity descent tracking
-            activeTargetShape.y += activeTargetShape.fallVelocity;
-
-            // Bottom capture baseline check
-            if (activeTargetShape.y >= canvasElement.height - 75) {
-                // Determine whether the user correctly matched categories with active sorting platform dock location
-                if (activeCollectorDockIndex === expectedWinningDockIndex) {
-                    playAudioFile('s-correct');
-                    currentScore++;
-                    document.getElementById('lbl-score').innerText = `${currentScore} Sorted`;
-                } else {
-                    playAudioFile('s-wrong');
-                    systemErrors++;
-                    document.getElementById('lbl-errors').innerText = `${systemErrors}/3`;
-                }
-
-                if (systemErrors >= maxAllowedErrors) {
-                    isEngineRunning = false;
-                    renderGameOverScreen();
-                } else {
-                    generateNextSpatialPuzzle();
+            // Manage styling of interactive buttons
+            for (let i = 0; i < 3; i++) {
+                const btn = document.getElementById(`sw-${i}`);
+                if (btn) {
+                    if (i === index) btn.classList.add('active');
+                    else btn.classList.remove('active');
                 }
             }
+
+            renderHighwayMap();
         }
 
-        function renderFrameGraphics() {
+        function renderHighwayMap() {
             canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
-            // Draw technical structural reference grid layout
-            canvasContext.strokeStyle = '#0f172a';
-            canvasContext.lineWidth = 1;
-            for (let i = 0; i < canvasElement.width; i += 40) {
-                canvasContext.beginPath(); canvasContext.moveTo(i, 0); canvasContext.lineTo(i, canvasElement.height); canvasContext.stroke();
+            const w = canvasElement.width;
+            const h = canvasElement.height;
+
+            // 1. Draw solid dark asphalt background highway blocks
+            canvasContext.fillStyle = '#1e293b';
+            
+            // Entrance Hub
+            canvasContext.fillRect(0, h/2 - 25, 60, 50);
+
+            // Three branching exit highway lanes
+            const laneYPositions = [h * 0.25, h * 0.5, h * 0.75];
+            for (let i = 0; i < 3; i++) {
+                canvasContext.fillRect(w - 120, laneYPositions[i] - 20, 120, 40);
             }
-            for (let j = 0; j < canvasElement.height; j += 40) {
-                canvasContext.beginPath(); canvasContext.moveTo(0, j); canvasContext.lineTo(canvasElement.width, j); canvasContext.stroke();
-            }
 
-            // Draw Static Docking Zones at bottom floor
-            let dockY = canvasElement.height - 60;
-            let dockWidth = canvasElement.width / 2 - 20;
+            // 2. Draw procedural neon glowing connectivity lanes
+            canvasContext.lineWidth = 6;
+            canvasContext.lineCap = 'round';
+            canvasContext.lineJoin = 'round';
 
-            // Left Sorting Target Dock
-            canvasContext.fillStyle = activeCollectorDockIndex === 0 ? '#1e293b' : '#020617';
-            canvasContext.strokeStyle = activeCollectorDockIndex === 0 ? '#38bdf8' : '#334155';
-            canvasContext.lineWidth = 2;
-            canvasContext.beginPath();
-            canvasContext.roundRect(10, dockY, dockWidth, 45, 6);
-            canvasContext.fill(); canvasContext.stroke();
+            for (let i = 0; i < 3; i++) {
+                const isActiveConnection = (i === selectedLaneIndex);
+                
+                // Color lane blue if selected active path, otherwise a subtle dark slate
+                canvasContext.strokeStyle = isActiveConnection ? '#38bdf8' : '#334155';
+                
+                canvasContext.beginPath();
+                canvasContext.moveTo(10, h / 2);
+                canvasContext.lineTo(60, h / 2);
+                // Curve smoothly up or down into target lane
+                canvasContext.bezierCurveTo(w * 0.4, h / 2, w * 0.4, laneYPositions[i], w - 100, laneYPositions[i]);
+                canvasContext.lineTo(w, laneYPositions[i]);
+                canvasContext.stroke();
 
-            // Right Sorting Target Dock
-            canvasContext.fillStyle = activeCollectorDockIndex === 1 ? '#1e293b' : '#020617';
-            canvasContext.strokeStyle = activeCollectorDockIndex === 1 ? '#38bdf8' : '#334155';
-            canvasContext.beginPath();
-            canvasContext.roundRect(canvasElement.width / 2 + 10, dockY, dockWidth, 45, 6);
-            canvasContext.fill(); canvasContext.stroke();
-
-            // Label text targets inside static docking zone boxes
-            canvasContext.fillStyle = activeCollectorDockIndex === 0 ? '#38bdf8' : '#94a3b8';
-            canvasContext.font = '11px monospace';
-            canvasContext.textAlign = 'center';
-            canvasContext.fillText(currentTargetCategoryA, 10 + dockWidth/2, dockY + 26);
-
-            canvasContext.fillStyle = activeCollectorDockIndex === 1 ? '#38bdf8' : '#94a3b8';
-            canvasContext.fillText(currentTargetCategoryB, canvasElement.width / 2 + 10 + dockWidth/2, dockY + 26);
-
-            // Draw falling target geometry structure inside the cosmic spatial zone
-            if (activeTargetShape) {
-                canvasContext.save();
-                canvasContext.translate(activeTargetShape.x, activeTargetShape.y);
-
-                // Draw geometric preview vector based on current task requirement mapping
-                canvasContext.strokeStyle = '#ffffff';
-                canvasContext.lineWidth = 2.5;
-
-                switch(activeTargetShape.drawType) {
-                    case "straight":
-                        canvasContext.beginPath(); canvasContext.moveTo(-20, 0); canvasContext.lineTo(20, 0); canvasContext.stroke();
-                        break;
-                    case "curved":
-                        canvasContext.beginPath(); canvasContext.arc(0, 0, 16, 0, Math.PI, false); canvasContext.stroke();
-                        break;
-                    case "center":
-                        canvasContext.beginPath(); canvasContext.arc(0, 0, 18, 0, Math.PI*2); canvasContext.stroke();
-                        canvasContext.fillStyle = '#38bdf8';
-                        canvasContext.beginPath(); canvasContext.arc(0, 0, 4, 0, Math.PI*2); canvasContext.fill();
-                        break;
-                    case "diameter":
-                        canvasContext.beginPath(); canvasContext.arc(0, 0, 18, 0, Math.PI*2); canvasContext.stroke();
-                        canvasContext.strokeStyle = '#94a3b8';
-                        canvasContext.beginPath(); canvasContext.moveTo(-18, 0); canvasContext.lineTo(18, 0); canvasContext.stroke();
-                        break;
-                    case "open":
-                        canvasContext.beginPath(); canvasContext.arc(0, -4, 14, 0, Math.PI * 1.5, false); canvasContext.stroke();
-                        break;
-                    case "closed":
-                        canvasContext.beginPath(); canvasContext.arc(0, 0, 15, 0, Math.PI*2); canvasContext.stroke();
-                        break;
-                    case "cube":
-                        canvasContext.strokeRect(-14, -14, 28, 28);
-                        canvasContext.strokeStyle = 'rgba(255,255,255,0.4)';
-                        canvasContext.strokeRect(-8, -8, 28, 28);
-                        break;
-                    case "sphere":
-                        canvasContext.beginPath(); canvasContext.arc(0, 0, 18, 0, Math.PI*2); canvasContext.stroke();
-                        canvasContext.beginPath(); canvasContext.ellipse(0, 0, 18, 6, 0, 0, Math.PI*2); canvasContext.stroke();
-                        break;
+                // Draw decorative white center dashed line if active route is aligned
+                if (isActiveConnection) {
+                    canvasContext.strokeStyle = '#ffffff';
+                    canvasContext.lineWidth = 1.5;
+                    canvasContext.setLineDash([6, 6]);
+                    canvasContext.stroke();
+                    canvasContext.setLineDash([]);
+                    canvasContext.lineWidth = 6;
                 }
+            }
 
-                // Append the clear item descriptor label string
+            // 3. Draw Starting Point Carrier Vehicle Pod
+            canvasContext.fillStyle = '#10b981';
+            canvasContext.beginPath();
+            canvasContext.arc(30, h / 2, 10, 0, Math.PI * 2);
+            canvasContext.fill();
+
+            // 4. Draw Toll Gate terminal stations on exit lanes
+            for (let i = 0; i < 3; i++) {
+                const option = laneOptionsData[i];
+
+                // Station box shell
+                canvasContext.fillStyle = '#0f172a';
+                canvasContext.strokeStyle = (i === selectedLaneIndex) ? '#38bdf8' : '#475569';
+                canvasContext.lineWidth = 2;
+                canvasContext.beginPath();
+                canvasContext.roundRect(w - 110, laneYPositions[i] - 16, 95, 32, 6);
+                canvasContext.fill();
+                canvasContext.stroke();
+
+                // Station conversion rate text labels
                 canvasContext.fillStyle = '#ffffff';
-                canvasContext.font = '12px monospace';
+                canvasContext.font = 'bold 12px sans-serif';
                 canvasContext.textAlign = 'center';
-                canvasContext.fillText(activeTargetShape.label, 0, 42);
+                canvasContext.textBaseline = 'middle';
+                canvasContext.fillText(option ? option.text : '', w - 62, laneYPositions[i]);
 
-                canvasContext.restore();
+                // Station ID Tag (e.g. "L1")
+                canvasContext.fillStyle = '#64748b';
+                canvasContext.font = '9px monospace';
+                canvasContext.fillText(`GATE ${i+1}`, w - 130, laneYPositions[i]);
             }
         }
 
-        function attachSteeringControls() {
-            window.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowLeft') activeCollectorDockIndex = 0;
-                if (e.key === 'ArrowRight') activeCollectorDockIndex = 1;
-            });
+        function dispatchVehicles() {
+            const chosenPath = laneOptionsData[selectedLaneIndex];
+            const feedbackText = document.getElementById('lbl-feedback');
 
-            const leftBtn = document.getElementById('btn-left-press');
-            const rightBtn = document.getElementById('btn-right-press');
-
-            if (leftBtn && rightBtn) {
-                leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); activeCollectorDockIndex = 0; });
-                rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); activeCollectorDockIndex = 1; });
-                leftBtn.addEventListener('mousedown', () => activeCollectorDockIndex = 0);
-                rightBtn.addEventListener('mousedown', () => activeCollectorDockIndex = 1);
+            if (chosenPath && chosenPath.isTruePath) {
+                feedbackText.innerText = "✓ ROUTE SUCCESSFUL! Connection configured perfectly.";
+                feedbackText.style.color = "#34d399";
+                
+                // Advance into next highway sequence
+                setTimeout(() => {
+                    generateNextHighwayLevel();
+                }, 1800);
+            } else {
+                feedbackText.innerText = "✗ TRAFFIC BLOCK! Mismatched metric conversion value at toll gate.";
+                feedbackText.style.color = "#f87171";
             }
-        }
-
-        function renderGameOverScreen() {
-            document.getElementById('viewport-root').innerHTML = `
-                <div class="blueprint-panel" style="border-color: #ef4444;">
-                    <h1 style="color:#ef4444; font-size:1.2rem; margin-bottom:10px; letter-spacing:1px;">CALIBRATION COMPLETED</h1>
-                    <p style="color:#94a3b8; font-size:0.9rem; margin-bottom:20px;">
-                        Successfully Processed: <span style="color:#ffffff; font-weight:bold;">${currentScore} Geometries</span>
-                    </p>
-                    <button class="btn-action" onclick="renderMenuScreen()">Restart Matrix</button>
-                </div>
-            `;
-        }
-
-        function playAudioFile(id) {
-            try {
-                const sound = document.getElementById(id);
-                if (sound) {
-                    sound.currentTime = 0;
-                    sound.play().catch(() => {});
-                }
-            } catch (err) {}
         }
     </script>
 </body>
