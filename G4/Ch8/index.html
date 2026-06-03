@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chronos Dash - Time & Calendar</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #0b091a;
+            color: #ffffff;
+            overflow: hidden;
+        }
+        
+        #viewport-root {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .menu-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 24px;
+            padding: 40px 25px;
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+        }
+        .btn-action {
+            background: linear-gradient(135deg, #f59e0b, #ef4444);
+            color: #ffffff;
+            border: none;
+            padding: 15px 45px;
+            font-size: 1.15rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
+            margin-top: 20px;
+        }
+
+        .game-layout {
+            width: 100%;
+            max-width: 600px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .hud-top {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 1.1rem;
+            color: #f59e0b;
+            font-weight: bold;
+            padding: 5px 0;
+        }
+
+        /* Dash Board Track */
+        .track-container {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            margin: 15px 0;
+        }
+        .track-node {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #1e1b4b;
+            border: 2px solid #4338ca;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #a5b4fc;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .track-node.active {
+            background: #f59e0b;
+            border-color: #ffffff;
+            color: #0b091a;
+            box-shadow: 0 0 15px #f59e0b;
+            transform: scale(1.2);
+        }
+        .track-node.cleared {
+            background: #10b981;
+            border-color: #10b981;
+            color: #ffffff;
+        }
+
+        /* Target Portal Choices */
+        .portal-deck {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .portal-option {
+            width: 48%;
+            background: linear-gradient(135deg, #1e1b4b 0%, #110e2e 100%);
+            border: 2px solid #3b82f6;
+            border-radius: 20px;
+            padding: 25px 15px;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+        }
+        .portal-option:active {
+            transform: scale(0.97);
+        }
+        .portal-option:hover {
+            border-color: #f59e0b;
+            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.2);
+        }
+
+        /* Dynamic Query Display Display */
+        .challenge-box {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            width: 100%;
+            padding: 30px 20px;
+            text-align: center;
+            margin-bottom: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .challenge-tag {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #f59e0b;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .challenge-text {
+            font-size: 1.5rem;
+            font-weight: bold;
+            line-height: 1.4;
+        }
+
+        #hard-splash {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #ffffff;
+            color: #111111;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="s-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+    <audio id="s-win" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
+
+    <div id="hard-splash">
+        <img src="assets/logo.png" style="max-width:240px; margin-bottom:20px;" onerror="this.style.display='none'; document.getElementById('fb-text').style.display='block';">
+        <h1 id="fb-text" style="display:none; font-size:2.4rem; margin-bottom:15px; letter-spacing:1px;">INNOVINE</h1>
+        <div style="width:200px; height:6px; background-color:#e2e8f0; border-radius:3px; overflow:hidden;">
+            <div id="loader-progress-fill" style="width:0%; height:100%; background-color:#f59e0b;"></div>
+        </div>
+    </div>
+
+    <div id="viewport-root"></div>
+
+    <script>
+        let currentSector = 0;
+        const totalSectors = 10;
+        
+        let targetSolutionIndex = 0; // 0 for Left Portal, 1 for Right Portal
+
+        // Initial launch loading sequencing
+        let progressVal = 0;
+        const progressTicker = setInterval(() => {
+            progressVal += 5;
+            const element = document.getElementById('loader-progress-fill');
+            if (element) element.style.width = progressVal + '%';
+
+            if (progressVal >= 100) {
+                clearInterval(progressTicker);
+                purgeSplashAndBuildMenu();
+            }
+        }, 50);
+
+        function purgeSplashAndBuildMenu() {
+            const splashMask = document.getElementById('hard-splash');
+            if (splashMask) {
+                splashMask.parentNode.removeChild(splashMask); // Evicts node fully
+            }
+            renderMenuScreen();
+        }
+
+        function renderMenuScreen() {
+            document.getElementById('viewport-root').innerHTML = `
+                <div class="menu-card">
+                    <h1 style="color:#f59e0b; font-size:2rem; margin-bottom:12px;">Chronos Dash</h1>
+                    <p style="color:#b2b2cc; font-size:0.95rem; line-height:1.6; text-align:left; margin-bottom:20px;">
+                        Navigate through the chronological timeline sectors! Read the time problem context card and choose the correct forwarding energy portal pathway. No sorting required.
+                    </p>
+                    <button class="btn-action" onclick="initiateGameEngine()">LAUNCH DASH</button>
+                </div>
+            `;
+        }
+
+        function initiateGameEngine() {
+            currentSector = 0;
+            renderGameBoard();
+            generateNextChallenge();
+        }
+
+        function renderGameBoard() {
+            // Generate linear map tracks dynamically
+            let nodesHtml = "";
+            for (let i = 0; i < totalSectors; i++) {
+                nodesHtml += `<div class="track-node" id="node-${i}">${i + 1}</div>`;
+            }
+
+            document.getElementById('viewport-root').innerHTML = `
+                <div class="game-layout">
+                    <div class="hud-top">
+                        <div>Timeline Milestone: <span id="lbl-sector">1</span> / 10</div>
+                        <div>Chapter 08: Time</div>
+                    </div>
+                    
+                    <div class="track-container">
+                        ${nodesHtml}
+                    </div>
+
+                    <div class="challenge-box">
+                        <div class="challenge-tag" id="ch-tag">Loading Topic...</div>
+                        <div class="challenge-text" id="ch-text">-</div>
+                    </div>
+
+                    <div class="portal-deck">
+                        <div class="portal-option" id="portal-0" onclick="evaluatePortalSelection(0)">-</div>
+                        <div class="portal-option" id="portal-1" onclick="evaluatePortalSelection(1)">-</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateTrackVisuals() {
+            for (let i = 0; i < totalSectors; i++) {
+                const node = document.getElementById(`node-${i}`);
+                if (!node) continue;
+                
+                node.className = "track-node"; // reset standard
+                if (i < currentSector) {
+                    node.classList.add("cleared");
+                } else if (i === currentSector) {
+                    node.classList.add("active");
+                }
+            }
+            const progressLabel = document.getElementById('lbl-sector');
+            if (progressLabel) progressLabel.innerText = (currentSector + 1 <= 10) ? (currentSector + 1) : 10;
+        }
+
+        function generateNextChallenge() {
+            updateTrackVisuals();
+
+            const randomType = Math.random();
+            targetSolutionIndex = Math.random() < 0.5 ? 0 : 1;
+
+            let tagText = "";
+            let questionText = "";
+            let optionLeft = "";
+            let optionRight = "";
+
+            if (randomType < 0.34) {
+                // Topic: Format differentiation (12hr vs 24hr)
+                tagText = "Format Conversion";
+                const choices = [
+                    { q: "Convert 02:45 PM to 24-Hour format", a: "14:45", w: "02:45" },
+                    { q: "Convert 08:15 PM to 24-Hour format", a: "20:15", w: "08:15" },
+                    { q: "Convert 11:30 PM to 24-Hour format", a: "23:30", w: "11:30" },
+                    { q: "Convert 00:20 Hours to 12-Hour format", a: "12:20 AM", w: "12:20 PM" }
+                ];
+                const item = choices[Math.floor(Math.random() * choices.length)];
+                questionText = item.q;
+                optionLeft = (targetSolutionIndex === 0) ? item.a : item.w;
+                optionRight = (targetSolutionIndex === 1) ? item.a : item.w;
+            } 
+            else if (randomType < 0.67) {
+                // Topic: Conversions Metrics (hours to minutes, etc)
+                tagText = "Unit Conversion";
+                const choices = [
+                    { q: "How many minutes are in 3 hours?", a: "180 Min", w: "150 Min" },
+                    { q: "How many seconds are in 2 minutes?", a: "120 Sec", w: "200 Sec" },
+                    { q: "Convert 1 Hour 15 Minutes into pure minutes", a: "75 Min", w: "115 Min" },
+                    { q: "How many minutes are in 4 hours?", a: "240 Min", w: "140 Min" }
+                ];
+                const item = choices[Math.floor(Math.random() * choices.length)];
+                questionText = item.q;
+                optionLeft = (targetSolutionIndex === 0) ? item.a : item.w;
+                optionRight = (targetSolutionIndex === 1) ? item.a : item.w;
+            } 
+            else {
+                // Topic: Elapsed duration calculations
+                tagText = "Elapsed Time Interval";
+                const choices = [
+                    { q: "Time elapsed between 04:15 PM and 05:30 PM?", a: "1 Hr 15 Min", w: "2 Hrs 15 Min" },
+                    { q: "Time elapsed between 09:00 AM and 11:30 AM?", a: "2 Hrs 30 Min", w: "1 Hr 30 Min" },
+                    { q: "Time elapsed between 13:00 Hours and 14:15 Hours?", a: "1 Hr 15 Min", w: "45 Min" }
+                ];
+                const item = choices[Math.floor(Math.random() * choices.length)];
+                questionText = item.q;
+                optionLeft = (targetSolutionIndex === 0) ? item.a : item.w;
+                optionRight = (targetSolutionIndex === 1) ? item.a : item.w;
+            }
+
+            document.getElementById('ch-tag').innerText = tagText;
+            document.getElementById('ch-text').innerText = questionText;
+            document.getElementById('portal-0').innerText = optionLeft;
+            document.getElementById('portal-1').innerText = optionRight;
+        }
+
+        function evaluatePortalSelection(selectedIndex) {
+            if (selectedIndex === targetSolutionIndex) {
+                playAudioFile('s-correct');
+                currentSector++;
+
+                if (currentSector >= totalSectors) {
+                    updateTrackVisuals();
+                    playAudioFile('s-win');
+                    renderWinScreen();
+                } else {
+                    generateNextChallenge();
+                }
+            } else {
+                playAudioFile('s-wrong');
+                // Shake active node warning highlight action trigger
+                const activeNode = document.getElementById(`node-${currentSector}`);
+                if (activeNode) {
+                    activeNode.style.backgroundColor = '#ef4444';
+                    setTimeout(() => { activeNode.style.backgroundColor = ''; }, 300);
+                }
+            }
+        }
+
+        function renderWinScreen() {
+            document.getElementById('viewport-root').innerHTML = `
+                <div class="menu-card" style="border-color: rgba(16, 185, 129, 0.4);">
+                    <div style="font-size:3.5rem; margin-bottom:10px;">🏆</div>
+                    <h1 style="color:#10b981; font-size:1.8rem; margin-bottom:10px;">Timeline Completed!</h1>
+                    <p style="color:#b2b2cc; font-size:0.95rem; margin-bottom:25px; line-height:1.5;">
+                        Spectacular chronographic tracking! You completed conversions and calculated intervals through all 10 sectors accurately.
+                    </p>
+                    <button class="btn-action" style="background:linear-gradient(135deg, #10b981, #3b82f6);" onclick="renderMenuScreen()">Play Again</button>
+                </div>
+            `;
+        }
+
+        function playAudioFile(id) {
+            try {
+                const sound = document.getElementById(id);
+                if (sound) {
+                    sound.currentTime = 0;
+                    sound.play().catch(() => {});
+                }
+            } catch (err) {}
+        }
+    </script>
+</body>
+</html>
