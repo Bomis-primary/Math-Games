@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Metric Highway: Connection Control</title>
+    <title>Metric Highway: Fractions Edition</title>
     <style>
         * {
             box-sizing: border-box;
@@ -33,11 +33,12 @@
             flex-direction: column;
             padding: 16px;
             gap: 12px;
-            opacity: 0; /* Uncovered after 5-second loading completes */
+            opacity: 0; 
             transition: opacity 0.5s ease;
+            position: relative;
         }
 
-        /* Regulated 5-Second Splash Loader Interface Screen */
+        /* 5-Second Splash Loader (Only Logo) */
         #hard-splash {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -63,11 +64,44 @@
             object-fit: contain;
             z-index: 2;
         }
-        /* Programmatic fallback asset styling for the innovine logo */
         .vector-logo-fallback {
             width: 100%;
             height: 100%;
             z-index: 1;
+        }
+
+        /* Instruction Overlap Screen */
+        #instruction-modal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            z-index: 5000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            text-align: center;
+            border-radius: 16px;
+        }
+        .ins-box {
+            background: #111827;
+            border: 2px solid #1f2937;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .ins-title {
+            font-size: 1.4rem;
+            color: #38bdf8;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+        .ins-text {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            line-height: 1.5;
+            margin-bottom: 20px;
         }
 
         .control-panel {
@@ -185,14 +219,12 @@
 </head>
 <body>
 
-    <!-- Native Audio Source Elements -->
     <audio id="s-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
-    <!-- Regulated 5-Second Splash Loader Interface Screen (Only Innovine Logo displays) -->
+    <!-- Splash Screen -->
     <div id="hard-splash">
         <div class="splash-img-container">
-            <!-- Dynamic geometric fallback vector representing the innovine brand architecture -->
             <svg class="vector-logo-fallback" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="50" cy="50" r="45" fill="#1e293b" stroke="#38bdf8" stroke-width="4"/>
                 <path d="M25 65 L50 25 L75 65 Z" fill="none" stroke="#34d399" stroke-width="6" stroke-linejoin="round"/>
@@ -204,6 +236,18 @@
 
     <!-- Main Game Viewport Wrapper -->
     <div id="viewport-root">
+        
+        <!-- Instruction Modal Layer -->
+        <div id="instruction-modal">
+            <div class="ins-box">
+                <h2 class="ins-title">Fractional Highway Rules</h2>
+                <p class="ins-text">
+                    This sector runs on math fractions! Check the fraction value of your target metric on the control unit, then align the lanes to the matching standard conversion before sending vehicles down the concrete tracks.
+                </p>
+                <button class="btn-submit" onclick="dismissInstructions()">Start Mission</button>
+            </div>
+        </div>
+
         <div class="control-panel">
             <div class="hud-logo-container">
                 <svg class="vector-logo-fallback" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -240,35 +284,23 @@
         let currentTargetQuery = null;
         let selectedLaneIndex = 0; 
         let laneOptionsData = [];
-
         let canvasElement = null;
         let canvasContext = null;
         let animationFrameId = null;
-
-        // Unified HTML5 Audio Pipeline
         let audioCtx = null;
 
-        // Vehicle State Properties
         let currentVehicle = {
-            progress: 0,       
-            isMoving: false,
-            isTumbling: false,
-            tumbleTimer: 0,
-            rotationAngle: 0,
-            offsetX: 0,
-            offsetY: 0,
-            type: 'car',       
-            color: '#f43f5e'
+            progress: 0, isMoving: false, isTumbling: false, tumbleTimer: 0,
+            rotationAngle: 0, offsetX: 0, offsetY: 0, type: 'car', color: '#f43f5e'
         };
 
         // Regulated 5-Second Run Timer Clock Implementation
         let timeElapsed = 0;
-        const totalDuration = 5000; // 5000 milliseconds (exactly 5 seconds)
+        const totalDuration = 5000; 
         const tickInterval = 100;
         
         const progressTicker = setInterval(() => {
             timeElapsed += tickInterval;
-
             if (timeElapsed >= totalDuration) {
                 clearInterval(progressTicker);
                 const splash = document.getElementById('hard-splash');
@@ -285,10 +317,17 @@
         function initGameEngine() {
             canvasElement = document.getElementById('highway-canvas');
             canvasContext = canvasElement.getContext('2d');
-            
             setupCanvasSize();
             generateNextHighwayLevel();
             startGameLoop();
+        }
+
+        function dismissInstructions() {
+            const modal = document.getElementById('instruction-modal');
+            if (modal && modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
 
         function setupCanvasSize() {
@@ -316,10 +355,7 @@
             ];
 
             let chosen = basePool[Math.floor(Math.random() * basePool.length)];
-            
-            let typeLabel = "WEIGHT";
-            if(chosen.unit === 'm' || chosen.unit === 'km') typeLabel = "LENGTH";
-            if(chosen.unit === 'L') typeLabel = "CAPACITY";
+            let typeLabel = (chosen.unit === 'm' || chosen.unit === 'km') ? "LENGTH" : (chosen.unit === 'L' ? "CAPACITY" : "WEIGHT");
 
             currentTargetQuery = {
                 directive: `Route ${typeLabel}: ${chosen.val} ${chosen.unit}`,
@@ -336,7 +372,6 @@
             ].sort(() => Math.random() - 0.5);
 
             laneOptionsData = scrambledPool;
-
             currentVehicle.progress = 0;
             currentVehicle.isMoving = false;
             currentVehicle.isTumbling = false;
@@ -353,29 +388,19 @@
         function alignRouteLane(index) {
             if (currentVehicle.isMoving || currentVehicle.isTumbling) return; 
             selectedLaneIndex = index;
-
             for (let i = 0; i < 3; i++) {
                 const btn = document.getElementById(`sw-${i}`);
-                if (btn) {
-                    if (i === index) btn.classList.add('active');
-                    else btn.classList.remove('active');
-                }
+                if (btn) btn.className = (i === index) ? 'btn-switch active' : 'btn-switch';
             }
         }
 
         function getBezierXY(t, p0, p1, p2, p3) {
-            let cx = 3 * (p1.x - p0.x);
-            let bx = 3 * (p2.x - p1.x) - cx;
-            let ax = p3.x - p0.x - cx - bx;
-
-            let cy = 3 * (p1.y - p0.y);
-            let by = 3 * (p2.y - p1.y) - cy;
-            let ay = p3.y - p0.y - cy - by;
-
-            let x = (ax * t * t * t) + (bx * t * t) + (cx * t) + p0.x;
-            let y = (ay * t * t * t) + (by * t * t) + (cy * t) + p0.y;
-
-            return { x: x, y: y };
+            let cx = 3 * (p1.x - p0.x), bx = 3 * (p2.x - p1.x) - cx, ax = p3.x - p0.x - cx - bx;
+            let cy = 3 * (p1.y - p0.y), by = 3 * (p2.y - p1.y) - cy, ay = p3.y - p0.y - cy - by;
+            return {
+                x: (ax * t * t * t) + (bx * t * t) + (cx * t) + p0.x,
+                y: (ay * t * t * t) + (by * t * t) + (cy * t) + p0.y
+            };
         }
 
         function startGameLoop() {
@@ -390,17 +415,13 @@
         function updatePhysics() {
             if (currentVehicle.isMoving) {
                 currentVehicle.progress += 0.015;
-                if (currentVehicle.progress >= 0.85) { 
-                    evaluateRouteMatch();
-                }
+                if (currentVehicle.progress >= 0.85) evaluateRouteMatch();
             }
-
             if (currentVehicle.isTumbling) {
                 currentVehicle.tumbleTimer += 1;
                 currentVehicle.rotationAngle += 0.25; 
                 currentVehicle.offsetX += 2;          
                 currentVehicle.offsetY += Math.sin(currentVehicle.tumbleTimer * 0.4) * 4; 
-
                 if (currentVehicle.tumbleTimer >= 60) { 
                     currentVehicle.isTumbling = false;
                     resetLevelAfterCrash();
@@ -412,8 +433,7 @@
             if (!canvasContext) return;
             canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
-            const w = canvasElement.width;
-            const h = canvasElement.height;
+            const w = canvasElement.width, h = canvasElement.height;
             const laneYPositions = [h * 0.23, h * 0.5, h * 0.77];
 
             canvasContext.fillStyle = '#1e293b';
@@ -427,9 +447,7 @@
             canvasContext.lineCap = 'round';
 
             for (let i = 0; i < 3; i++) {
-                const isActive = (i === selectedLaneIndex);
-                canvasContext.strokeStyle = isActive ? '#38bdf8' : '#273549';
-                
+                canvasContext.strokeStyle = (i === selectedLaneIndex) ? '#38bdf8' : '#273549';
                 canvasContext.beginPath();
                 canvasContext.moveTo(10, h / 2);
                 canvasContext.lineTo(60, h / 2);
@@ -438,11 +456,8 @@
                 canvasContext.stroke();
             }
 
-            let p0 = { x: 30, y: h / 2 };
-            let p1 = { x: w * 0.4, y: h / 2 };
-            let p2 = { x: w * 0.4, y: laneYPositions[selectedLaneIndex] };
-            let p3 = { x: w - 50, y: laneYPositions[selectedLaneIndex] };
-            
+            let p0 = { x: 30, y: h / 2 }, p1 = { x: w * 0.4, y: h / 2 };
+            let p2 = { x: w * 0.4, y: laneYPositions[selectedLaneIndex] }, p3 = { x: w - 50, y: laneYPositions[selectedLaneIndex] };
             let vehPos = getBezierXY(currentVehicle.progress, p0, p1, p2, p3);
 
             canvasContext.save();
@@ -465,26 +480,19 @@
 
             if (currentVehicle.isTumbling) {
                 canvasContext.fillStyle = 'rgba(244, 63, 94, 0.4)';
-                canvasContext.beginPath();
-                canvasContext.arc(vehPos.x + currentVehicle.offsetX - 10, vehPos.y + currentVehicle.offsetY, 15, 0, Math.PI*2);
-                canvasContext.fill();
+                canvasContext.beginPath(); canvasContext.arc(vehPos.x + currentVehicle.offsetX - 10, vehPos.y + currentVehicle.offsetY, 15, 0, Math.PI*2); canvasContext.fill();
             }
 
             for (let i = 0; i < 3; i++) {
                 const option = laneOptionsData[i];
-
                 canvasContext.fillStyle = '#0f172a';
                 canvasContext.strokeStyle = (i === selectedLaneIndex) ? '#38bdf8' : '#475569';
                 canvasContext.lineWidth = 2;
-                canvasContext.beginPath();
-                canvasContext.roundRect(w - 110, laneYPositions[i] - 16, 95, 32, 6);
-                canvasContext.fill();
-                canvasContext.stroke();
+                canvasContext.beginPath(); canvasContext.roundRect(w - 110, laneYPositions[i] - 16, 95, 32, 6); canvasContext.fill(); canvasContext.stroke();
 
                 canvasContext.fillStyle = '#ffffff';
                 canvasContext.font = 'bold 12px sans-serif';
-                canvasContext.textAlign = 'center';
-                canvasContext.textBaseline = 'middle';
+                canvasContext.textAlign = 'center'; canvasContext.textBaseline = 'middle';
                 canvasContext.fillText(option ? option.text : '', w - 62, laneYPositions[i]);
 
                 canvasContext.fillStyle = '#64748b';
@@ -495,11 +503,7 @@
 
         function dispatchVehicles() {
             if (currentVehicle.isMoving || currentVehicle.isTumbling) return;
-            
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             document.getElementById('btn-dispatch').disabled = true;
             currentVehicle.isMoving = true;
             document.getElementById('lbl-feedback').innerText = "Traffic flow dispatched...";
@@ -516,10 +520,7 @@
                 playAudioFile('s-correct', 'correct');
                 feedbackText.innerText = "✓ PASSED TOLL GATE! Conversion cleared.";
                 feedbackText.style.color = "#10b981";
-                
-                setTimeout(() => {
-                    generateNextHighwayLevel();
-                }, 1500);
+                setTimeout(() => { generateNextHighwayLevel(); }, 1500);
             } else {
                 currentVehicle.isTumbling = true;
                 playAudioFile('s-wrong', 'wrong');
@@ -529,62 +530,34 @@
         }
 
         function resetLevelAfterCrash() {
-            const feedbackText = document.getElementById('lbl-feedback');
-            
-            currentVehicle.progress = 0;
-            currentVehicle.offsetX = 0;
-            currentVehicle.offsetY = 0;
-            currentVehicle.rotationAngle = 0;
-            currentVehicle.tumbleTimer = 0;
-            
             document.getElementById('btn-dispatch').disabled = false;
-            feedbackText.innerText = "Realign connections to safe values and retry.";
-            feedbackText.style.color = "#64748b";
+            document.getElementById('lbl-feedback').innerText = "Realign connections to safe values and retry.";
+            document.getElementById('lbl-feedback').style.color = "#64748b";
+            currentVehicle.progress = 0; currentVehicle.offsetX = 0; currentVehicle.offsetY = 0; currentVehicle.rotationAngle = 0; currentVehicle.tumbleTimer = 0;
         }
 
         function playAudioFile(htmlId, fallbackType) {
             try {
                 const sound = document.getElementById(htmlId);
-                if (sound && sound.duration > 0 && !sound.paused) {
-                    sound.currentTime = 0;
-                }
-                if (sound) {
-                    sound.play()
-                        .catch(() => { triggerSynthesizerFallback(fallbackType); });
-                } else {
-                    triggerSynthesizerFallback(fallbackType);
-                }
-            } catch (err) {
-                triggerSynthesizerFallback(fallbackType);
-            }
+                if (sound) sound.play().catch(() => { triggerSynthesizerFallback(fallbackType); });
+                else triggerSynthesizerFallback(fallbackType);
+            } catch (err) { triggerSynthesizerFallback(fallbackType); }
         }
 
         function triggerSynthesizerFallback(type) {
             if (!audioCtx) return;
-            
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
+            const osc = audioCtx.createOscillator(), gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
             const now = audioCtx.currentTime;
 
             if (type === 'correct') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(587.33, now); 
-                osc.frequency.setValueAtTime(880.00, now + 0.1); 
-                gain.gain.setValueAtTime(0.15, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
-                osc.start(now);
-                osc.stop(now + 0.35);
-            } else if (type === 'wrong') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(120, now);
-                osc.frequency.linearRampToValueAtTime(40, now + 0.4);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
-                osc.start(now);
-                osc.stop(now + 0.45);
+                osc.type = 'sine'; osc.frequency.setValueAtTime(587.33, now); osc.frequency.setValueAtTime(880.00, now + 0.1);
+                gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now); osc.stop(now + 0.35);
+            } else {
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(120, now); osc.frequency.linearRampToValueAtTime(40, now + 0.4);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+                osc.start(now); osc.stop(now + 0.45);
             }
         }
     </script>
