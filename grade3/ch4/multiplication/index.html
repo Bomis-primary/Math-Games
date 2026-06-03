@@ -1,1 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feed the Monkey</title>
+<style>
+body { margin: 0; font-family: Arial, sans-serif; text-align: center; background: #f0f8ff; }
+#logo, #game, #end { display: none; }
+#logo img { width: 200px; margin-top: 150px; }
+#game { position: relative; height: 100vh; background: url('jungle-bg.png') no-repeat center center; background-size: cover; }
+#monkey { position: absolute; bottom: 50px; left: 50px; width: 80px; }
+#question-box { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(255,255,255,0.8); padding: 10px 20px; border-radius: 10px; }
+.banana { position: absolute; width: 60px; cursor: grab; user-select: none; }
+#end img { width: 150px; margin-top: 50px; }
+#playAgain { padding: 10px 20px; font-size: 20px; border-radius: 10px; cursor: pointer; margin-top: 20px; }
+</style>
+</head>
+<body>
 
+<div id="logo"><img src="innovine-logo.png" alt="Innovine Logo"></div>
+
+<div id="game">
+    <img id="monkey" src="monkey.png" alt="Monkey">
+    <div id="question-box">
+        <div id="question"></div>
+    </div>
+</div>
+
+<div id="end">
+    <img src="banana.png" alt="Banana Treasure">
+    <h1>Well Done!</h1>
+    <button id="playAgain">Play Again</button>
+</div>
+
+<audio id="correctSound" src="correct.mp3"></audio>
+<audio id="wrongSound" src="wrong.mp3"></audio>
+
+<script>
+const logo = document.getElementById('logo');
+const game = document.getElementById('game');
+const end = document.getElementById('end');
+const questionEl = document.getElementById('question');
+const monkey = document.getElementById('monkey');
+const correctSound = document.getElementById('correctSound');
+const wrongSound = document.getElementById('wrongSound');
+const playAgain = document.getElementById('playAgain');
+
+const questions = [
+    {q:"7 × 8 = ___", answer:56},
+    {q:"12 × 6 = ___", answer:72},
+    {q:"9 × 11 = ___", answer:99},
+    {q:"15 × 4 = ___", answer:60},
+    {q:"A school orders 245 pencils for each of 6 classes. How many pencils are needed in total?", answer:1470},
+    {q:"Sasha buys 14 packets of biscuits, each costing ₹25. How much does she spend in total?", answer:350},
+    {q:"A spaceship travels 125 km every hour. How far will it travel in 12 hours?", answer:1500},
+    {q:"A building uses 1,256 bricks per floor. How many bricks are needed for 8 floors?", answer:10048},
+    {q:"30 × 6 = ___", answer:180},
+    {q:"80 × 7 = ___", answer:560},
+    {q:"50 × 9 = ___", answer:450},
+    {q:"A farmer collects 325 mangoes per tree. If there are 15 trees, how many mangoes does he collect in total?", answer:4875},
+];
+
+let current = 0;
+let chances = 3;
+const bananaPositions = [
+    {x: 100, y: 400},
+    {x: 250, y: 400},
+    {x: 400, y: 400}
+];
+
+function shuffleOptions(correct){
+    let wrong1 = correct + Math.floor(Math.random()*10 + 1);
+    let wrong2 = correct - Math.floor(Math.random()*10 + 1);
+    return [correct, wrong1, wrong2].sort(()=> Math.random()-0.5);
+}
+
+function showQuestion(){
+    // clear old bananas
+    document.querySelectorAll('.banana').forEach(b => b.remove());
+
+    const q = questions[current];
+    questionEl.textContent = q.q;
+
+    const options = shuffleOptions(q.answer);
+
+    options.forEach((val, idx) => {
+        const banana = document.createElement('img');
+        banana.src = 'banana.png';
+        banana.classList.add('banana');
+        banana.style.left = bananaPositions[idx].x + 'px';
+        banana.style.top = bananaPositions[idx].y + 'px';
+        banana.dataset.value = val;
+        banana.draggable = false;
+        banana.style.width = '60px';
+        banana.style.fontWeight = 'bold';
+        banana.style.userSelect = 'none';
+        banana.style.position = 'absolute';
+        // create text label
+        const label = document.createElement('div');
+        label.style.position='absolute';
+        label.style.top='-20px';
+        label.style.left='10px';
+        label.style.fontWeight='bold';
+        label.style.color='black';
+        label.textContent=val;
+        banana.appendChild(label);
+
+        game.appendChild(banana);
+
+        // drag events
+        banana.onmousedown = function(e){
+            const shiftX = e.clientX - banana.getBoundingClientRect().left;
+            const shiftY = e.clientY - banana.getBoundingClientRect().top;
+
+            banana.style.zIndex = 1000;
+
+            function moveAt(pageX, pageY){
+                banana.style.left = pageX - shiftX + 'px';
+                banana.style.top = pageY - shiftY + 'px';
+            }
+
+            moveAt(e.pageX, e.pageY);
+
+            function onMouseMove(event){
+                moveAt(event.pageX, event.pageY);
+            }
+
+            document.addEventListener('mousemove', onMouseMove);
+
+            banana.onmouseup = function(){
+                document.removeEventListener('mousemove', onMouseMove);
+                banana.onmouseup = null;
+
+                const monkeyRect = monkey.getBoundingClientRect();
+                const bananaRect = banana.getBoundingClientRect();
+
+                if(bananaRect.left < monkeyRect.right && bananaRect.right > monkeyRect.left &&
+                   bananaRect.top < monkeyRect.bottom && bananaRect.bottom > monkeyRect.top){
+
+                    if(+banana.dataset.value === q.answer){
+                        banana.remove();
+                        correctSound.play();
+                        current++;
+                        if(current>=chances){
+                            game.style.display='none';
+                            end.style.display='block';
+                            launchBananas();
+                        } else {
+                            showQuestion();
+                        }
+                    } else {
+                        wrongSound.play();
+                        // move back to original position
+                        banana.style.left = bananaPositions[idx].x + 'px';
+                        banana.style.top = bananaPositions[idx].y + 'px';
+                    }
+                } else {
+                    // move back if not over monkey
+                    banana.style.left = bananaPositions[idx].x + 'px';
+                    banana.style.top = bananaPositions[idx].y + 'px';
+                }
+            };
+        };
+
+        banana.ondragstart = function(){ return false; };
+    });
+}
+
+// Splash screen
+logo.style.display='block';
+setTimeout(()=>{
+    logo.style.display='none';
+    game.style.display='block';
+    showQuestion();
+},2000);
+
+// Play again
+playAgain.onclick = ()=> location.reload();
+
+// Falling bananas at end
+function launchBananas(){
+    const duration = 2000;
+    const endTime = Date.now() + duration;
+
+    (function frame(){
+        for(let i=0;i<5;i++){
+            const banana = document.createElement('img');
+            banana.src='banana.png';
+            banana.style.position='absolute';
+            banana.style.width='20px';
+            banana.style.top='0px';
+            banana.style.left = Math.random()*window.innerWidth + 'px';
+            document.body.appendChild(banana);
+
+            let top = 0;
+            const fall = setInterval(()=>{
+                top+=4;
+                banana.style.top = top+'px';
+                if(top>window.innerHeight){
+                    banana.remove();
+                    clearInterval(fall);
+                }
+            },20);
+        }
+
+        if(Date.now()<endTime) requestAnimationFrame(frame);
+    })();
+}
+</script>
+
+</body>
+</html>
