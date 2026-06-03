@@ -175,11 +175,16 @@
         let canvasContext = null;
         let animationFrameId = null;
 
-        // Vehicle Animation Properties
+        // Vehicle State Properties
         let currentVehicle = {
-            progress: 0,       // 0 to 1 along the curve path
+            progress: 0,       
             isMoving: false,
-            type: 'car',       // 'car' or 'bike'
+            isTumbling: false,
+            tumbleTimer: 0,
+            rotationAngle: 0,
+            offsetX: 0,
+            offsetY: 0,
+            type: 'car',       
             color: '#f43f5e'
         };
 
@@ -203,7 +208,6 @@
             document.getElementById('lbl-feedback').style.color = "#64748b";
             document.getElementById('btn-dispatch').disabled = false;
 
-            // Completely expanded randomized math database matrix
             const basePool = [
                 { val: 5, unit: 'm', cVal: '500 cm', w1: '50 cm', w2: '5000 cm' },
                 { val: 12, unit: 'm', cVal: '1200 cm', w1: '120 cm', w2: '12000 cm' },
@@ -219,7 +223,6 @@
                 { val: 250, unit: 'mm', cVal: '25 cm', w1: '250 cm', w2: '2.5 cm' }
             ];
 
-            // Pull a completely random item every time
             let chosen = basePool[Math.floor(Math.random() * basePool.length)];
             
             let typeLabel = "WEIGHT";
@@ -234,7 +237,6 @@
 
             document.getElementById('lbl-highway-directive').innerText = currentTargetQuery.directive;
 
-            // Shuffle option list placement positions
             let scrambledPool = [
                 { text: currentTargetQuery.correct, isTruePath: true },
                 { text: currentTargetQuery.wrong[0], isTruePath: false },
@@ -243,9 +245,14 @@
 
             laneOptionsData = scrambledPool;
 
-            // Reset Vehicle attributes for the round
+            // Reset vehicle variables completely
             currentVehicle.progress = 0;
             currentVehicle.isMoving = false;
+            currentVehicle.isTumbling = false;
+            currentVehicle.tumbleTimer = 0;
+            currentVehicle.rotationAngle = 0;
+            currentVehicle.offsetX = 0;
+            currentVehicle.offsetY = 0;
             currentVehicle.type = Math.random() > 0.5 ? 'car' : 'bike';
             currentVehicle.color = ['#f43f5e', '#3b82f6', '#10b981', '#eab308'][Math.floor(Math.random() * 4)];
 
@@ -253,7 +260,7 @@
         }
 
         function alignRouteLane(index) {
-            if (currentVehicle.isMoving) return; // Prevent adjustment mid-drive
+            if (currentVehicle.isMoving || currentVehicle.isTumbling) return; 
             selectedLaneIndex = index;
 
             for (let i = 0; i < 3; i++) {
@@ -265,7 +272,6 @@
             }
         }
 
-        // Math Bezier math projection calculator to place vehicles directly onto the roadway curve
         function getBezierXY(t, p0, p1, p2, p3) {
             let cx = 3 * (p1.x - p0.x);
             let bx = 3 * (p2.x - p1.x) - cx;
@@ -292,11 +298,22 @@
 
         function updatePhysics() {
             if (currentVehicle.isMoving) {
-                currentVehicle.progress += 0.015; // Animation speed step rate
-                if (currentVehicle.progress >= 1) {
-                    currentVehicle.progress = 1;
-                    currentVehicle.isMoving = false;
-                    evaluateLevelOutcome();
+                currentVehicle.progress += 0.015;
+                if (currentVehicle.progress >= 0.85) { 
+                    // Evaluate early near the toll gates to trigger safe passage or crash tumble mechanics
+                    evaluateRouteMatch();
+                }
+            }
+
+            if (currentVehicle.isTumbling) {
+                currentVehicle.tumbleTimer += 1;
+                currentVehicle.rotationAngle += 0.25; // Quick rotational flip spin
+                currentVehicle.offsetX += 2;          // Inertia bounce trajectory forward
+                currentVehicle.offsetY += Math.sin(currentVehicle.tumbleTimer * 0.4) * 4; // Up and down bounce bounce effect
+
+                if (currentVehicle.tumbleTimer >= 60) { // End crash sequence after 1 second
+                    currentVehicle.isTumbling = false;
+                    resetLevelAfterCrash();
                 }
             }
         }
@@ -308,7 +325,7 @@
             const h = canvasElement.height;
             const laneYPositions = [h * 0.23, h * 0.5, h * 0.77];
 
-            // 1. Draw solid dark highway asphalt blocks
+            // 1. Draw highway lines
             canvasContext.fillStyle = '#1e293b';
             canvasContext.fillRect(0, h/2 - 25, 60, 50);
 
@@ -316,7 +333,6 @@
                 canvasContext.fillRect(w - 120, laneYPositions[i] - 20, 120, 40);
             }
 
-            // 2. Render Winding Connections
             canvasContext.lineWidth = 8;
             canvasContext.lineCap = 'round';
 
@@ -332,7 +348,7 @@
                 canvasContext.stroke();
             }
 
-            // 3. Draw Animated Traffic Vehicle
+            // 2. Compute path position coordinates
             let p0 = { x: 30, y: h / 2 };
             let p1 = { x: w * 0.4, y: h / 2 };
             let p2 = { x: w * 0.4, y: laneYPositions[selectedLaneIndex] };
@@ -340,28 +356,34 @@
             
             let vehPos = getBezierXY(currentVehicle.progress, p0, p1, p2, p3);
 
+            // 3. Render Vehicle with translation offsets applied
             canvasContext.save();
-            canvasContext.translate(vehPos.x, vehPos.y);
+            canvasContext.translate(vehPos.x + currentVehicle.offsetX, vehPos.y + currentVehicle.offsetY);
+            canvasContext.rotate(currentVehicle.rotationAngle);
             canvasContext.fillStyle = currentVehicle.color;
 
             if (currentVehicle.type === 'car') {
-                // Render sleek vector car chassis block
                 canvasContext.fillRect(-14, -7, 28, 14);
-                // Windows
                 canvasContext.fillStyle = '#ffffff';
                 canvasContext.fillRect(2, -5, 6, 10);
                 canvasContext.fillRect(-8, -5, 6, 10);
             } else {
-                // Render motor bike streamline vector representation
                 canvasContext.fillRect(-10, -3, 20, 6);
-                // Wheels
                 canvasContext.fillStyle = '#000000';
                 canvasContext.beginPath(); canvasContext.arc(-7, 3, 3, 0, Math.PI*2); canvasContext.fill();
                 canvasContext.beginPath(); canvasContext.arc(7, 3, 3, 0, Math.PI*2); canvasContext.fill();
             }
             canvasContext.restore();
 
-            // 4. Draw Toll Gate terminal boxes
+            // 4. Draw Impact Sparks/Clouds if vehicle is rolling out of control
+            if (currentVehicle.isTumbling) {
+                canvasContext.fillStyle = 'rgba(244, 63, 94, 0.4)';
+                canvasContext.beginPath();
+                canvasContext.arc(vehPos.x + currentVehicle.offsetX - 10, vehPos.y + currentVehicle.offsetY, 15, 0, Math.PI*2);
+                canvasContext.fill();
+            }
+
+            // 5. Draw Toll Gates
             for (let i = 0; i < 3; i++) {
                 const option = laneOptionsData[i];
 
@@ -386,36 +408,47 @@
         }
 
         function dispatchVehicles() {
-            if (currentVehicle.isMoving) return;
+            if (currentVehicle.isMoving || currentVehicle.isTumbling) return;
             document.getElementById('btn-dispatch').disabled = true;
             currentVehicle.isMoving = true;
-            document.getElementById('lbl-feedback').innerText = "Traffic flowing through junction...";
+            document.getElementById('lbl-feedback').innerText = "Traffic flow dispatched...";
             document.getElementById('lbl-feedback').style.color = '#38bdf8';
         }
 
-        function evaluateLevelOutcome() {
+        function evaluateRouteMatch() {
+            currentVehicle.isMoving = false; // Freeze normal progression tracking
             const chosenPath = laneOptionsData[selectedLaneIndex];
             const feedbackText = document.getElementById('lbl-feedback');
 
             if (chosenPath && chosenPath.isTruePath) {
-                feedbackText.innerText = "✓ PASSED TOLL GATE! Correct metric configuration.";
+                currentVehicle.progress = 1.0; // Instantly finish path travel
+                feedbackText.innerText = "✓ PASSED TOLL GATE! Conversion cleared.";
                 feedbackText.style.color = "#10b981";
                 
                 setTimeout(() => {
                     generateNextHighwayLevel();
-                }, 1800);
+                }, 1500);
             } else {
-                feedbackText.innerText = "✗ ROADBLOCK CRASH! Incorrect metric conversion target.";
+                // Wrong Option chosen -> Trigger tumbling out of control state
+                currentVehicle.isTumbling = true;
+                feedbackText.innerText = "💥 ACCIDENT ROADBLOCK! Vehicle is tumbling!";
                 feedbackText.style.color = "#f43f5e";
-                
-                setTimeout(() => {
-                    // Reset position back for another retry on the same puzzle
-                    currentVehicle.progress = 0;
-                    document.getElementById('btn-dispatch').disabled = false;
-                    feedbackText.innerText = "Realign connections to clear the road.";
-                    feedbackText.style.color = "#64748b";
-                }, 2000);
             }
+        }
+
+        function resetLevelAfterCrash() {
+            const feedbackText = document.getElementById('lbl-feedback');
+            
+            // Re-align variables back to zero position safely
+            currentVehicle.progress = 0;
+            currentVehicle.offsetX = 0;
+            currentVehicle.offsetY = 0;
+            currentVehicle.rotationAngle = 0;
+            currentVehicle.tumbleTimer = 0;
+            
+            document.getElementById('btn-dispatch').disabled = false;
+            feedbackText.innerText = "Realign connections to safe values and retry.";
+            feedbackText.style.color = "#64748b";
         }
     </script>
 </body>
