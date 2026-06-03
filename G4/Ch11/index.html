@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vault Master: Bank Operations</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #090d16;
+            color: #f1f5f9;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #viewport-root {
+            width: 100%;
+            max-width: 440px;
+            height: 100%;
+            max-height: 740px;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            gap: 12px;
+        }
+
+        .bank-display {
+            background: #111827;
+            border: 2px solid #374151;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+            text-align: center;
+        }
+
+        .screen-ticker {
+            background: #022c22;
+            border: 2px solid #10b981;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 4px;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.6);
+        }
+        .ticker-title {
+            font-size: 0.75rem;
+            color: #34d399;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+        .ticker-problem {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+
+        .simulation-frame {
+            flex-grow: 1;
+            background: #0b1329;
+            border: 2px solid #1e293b;
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            min-height: 240px;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .console-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            width: 100%;
+        }
+        .option-row-btn {
+            width: 100%;
+            background: #1f2937;
+            border: 1px solid #4b5563;
+            color: #e5e7eb;
+            border-radius: 12px;
+            padding: 14px 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+        .option-row-btn:active {
+            background: #374151;
+        }
+        .option-row-btn.selected {
+            background: #1d4ed8;
+            border-color: #3b82f6;
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .action-dispatch-btn {
+            width: 100%;
+            background: #059669;
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+        }
+        .action-dispatch-btn:disabled {
+            background: #374151;
+            color: #9ca3af;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .status-banner {
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            min-height: 22px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="viewport-root">
+        <div class="bank-display">
+            <div class="screen-ticker">
+                <div class="ticker-title">TELLER INVOICE PROCESSING</div>
+                <div class="ticker-problem" id="lbl-bank-task">Initialising Vault Systems...</div>
+            </div>
+        </div>
+
+        <div class="simulation-frame">
+            <canvas id="bank-canvas"></canvas>
+        </div>
+
+        <div class="status-banner" id="lbl-status-toast" style="color: #9ca3af;">Awaiting verification input...</div>
+
+        <div class="console-grid">
+            <button class="option-row-btn" id="opt-0" onclick="selectBankOption(0)">[A] Loading...</button>
+            <button class="option-row-btn" id="opt-1" onclick="selectBankOption(1)">[B] Loading...</button>
+            <button class="option-row-btn" id="opt-2" onclick="selectBankOption(2)">[C] Loading...</button>
+        </div>
+
+        <button class="action-dispatch-btn" id="btn-process" onclick="processTransaction()">Verify & Authorise Deposit</button>
+    </div>
+
+    <script>
+        let currentActivePuzzle = null;
+        let chosenOptionIndex = 0;
+        let shuffledAnswersList = [];
+
+        let canvasElement = null;
+        let canvasContext = null;
+        let engineLoopId = null;
+
+        // Armored Truck Animation Parameters
+        let securityTruck = {
+            progress: 0,
+            isDriving: false,
+            isTumbling: false,
+            rotation: 0,
+            offsetX: 0,
+            offsetY: 0,
+            frameTimer: 0
+        };
+
+        window.onload = () => {
+            canvasElement = document.getElementById('bank-canvas');
+            canvasContext = canvasElement.getContext('2d');
+            
+            recalculateCanvasDimensions();
+            generateBankPuzzle();
+            runBankSimulationLoop();
+        };
+
+        function recalculateCanvasDimensions() {
+            const rect = canvasElement.getBoundingClientRect();
+            canvasElement.width = rect.width;
+            canvasElement.height = rect.height;
+        }
+
+        function generateBankPuzzle() {
+            document.getElementById('lbl-status-toast').innerText = "Review calculations, choose answer, then verify...";
+            document.getElementById('lbl-status-toast').style.color = "#9ca3af";
+            document.getElementById('btn-process').disabled = false;
+
+            // Bank Operations curriculum question sets containing Money (Ch 11) and Time (Ch 8)
+            const branchLogs = [
+                { text: "A corporate client wants to split a bill of ₹1,500 equally among 5 departments. What is the value per share?", ans: "₹300", w1: "₹500", w2: "₹250" },
+                { text: "An account accumulates an interest invoice of ₹45 per day. Calculate the bill value for exactly 6 days.", ans: "₹270", w1: "₹240", w2: "₹310" },
+                { text: "A cash locker requires budgeting. If you make 4 separate deposits of ₹125 each, what is the final vault balance increase?", ans: "₹500", w1: "₹450", w2: "₹600" },
+                { text: "A financial planning bill includes buying 3 calculators at ₹250 each. What is the total operational expense?", ans: "₹750", w1: "₹700", w2: "₹850" },
+                { text: "A bank storage lease spans from May 12 to May 24. Calculate the total bill days included in the transaction term.", ans: "12 days", w1: "10 days", w2: "14 days" },
+                { text: "A high-security transport starts at 09:30 and safely arrives at 14:15. Calculate the total elapsed duration.", ans: "4 hours 45 minutes", w1: "5 hours 15 minutes", w2: "4 hours 15 minutes" },
+                { text: "A fixed deposit was opened on October 4 and matured on October 31 of the same year. How many total days did it earn interest?", ans: "27 days", w1: "26 days", w2: "28 days" }
+            ];
+
+            currentActivePuzzle = branchLogs[Math.floor(Math.random() * branchLogs.length)];
+            document.getElementById('lbl-bank-task').innerText = currentActivePuzzle.text;
+
+            // Mix choices
+            shuffledAnswersList = [
+                { text: currentActivePuzzle.ans, isCorrect: true },
+                { text: currentActivePuzzle.w1, isCorrect: false },
+                { text: currentActivePuzzle.w2, isCorrect: false }
+            ].sort(() => Math.random() - 0.5);
+
+            // Redraw options panels
+            for (let i = 0; i < 3; i++) {
+                document.getElementById(`opt-${i}`).innerText = `${String.fromCharCode(65 + i)}.) ${shuffledAnswersList[i].text}`;
+            }
+
+            // Reset Truck variables
+            securityTruck.progress = 0;
+            securityTruck.isDriving = false;
+            securityTruck.isTumbling = false;
+            securityTruck.rotation = 0;
+            securityTruck.offsetX = 0;
+            securityTruck.offsetY = 0;
+            securityTruck.frameTimer = 0;
+
+            selectBankOption(0);
+        }
+
+        function selectBankOption(idx) {
+            if (securityTruck.isDriving || securityTruck.isTumbling) return;
+            chosenOptionIndex = idx;
+
+            for (let i = 0; i < 3; i++) {
+                const btn = document.getElementById(`opt-${i}`);
+                if (i === idx) btn.classList.add('selected');
+                else btn.classList.remove('selected');
+            }
+        }
+
+        function runBankSimulationLoop() {
+            updateSimulationPhysics();
+            renderSimulationGraphics();
+            engineLoopId = requestAnimationFrame(runBankSimulationLoop);
+        }
+
+        function updateSimulationPhysics() {
+            if (securityTruck.isDriving) {
+                securityTruck.progress += 0.02;
+                if (securityTruck.progress >= 1.0) {
+                    securityTruck.progress = 1.0;
+                    securityTruck.isDriving = false;
+                    concludeTransactionRound();
+                }
+            }
+
+            if (securityTruck.isTumbling) {
+                securityTruck.frameTimer += 1;
+                securityTruck.rotation += 0.22; // High velocity flip spin spin
+                securityTruck.offsetX += 1.8;   // Fly backwards with crash energy
+                securityTruck.offsetY += Math.sin(securityTruck.frameTimer * 0.5) * 5; // Aggressive crash bounce curve
+
+                if (securityTruck.frameTimer >= 65) {
+                    securityTruck.isTumbling = false;
+                    resetRoundAfterAccident();
+                }
+            }
+        }
+
+        function renderSimulationGraphics() {
+            canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            const w = canvasElement.width;
+            const h = canvasElement.height;
+
+            // 1. Draw Architectural Vault Infrastructure Background
+            canvasContext.fillStyle = '#1e293b';
+            canvasContext.fillRect(w - 75, h / 2 - 40, 75, 80); // Heavy steel safe wall block
+            
+            // Vault Door Ring Details
+            canvasContext.strokeStyle = '#64748b';
+            canvasContext.lineWidth = 4;
+            canvasContext.beginPath();
+            canvasContext.arc(w - 40, h / 2, 25, 0, Math.PI * 2);
+            canvasContext.stroke();
+
+            // 2. Draw Reinforced Delivery Road Track Way
+            canvasContext.fillStyle = '#0f172a';
+            canvasContext.fillRect(0, h / 2 - 20, w - 75, 40);
+            
+            canvasContext.strokeStyle = '#ffd700'; // Yellow hazard lines
+            canvasContext.lineWidth = 2;
+            canvasContext.setLineDash([8, 8]);
+            canvasContext.beginPath();
+            canvasContext.moveTo(0, h / 2);
+            canvasContext.lineTo(w - 75, h / 2);
+            canvasContext.stroke();
+            canvasContext.setLineDash([]); // Reset line pattern
+
+            // 3. Compute dynamic real-time vehicle positioning vectors
+            let startX = -40;
+            let targetX = w - 110;
+            let currentX = startX + (targetX - startX) * securityTruck.progress;
+            let currentY = h / 2;
+
+            // 4. Render Armored Security Truck
+            canvasContext.save();
+            canvasContext.translate(currentX + securityTruck.offsetX, currentY + securityTruck.offsetY);
+            canvasContext.rotate(securityTruck.rotation);
+
+            // Main Armor Body Structure
+            canvasContext.fillStyle = '#475569';
+            canvasContext.fillRect(-22, -11, 44, 22);
+
+            // Front reinforced windshield cockpit nose
+            canvasContext.fillStyle = '#334155';
+            canvasContext.fillRect(12, -11, 10, 22);
+            
+            // Glass slot
+            canvasContext.fillStyle = '#38bdf8';
+            canvasContext.fillRect(15, -8, 4, 16);
+
+            // Heavy tread industrial wheels
+            canvasContext.fillStyle = '#000000';
+            canvasContext.fillRect(-15, -13, 8, 2);
+            canvasContext.fillRect(-15, 11, 8, 2);
+            canvasContext.fillRect(10, -13, 8, 2);
+            canvasContext.fillRect(10, 11, 8, 2);
+
+            canvasContext.restore();
+
+            // 5. Draw Alert Smoke Particles if vehicle is tumbling out of control
+            if (securityTruck.isTumbling) {
+                canvasContext.fillStyle = 'rgba(239, 68, 68, 0.4)';
+                canvasContext.beginPath();
+                canvasContext.arc(currentX + securityTruck.offsetX - 15, currentY + securityTruck.offsetY, 20, 0, Math.PI * 2);
+                canvasContext.fill();
+            }
+        }
+
+        function processTransaction() {
+            if (securityTruck.isDriving || securityTruck.isTumbling) return;
+            document.getElementById('btn-process').disabled = true;
+            
+            securityTruck.isDriving = true;
+            document.getElementById('lbl-status-toast').innerText = "Authorising ledger logs... Security transit underway.";
+            document.getElementById('lbl-status-toast').style.color = '#38bdf8';
+        }
+
+        function concludeTransactionRound() {
+            const chosenAnswer = shuffledAnswersList[chosenOptionIndex];
+            const feedbackLabel = document.getElementById('lbl-status-toast');
+
+            if (chosenAnswer && chosenAnswer.isCorrect) {
+                feedbackLabel.innerText = "✓ TRANSACTION AUTHORISED! Safe vault deposit secured.";
+                feedbackLabel.style.color = "#10b981";
+                
+                setTimeout(() => {
+                    generateBankPuzzle();
+                }, 1600);
+            } else {
+                // Incorrect answer triggers the tumble mechanism physics loop
+                securityTruck.isTumbling = true;
+                feedbackLabel.innerText = "💥 SECURITY BREACH ALARM! Armored carrier is tumbling out of control!";
+                feedbackLabel.style.color = "#ef4444";
+            }
+        }
+
+        function resetRoundAfterAccident() {
+            const feedbackLabel = document.getElementById('lbl-status-toast');
+            
+            // Re-anchor coordinates back to initial baseline parameters smoothly
+            securityTruck.progress = 0;
+            securityTruck.offsetX = 0;
+            securityTruck.offsetY = 0;
+            securityTruck.rotation = 0;
+            securityTruck.frameTimer = 0;
+            
+            document.getElementById('btn-process').disabled = false;
+            feedbackLabel.innerText = "Recalculate invoice entries to correct the operational ledger.";
+            feedbackLabel.style.color = "#9ca3af";
+        }
+    </script>
+</body>
+</html>
