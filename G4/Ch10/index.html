@@ -37,11 +37,11 @@
             transition: opacity 0.5s ease;
         }
 
-        /* Regulated 5-Second Splash Loader Interface Screen */
+        /* Regulated 5-Second Splash Loader Interface Screen - Updated to Pure White Backing */
         #hard-splash {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: #0f172a;
+            background: #ffffff;
             z-index: 9999;
             display: flex;
             flex-direction: column;
@@ -50,23 +50,24 @@
             transition: opacity 0.5s ease;
         }
         .splash-img-container {
-            width: 120px;
-            height: 120px;
+            width: 240px;
+            height: auto;
+            margin-bottom: 24px;
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
         }
         .splash-img {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
+            width: 100%;
+            height: auto;
             object-fit: contain;
             z-index: 2;
         }
         /* Programmatic fallback asset styling for the innovine logo */
         .vector-logo-fallback {
-            width: 100%;
-            height: 100%;
+            width: 120px;
+            height: 120px;
             z-index: 1;
         }
 
@@ -190,19 +191,22 @@
 
     <div id="hard-splash">
         <div class="splash-img-container">
-            <svg class="vector-logo-fallback" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            <img src="assets/logo.png" class="splash-img" alt="Innovine Solutions Logo" onerror="this.style.display='none'; document.getElementById('vector-fallback').style.display='block';">
+            <svg id="vector-fallback" class="vector-logo-fallback" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="display: none;">
                 <circle cx="50" cy="50" r="45" fill="#1e293b" stroke="#38bdf8" stroke-width="4"/>
                 <path d="M25 65 L50 25 L75 65 Z" fill="none" stroke="#34d399" stroke-width="6" stroke-linejoin="round"/>
                 <path d="M50 25 L50 65" fill="none" stroke="#ea580c" stroke-width="4" stroke-dasharray="6,4"/>
             </svg>
-            <img src="assets/logo.png" class="splash-img" alt="Innovine Logo" onerror="this.style.opacity='0';">
+        </div>
+        <div style="width: 160px; height: 6px; background-color: #e5e7eb; border-radius: 10px; overflow: hidden;">
+            <div id="loader-progress-fill" style="width: 0%; height: 100%; background-color: #22c55e; transition: width 0.1s linear;"></div>
         </div>
     </div>
 
     <div id="viewport-root">
         <div class="control-panel">
             <div class="hud-logo-container">
-                <svg class="vector-logo-fallback" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <svg class="vector-logo-fallback" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
                     <circle cx="50" cy="50" r="45" fill="#111827" stroke="#38bdf8" stroke-width="5"/>
                     <path d="M25 65 L50 25 L75 65 Z" fill="none" stroke="#34d399" stroke-width="7" stroke-linejoin="round"/>
                 </svg>
@@ -241,10 +245,8 @@
         let canvasContext = null;
         let animationFrameId = null;
 
-        // Unified HTML5 Audio Pipeline
         let audioCtx = null;
 
-        // Vehicle State Properties
         let currentVehicle = {
             progress: 0,       
             isMoving: false,
@@ -257,15 +259,18 @@
             color: '#f43f5e'
         };
 
-        // Regulated 5-Second Run Timer Clock Implementation
-        let timeElapsed = 0;
-        const totalDuration = 5000; // 5000 milliseconds (exactly 5 seconds)
-        const tickInterval = 100;
+        // Regulated 5-Second (5000ms) Progress Bar Mechanic Implementation
+        let progressVal = 0;
+        const loaderIntervalMs = 100;
+        const totalDurationMs = 5000;
+        const percentagePerStep = 100 / (totalDurationMs / loaderIntervalMs);
         
         const progressTicker = setInterval(() => {
-            timeElapsed += tickInterval;
+            progressVal += percentagePerStep;
+            const bar = document.getElementById('loader-progress-fill');
+            if (bar) bar.style.width = Math.min(progressVal, 100) + '%';
 
-            if (timeElapsed >= totalDuration) {
+            if (progressVal >= 100) {
                 clearInterval(progressTicker);
                 const splash = document.getElementById('hard-splash');
                 const mainApp = document.getElementById('viewport-root');
@@ -274,9 +279,9 @@
                     if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
                     if (mainApp) mainApp.style.opacity = '1';
                     initGameEngine();
-                }, 500);
+                }, 400);
             }
-        }, tickInterval);
+        }, loaderIntervalMs);
 
         function initGameEngine() {
             canvasElement = document.getElementById('highway-canvas');
