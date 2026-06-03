@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Space Time Invaders</title>
+    <title>Chronos Diamond Rush</title>
     <style>
         * {
             box-sizing: border-box;
-            font-family: 'Courier New', Courier, monospace;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
             user-select: none;
@@ -16,8 +16,8 @@
         body, html {
             width: 100%;
             height: 100%;
-            background-color: #03010a;
-            color: #00ffcc;
+            background-color: #0c081c;
+            color: #ffffff;
             overflow: hidden;
         }
         
@@ -28,35 +28,32 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 10px;
+            padding: 12px;
             position: relative;
         }
 
-        .cabinet-panel {
-            background: rgba(0, 10, 20, 0.7);
-            border: 3px solid #00ffcc;
-            border-radius: 16px;
-            padding: 30px 20px;
-            max-width: 480px;
+        .rush-panel {
+            background: linear-gradient(145deg, #18113c, #0e0a24);
+            border: 2px solid #00f5d4;
+            border-radius: 20px;
+            padding: 35px 20px;
+            max-width: 460px;
             width: 100%;
             text-align: center;
-            box-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
+            box-shadow: 0 10px 30px rgba(0, 245, 212, 0.2);
         }
-        .btn-arcade {
-            background: #00ffcc;
-            color: #03010a;
+        .btn-mine {
+            background: #00f5d4;
+            color: #0c081c;
             border: none;
             padding: 14px 40px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: bold;
-            border-radius: 4px;
+            border-radius: 30px;
             cursor: pointer;
-            box-shadow: 0 0 15px #00ffcc;
+            box-shadow: 0 5px 15px rgba(0, 245, 212, 0.4);
             margin-top: 20px;
             text-transform: uppercase;
-        }
-        .btn-arcade:active {
-            background: #00b38f;
         }
 
         .game-layout {
@@ -72,43 +69,41 @@
             justify-content: space-between;
             font-weight: bold;
             font-size: 1rem;
+            color: #00f5d4;
             padding: 5px 0;
-            border-bottom: 1px dashed #00ffcc;
-            margin-bottom: 8px;
         }
 
-        .dashboard-header {
-            background: rgba(0, 255, 204, 0.05);
-            border: 1px solid #00ffcc;
-            border-radius: 8px;
+        .mission-panel {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
             padding: 12px;
             text-align: center;
             margin-bottom: 10px;
         }
-        .dashboard-tag {
+        .mission-tag {
             font-size: 0.75rem;
-            color: #ff007f;
+            color: #9d4edd;
             text-transform: uppercase;
             letter-spacing: 2px;
             font-weight: bold;
             margin-bottom: 3px;
         }
-        .dashboard-text {
+        .mission-text {
             font-size: 1.15rem;
             font-weight: bold;
-            color: #ffff00;
+            color: #ffffff;
         }
 
-        /* Video Game Monitor Display Canvas wrapper */
-        .monitor-frame {
+        /* Cave Mining Grid Frame */
+        .cave-frame {
             width: 100%;
-            background: #010005;
-            border: 2px solid #00ffcc;
-            border-radius: 12px;
+            background: #060410;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
             position: relative;
             flex-grow: 1;
             overflow: hidden;
-            box-shadow: inset 0 0 20px rgba(0, 255, 204, 0.2);
         }
         canvas {
             display: block;
@@ -116,7 +111,7 @@
             height: 100%;
         }
 
-        /* Tactile Action Control Deck buttons layout */
+        /* Deck controls */
         .deck-controls {
             display: flex;
             justify-content: space-between;
@@ -125,21 +120,20 @@
             height: 55px;
         }
         .deck-btn {
-            background: rgba(0, 255, 204, 0.1);
-            border: 2px solid #00ffcc;
-            border-radius: 6px;
-            color: #00ffcc;
-            font-size: 1.2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 1.3rem;
             font-weight: bold;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
         }
-        .move-btn { width: 26%; }
-        .fire-btn { width: 42%; background: rgba(255, 0, 127, 0.15); border-color: #ff007f; color: #ff007f; }
-        .deck-btn:active { background: #00ffcc; color: #03010a; }
-        .fire-btn:active { background: #ff007f; color: #ffffff; }
+        .move-btn { width: 25%; }
+        .fire-btn { width: 45%; background: rgba(0, 245, 212, 0.15); border-color: #00f5d4; color: #00f5d4; }
+        .deck-btn:active { background: #00f5d4; color: #060410; }
 
         #hard-splash {
             position: fixed;
@@ -156,54 +150,44 @@
 </head>
 <body>
 
-    <!-- Standard Audio Node Components Map -->
     <audio id="s-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
     <audio id="s-win" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
 
-    <!-- Self-Cleaning Loading Shield Layout -->
+    <!-- Self-Purging UI Loading Cover Shield -->
     <div id="hard-splash">
         <img src="assets/logo.png" style="max-width:240px; margin-bottom:20px;" onerror="this.style.display='none'; document.getElementById('fb-text').style.display='block';">
-        <h1 id="fb-text" style="display:none; font-size:2.2rem; margin-bottom:15px; letter-spacing:2px; font-weight:bold;">INNOVINE</h1>
+        <h1 id="fb-text" style="display:none; font-size:2.2rem; margin-bottom:15px; letter-spacing:1px; font-weight:bold;">INNOVINE</h1>
         <div style="width:200px; height:6px; background-color:#e2e8f0; border-radius:3px; overflow:hidden;">
-            <div id="loader-progress-fill" style="width:0%; height:100%; background-color:#00ffcc;"></div>
+            <div id="loader-progress-fill" style="width:0%; height:100%; background-color:#00f5d4;"></div>
         </div>
     </div>
 
     <div id="viewport-root"></div>
 
     <script>
-        let gameScore = 0;
-        let shipShields = 3;
+        let currentScore = 0;
+        let livesLeft = 3;
         
         let canvasElement = null;
         let canvasContext = null;
         let animationFrameHandle = null;
 
-        // Space Fighter Variables
-        let playerShipX = 200;
-        const playerShipWidth = 44;
-        const playerShipHeight = 18;
-        let movementDirection = 0; // -1 = Left, 1 = Right
+        // Harpoon Miner Coordinates
+        let minerShipX = 200;
+        const minerShipWidth = 50;
+        const minerShipHeight = 20;
+        let horizontalMovementMode = 0; // -1 = Left, 1 = Right
 
-        // Active Projectiles Array
-        let laserProjectiles = [];
-        let invaderShapesList = [];
+        // Diamond Crystals and Harpoon Lasers Arrays
+        let activeHarpoonsList = [];
+        let crystalDiamondsList = [];
         
-        // Puzzle target types mappings based on image_e623a0.png
-        const TIME_MODES = {
-            FORMAT_24: "24-HOUR CLOCK MATCH",
-            CONVERSION: "UNIT CONVERSION MATCH",
-            ELAPSED: "ELAPSED TIME MATCH"
-        };
-        
-        let currentTargetObjectiveType = "";
-        let currentQuestionText = "";
-        let currentCorrectAnswer = "";
-        let waveSpawnTimer = 0;
+        let targetQuestionText = "";
+        let expectedCorrectAnswer = "";
         let isEngineRunning = false;
 
-        // Fire initialization load step tickers
+        // Progress loader timeline ticker
         let progressVal = 0;
         const progressTicker = setInterval(() => {
             progressVal += 5;
@@ -219,7 +203,7 @@
         function purgeSplashAndBuildMenu() {
             const splashMask = document.getElementById('hard-splash');
             if (splashMask) {
-                splashMask.parentNode.removeChild(splashMask); // Exits block dynamically out of active DOM frame layout tree execution context
+                splashMask.parentNode.removeChild(splashMask); // Evicts the component tree safety layout completely
             }
             renderMenuScreen();
         }
@@ -229,29 +213,28 @@
             if (animationFrameHandle) cancelAnimationFrame(animationFrameHandle);
             
             document.getElementById('viewport-root').innerHTML = `
-                <div class="cabinet-panel">
-                    <h1 style="color:#00ffcc; font-size:1.7rem; margin-bottom:12px; text-shadow:0 0 10px #00ffcc;">SPACE TIME INVADERS</h1>
-                    <p style="color:#88aaaa; font-size:0.85rem; line-height:1.6; text-align:left; margin-bottom:20px;">
-                        Chronos matrix blocks are invading your coordinate track! Read the calculation query at the top of the deck, track beneath the matching solution value, and open fire!
+                <div class="rush-panel">
+                    <h1 style="color:#00f5d4; font-size:1.8rem; margin-bottom:12px;">CHRONOS DIAMOND RUSH</h1>
+                    <p style="color:#a29dbd; font-size:0.9rem; line-height:1.6; text-align:left; margin-bottom:20px;">
+                        Welcome to the time caves! Read the calendar or clock objective prompt at the top, position your mining wagon below the matching diamond value, and shoot your grappling hook to harvest it!
                     </p>
-                    <div style="color:#ff007f; font-size:0.8rem; margin-bottom:20px; font-weight:bold; border:1px dashed #ff007f; padding:8px;">
-                        🕹️ KEYBOARD CONTROLS:<br>ARROW KEYS = MOVE | SPACEBAR = FIRE LASER
+                    <div style="color:#9d4edd; font-size:0.85rem; margin-bottom:20px; font-weight:bold;">
+                        ⌨️ Key Controls: Arrow Keys to slide | Spacebar to Fire Hook
                     </div>
-                    <button class="btn-arcade" onclick="initiateGameEngine()">INSERT COIN</button>
+                    <button class="btn-mine" onclick="initiateGameEngine()">START RUSH</button>
                 </div>
             `;
         }
 
         function initiateGameEngine() {
-            gameScore = 0;
-            shipShields = 3;
-            invaderShapesList = [];
-            laserProjectiles = [];
-            waveSpawnTimer = 0;
+            currentScore = 0;
+            livesLeft = 3;
+            crystalDiamondsList = [];
+            activeHarpoonsList = [];
             isEngineRunning = true;
 
             buildGameLayoutDOM();
-            cycleNewTargetObjective();
+            generateNextChronosQuestion();
             runCanvasGameLoop();
             attachSteeringControls();
         }
@@ -260,102 +243,80 @@
             document.getElementById('viewport-root').innerHTML = `
                 <div class="game-layout">
                     <div class="hud-row">
-                        <div>SCORE: <span id="lbl-score">0000</span></div>
-                        <div>SHIELDS: <span id="lbl-shields">███</span></div>
+                        <div>SCORE: <span id="lbl-score">00</span></div>
+                        <div>LIVES: <span id="lbl-lives">❤️❤️❤️</span></div>
                     </div>
 
-                    <div class="dashboard-header">
-                        <div class="dashboard-tag" id="lbl-target-tag">CLOCK COMPUTER LOCK-ON</div>
-                        <div class="dashboard-text" id="lbl-target-prompt">LOADING TARGET...</div>
+                    <div class="mission-panel">
+                        <div class="mission-tag" id="lbl-task-tag">TIME TARGET LOCK</div>
+                        <div class="mission-text" id="lbl-task-text">LOADING...</div>
                     </div>
 
-                    <div class="monitor-frame">
-                        <canvas id="arcade-canvas" width="440" height="420"></canvas>
+                    <div class="cave-frame">
+                        <canvas id="rush-canvas" width="440" height="420"></canvas>
                     </div>
 
                     <div class="deck-controls">
                         <div class="deck-btn move-btn" id="btn-left-press">◀</div>
-                        <div class="deck-btn fire-btn" id="btn-fire-press">FIRE</div>
+                        <div class="deck-btn fire-btn" id="btn-fire-press">SHOOT HOOK</div>
                         <div class="deck-btn move-btn" id="btn-right-press">▶</div>
                     </div>
                 </div>
             `;
 
-            canvasElement = document.getElementById('arcade-canvas');
+            canvasElement = document.getElementById('rush-canvas');
             canvasContext = canvasElement.getContext('2d');
-            playerShipX = (canvasElement.width / 2) - (playerShipWidth / 2);
+            minerShipX = (canvasElement.width / 2) - (minerShipWidth / 2);
         }
 
-        function cycleNewTargetObjective() {
-            // Pick a curriculum concept from image_e623a0.png
-            const modes = Object.keys(TIME_MODES);
-            const chosenMode = modes[Math.floor(Math.random() * modes.length)];
-            currentTargetObjectiveType = TIME_MODES[chosenMode];
+        function generateNextChronosQuestion() {
+            // Objectives pulled directly from image_e623a0.png outcomes list
+            const curriculumPool = [
+                { tag: "24-Hour Clock conversion", q: "Convert 05:00 PM to 24h", a: "17:00", w: ["05:00", "23:00", "15:00"] },
+                { tag: "24-Hour Clock conversion", q: "Convert 10:30 PM to 24h", a: "22:30", w: ["10:30", "20:30", "12:30"] },
+                { tag: "Unit Conversion Mapping", q: "Minutes in 2 Hours 15 Mins", a: "135m", w: ["120m", "155m", "95m"] },
+                { tag: "Unit Conversion Mapping", q: "Seconds inside 3 Minutes", a: "180s", w: ["120s", "240s", "300s"] },
+                { tag: "Elapsed Interval Space", q: "Minutes elapsed from 04:15 to 05:00", a: "45m", w: ["15m", "60m", "30m"] },
+                { tag: "Elapsed Interval Space", q: "Hours elapsed from 08:00 AM to 01:00 PM", a: "5h", w: ["4h", "6h", "7h"] }
+            ];
 
-            let pool = [];
+            const activeChoice = curriculumPool[Math.floor(Math.random() * curriculumPool.length)];
+            targetQuestionText = activeChoice.q;
+            expectedCorrectAnswer = activeChoice.a;
 
-            if (chosenMode === "FORMAT_24") {
-                pool = [
-                    { q: "04:00 PM in 24-Hr Clock format", a: "16:00", w: ["04:00", "20:00", "14:00"] },
-                    { q: "09:30 PM in 24-Hr Clock format", a: "21:30", w: ["09:30", "19:30", "23:30"] },
-                    { q: "11:15 PM in 24-Hr Clock format", a: "23:15", w: ["11:15", "13:15", "22:15"] },
-                    { q: "12:20 AM in 24-Hr Clock format", a: "00:20", w: ["12:20", "24:20", "02:20"] }
-                ];
-            } else if (chosenMode === "CONVERSION") {
-                pool = [
-                    { q: "Convert 3 Hours into Minutes", a: "180 min", w: ["120 min", "150 min", "240 min"] },
-                    { q: "Convert 2 Minutes into Seconds", a: "120 sec", w: ["200 sec", "60 sec", "180 sec"] },
-                    { q: "Convert 1 Hr 15 Min into Minutes", a: "75 min", w: ["115 min", "60 min", "150 min"] },
-                    { q: "Convert 4 Minutes into Seconds", a: "240 sec", w: ["140 sec", "400 sec", "200 sec"] }
-                ];
-            } else {
-                pool = [
-                    { q: "Elapsed time: 03:15 PM to 04:45 PM", a: "1h 30m", w: ["2h 30m", "1h 15m", "0h 45m"] },
-                    { q: "Elapsed time: 09:00 AM to 11:15 AM", a: "2h 15m", w: ["1h 15m", "2h 45m", "3h 15m"] },
-                    { q: "Elapsed time: 13:00 to 14:40 Hours", a: "1h 40m", w: ["2h 40m", "0h 40m", "1h 20m"] }
-                ];
-            }
-
-            const activePuzzle = pool[Math.floor(Math.random() * pool.length)];
-            currentQuestionText = activePuzzle.q;
-            currentCorrectAnswer = activePuzzle.a;
-
-            document.getElementById('lbl-target-tag').innerText = currentTargetObjectiveType;
-            document.getElementById('lbl-target-prompt').innerText = currentQuestionText;
+            document.getElementById('lbl-task-tag').innerText = activeChoice.tag;
+            document.getElementById('lbl-task-text').innerText = targetQuestionText;
             
-            spawnInvaderClusterWave(activePuzzle.w);
+            spawnDiamondClusters(activeChoice.w);
         }
 
-        function spawnInvaderClusterWave(distractors) {
-            invaderShapesList = [];
-            const columnsCount = 3;
-            const segmentSpacingX = canvasElement.width / columnsCount;
+        function spawnDiamondClusters(wrongPool) {
+            crystalDiamondsList = [];
+            const segments = 3;
+            const segmentWidth = canvasElement.width / segments;
             
-            // Randomly select one column position to hold the correct answer
-            const targetColumnIndex = Math.floor(Math.random() * columnsCount);
+            // Randomly set column location for the valid correct answer diamond
+            const winColumn = Math.floor(Math.random() * segments);
+            let incorrectAnswers = [...wrongPool].sort(() => Math.random() - 0.5);
 
-            // Shuffle incorrect answer choices
-            let wrongChoices = [...distractors].sort(() => Math.random() - 0.5);
+            for (let i = 0; i < segments; i++) {
+                let answerText = "";
+                let correctFlag = false;
 
-            for (let i = 0; i < columnsCount; i++) {
-                let textValue = "";
-                let isCorrectNode = false;
-                
-                if (i === targetColumnIndex) {
-                    textValue = currentCorrectAnswer;
-                    isCorrectNode = true;
+                if (i === winColumn) {
+                    answerText = expectedCorrectAnswer;
+                    correctFlag = true;
                 } else {
-                    textValue = wrongChoices.pop() || "10:00";
+                    answerText = incorrectAnswers.pop() || "60m";
                 }
 
-                invaderShapesList.push({
-                    x: (i * segmentSpacingX) + (segmentSpacingX / 2),
-                    y: 40,
-                    text: textValue,
-                    isCorrect: isCorrectNode,
-                    width: 76,
-                    height: 32,
-                    speed: 0.45 + (gameScore * 0.0002) // Gradual scaling
+                crystalDiamondsList.push({
+                    x: (i * segmentWidth) + (segmentWidth / 2),
+                    y: 60 + Math.random() * 40, // Staggered depths inside cave
+                    label: answerText,
+                    isCorrect: correctFlag,
+                    radius: 26,
+                    bobbingOffset: Math.random() * 100 // Smooth floating motion animation offset
                 });
             }
         }
@@ -370,177 +331,182 @@
         }
 
         function updateFramePhysics() {
-            // Ship lateral movement bounds enforcement
-            if (movementDirection === -1 && playerShipX > 5) playerShipX -= 5;
-            if (movementDirection === 1 && playerShipX < (canvasElement.width - playerShipWidth - 5)) playerShipX += 5;
+            // Slide wagon left/right
+            if (horizontalMovementMode === -1 && minerShipX > 5) minerShipX -= 5;
+            if (horizontalMovementMode === 1 && minerShipX < (canvasElement.width - minerShipWidth - 5)) minerShipX += 5;
 
-            // Projectile vector stepping
-            for (let i = laserProjectiles.length - 1; i >= 0; i--) {
-                let laser = laserProjectiles[i];
-                laser.y -= 8;
+            // Retract or extend grapple hook projectiles upward
+            for (let i = activeHarpoonsList.length - 1; i >= 0; i--) {
+                let hook = activeHarpoonsList[i];
+                hook.y -= 9; // Launch velocity speed upward
                 
-                if (laser.y < 0) {
-                    laserProjectiles.splice(i, 1);
-                }
-            }
-
-            // Descend invaders downward
-            let hitLowBoundary = false;
-            for (let i = 0; i < invaderShapesList.length; i++) {
-                let invader = invaderShapesList[i];
-                invader.y += invader.speed;
-
-                if (invader.y > canvasElement.height - 60) {
-                    hitLowBoundary = true;
+                // Remove if it shoots past top roof
+                if (hook.y < 0) {
+                    activeHarpoonsList.splice(i, 1);
+                    continue;
                 }
 
-                // Laser contact collision matrix calculation
-                for (let j = laserProjectiles.length - 1; j >= 0; j--) {
-                    let laser = laserProjectiles[j];
+                // Check collision against static diamond shapes
+                for (let j = crystalDiamondsList.length - 1; j >= 0; j--) {
+                    let gem = crystalDiamondsList[j];
                     
-                    // Simple box bounding checking
-                    if (laser.x >= invader.x - invader.width/2 && laser.x <= invader.x + invader.width/2) {
-                        if (laser.y >= invader.y - invader.height/2 && laser.y <= invader.y + invader.height/2) {
-                            laserProjectiles.splice(j, 1);
-                            
-                            if (invader.isCorrect) {
-                                playAudioFile('s-correct');
-                                gameScore += 100;
-                                document.getElementById('lbl-score').innerText = String(gameScore).padStart(4, '0');
-                                cycleNewTargetObjective();
-                            } else {
-                                playAudioFile('s-wrong');
-                                registerShieldDamage();
-                            }
-                            return;
+                    let dx = hook.x - gem.x;
+                    let dy = hook.y - gem.y;
+                    let distanceSq = Math.sqrt(dx*dx + dy*dy);
+
+                    if (distanceSq <= gem.radius) {
+                        // Diamond hit and grabbed!
+                        activeHarpoonsList.splice(i, 1);
+                        
+                        if (gem.isCorrect) {
+                            playAudioFile('s-correct');
+                            currentScore += 10;
+                            document.getElementById('lbl-score').innerText = currentScore;
+                            generateNextChronosQuestion();
+                        } else {
+                            playAudioFile('s-wrong');
+                            deductLifeToken();
                         }
+                        return;
                     }
                 }
             }
-
-            if (hitLowBoundary) {
-                registerShieldDamage();
-            }
         }
 
-        function registerShieldDamage() {
-            shipShields--;
-            let shieldBars = "";
-            for (let i = 0; i < shipShields; i++) shieldBars += "█";
-            if (shieldBars === "") shieldBars = "EMPTY";
-            
-            document.getElementById('lbl-shields').innerText = shieldBars;
+        function deductLifeToken() {
+            livesLeft--;
+            let hearts = "";
+            for (let i = 0; i < livesLeft; i++) hearts += "❤️";
+            if (hearts === "") hearts = "NONE";
+            document.getElementById('lbl-lives').innerText = hearts;
 
-            if (shipShields <= 0) {
+            if (livesLeft <= 0) {
                 isEngineRunning = false;
                 renderGameOverScreen();
             } else {
-                cycleNewTargetObjective();
+                // Refresh the current target layout safely
+                generateNextChronosQuestion();
             }
         }
 
-        function triggerLaserBeamFiringSequence() {
-            if (!isEngineRunning) return;
-            laserProjectiles.push({
-                x: playerShipX + (playerShipWidth / 2),
-                y: canvasElement.height - 35
+        function triggerHarpoonGrappleSequence() {
+            if (!isEngineRunning || activeHarpoonsList.length > 0) return; // Allow 1 hook shot at a time
+            activeHarpoonsList.push({
+                x: minerShipX + (minerShipWidth / 2),
+                y: canvasElement.height - 32
             });
         }
 
         function renderFrameGraphics() {
             canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
-            // Perimeter Boundary line
-            canvasContext.strokeStyle = '#ff0055';
-            canvasContext.lineWidth = 1;
-            canvasContext.setLineDash([4, 4]);
-            canvasContext.beginPath();
-            canvasContext.moveTo(0, canvasElement.height - 50);
-            canvasContext.lineTo(canvasElement.width, canvasElement.height - 50);
-            canvasContext.stroke();
-            canvasContext.setLineDash([]); 
+            // Draw Grappling cables lines if launched
+            canvasContext.strokeStyle = '#9d4edd';
+            canvasContext.lineWidth = 2;
+            for (let i = 0; i < activeHarpoonsList.length; i++) {
+                let hook = activeHarpoonsList[i];
+                canvasContext.beginPath();
+                canvasContext.moveTo(minerShipX + (minerShipWidth / 2), canvasElement.height - 25);
+                canvasContext.lineTo(hook.x, hook.y);
+                canvasContext.stroke();
 
-            // Fighter Craft
-            canvasContext.fillStyle = '#00ffcc';
-            canvasContext.fillRect(playerShipX, canvasElement.height - 30, playerShipWidth, playerShipHeight);
-            canvasContext.fillRect(playerShipX + (playerShipWidth / 2) - 3, canvasElement.height - 36, 6, 6);
-
-            // Lasers
-            canvasContext.fillStyle = '#ff007f';
-            for (let i = 0; i < laserProjectiles.length; i++) {
-                canvasContext.fillRect(laserProjectiles[i].x - 2, laserProjectiles[i].y, 4, 10);
+                // Draw harpoon hook tip point arrow head
+                canvasContext.fillStyle = '#00f5d4';
+                canvasContext.fillRect(hook.x - 3, hook.y - 4, 6, 8);
             }
 
-            // Time Blocks Invaders
-            for (let i = 0; i < invaderShapesList.length; i++) {
-                let invader = invaderShapesList[i];
+            // Draw Mining Harpoon Wagon Carrier at base tracking row
+            canvasContext.fillStyle = '#3a2d7d';
+            canvasContext.fillRect(minerShipX, canvasElement.height - 25, minerShipWidth, minerShipHeight);
+            // Metallic anchor housing point nozzle
+            canvasContext.fillStyle = '#00f5d4';
+            canvasContext.fillRect(minerShipX + (minerShipWidth / 2) - 4, canvasElement.height - 32, 8, 8);
+
+            // Draw floating glowing Diamond Crystals
+            let timeTicker = Date.now() * 0.003;
+            for (let i = 0; i < crystalDiamondsList.length; i++) {
+                let gem = crystalDiamondsList[i];
                 
-                // Draw digital matrix housing box
-                canvasContext.strokeStyle = 'rgba(0, 255, 204, 0.3)';
-                canvasContext.fillStyle = 'rgba(0, 20, 30, 0.85)';
-                canvasContext.lineWidth = 2;
+                // Add a gentle floating bobbing animation
+                let bobY = gem.y + Math.sin(timeTicker + gem.bobbingOffset) * 6;
+
+                canvasContext.save();
+                canvasContext.translate(gem.x, bobY);
+
+                // Draw Diamond vector paths polygon vertices
+                canvasContext.fillStyle = '#241a49';
+                canvasContext.strokeStyle = '#00f5d4';
+                canvasContext.lineWidth = 3;
                 
                 canvasContext.beginPath();
-                canvasContext.rect(invader.x - invader.width/2, invader.y - invader.height/2, invader.width, invader.height);
+                canvasContext.moveTo(0, -gem.radius); // Top point
+                canvasContext.lineTo(gem.radius - 4, 0); // Right point
+                canvasContext.lineTo(0, gem.radius); // Bottom point
+                canvasContext.lineTo(-gem.radius + 4, 0); // Left point
+                canvasContext.closePath();
                 canvasContext.fill();
                 canvasContext.stroke();
 
-                // Draw Text inside block
+                // Print target math text answers inside diamond core
                 canvasContext.fillStyle = '#ffffff';
-                canvasContext.font = 'bold 12px monospace';
+                canvasContext.font = 'bold 12px sans-serif';
                 canvasContext.textAlign = 'center';
                 canvasContext.textBaseline = 'middle';
-                canvasContext.fillText(invader.text, invader.x, invader.y);
+                canvasContext.fillText(gem.label, 0, 1);
+
+                canvasContext.restore();
             }
         }
 
         function attachSteeringControls() {
+            // Physical keyboard mapping inputs handler hookups
             window.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowLeft') movementDirection = -1;
-                if (e.key === 'ArrowRight') movementDirection = 1;
+                if (e.key === 'ArrowLeft') horizontalMovementMode = -1;
+                if (e.key === 'ArrowRight') horizontalMovementMode = 1;
                 if (e.key === ' ' || e.key === 'Spacebar') {
                     e.preventDefault();
-                    triggerLaserBeamFiringSequence();
+                    triggerHarpoonGrappleSequence();
                 }
             });
             window.addEventListener('keyup', (e) => {
-                if (e.key === 'ArrowLeft' && movementDirection === -1) movementDirection = 0;
-                if (e.key === 'ArrowRight' && movementDirection === 1) movementDirection = 0;
+                if (e.key === 'ArrowLeft' && horizontalMovementMode === -1) horizontalMovementMode = 0;
+                if (e.key === 'ArrowRight' && horizontalMovementMode === 1) horizontalMovementMode = 0;
             });
 
+            // Handheld Touch Control bindings setup
             const leftBtn = document.getElementById('btn-left-press');
             const rightBtn = document.getElementById('btn-right-press');
             const fireBtn = document.getElementById('btn-fire-press');
 
             if (leftBtn && rightBtn && fireBtn) {
-                leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); movementDirection = -1; });
-                leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(movementDirection === -1) movementDirection = 0; });
+                leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); horizontalMovementMode = -1; });
+                leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(horizontalMovementMode === -1) horizontalMovementMode = 0; });
                 
-                rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); movementDirection = 1; });
-                rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(movementDirection === 1) movementDirection = 0; });
+                rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); horizontalMovementMode = 1; });
+                rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(horizontalMovementMode === 1) horizontalMovementMode = 0; });
 
-                fireBtn.addEventListener('touchstart', (e) => { e.preventDefault(); triggerLaserBeamFiringSequence(); });
+                fireBtn.addEventListener('touchstart', (e) => { e.preventDefault(); triggerHarpoonGrappleSequence(); });
 
-                // Cross platform desktop mouse click checks
-                leftBtn.addEventListener('mousedown', () => movementDirection = -1);
-                leftBtn.addEventListener('mouseup', () => { if(movementDirection === -1) movementDirection = 0; });
-                rightBtn.addEventListener('mousedown', () => movementDirection = 1);
-                rightBtn.addEventListener('mouseup', () => { if(movementDirection === 1) movementDirection = 0; });
-                fireBtn.addEventListener('mousedown', () => triggerLaserBeamFiringSequence());
+                // Cross platform mouse listeners fallback support tracking
+                leftBtn.addEventListener('mousedown', () => horizontalMovementMode = -1);
+                leftBtn.addEventListener('mouseup', () => { if(horizontalMovementMode === -1) horizontalMovementMode = 0; });
+                rightBtn.addEventListener('mousedown', () => horizontalMovementMode = 1);
+                rightBtn.addEventListener('mouseup', () => { if(horizontalMovementMode === 1) horizontalMovementMode = 0; });
+                fireBtn.addEventListener('mousedown', () => triggerHarpoonGrappleSequence());
             }
         }
 
         function renderGameOverScreen() {
             document.getElementById('viewport-root').innerHTML = `
-                <div class="cabinet-panel" style="border-color: #ff0055; box-shadow: 0 0 30px rgba(255,0,85,0.4);">
-                    <h1 style="color:#ff0055; font-size:1.8rem; margin-bottom:10px;">MISSION OVER</h1>
-                    <p style="color:#bfa2a8; font-size:0.9rem; margin-bottom:15px;">
-                        Final Score: <span style="color:#00ffcc; font-weight:bold;">${gameScore}</span>
+                <div class="rush-panel" style="border-color: #ff0055;">
+                    <h1 style="color:#ff0055; font-size:1.6rem; margin-bottom:10px;">CAVE DEPLETED</h1>
+                    <p style="color:#ffffff; font-size:1rem; margin-bottom:15px;">
+                        Final Mining Score: <span style="color:#00f5d4; font-weight:bold;">${currentScore} Points</span>
                     </p>
-                    <p style="color:#8899aa; font-size:0.8rem; line-height:1.4; margin-bottom:20px;">
-                        Great defense work interpreting clock differences, configurations, and elapsed tracking intervals from image_e623a0.png!
+                    <p style="color:#a29dbd; font-size:0.85rem; line-height:1.4; margin-bottom:25px;">
+                        Fantastic job applying your time conversion skills and clock metrics calculations dynamically!
                     </p>
-                    <button class="btn-arcade" onclick="renderMenuScreen()">CONTINUE</button>
+                    <button class="btn-mine" onclick="renderMenuScreen()">PLAY AGAIN</button>
                 </div>
             `;
         }
