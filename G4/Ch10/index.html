@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Deep-Sea Measurement Dive</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, #0f172a 0%, #023e8a 100%);
+            color: #e2e8f0;
+            overflow: hidden;
+        }
+        
+        #viewport-root {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            position: relative;
+        }
+
+        /* Oceanic frosted-glass panels */
+        .ocean-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(0, 180, 216, 0.3);
+            border-radius: 24px;
+            padding: 35px 25px;
+            max-width: 440px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0, 119, 182, 0.3);
+        }
+        
+        .btn-dive {
+            background: linear-gradient(135deg, #00b4d8 0%, #0077b6 100%);
+            color: #ffffff;
+            border: none;
+            padding: 16px 45px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 16px;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(0, 180, 216, 0.4);
+            margin-top: 25px;
+            letter-spacing: 0.5px;
+            transition: transform 0.1s ease;
+        }
+        .btn-dive:active {
+            transform: scale(0.97);
+        }
+
+        .game-layout {
+            width: 100%;
+            max-width: 440px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .hud-row {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #90e0ef;
+            padding: 8px 4px;
+            letter-spacing: 0.5px;
+        }
+        .hud-value {
+            background: rgba(0, 119, 182, 0.25);
+            border: 1px solid rgba(0, 180, 216, 0.3);
+            padding: 4px 12px;
+            border-radius: 10px;
+            color: #ffffff;
+        }
+
+        .mission-panel {
+            background: rgba(10, 25, 47, 0.85);
+            border: 1px solid rgba(0, 180, 216, 0.4);
+            border-radius: 16px;
+            padding: 16px;
+            text-align: center;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .mission-tag {
+            font-size: 0.75rem;
+            color: #00b4d8;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        .mission-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #ffffff;
+            text-shadow: 0 2px 8px rgba(0, 180, 216, 0.5);
+        }
+
+        /* Underwater abyssal chamber window */
+        .sea-canvas-frame {
+            width: 100%;
+            background: linear-gradient(180deg, #03045e 0%, #0077b6 70%, #0096c7 100%);
+            border: 3px solid rgba(0, 180, 216, 0.5);
+            border-radius: 20px;
+            position: relative;
+            flex-grow: 1;
+            overflow: hidden;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.6);
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Tactical submarine command keys */
+        .deck-controls {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 12px;
+            height: 60px;
+            gap: 8px;
+        }
+        .deck-btn {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(0, 180, 216, 0.4);
+            border-radius: 14px;
+            color: #90e0ef;
+            font-size: 1.4rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .move-btn { width: 25%; }
+        .fire-btn { 
+            width: 50%; 
+            background: linear-gradient(180deg, #00b4d8 0%, #0077b6 100%); 
+            border: none;
+            color: #ffffff; 
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        .deck-btn:active { background: rgba(0, 180, 216, 0.2); }
+        .fire-btn:active { background: #03045e; box-shadow: inset 0 2px 10px rgba(0,0,0,0.5); }
+
+        #hard-splash {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #03045e;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="s-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+    <div id="hard-splash">
+        <h1 style="font-size:2rem; margin-bottom:15px; color:#00b4d8; font-weight:800; letter-spacing:1px; text-transform:uppercase;">Subsea Metrics</h1>
+        <div style="width:150px; height:4px; background-color:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
+            <div id="loader-progress-fill" style="width:0%; height:100%; background-color:#00b4d8;"></div>
+        </div>
+    </div>
+
+    <div id="viewport-root"></div>
+
+    <script>
+        let currentScore = 0;
+        let livesLeft = 3;
+        
+        let canvasElement = null;
+        let canvasContext = null;
+        let animationFrameHandle = null;
+
+        // Drone Submarine Properties
+        let subDroneX = 200;
+        const subDroneWidth = 52;
+        const subDroneHeight = 24;
+        let horizontalMovementMode = 0; 
+
+        // Rapid Beams & Target Jellyfish Tracking
+        let activeBeamsList = [];
+        let marineJellyfishList = [];
+        let lastFiredTime = 0;
+        const fireRateLimit = 130; // Highly responsive rapid fire rate
+
+        let targetQuestionText = "";
+        let expectedCorrectAnswer = "";
+        let isEngineRunning = false;
+
+        let progressVal = 0;
+        const progressTicker = setInterval(() => {
+            progressVal += 10;
+            const element = document.getElementById('loader-progress-fill');
+            if (element) element.style.width = progressVal + '%';
+            if (progressVal >= 100) {
+                clearInterval(progressTicker);
+                purgeSplashAndBuildMenu();
+            }
+        }, 20);
+
+        function purgeSplashAndBuildMenu() {
+            const splashMask = document.getElementById('hard-splash');
+            if (splashMask) splashMask.parentNode.removeChild(splashMask);
+            renderMenuScreen();
+        }
+
+        function renderMenuScreen() {
+            isEngineRunning = false;
+            if (animationFrameHandle) cancelAnimationFrame(animationFrameHandle);
+            
+            document.getElementById('viewport-root').innerHTML = `
+                <div class="ocean-panel">
+                    <h1 style="color:#00b4d8; font-size:1.8rem; font-weight:800; margin-bottom:12px; letter-spacing:0.5px;">SUBSEA METRIC DIVE</h1>
+                    <p style="color:#90e0ef; font-size:0.95rem; line-height:1.6; margin-bottom:24px;">
+                        Master units of length, weight, and capacity referenced in image_e59501.png! Zap the correct deep-sea jellyfish values using your rapid-fire plasma hook.
+                    </p>
+                    <button class="btn-dive" onclick="initiateGameEngine()">LAUNCH DRONE</button>
+                </div>
+            `;
+        }
+
+        function initiateGameEngine() {
+            currentScore = 0;
+            livesLeft = 3;
+            marineJellyfishList = [];
+            activeBeamsList = [];
+            isEngineRunning = true;
+
+            buildGameLayoutDOM();
+            generateNextMeasurementQuestion();
+            runCanvasGameLoop();
+            attachSteeringControls();
+        }
+
+        function buildGameLayoutDOM() {
+            document.getElementById('viewport-root').innerHTML = `
+                <div class="game-layout">
+                    <div class="hud-row">
+                        <div>DEPTH METERS: <span id="lbl-score" class="hud-value">0m</span></div>
+                        <div>SHIELD: <span id="lbl-lives" class="hud-value">▰▰▰</span></div>
+                    </div>
+
+                    <div class="mission-panel">
+                        <div class="mission-tag" id="lbl-task-tag">LOADING MODULE</div>
+                        <div class="mission-text" id="lbl-task-text">CONVERTING DATA...</div>
+                    </div>
+
+                    <div class="sea-canvas-frame">
+                        <canvas id="rush-canvas" width="440" height="420"></canvas>
+                    </div>
+
+                    <div class="deck-controls">
+                        <div class="deck-btn move-btn" id="btn-left-press">◀</div>
+                        <div class="deck-btn fire-btn" id="btn-fire-press">PLASMA HARPOON</div>
+                        <div class="deck-btn move-btn" id="btn-right-press">▶</div>
+                    </div>
+                </div>
+            `;
+
+            canvasElement = document.getElementById('rush-canvas');
+            canvasContext = canvasElement.getContext('2d');
+            subDroneX = (canvasElement.width / 2) - (subDroneWidth / 2);
+        }
+
+        function generateNextMeasurementQuestion() {
+            // Comprehensive curriculum mappings derived directly from image_e59501.png
+            const curriculumPool = [
+                // Length Metric Units
+                { tag: "Metric Length Convert", q: "Convert 4 meters into cm", a: "400 cm", w: ["40 cm", "4000 cm", "4 cm"] },
+                { tag: "Metric Length Convert", q: "Convert 7 kilometers into meters", a: "7000 m", w: ["700 m", "70 m", "70000 m"] },
+                { tag: "Metric Length Convert", q: "Convert 50 mm into centimeters", a: "5 cm", w: ["500 cm", "0.5 cm", "50 cm"] },
+                // Weight Metric Units
+                { tag: "Metric Weight Convert", q: "Convert 3 kilograms into grams", a: "3000 g", w: ["300 g", "30 g", "30000 g"] },
+                { tag: "Metric Weight Convert", q: "Convert 8500 grams into kg", a: "8.5 kg", w: ["85 kg", "0.85 kg", "850 kg"] },
+                // Capacity Metric Units
+                { tag: "Metric Capacity Convert", q: "Convert 2 liters into milliliters", a: "2000 ml", w: ["200 ml", "20 ml", "20000 ml"] },
+                { tag: "Metric Capacity Convert", q: "Convert 9.5 liters into milliliters", a: "9500 ml", w: ["950 ml", "95 ml", "95000 ml"] },
+                { tag: "Metric Operations", q: "Calculate: 1.2 kg + 800 g", a: "2 kg", w: ["1.8 kg", "9.2 kg", "2.2 kg"] }
+            ];
+
+            const activeChoice = curriculumPool[Math.floor(Math.random() * curriculumPool.length)];
+            targetQuestionText = activeChoice.q;
+            expectedCorrectAnswer = activeChoice.a;
+
+            document.getElementById('lbl-task-tag').innerText = activeChoice.tag;
+            document.getElementById('lbl-task-text').innerText = targetQuestionText;
+            
+            spawnJellyfishClusters(activeChoice.w);
+        }
+
+        function spawnJellyfishClusters(wrongPool) {
+            marineJellyfishList = [];
+            const segments = 3;
+            const segmentWidth = canvasElement.width / segments;
+            
+            const winColumn = Math.floor(Math.random() * segments);
+            let incorrectAnswers = [...wrongPool].sort(() => Math.random() - 0.5);
+
+            for (let i = 0; i < segments; i++) {
+                let answerText = i === winColumn ? expectedCorrectAnswer : (incorrectAnswers.pop() || "100 m");
+                marineJellyfishList.push({
+                    x: (i * segmentWidth) + (segmentWidth / 2),
+                    y: 80 + Math.random() * 50, 
+                    label: answerText,
+                    isCorrect: i === winColumn,
+                    radius: 34,
+                    swimOffset: Math.random() * Math.PI
+                });
+            }
+        }
+
+        function runCanvasGameLoop() {
+            if (!isEngineRunning) return;
+            updateFramePhysics();
+            renderFrameGraphics();
+            animationFrameHandle = requestAnimationFrame(runCanvasGameLoop);
+        }
+
+        function updateFramePhysics() {
+            if (horizontalMovementMode === -1 && subDroneX > 5) subDroneX -= 8;
+            if (horizontalMovementMode === 1 && subDroneX < (canvasElement.width - subDroneWidth - 5)) subDroneX += 8;
+
+            // Update fast plasma beams
+            for (let i = activeBeamsList.length - 1; i >= 0; i--) {
+                let beam = activeBeamsList[i];
+                beam.y -= 15; // Fast upward propulsion
+                
+                if (beam.y < 0) {
+                    activeBeamsList.splice(i, 1);
+                    continue;
+                }
+
+                for (let j = marineJellyfishList.length - 1; j >= 0; j--) {
+                    let jelly = marineJellyfishList[j];
+                    let currentSwayX = jelly.x + Math.sin((Date.now() * 0.0025) + jelly.swimOffset) * 15;
+                    let currentSwayY = jelly.y + Math.cos((Date.now() * 0.0015) + jelly.swimOffset) * 6;
+
+                    let dx = beam.x - currentSwayX;
+                    let dy = beam.y - currentSwayY;
+                    let distance = Math.sqrt(dx*dx + dy*dy);
+
+                    if (distance <= jelly.radius) {
+                        activeBeamsList.splice(i, 1);
+                        if (jelly.isCorrect) {
+                            playAudioFile('s-correct');
+                            currentScore += 50; // Earn depth score points
+                            document.getElementById('lbl-score').innerText = currentScore + "m";
+                            generateNextMeasurementQuestion();
+                        } else {
+                            playAudioFile('s-wrong');
+                            deductShieldToken();
+                        }
+                        return;
+                    }
+                }
+            }
+        }
+
+        function deductShieldToken() {
+            livesLeft--;
+            let bars = "";
+            for (let i = 0; i < livesLeft; i++) bars += "▰";
+            document.getElementById('lbl-lives').innerText = bars || "BROKEN";
+
+            if (livesLeft <= 0) {
+                isEngineRunning = false;
+                renderGameOverScreen();
+            } else {
+                generateNextMeasurementQuestion();
+            }
+        }
+
+        function triggerHarpoonGrappleSequence() {
+            if (!isEngineRunning) return;
+            const now = Date.now();
+            if (now - lastFiredTime < fireRateLimit) return; 
+            
+            lastFiredTime = now;
+            activeBeamsList.push({
+                x: subDroneX + (subDroneWidth / 2),
+                y: canvasElement.height - 30
+            });
+        }
+
+        function renderFrameGraphics() {
+            canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            // Draw Neon Plasma Energy Beams
+            for (let i = 0; i < activeBeamsList.length; i++) {
+                let beam = activeBeamsList[i];
+                canvasContext.shadowBlur = 10;
+                canvasContext.shadowColor = '#00b4d8';
+                
+                canvasContext.strokeStyle = '#90e0ef';
+                canvasContext.lineWidth = 4;
+                canvasContext.beginPath();
+                canvasContext.moveTo(beam.x, beam.y);
+                canvasContext.lineTo(beam.x, beam.y + 14);
+                canvasContext.stroke();
+                
+                canvasContext.shadowBlur = 0; // Reset canvas effects
+            }
+
+            // Draw Retrospective Cyan Sub Drone
+            canvasContext.fillStyle = '#0077b6';
+            canvasContext.strokeStyle = '#00b4d8';
+            canvasContext.lineWidth = 2;
+            canvasContext.beginPath();
+            canvasContext.roundRect(subDroneX, canvasElement.height - 30, subDroneWidth, subDroneHeight, 8);
+            canvasContext.fill();
+            canvasContext.stroke();
+
+            // Small yellow sub-porthole window indicator
+            canvasContext.fillStyle = '#ffd166';
+            canvasContext.beginPath();
+            canvasContext.arc(subDroneX + (subDroneWidth/2), canvasElement.height - 18, 4, 0, Math.PI*2);
+            canvasContext.fill();
+
+            // Draw Floating Translucent Jellyfish Carriers
+            let timeTicker = Date.now();
+            for (let i = 0; i < marineJellyfishList.length; i++) {
+                let jelly = marineJellyfishList[i];
+                let swayX = jelly.x + Math.sin((timeTicker * 0.0025) + jelly.swimOffset) * 15;
+                let swayY = jelly.y + Math.cos((timeTicker * 0.0015) + jelly.swimOffset) * 6;
+
+                canvasContext.save();
+                canvasContext.translate(swayX, swayY);
+
+                // Jellyfish primary soft glowing bulb canopy
+                canvasContext.fillStyle = 'rgba(144, 224, 239, 0.25)';
+                canvasContext.strokeStyle = '#90e0ef';
+                canvasContext.lineWidth = 2.5;
+                
+                canvasContext.beginPath();
+                canvasContext.arc(0, -4, jelly.radius - 4, Math.PI, 0, false);
+                canvasContext.lineTo(jelly.radius - 4, 4);
+                canvasContext.quadraticCurveTo(0, 12, -jelly.radius + 4, 4);
+                canvasContext.closePath();
+                canvasContext.fill();
+                canvasContext.stroke();
+
+                // Dangle small wiggly underwater tentacles
+                canvasContext.strokeStyle = 'rgba(144, 224, 239, 0.6)';
+                canvasContext.lineWidth = 1.5;
+                for(let t = -12; t <= 12; t += 8) {
+                    let tentacleWave = Math.sin((timeTicker * 0.005) + t) * 4;
+                    canvasContext.beginPath();
+                    canvasContext.moveTo(t, 8);
+                    canvasContext.quadraticCurveTo(t + tentacleWave, 16, t, 24);
+                    canvasContext.stroke();
+                }
+
+                // Measurement print labels centered
+                canvasContext.fillStyle = '#ffffff';
+                canvasContext.font = 'bold 13px sans-serif';
+                canvasContext.textAlign = 'center';
+                canvasContext.textBaseline = 'middle';
+                canvasContext.fillText(jelly.label, 0, -4);
+
+                canvasContext.restore();
+            }
+        }
+
+        function attachSteeringControls() {
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') horizontalMovementMode = -1;
+                if (e.key === 'ArrowRight') horizontalMovementMode = 1;
+                if (e.key === ' ' || e.key === 'Spacebar') {
+                    e.preventDefault();
+                    triggerHarpoonGrappleSequence();
+                }
+            });
+            window.addEventListener('keyup', (e) => {
+                if (e.key === 'ArrowLeft' && horizontalMovementMode === -1) horizontalMovementMode = 0;
+                if (e.key === 'ArrowRight' && horizontalMovementMode === 1) horizontalMovementMode = 0;
+            });
+
+            const leftBtn = document.getElementById('btn-left-press');
+            const rightBtn = document.getElementById('btn-right-press');
+            const fireBtn = document.getElementById('btn-fire-press');
+
+            if (leftBtn && rightBtn && fireBtn) {
+                leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); horizontalMovementMode = -1; });
+                leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(horizontalMovementMode === -1) horizontalMovementMode = 0; });
+                rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); horizontalMovementMode = 1; });
+                rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(horizontalMovementMode === 1) horizontalMovementMode = 0; });
+                fireBtn.addEventListener('touchstart', (e) => { e.preventDefault(); triggerHarpoonGrappleSequence(); });
+
+                leftBtn.addEventListener('mousedown', () => horizontalMovementMode = -1);
+                leftBtn.addEventListener('mouseup', () => { if(horizontalMovementMode === -1) horizontalMovementMode = 0; });
+                rightBtn.addEventListener('mousedown', () => horizontalMovementMode = 1);
+                rightBtn.addEventListener('mouseup', () => { if(horizontalMovementMode === 1) horizontalMovementMode = 0; });
+                fireBtn.addEventListener('mousedown', () => triggerHarpoonGrappleSequence());
+            }
+        }
+
+        function renderGameOverScreen() {
+            document.getElementById('viewport-root').innerHTML = `
+                <div class="ocean-panel" style="border-color: #ef4444;">
+                    <h1 style="color:#ef4444; font-size:1.6rem; font-weight:800; margin-bottom:10px; letter-spacing:0.5px;">MISSION ENDED</h1>
+                    <p style="color:#90e0ef; font-size:1.1rem; margin-bottom:15px;">
+                        Max Exploration Depth: <span style="color:#ffffff; font-weight:700;">${currentScore} meters</span>
+                    </p>
+                    <button class="btn-dive" style="background: #ef4444; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);" onclick="renderMenuScreen()">SURFACE BACK UP</button>
+                </div>
+            `;
+        }
+
+        function playAudioFile(id) {
+            try {
+                const sound = document.getElementById(id);
+                if (sound) {
+                    sound.currentTime = 0;
+                    sound.play().catch(() => {});
+                }
+            } catch (err) {}
+        }
+    </script>
+</body>
+</html>
