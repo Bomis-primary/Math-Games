@@ -33,11 +33,11 @@
             flex-direction: column;
             padding: 16px;
             gap: 12px;
-            opacity: 0;
+            opacity: 0; /* Revealed after the loader finishes */
             transition: opacity 0.5s ease;
         }
 
-        /* Standard 5-Second Loader Splash Screen */
+        /* Regulated 5-Second Splash Screen */
         #hard-splash {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -63,32 +63,7 @@
             margin-bottom: 10px;
         }
 
-        .orchard-panel {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 2px solid #ffedd5;
-            border-radius: 28px;
-            padding: 40px 25px;
-            width: 100%;
-            text-align: center;
-            box-shadow: 0 20px 40px rgba(234, 88, 12, 0.1);
-        }
-        
-        .btn-action {
-            background: linear-gradient(135deg, #f97316, #ea580c);
-            color: #ffffff;
-            border: none;
-            padding: 16px 45px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 8px 20px rgba(234, 88, 12, 0.25);
-            margin-top: 25px;
-        }
-
-        /* Game HUD */
+        /* Top HUD display panel */
         .hud-row {
             display: flex;
             justify-content: space-between;
@@ -105,7 +80,7 @@
             color: #431407;
         }
 
-        /* Memory Grid Space */
+        /* Arena Layout Grid */
         .arena-container {
             width: 100%;
             background: linear-gradient(180deg, #ffedd5 0%, #fef3c7 100%);
@@ -121,14 +96,38 @@
             box-shadow: inset 0 4px 20px rgba(0,0,0,0.02), 0 10px 25px rgba(0,0,0,0.05);
         }
 
-        /* 3D Card Flip Styling */
+        /* Menu & End Panels overlays */
+        .orchard-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid #ffedd5;
+            border-radius: 28px;
+            padding: 30px 20px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(234, 88, 12, 0.1);
+        }
+        .btn-action {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+            color: #ffffff;
+            border: none;
+            padding: 14px 40px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(234, 88, 12, 0.25);
+            margin-top: 20px;
+        }
+
+        /* 3D Card Animation Styles */
         .crate-card {
             perspective: 1000px;
             cursor: pointer;
             width: 100%;
             height: 100%;
         }
-
         .crate-inner {
             position: relative;
             width: 100%;
@@ -137,11 +136,9 @@
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform-style: preserve-3d;
         }
-
         .crate-card.flipped .crate-inner {
             transform: rotateY(180deg);
         }
-
         .crate-front, .crate-back {
             position: absolute;
             width: 100%;
@@ -157,27 +154,25 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.05);
         }
 
-        /* Card Front (Hidden State - Crate Graphic) */
+        /* Card Face Closed State */
         .crate-front {
             background: linear-gradient(135deg, #b45309, #78350f);
             border: 3px solid #ffffff;
             color: #fef3c7;
-            font-size: 1.5rem;
         }
         .crate-front::after {
             content: '🍊';
-            font-size: 1.4rem;
-            opacity: 0.8;
+            font-size: 1.5rem;
         }
 
-        /* Card Back (Revealed State - Math Value) */
+        /* Card Face Open State */
         .crate-back {
             background: #ffffff;
             border: 3px solid #ea580c;
             color: #431407;
             font-size: 0.95rem;
             transform: rotateY(180deg);
-            line-height: 1.2;
+            line-height: 1.3;
         }
 
         .crate-card.matched {
@@ -187,11 +182,11 @@
             transition: opacity 0.3s ease, visibility 0.3s ease;
         }
 
-        /* Bottom Deck Layout */
+        /* Bottom Control Button Container */
         .deck-controls {
             display: flex;
             width: 100%;
-            height: 50px;
+            height: 52px;
         }
         .reset-btn {
             width: 100%;
@@ -209,11 +204,9 @@
 </head>
 <body>
 
-    <!-- Standard Asset Registrations -->
     <audio id="s-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
-    <!-- Regulated 5-Second Splash Loading Sequence -->
     <div id="hard-splash">
         <img src="assets/logo.png" class="splash-img" alt="Logo" onerror="this.style.display='none'; document.getElementById('fb-text').style.display='block';">
         <h1 id="fb-text" class="splash-title">Citrus Harvest</h1>
@@ -229,11 +222,10 @@
         </div>
 
         <div class="arena-container" id="arena">
-            <!-- Grid cards injected dynamically via Javascript -->
-        </div>
+            </div>
 
         <div class="deck-controls">
-            <button class="reset-btn" onclick="renderMenuOverlay()">Mix & Re-shingle Crates</button>
+            <button class="reset-btn" onclick="renderMenuOverlay()">Shuffle & Re-Mix Grove</button>
         </div>
     </div>
 
@@ -244,21 +236,22 @@
         let selectedCards = [];
         let engineLock = false;
 
-        // Progress Ticker Configured to hit 100% at precisely 5.0 Seconds
+        // Progress Ticker hitting exactly 100% at precisely 5.0 seconds
         let progressVal = 0;
         const progressTicker = setInterval(() => {
             progressVal += 2;
-            const element = document.getElementById('loader-progress-fill');
-            if (element) element.style.width = progressVal + '%';
+            const bar = document.getElementById('loader-progress-fill');
+            if (bar) bar.style.width = progressVal + '%';
 
             if (progressVal >= 100) {
                 clearInterval(progressTicker);
                 const splash = document.getElementById('hard-splash');
-                const root = document.getElementById('viewport-root');
+                const mainLayout = document.getElementById('viewport-root');
                 if (splash) splash.style.opacity = '0';
+                
                 setTimeout(() => {
                     if (splash.parentNode) splash.parentNode.removeChild(splash);
-                    root.style.opacity = '1';
+                    mainLayout.style.opacity = '1';
                     renderMenuOverlay();
                 }, 400);
             }
@@ -266,14 +259,14 @@
 
         function renderMenuOverlay() {
             document.getElementById('arena').innerHTML = `
-                <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.1); backdrop-filter:blur(4px); display:flex; justify-content:center; align-items:center; z-index:100; padding: 12px;">
-                    <div class="orchard-panel" style="box-shadow:none; background:#ffffff;">
+                <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.1); backdrop-filter:blur(4px); display:flex; justify-content:center; align-items:center; z-index:100; padding:12px;">
+                    <div class="orchard-panel" style="background:#ffffff;">
                         <img src="assets/logo.png" style="width:60px; margin-bottom:10px;" onerror="this.style.display='none';">
                         <h2 style="color:#ea580c; font-size:1.6rem; font-weight:900; margin-bottom:8px;">Harvest Match</h2>
                         <p style="color:#7c2d12; font-size:0.9rem; line-height:1.5; margin-bottom:20px;">
                             The grove crates are sealed! Flip them open to pair matching mathematical fractional values together.
                         </p>
-                        <button class="btn-action" style="margin:0; padding:12px 35px;" onclick="buildHarvestGrid()">REVEAL ORCHARD</button>
+                        <button class="btn-action" style="margin:0;" onclick="buildHarvestGrid()">REVEAL ORCHARD</button>
                     </div>
                 </div>
             `;
@@ -287,35 +280,35 @@
             document.getElementById('lbl-score').innerText = currentScore;
             document.getElementById('lbl-attempts').innerText = attemptsCount;
 
-            // 6 Distinct Pairs making a complete 12-card grid
+            // 6 explicit fractional pairs making up a clean 3x4 layout grid
             const masterPairs = [
-                { id: 1, text: "Reduce<br>6/8", matchId: 1, val: 0.75 },
-                { id: 2, text: "3/4", matchId: 1, val: 0.75 },
+                { text: "Reduce<br>6/8", matchId: 1 },
+                { text: "3/4", matchId: 1 },
                 
-                { id: 3, text: "Equivalent<br>of 1/3", matchId: 2, val: 0.33 },
-                { id: 4, text: "3/9", matchId: 2, val: 0.33 },
+                { text: "Equivalent<br>of 1/3", matchId: 2 },
+                { text: "3/9", matchId: 2 },
                 
-                { id: 5, text: "1/5 of 25", matchId: 3, val: 5 },
-                { id: 6, text: "5", matchId: 3, val: 5 },
+                { text: "1/5 of 25", matchId: 3 },
+                { text: "5", matchId: 3 },
                 
-                { id: 7, text: "3/4 of 16", matchId: 4, val: 12 },
-                { id: 8, text: "12", matchId: 4, val: 12 },
+                { text: "3/4 of 16", matchId: 4 },
+                { text: "12", matchId: 4 },
 
-                { id: 9, text: "Reduce<br>10/15", matchId: 5, val: 0.66 },
-                { id: 10, text: "2/3", matchId: 5, val: 0.66 },
+                { text: "Reduce<br>10/15", matchId: 5 },
+                { text: "2/3", matchId: 5 },
 
-                { id: 11, text: "Equivalent<br>of 2/4", matchId: 6, val: 0.5 },
-                { id: 12, text: "4/8", matchId: 6, val: 0.5 }
+                { text: "Equivalent<br>of 2/4", matchId: 6 },
+                { text: "4/8", matchId: 6 }
             ];
 
-            // Pure random sorting shuffle
+            // Random grid shuffling
             cardPoolData = masterPairs.sort(() => Math.random() - 0.5);
 
             const arena = document.getElementById('arena');
             arena.innerHTML = '';
 
             cardPoolData.forEach((card, index) => {
-                const cardMarkup = `
+                arena.innerHTML += `
                     <div class="crate-card" id="card-${index}" onclick="handleCardFlip(${index})">
                         <div class="crate-inner">
                             <div class="crate-front"></div>
@@ -323,7 +316,6 @@
                         </div>
                     </div>
                 `;
-                arena.innerHTML += cardMarkup;
             });
         }
 
@@ -331,8 +323,6 @@
             if (engineLock) return;
             
             const targetedCard = document.getElementById(`card-${index}`);
-            
-            // Prevent re-clicking an already turned up or resolved card
             if (targetedCard.classList.contains('flipped') || targetedCard.classList.contains('matched')) return;
 
             targetedCard.classList.add('flipped');
@@ -351,7 +341,7 @@
             const second = selectedCards[1];
 
             if (first.data.matchId === second.data.matchId) {
-                // SUCCESS MATCH
+                // MATCH ACCUMULATED
                 setTimeout(() => {
                     playAudioAsset('s-correct');
                     document.getElementById(`card-${first.index}`).classList.add('matched');
@@ -363,13 +353,13 @@
                     selectedCards = [];
                     engineLock = false;
 
-                    // Check win condition (all matched)
+                    // Victory determination check
                     if (document.querySelectorAll('.crate-card.matched').length === 12) {
                         renderVictoryPanel();
                     }
-                }, 500);
+                }, 400);
             } else {
-                // FAILED MATCH
+                // MATCH FAILED
                 setTimeout(() => {
                     playAudioAsset('s-wrong');
                     document.getElementById(`card-${first.index}`).classList.remove('flipped');
@@ -384,10 +374,10 @@
         function renderVictoryPanel() {
             document.getElementById('arena').innerHTML = `
                 <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.02); backdrop-filter:blur(8px); display:flex; justify-content:center; align-items:center; z-index:100; padding:12px;">
-                    <div class="orchard-panel" style="border-color:#22c55e;">
+                    <div class="orchard-panel" style="border-color:#22c55e; background:#ffffff;">
                         <h2 style="color:#22c55e; font-size:1.6rem; font-weight:900; margin-bottom:8px;">Orchard Cleared!</h2>
                         <p style="color:#7c2d12; font-size:1.05rem; margin-bottom:20px;">
-                            Matched everything in <span style="font-weight:900; color:#ea580c;">${attemptsCount} attempts</span>!
+                            Completed in <span style="font-weight:900; color:#ea580c;">${attemptsCount} attempts</span>!
                         </p>
                         <button class="btn-action" style="background:#22c55e; margin:0;" onclick="renderMenuOverlay()">PLAY AGAIN</button>
                     </div>
