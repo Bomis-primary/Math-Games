@@ -19,17 +19,48 @@
             background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%);
             color: #431407;
             overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         
         #viewport-root {
             width: 100%;
+            max-width: 440px;
             height: 100%;
+            max-height: 740px;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            gap: 12px;
+            opacity: 0; /* Hidden during splash */
+            transition: opacity 0.5s ease;
+        }
+
+        /* 5-Second Splash Screen Panel */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff7ed;
+            z-index: 9999;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 16px;
-            position: relative;
+            transition: opacity 0.5s ease;
+        }
+        .splash-img {
+            width: 120px;
+            height: auto;
+            margin-bottom: 20px;
+            object-fit: contain;
+        }
+        .splash-title {
+            font-size: 2.2rem;
+            color: #ea580c;
+            font-weight: 900;
+            letter-spacing: -1px;
+            margin-bottom: 10px;
         }
 
         .orchard-panel {
@@ -39,7 +70,6 @@
             border: 2px solid #ffedd5;
             border-radius: 28px;
             padding: 35px 25px;
-            max-width: 440px;
             width: 100%;
             text-align: center;
             box-shadow: 0 20px 40px rgba(234, 88, 12, 0.1);
@@ -60,7 +90,6 @@
 
         .game-layout {
             width: 100%;
-            max-width: 440px;
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -105,7 +134,8 @@
             color: #431407;
         }
 
-        .canvas-frame {
+        /* Upgraded Game Workspace */
+        .arena-frame {
             width: 100%;
             background: linear-gradient(180deg, #ffedd5 0%, #fef3c7 60%, #fde047 100%);
             border: 4px solid #ffffff;
@@ -115,10 +145,77 @@
             overflow: hidden;
             box-shadow: inset 0 4px 20px rgba(0,0,0,0.02), 0 10px 25px rgba(0,0,0,0.04);
         }
-        canvas {
-            display: block;
-            width: 100%;
+
+        .fruit-track-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding-top: 60px;
+        }
+
+        .lane {
+            width: 30%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
             height: 100%;
+        }
+
+        .citrus-node {
+            width: 68px;
+            height: 68px;
+            background: radial-gradient(circle at 30% 30%, #f97316, #ea580c);
+            border-radius: 50%;
+            border: 3px solid #ffffff;
+            box-shadow: 0 8px 16px rgba(234, 88, 12, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 1.1rem;
+            position: relative;
+            cursor: pointer;
+            animation: floatSway 2.5s ease-in-out infinite alternate;
+        }
+
+        /* Standard Vector Leaf Graphic (Canvas-free replacement) */
+        .citrus-node::before {
+            content: '';
+            position: absolute;
+            top: -5px; left: 26px;
+            width: 14px; height: 8px;
+            background: #22c55e;
+            border-radius: 0 10px 0 10px;
+            transform: rotate(-10deg);
+        }
+
+        @keyframes floatSway {
+            0% { transform: translateY(0) rotate(-2deg); }
+            100% { transform: translateY(12px) rotate(2deg); }
+        }
+
+        /* Harvest Rope and Hook */
+        .rope-line {
+            position: absolute;
+            bottom: 0;
+            width: 3px;
+            background: #c2410c;
+            transition: height 0.22s cubic-bezier(0.25, 1, 0.5, 1);
+            z-index: 5;
+            display: none;
+        }
+
+        .rope-hook-tip {
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 12px; height: 12px;
+            background: #ea580c;
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
         }
 
         .deck-controls {
@@ -154,28 +251,20 @@
         }
         .deck-btn:active { background: #fff7ed; }
         .fire-btn:active { background: #c2410c; color: #ffffff; }
-
-        #hard-splash {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #fff7ed;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 99999;
-        }
     </style>
 </head>
 <body>
 
+    <!-- Target Audio Asset Containers Linked From Shared Path [cite: image_dac2dc.png] -->
     <audio id="s-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
+    <!-- Regulated 5-Second Splash Loader Interface Screen -->
     <div id="hard-splash">
-        <h1 id="fb-text" style="font-size:2.2rem; margin-bottom:15px; color:#ea580c; font-weight:900; letter-spacing:-1px;">Citrus Harvest</h1>
-        <div style="width:140px; height:6px; background-color:#ffedd5; border-radius:10px; overflow:hidden;">
-            <div id="loader-progress-fill" style="width:0%; height:100%; background-color:#ea580c;"></div>
+        <img src="assets/logo.png" class="splash-img" alt="Innovine Logo" onerror="this.style.display='none'; document.getElementById('fb-text').style.display='block';">
+        <h1 id="fb-text" class="splash-title">Citrus Harvest</h1>
+        <div style="width:140px; height:6px; background-color:#ffedd5; border-radius:10px; overflow:hidden; margin-top:10px;">
+            <div id="loader-progress-fill" style="width:0%; height:100%; background-color:#ea580c; transition: width 0.1s ease;"></div>
         </div>
     </div>
 
@@ -184,53 +273,37 @@
     <script>
         let currentScore = 0;
         let livesLeft = 3;
-        
-        let canvasElement = null;
-        let canvasContext = null;
-        let animationFrameHandle = null;
+        let activeQuestionObj = null;
+        let activeAnswersOrdered = [];
+        let isProcessingHarvest = false;
 
-        // Catcher Cart Metrics
-        let basketX = 200;
-        const basketWidth = 50;
-        const basketHeight = 22;
-        let horizontalMovementMode = 0; 
-
-        // Rapid-Fire Allowed Arrays
-        let activeHarpoonsList = [];
-        let crystalDiamondsList = [];
-        let lastFiredTime = 0;
-        const fireRateLimit = 150; // Milliseconds threshold for rapid fire triggers
-
-        let targetQuestionText = "";
-        let expectedCorrectAnswer = "";
-        let isEngineRunning = false;
-
+        // Regulated 5-Second Progress Timeline Engine Loading Sequence
         let progressVal = 0;
         const progressTicker = setInterval(() => {
-            progressVal += 5;
-            const element = document.getElementById('loader-progress-fill');
-            if (element) element.style.width = progressVal + '%';
+            progressVal += 2; // Increments to 100 over 5 seconds (50 ticks)
+            const fillElement = document.getElementById('loader-progress-fill');
+            if (fillElement) fillElement.style.width = progressVal + '%';
+
             if (progressVal >= 100) {
                 clearInterval(progressTicker);
-                purgeSplashAndBuildMenu();
+                const splash = document.getElementById('hard-splash');
+                const mainApp = document.getElementById('viewport-root');
+                if (splash) splash.style.opacity = '0';
+                setTimeout(() => {
+                    if (splash.parentNode) splash.parentNode.removeChild(splash);
+                    mainApp.style.opacity = '1';
+                    renderMenuScreen();
+                }, 500);
             }
-        }, 15);
-
-        function purgeSplashAndBuildMenu() {
-            const splashMask = document.getElementById('hard-splash');
-            if (splashMask) splashMask.parentNode.removeChild(splashMask);
-            renderMenuScreen();
-        }
+        }, 100); // Trigger every 100ms for 5 seconds total
 
         function renderMenuScreen() {
-            isEngineRunning = false;
-            if (animationFrameHandle) cancelAnimationFrame(animationFrameHandle);
-            
             document.getElementById('viewport-root').innerHTML = `
                 <div class="orchard-panel">
-                    <h1 style="color:#ea580c; font-size:2rem; font-weight:900; margin-bottom:12px; letter-spacing:-0.5px;">Citrus Rapid Harvest</h1>
-                    <p style="color:#7c2d12; font-size:0.95rem; line-height:1.6; margin-bottom:24px;">
-                        Snappy controls unlocked! Read the fraction target, line up underneath, and unleash rapid-fire harvest hooks instantly.
+                    <img src="assets/logo.png" class="splash-img" alt="Innovine Logo" style="width:70px; margin-bottom:15px; display:block; margin-left:auto; margin-right:auto;" onerror="this.style.display='none';">
+                    <h1 style="color:#ea580c; font-size:2rem; font-weight:900; letter-spacing:-0.5px; margin-bottom:12px;">Citrus Harvest</h1>
+                    <p style="color:#7c2d12; font-size:0.95rem; line-height:1.6; margin-bottom:24px; padding:0 10px;">
+                        Standard assets integrated! Read the fraction target, line up underneath, and unleash instant harvest hooks.
                     </p>
                     <button class="btn-action" onclick="initiateGameEngine()">START HARVEST</button>
                 </div>
@@ -240,14 +313,9 @@
         function initiateGameEngine() {
             currentScore = 0;
             livesLeft = 3;
-            crystalDiamondsList = [];
-            activeHarpoonsList = [];
-            isEngineRunning = true;
-
+            isProcessingHarvest = false;
             buildGameLayoutDOM();
             generateNextFractionQuestion();
-            runCanvasGameLoop();
-            attachSteeringControls();
         }
 
         function buildGameLayoutDOM() {
@@ -263,21 +331,31 @@
                         <div class="mission-text" id="lbl-task-text">LOADING...</div>
                     </div>
 
-                    <div class="canvas-frame">
-                        <canvas id="rush-canvas" width="440" height="420"></canvas>
+                    <div class="arena-frame" id="play-arena">
+                        <div class="rope-line" id="rope-0" style="left: calc(16.66% - 1.5px);"><div class="rope-hook-tip"></div></div>
+                        <div class="rope-line" id="rope-1" style="left: calc(50% - 1.5px);"><div class="rope-hook-tip"></div></div>
+                        <div class="rope-line" id="rope-2" style="left: calc(83.33% - 1.5px);"><div class="rope-hook-tip"></div></div>
+
+                        <div class="fruit-track-container">
+                            <div class="lane" onclick="harvestLaneIndex(0)">
+                                <div class="citrus-node" id="fruit-node-0"></div>
+                            </div>
+                            <div class="lane" onclick="harvestLaneIndex(1)">
+                                <div class="citrus-node" id="fruit-node-1"></div>
+                            </div>
+                            <div class="lane" onclick="harvestLaneIndex(2)">
+                                <div class="citrus-node" id="fruit-node-2"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="deck-controls">
-                        <div class="deck-btn move-btn" id="btn-left-press">◀</div>
-                        <div class="deck-btn fire-btn" id="btn-fire-press">RAPID FIRE</div>
-                        <div class="deck-btn move-btn" id="btn-right-press">▶</div>
+                        <div class="deck-btn move-btn" onclick="harvestLaneIndex(0)">◀</div>
+                        <div class="deck-btn fire-btn" onclick="autoTargetCorrectLane()">LAUNCH AUTOMATIC</div>
+                        <div class="deck-btn move-btn" onclick="harvestLaneIndex(2)">▶</div>
                     </div>
                 </div>
             `;
-
-            canvasElement = document.getElementById('rush-canvas');
-            canvasContext = canvasElement.getContext('2d');
-            basketX = (canvasElement.width / 2) - (basketWidth / 2);
         }
 
         function generateNextFractionQuestion() {
@@ -290,202 +368,78 @@
                 { tag: "Fraction of a Number", q: "Calculate 3/4 of 16", a: "12", w: ["4", "8", "16"] }
             ];
 
-            const activeChoice = curriculumPool[Math.floor(Math.random() * curriculumPool.length)];
-            targetQuestionText = activeChoice.q;
-            expectedCorrectAnswer = activeChoice.a;
+            activeQuestionObj = curriculumPool[Math.floor(Math.random() * curriculumPool.length)];
+            document.getElementById('lbl-task-tag').innerText = activeQuestionObj.tag;
+            document.getElementById('lbl-task-text').innerText = activeQuestionObj.q;
 
-            document.getElementById('lbl-task-tag').innerText = activeChoice.tag;
-            document.getElementById('lbl-task-text').innerText = targetQuestionText;
-            
-            spawnFruitClusters(activeChoice.w);
-        }
+            let shuffledWrong = [...activeQuestionObj.w].sort(() => Math.random() - 0.5);
+            const winColumn = Math.floor(Math.random() * 3);
 
-        function spawnFruitClusters(wrongPool) {
-            crystalDiamondsList = [];
-            const segments = 3;
-            const segmentWidth = canvasElement.width / segments;
-            
-            const winColumn = Math.floor(Math.random() * segments);
-            let incorrectAnswers = [...wrongPool].sort(() => Math.random() - 0.5);
-
-            for (let i = 0; i < segments; i++) {
-                let answerText = i === winColumn ? expectedCorrectAnswer : (incorrectAnswers.pop() || "1/2");
-                crystalDiamondsList.push({
-                    x: (i * segmentWidth) + (segmentWidth / 2),
-                    y: 90 + Math.random() * 40, 
-                    label: answerText,
-                    isCorrect: i === winColumn,
-                    radius: 32,
-                    swayOffset: Math.random() * 100
-                });
+            activeAnswersOrdered = [];
+            for (let i = 0; i < 3; i++) {
+                if (i === winColumn) {
+                    activeAnswersOrdered.push({ text: activeQuestionObj.a, isCorrect: true });
+                } else {
+                    activeAnswersOrdered.push({ text: shuffledWrong.pop() || "1/2", isCorrect: false });
+                }
             }
+
+            for (let i = 0; i < 3; i++) {
+                const node = document.getElementById(`fruit-node-${i}`);
+                if (node) {
+                    node.innerText = activeAnswersOrdered[i].text;
+                    node.style.visibility = 'visible';
+                }
+            }
+            isProcessingHarvest = false;
         }
 
-        function runCanvasGameLoop() {
-            if (!isEngineRunning) return;
-            updateFramePhysics();
-            renderFrameGraphics();
-            animationFrameHandle = requestAnimationFrame(runCanvasGameLoop);
-        }
+        function harvestLaneIndex(index) {
+            if (isProcessingHarvest) return;
+            isProcessingHarvest = true;
 
-        function updateFramePhysics() {
-            if (horizontalMovementMode === -1 && basketX > 5) basketX -= 7;
-            if (horizontalMovementMode === 1 && basketX < (canvasElement.width - basketWidth - 5)) basketX += 7;
+            const targetRope = document.getElementById(`rope-${index}`);
+            const targetFruit = document.getElementById(`fruit-node-${index}`);
+            if (!targetRope || !targetFruit) return;
 
-            // Step through all active arrows simultaneously
-            for (let i = activeHarpoonsList.length - 1; i >= 0; i--) {
-                let hook = activeHarpoonsList[i];
-                hook.y -= 12; // Snappy up velocity
-                
-                if (hook.y < 0) {
-                    activeHarpoonsList.splice(i, 1);
-                    continue;
+            const fruitBounds = targetFruit.getBoundingClientRect();
+            const arenaBounds = document.getElementById('play-arena').getBoundingClientRect();
+            const travelDistance = arenaBounds.bottom - fruitBounds.bottom + 15;
+
+            targetRope.style.display = 'block';
+            targetRope.style.height = `${travelDistance}px`;
+
+            setTimeout(() => {
+                const answer = activeAnswersOrdered[index];
+                targetFruit.style.visibility = 'hidden';
+
+                if (answer && answer.isCorrect) {
+                    playAudioFile('s-correct');
+                    currentScore += 10;
+                    document.getElementById('lbl-score').innerText = currentScore;
+                } else {
+                    playAudioFile('s-wrong');
+                    livesLeft--;
+                    let hearts = "";
+                    for (let i = 0; i < livesLeft; i++) hearts += "❤️";
+                    document.getElementById('lbl-lives').innerText = hearts || "NONE";
                 }
 
-                for (let j = crystalDiamondsList.length - 1; j >= 0; j--) {
-                    let fruit = crystalDiamondsList[j];
-                    let currentSwayX = fruit.x + Math.sin((Date.now() * 0.002) + fruit.swayOffset) * 10;
-
-                    let dx = hook.x - currentSwayX;
-                    let dy = hook.y - fruit.y;
-                    let distance = Math.sqrt(dx*dx + dy*dy);
-
-                    if (distance <= fruit.radius) {
-                        activeHarpoonsList.splice(i, 1);
-                        if (fruit.isCorrect) {
-                            playAudioFile('s-correct');
-                            currentScore += 10;
-                            document.getElementById('lbl-score').innerText = currentScore;
-                            generateNextFractionQuestion();
-                        } else {
-                            playAudioFile('s-wrong');
-                            deductLifeToken();
-                        }
-                        return;
+                targetRope.style.height = '0px';
+                setTimeout(() => {
+                    targetRope.style.display = 'none';
+                    if (livesLeft <= 0) {
+                        renderGameOverScreen();
+                    } else {
+                        generateNextFractionQuestion();
                     }
-                }
-            }
+                }, 220);
+            }, 220);
         }
 
-        function deductLifeToken() {
-            livesLeft--;
-            let hearts = "";
-            for (let i = 0; i < livesLeft; i++) hearts += "❤️";
-            document.getElementById('lbl-lives').innerText = hearts || "NONE";
-
-            if (livesLeft <= 0) {
-                isEngineRunning = false;
-                renderGameOverScreen();
-            } else {
-                generateNextFractionQuestion();
-            }
-        }
-
-        function triggerHarpoonGrappleSequence() {
-            if (!isEngineRunning) return;
-            const now = Date.now();
-            if (now - lastFiredTime < fireRateLimit) return; // Enforce minor cooldown to prevent extreme grouping jams
-            
-            lastFiredTime = now;
-            activeHarpoonsList.push({
-                x: basketX + (basketWidth / 2),
-                y: canvasElement.height - 35
-            });
-        }
-
-        function renderFrameGraphics() {
-            canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
-
-            // Draw clean climbing wire lines for all fired arrows
-            canvasContext.strokeStyle = '#c2410c';
-            canvasContext.lineWidth = 2;
-            for (let i = 0; i < activeHarpoonsList.length; i++) {
-                let hook = activeHarpoonsList[i];
-                canvasContext.beginPath();
-                canvasContext.moveTo(hook.x, canvasElement.height - 25);
-                canvasContext.lineTo(hook.x, hook.y);
-                canvasContext.stroke();
-
-                // Arrow head
-                canvasContext.fillStyle = '#ea580c';
-                canvasContext.beginPath();
-                canvasContext.moveTo(hook.x, hook.y - 6);
-                canvasContext.lineTo(hook.x + 5, hook.y + 2);
-                canvasContext.lineTo(hook.x - 5, hook.y + 2);
-                canvasContext.fill();
-            }
-
-            // Draw Minimalist Harvesting Cart
-            canvasContext.fillStyle = '#7c2d12';
-            canvasContext.beginPath();
-            canvasContext.roundRect(basketX, canvasElement.height - 25, basketWidth, basketHeight, 6);
-            canvasContext.fill();
-
-            // Draw Rounded Citrus Fruits
-            for (let i = 0; i < crystalDiamondsList.length; i++) {
-                let fruit = crystalDiamondsList[i];
-                let swayX = fruit.x + Math.sin((Date.now() * 0.002) + fruit.swayOffset) * 10;
-
-                canvasContext.save();
-                canvasContext.translate(swayX, fruit.y);
-
-                // Orange circle body
-                canvasContext.fillStyle = '#f97316';
-                canvasContext.strokeStyle = '#ea580c';
-                canvasContext.lineWidth = 3;
-                canvasContext.beginPath();
-                canvasContext.arc(0, 0, fruit.radius, 0, Math.PI * 2);
-                canvasContext.fill();
-                canvasContext.stroke();
-
-                // Leaf accent
-                canvasContext.fillStyle = '#22c55e';
-                canvasContext.beginPath();
-                canvasContext.ellipse(0, -fruit.radius + 2, 8, 4, Math.PI / 4, 0, Math.PI * 2);
-                canvasContext.fill();
-
-                // Value labels
-                canvasContext.fillStyle = '#ffffff';
-                canvasContext.font = '700 14px sans-serif';
-                canvasContext.textAlign = 'center';
-                canvasContext.textBaseline = 'middle';
-                canvasContext.fillText(fruit.label, 0, 0);
-
-                canvasContext.restore();
-            }
-        }
-
-        function attachSteeringControls() {
-            window.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowLeft') horizontalMovementMode = -1;
-                if (e.key === 'ArrowRight') horizontalMovementMode = 1;
-                if (e.key === ' ' || e.key === 'Spacebar') {
-                    e.preventDefault();
-                    triggerHarpoonGrappleSequence();
-                }
-            });
-            window.addEventListener('keyup', (e) => {
-                if (e.key === 'ArrowLeft' && horizontalMovementMode === -1) horizontalMovementMode = 0;
-                if (e.key === 'ArrowRight' && horizontalMovementMode === 1) horizontalMovementMode = 0;
-            });
-
-            const leftBtn = document.getElementById('btn-left-press');
-            const rightBtn = document.getElementById('btn-right-press');
-            const fireBtn = document.getElementById('btn-fire-press');
-
-            if (leftBtn && rightBtn && fireBtn) {
-                leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); horizontalMovementMode = -1; });
-                leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(horizontalMovementMode === -1) horizontalMovementMode = 0; });
-                rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); horizontalMovementMode = 1; });
-                rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(horizontalMovementMode === 1) horizontalMovementMode = 0; });
-                fireBtn.addEventListener('touchstart', (e) => { e.preventDefault(); triggerHarpoonGrappleSequence(); });
-
-                leftBtn.addEventListener('mousedown', () => horizontalMovementMode = -1);
-                leftBtn.addEventListener('mouseup', () => { if(horizontalMovementMode === -1) horizontalMovementMode = 0; });
-                rightBtn.addEventListener('mousedown', () => horizontalMovementMode = 1);
-                rightBtn.addEventListener('mouseup', () => { if(horizontalMovementMode === 1) horizontalMovementMode = 0; });
-                fireBtn.addEventListener('mousedown', () => triggerHarpoonGrappleSequence());
-            }
+        function autoTargetCorrectLane() {
+            const correctIndex = activeAnswersOrdered.findIndex(ans => ans.isCorrect);
+            if (correctIndex !== -1) harvestLaneIndex(correctIndex);
         }
 
         function renderGameOverScreen() {
@@ -495,7 +449,7 @@
                     <p style="color:#7c2d12; font-size:1.1rem; margin-bottom:15px;">
                         Final Score: <span style="color:#ea580c; font-weight:800;">${currentScore} Points</span>
                     </p>
-                    <button class="btn-action" onclick="renderMenuScreen()">PLAY AGAIN</button>
+                    <button class="btn-action" style="background:#ef4444;" onclick="renderMenuScreen()">PLAY AGAIN</button>
                 </div>
             `;
         }
@@ -505,10 +459,19 @@
                 const sound = document.getElementById(id);
                 if (sound) {
                     sound.currentTime = 0;
-                    sound.play().catch(() => {});
+                    sound.play().catch(() => {}); // Catch prevents console errors on early clicks
                 }
             } catch (err) {}
         }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowLeft') harvestLaneIndex(0);
+            if (e.key === 'ArrowRight') harvestLaneIndex(2);
+            if (e.key === ' ' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                autoTargetCorrectLane();
+            }
+        });
     </script>
 </body>
 </html>
