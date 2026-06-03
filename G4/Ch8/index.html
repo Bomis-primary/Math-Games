@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chronos Dash - Time & Calendar</title>
+    <title>Time Diamond Runner</title>
     <style>
         * {
             box-sizing: border-box;
@@ -16,7 +16,7 @@
         body, html {
             width: 100%;
             height: 100%;
-            background-color: #0b091a;
+            background-color: #060412;
             color: #ffffff;
             overflow: hidden;
         }
@@ -28,10 +28,11 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 20px;
+            padding: 15px;
+            position: relative;
         }
 
-        .menu-card {
+        .menu-panel {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 24px;
@@ -41,134 +42,96 @@
             text-align: center;
             box-shadow: 0 15px 40px rgba(0,0,0,0.6);
         }
-        .btn-action {
-            background: linear-gradient(135deg, #f59e0b, #ef4444);
-            color: #ffffff;
+        .btn-start {
+            background: linear-gradient(135deg, #00bbf9, #00f5d4);
+            color: #060412;
             border: none;
             padding: 15px 45px;
             font-size: 1.15rem;
             border-radius: 30px;
             cursor: pointer;
             font-weight: bold;
-            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.3);
+            box-shadow: 0 6px 20px rgba(0, 245, 212, 0.3);
             margin-top: 20px;
         }
 
-        .game-layout {
+        .game-grid {
             width: 100%;
-            max-width: 600px;
+            max-width: 500px;
             height: 100%;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            align-items: center;
         }
-        .hud-top {
+        .hud-row {
             display: flex;
             justify-content: space-between;
-            width: 100%;
-            font-size: 1.1rem;
-            color: #f59e0b;
             font-weight: bold;
+            color: #00bbf9;
             padding: 5px 0;
+            font-size: 1.05rem;
         }
 
-        /* Dash Board Track */
-        .track-container {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
-            padding: 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: relative;
-            margin: 15px 0;
-        }
-        .track-node {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #1e1b4b;
-            border: 2px solid #4338ca;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 0.75rem;
-            color: #a5b4fc;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-        .track-node.active {
-            background: #f59e0b;
-            border-color: #ffffff;
-            color: #0b091a;
-            box-shadow: 0 0 15px #f59e0b;
-            transform: scale(1.2);
-        }
-        .track-node.cleared {
-            background: #10b981;
-            border-color: #10b981;
-            color: #ffffff;
-        }
-
-        /* Target Portal Choices */
-        .portal-deck {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-        .portal-option {
-            width: 48%;
-            background: linear-gradient(135deg, #1e1b4b 0%, #110e2e 100%);
-            border: 2px solid #3b82f6;
-            border-radius: 20px;
-            padding: 25px 15px;
-            text-align: center;
-            font-size: 1.3rem;
-            font-weight: bold;
-            color: #ffffff;
-            cursor: pointer;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
-            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
-        }
-        .portal-option:active {
-            transform: scale(0.97);
-        }
-        .portal-option:hover {
-            border-color: #f59e0b;
-            box-shadow: 0 5px 15px rgba(245, 158, 11, 0.2);
-        }
-
-        /* Dynamic Query Display Display */
-        .challenge-box {
+        .mission-header {
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            width: 100%;
-            padding: 30px 20px;
+            border-radius: 16px;
+            padding: 15px;
             text-align: center;
-            margin-bottom: 20px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-        .challenge-tag {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: #f59e0b;
             margin-bottom: 10px;
+        }
+        .mission-tag {
+            font-size: 0.75rem;
+            color: #00f5d4;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .mission-text {
+            font-size: 1.25rem;
             font-weight: bold;
         }
-        .challenge-text {
+
+        /* Active Dynamic Run Screen Canvas Area */
+        .canvas-container {
+            width: 100%;
+            background: linear-gradient(180deg, #0d0a21 0%, #05030f 100%);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            position: relative;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Mobile Controller Steering Overlays */
+        .touch-controls {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 10px;
+            height: 60px;
+        }
+        .control-btn {
+            width: 48%;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #ffffff;
             font-size: 1.5rem;
             font-weight: bold;
-            line-height: 1.4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .control-btn:active {
+            background: rgba(0, 187, 249, 0.2);
         }
 
         #hard-splash {
@@ -186,27 +149,43 @@
 </head>
 <body>
 
+    <!-- Native Audio Anchors -->
     <audio id="s-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
     <audio id="s-win" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
 
+    <!-- Auto-Purging Preloader Shield Wrapper -->
     <div id="hard-splash">
         <img src="assets/logo.png" style="max-width:240px; margin-bottom:20px;" onerror="this.style.display='none'; document.getElementById('fb-text').style.display='block';">
         <h1 id="fb-text" style="display:none; font-size:2.4rem; margin-bottom:15px; letter-spacing:1px;">INNOVINE</h1>
         <div style="width:200px; height:6px; background-color:#e2e8f0; border-radius:3px; overflow:hidden;">
-            <div id="loader-progress-fill" style="width:0%; height:100%; background-color:#f59e0b;"></div>
+            <div id="loader-progress-fill" style="width:0%; height:100%; background-color:#00bbf9;"></div>
         </div>
     </div>
 
+    <!-- Central Viewport Mount Point Node -->
     <div id="viewport-root"></div>
 
     <script>
-        let currentSector = 0;
-        const totalSectors = 10;
+        let gameScore = 0;
+        const victoryCondition = 10;
         
-        let targetSolutionIndex = 0; // 0 for Left Portal, 1 for Right Portal
+        let canvasElement = null;
+        let canvasContext = null;
+        let animationFrameHandle = null;
 
-        // Initial launch loading sequencing
+        // Interactive Simulation Settings Data
+        let playerShipX = 220;
+        const playerShipWidth = 60;
+        const playerShipHeight = 15;
+        let shipVelocityDirection = 0; // -1 for left, 1 for right, 0 for idle
+
+        let fallingDiamondsList = [];
+        let itemSpawnCountdown = 0;
+        let challengeSolutionValue = 0;
+        let activeIsRunning = false;
+
+        // Screen load state tracking ticker
         let progressVal = 0;
         const progressTicker = setInterval(() => {
             progressVal += 5;
@@ -217,172 +196,286 @@
                 clearInterval(progressTicker);
                 purgeSplashAndBuildMenu();
             }
-        }, 50);
+        }, 40);
 
         function purgeSplashAndBuildMenu() {
             const splashMask = document.getElementById('hard-splash');
             if (splashMask) {
-                splashMask.parentNode.removeChild(splashMask); // Evicts node fully
+                splashMask.parentNode.removeChild(splashMask); // Evicts asset container out of hierarchy tree immediately
             }
             renderMenuScreen();
         }
 
         function renderMenuScreen() {
+            activeIsRunning = false;
+            if (animationFrameHandle) cancelAnimationFrame(animationFrameHandle);
+            
             document.getElementById('viewport-root').innerHTML = `
-                <div class="menu-card">
-                    <h1 style="color:#f59e0b; font-size:2rem; margin-bottom:12px;">Chronos Dash</h1>
+                <div class="menu-panel">
+                    <h1 style="color:#00bbf9; font-size:2rem; margin-bottom:12px;">Diamond Runner</h1>
                     <p style="color:#b2b2cc; font-size:0.95rem; line-height:1.6; text-align:left; margin-bottom:20px;">
-                        Navigate through the chronological timeline sectors! Read the time problem context card and choose the correct forwarding energy portal pathway. No sorting required.
+                        Steer your energy collection ship left and right on the bottom track! Look closely at the time conversion challenge card at the top, then catch only the falling diamonds containing the correct answer value. 
                     </p>
-                    <button class="btn-action" onclick="initiateGameEngine()">LAUNCH DASH</button>
+                    <div style="color:#00f5d4; font-size:0.85rem; margin-bottom:20px; font-weight:bold;">
+                        🎮 Desktop: Use Left / Right Arrow Keys<br>📱 Mobile: Tap Left / Right Screen Buttons
+                    </div>
+                    <button class="btn-start" onclick="initiateGameEngine()">START RUN</button>
                 </div>
             `;
         }
 
         function initiateGameEngine() {
-            currentSector = 0;
-            renderGameBoard();
-            generateNextChallenge();
+            gameScore = 0;
+            fallingDiamondsList = [];
+            itemSpawnCountdown = 0;
+            activeIsRunning = true;
+            
+            buildGameLayoutDOM();
+            generateNextChronosQuestion();
+            initializeCanvasEngineLoop();
+            attachSteeringControls();
         }
 
-        function renderGameBoard() {
-            // Generate linear map tracks dynamically
-            let nodesHtml = "";
-            for (let i = 0; i < totalSectors; i++) {
-                nodesHtml += `<div class="track-node" id="node-${i}">${i + 1}</div>`;
-            }
-
+        function buildGameLayoutDOM() {
             document.getElementById('viewport-root').innerHTML = `
-                <div class="game-layout">
-                    <div class="hud-top">
-                        <div>Timeline Milestone: <span id="lbl-sector">1</span> / 10</div>
+                <div class="game-grid">
+                    <div class="hud-row">
+                        <div>Diamonds: <span id="lbl-score">0</span> / 10</div>
                         <div>Chapter 08: Time</div>
                     </div>
-                    
-                    <div class="track-container">
-                        ${nodesHtml}
+
+                    <div class="mission-header">
+                        <div class="mission-tag" id="lbl-task-tag">Loading...</div>
+                        <div class="mission-text" id="lbl-task-text">-</div>
                     </div>
 
-                    <div class="challenge-box">
-                        <div class="challenge-tag" id="ch-tag">Loading Topic...</div>
-                        <div class="challenge-text" id="ch-text">-</div>
+                    <div class="canvas-container" id="canvas-wrapper">
+                        <canvas id="run-canvas" width="450" height="450"></canvas>
                     </div>
 
-                    <div class="portal-deck">
-                        <div class="portal-option" id="portal-0" onclick="evaluatePortalSelection(0)">-</div>
-                        <div class="portal-option" id="portal-1" onclick="evaluatePortalSelection(1)">-</div>
+                    <div class="touch-controls">
+                        <div class="control-btn" id="btn-left-press">◀</div>
+                        <div class="control-btn" id="btn-right-press">▶</div>
                     </div>
                 </div>
             `;
+
+            canvasElement = document.getElementById('run-canvas');
+            canvasContext = canvasElement.getContext('2d');
+            playerShipX = (canvasElement.width / 2) - (playerShipWidth / 2);
         }
 
-        function updateTrackVisuals() {
-            for (let i = 0; i < totalSectors; i++) {
-                const node = document.getElementById(`node-${i}`);
-                if (!node) continue;
-                
-                node.className = "track-node"; // reset standard
-                if (i < currentSector) {
-                    node.classList.add("cleared");
-                } else if (i === currentSector) {
-                    node.classList.add("active");
-                }
-            }
-            const progressLabel = document.getElementById('lbl-sector');
-            if (progressLabel) progressLabel.innerText = (currentSector + 1 <= 10) ? (currentSector + 1) : 10;
-        }
+        function generateNextChronosQuestion() {
+            fallingDiamondsList = [];
+            const rollType = Math.random();
 
-        function generateNextChallenge() {
-            updateTrackVisuals();
+            let targetTag = "";
+            let targetQuestion = "";
 
-            const randomType = Math.random();
-            targetSolutionIndex = Math.random() < 0.5 ? 0 : 1;
-
-            let tagText = "";
-            let questionText = "";
-            let optionLeft = "";
-            let optionRight = "";
-
-            if (randomType < 0.34) {
-                // Topic: Format differentiation (12hr vs 24hr)
-                tagText = "Format Conversion";
+            if (rollType < 0.34) {
+                // Topic format calculations
+                targetTag = "Format Shift (12h ➔ 24h)";
                 const choices = [
-                    { q: "Convert 02:45 PM to 24-Hour format", a: "14:45", w: "02:45" },
-                    { q: "Convert 08:15 PM to 24-Hour format", a: "20:15", w: "08:15" },
-                    { q: "Convert 11:30 PM to 24-Hour format", a: "23:30", w: "11:30" },
-                    { q: "Convert 00:20 Hours to 12-Hour format", a: "12:20 AM", w: "12:20 PM" }
+                    { q: "What hour marker is 04:00 PM?", a: 16 },
+                    { q: "What hour marker is 09:00 PM?", a: 21 },
+                    { q: "What hour marker is 11:00 PM?", a: 23 },
+                    { q: "What hour marker is 07:00 PM?", a: 19 }
                 ];
-                const item = choices[Math.floor(Math.random() * choices.length)];
-                questionText = item.q;
-                optionLeft = (targetSolutionIndex === 0) ? item.a : item.w;
-                optionRight = (targetSolutionIndex === 1) ? item.a : item.w;
+                const choice = choices[Math.floor(Math.random() * choices.length)];
+                targetQuestion = choice.q;
+                challengeSolutionValue = choice.a;
             } 
-            else if (randomType < 0.67) {
-                // Topic: Conversions Metrics (hours to minutes, etc)
-                tagText = "Unit Conversion";
+            else if (rollType < 0.67) {
+                // Topic unit conversions calculation matrix
+                targetTag = "Time Metric Conversion";
                 const choices = [
-                    { q: "How many minutes are in 3 hours?", a: "180 Min", w: "150 Min" },
-                    { q: "How many seconds are in 2 minutes?", a: "120 Sec", w: "200 Sec" },
-                    { q: "Convert 1 Hour 15 Minutes into pure minutes", a: "75 Min", w: "115 Min" },
-                    { q: "How many minutes are in 4 hours?", a: "240 Min", w: "140 Min" }
+                    { q: "How many minutes are in 2 hours?", a: 120 },
+                    { q: "How many seconds are in 3 minutes?", a: 180 },
+                    { q: "How many minutes are in 1 hour 40 min?", a: 100 },
+                    { q: "How many seconds are in 1 minute 15 sec?", a: 75 }
                 ];
-                const item = choices[Math.floor(Math.random() * choices.length)];
-                questionText = item.q;
-                optionLeft = (targetSolutionIndex === 0) ? item.a : item.w;
-                optionRight = (targetSolutionIndex === 1) ? item.a : item.w;
+                const choice = choices[Math.floor(Math.random() * choices.length)];
+                targetQuestion = choice.q;
+                challengeSolutionValue = choice.a;
             } 
             else {
-                // Topic: Elapsed duration calculations
-                tagText = "Elapsed Time Interval";
+                // Topic elapsed time boundaries calculation
+                targetTag = "Elapsed Duration Interval";
                 const choices = [
-                    { q: "Time elapsed between 04:15 PM and 05:30 PM?", a: "1 Hr 15 Min", w: "2 Hrs 15 Min" },
-                    { q: "Time elapsed between 09:00 AM and 11:30 AM?", a: "2 Hrs 30 Min", w: "1 Hr 30 Min" },
-                    { q: "Time elapsed between 13:00 Hours and 14:15 Hours?", a: "1 Hr 15 Min", w: "45 Min" }
+                    { q: "Minutes elapsed from 02:15 PM to 03:00 PM?", a: 45 },
+                    { q: "Minutes elapsed from 11:40 AM to 12:20 PM?", a: 40 },
+                    { q: "Hours elapsed between 08:00 AM and 01:00 PM?", a: 5 },
+                    { q: "Minutes elapsed from 06:10 Hours to 07:00 Hours?", a: 50 }
                 ];
-                const item = choices[Math.floor(Math.random() * choices.length)];
-                questionText = item.q;
-                optionLeft = (targetSolutionIndex === 0) ? item.a : item.w;
-                optionRight = (targetSolutionIndex === 1) ? item.a : item.w;
+                const choice = choices[Math.floor(Math.random() * choices.length)];
+                targetQuestion = choice.q;
+                challengeSolutionValue = choice.a;
             }
 
-            document.getElementById('ch-tag').innerText = tagText;
-            document.getElementById('ch-text').innerText = questionText;
-            document.getElementById('portal-0').innerText = optionLeft;
-            document.getElementById('portal-1').innerText = optionRight;
+            document.getElementById('lbl-task-tag').innerText = targetTag;
+            document.getElementById('lbl-task-text').innerText = targetQuestion;
         }
 
-        function evaluatePortalSelection(selectedIndex) {
-            if (selectedIndex === targetSolutionIndex) {
-                playAudioFile('s-correct');
-                currentSector++;
+        function initializeCanvasEngineLoop() {
+            if (!activeIsRunning) return;
 
-                if (currentSector >= totalSectors) {
-                    updateTrackVisuals();
-                    playAudioFile('s-win');
-                    renderWinScreen();
+            // Physics calculation loops updates
+            updateSimulationPhysics();
+            renderSimulationGraphics();
+
+            animationFrameHandle = requestAnimationFrame(initializeCanvasEngineLoop);
+        }
+
+        function updateSimulationPhysics() {
+            // Apply runner spaceship locomotion speeds
+            if (shipVelocityDirection === -1 && playerShipX > 0) {
+                playerShipX -= 7;
+            } else if (shipVelocityDirection === 1 && playerShipX < (canvasElement.width - playerShipWidth)) {
+                playerShipX += 7;
+            }
+
+            // Spawn falling diamonds values streams over time intervals
+            itemSpawnCountdown--;
+            if (itemSpawnCountdown <= 0) {
+                itemSpawnCountdown = 45; // loop counter cycles reset cadence bound
+                
+                // Decide if spawning the correct solution diamond or a distraction dummy
+                const deliverTrueSolution = Math.random() < 0.35;
+                let particleValue = 0;
+
+                if (deliverTrueSolution) {
+                    particleValue = challengeSolutionValue;
                 } else {
-                    generateNextChallenge();
+                    // Create an incorrect distraction offset dummy diamond value
+                    const randomOffset = (Math.floor(Math.random() * 4) + 1) * (Math.random() < 0.5 ? 5 : -5);
+                    particleValue = Math.max(2, challengeSolutionValue + randomOffset);
                 }
-            } else {
-                playAudioFile('s-wrong');
-                // Shake active node warning highlight action trigger
-                const activeNode = document.getElementById(`node-${currentSector}`);
-                if (activeNode) {
-                    activeNode.style.backgroundColor = '#ef4444';
-                    setTimeout(() => { activeNode.style.backgroundColor = ''; }, 300);
+
+                fallingDiamondsList.push({
+                    x: Math.random() * (canvasElement.width - 40) + 10,
+                    y: -10,
+                    value: particleValue,
+                    speed: Math.random() * 2 + 2.5
+                });
+            }
+
+            // Move falling elements downward and check boundaries
+            for (let i = fallingDiamondsList.length - 1; i >= 0; i--) {
+                const item = fallingDiamondsList[i];
+                item.y += item.speed;
+
+                // Collision detection against runner paddle ship
+                const catchBufferY = canvasElement.height - 40;
+                if (item.y >= catchBufferY && item.y <= catchBufferY + playerShipHeight) {
+                    if (item.x >= playerShipX - 15 && item.x <= playerShipX + playerShipWidth + 15) {
+                        
+                        // Hit registration check
+                        if (item.value === challengeSolutionValue) {
+                            playAudioFile('s-correct');
+                            gameScore++;
+                            document.getElementById('lbl-score').innerText = gameScore;
+
+                            if (gameScore >= victoryCondition) {
+                                playAudioFile('s-win');
+                                activeIsRunning = false;
+                                renderVictoryScreen();
+                                return;
+                            } else {
+                                generateNextChronosQuestion();
+                            }
+                        } else {
+                            // Caught incorrect answer value matrix
+                            playAudioFile('s-wrong');
+                            flashShipErrorColor();
+                        }
+                        fallingDiamondsList.splice(i, 1);
+                        continue;
+                    }
+                }
+
+                // Remove diamond if it drops past screen boundary bottom track
+                if (item.y > canvasElement.height) {
+                    fallingDiamondsList.splice(i, 1);
                 }
             }
         }
 
-        function renderWinScreen() {
+        let flashAlertActive = false;
+        function flashShipErrorColor() {
+            flashAlertActive = true;
+            setTimeout(() => { flashAlertActive = false; }, 250);
+        }
+
+        function renderSimulationGraphics() {
+            canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            // Draw player ship pad vector
+            canvasContext.fillStyle = flashAlertActive ? '#ef4444' : '#00f5d4';
+            canvasContext.shadowColor = canvasContext.fillStyle;
+            canvasContext.shadowBlur = 12;
+            canvasContext.fillRect(playerShipX, canvasElement.height - 40, playerShipWidth, playerShipHeight);
+            canvasContext.shadowBlur = 0; // reset
+
+            // Draw falling diamonds
+            for (let i = 0; i < fallingDiamondsList.length; i++) {
+                const diamond = fallingDiamondsList[i];
+                
+                canvasContext.fillStyle = '#ff007f';
+                canvasContext.beginPath();
+                canvasContext.moveTo(diamond.x, diamond.y - 12); // top point
+                canvasContext.lineTo(diamond.x + 14, diamond.y); // right point
+                canvasContext.lineTo(diamond.x, diamond.y + 12); // bottom point
+                canvasContext.lineTo(diamond.x - 14, diamond.y); // left point
+                canvasContext.closePath();
+                canvasContext.fill();
+
+                // Text value inside diamond node mapping
+                canvasContext.fillStyle = '#ffffff';
+                canvasContext.font = 'bold 12px sans-serif';
+                canvasContext.textAlign = 'center';
+                canvasContext.fillText(diamond.value, diamond.x, diamond.y + 4);
+            }
+        }
+
+        function attachSteeringControls() {
+            // Keyboard controls
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') shipVelocityDirection = -1;
+                if (e.key === 'ArrowRight') shipVelocityDirection = 1;
+            });
+            window.addEventListener('keyup', (e) => {
+                if (e.key === 'ArrowLeft' && shipVelocityDirection === -1) shipVelocityDirection = 0;
+                if (e.key === 'ArrowRight' && shipVelocityDirection === 1) shipVelocityDirection = 0;
+            });
+
+            // Touch UI overlay controls integration
+            const leftBtn = document.getElementById('btn-left-press');
+            const rightBtn = document.getElementById('btn-right-press');
+
+            if (leftBtn && rightBtn) {
+                leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); shipVelocityDirection = -1; });
+                leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(shipVelocityDirection === -1) shipVelocityDirection = 0; });
+                
+                rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); shipVelocityDirection = 1; });
+                rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(shipVelocityDirection === 1) shipVelocityDirection = 0; });
+
+                // Fallback mouse listeners for testing mobile nodes layout safely
+                leftBtn.addEventListener('mousedown', () => shipVelocityDirection = -1);
+                leftBtn.addEventListener('mouseup', () => { if(shipVelocityDirection === -1) shipVelocityDirection = 0; });
+                rightBtn.addEventListener('mousedown', () => shipVelocityDirection = 1);
+                rightBtn.addEventListener('mouseup', () => { if(shipVelocityDirection === 1) shipVelocityDirection = 0; });
+            }
+        }
+
+        function renderVictoryScreen() {
             document.getElementById('viewport-root').innerHTML = `
-                <div class="menu-card" style="border-color: rgba(16, 185, 129, 0.4);">
+                <div class="menu-panel" style="border-color: rgba(0, 245, 212, 0.4);">
                     <div style="font-size:3.5rem; margin-bottom:10px;">🏆</div>
-                    <h1 style="color:#10b981; font-size:1.8rem; margin-bottom:10px;">Timeline Completed!</h1>
+                    <h1 style="color:#00f5d4; font-size:1.8rem; margin-bottom:10px;">Time Circuit Cleared!</h1>
                     <p style="color:#b2b2cc; font-size:0.95rem; margin-bottom:25px; line-height:1.5;">
-                        Spectacular chronographic tracking! You completed conversions and calculated intervals through all 10 sectors accurately.
+                        Sensational speed run! You tracked conversion intervals and clock positions perfectly across all vectors.
                     </p>
-                    <button class="btn-action" style="background:linear-gradient(135deg, #10b981, #3b82f6);" onclick="renderMenuScreen()">Play Again</button>
+                    <button class="btn-start" onclick="renderMenuScreen()">Play Again</button>
                 </div>
             `;
         }
