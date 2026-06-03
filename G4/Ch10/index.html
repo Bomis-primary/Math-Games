@@ -123,8 +123,11 @@
             letter-spacing: 1px;
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
         }
-        .btn-submit:active {
-            background: #059669;
+        .btn-submit:disabled {
+            background: #344154;
+            color: #64748b;
+            cursor: not-allowed;
+            box-shadow: none;
         }
 
         .toast-banner {
@@ -141,7 +144,7 @@
         <div class="control-panel">
             <div class="signpost">
                 <div class="signpost-title">TRAFFIC WEIGHT & TRACK ROUTING</div>
-                <div class="signpost-value" id="lbl-highway-directive">Loading Highway Config...</div>
+                <div class="signpost-value" id="lbl-highway-directive">Configuring Junctions...</div>
             </div>
             <p style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">
                 Select Lane 1, 2, or 3 to realign the asphalt route junctions below.
@@ -160,16 +163,25 @@
             <button class="btn-switch" id="sw-2" onclick="alignRouteLane(2)">Lane 3</button>
         </div>
 
-        <button class="btn-submit" onclick="dispatchVehicles()">Launch Traffic Flow</button>
+        <button class="btn-submit" id="btn-dispatch" onclick="dispatchVehicles()">Launch Traffic Flow</button>
     </div>
 
     <script>
         let currentTargetQuery = null;
-        let selectedLaneIndex = 0; // Default active lane route configuration
+        let selectedLaneIndex = 0; 
         let laneOptionsData = [];
 
         let canvasElement = null;
         let canvasContext = null;
+        let animationFrameId = null;
+
+        // Vehicle Animation Properties
+        let currentVehicle = {
+            progress: 0,       // 0 to 1 along the curve path
+            isMoving: false,
+            type: 'car',       // 'car' or 'bike'
+            color: '#f43f5e'
+        };
 
         window.onload = () => {
             canvasElement = document.getElementById('highway-canvas');
@@ -177,6 +189,7 @@
             
             setupCanvasSize();
             generateNextHighwayLevel();
+            startGameLoop();
         };
 
         function setupCanvasSize() {
@@ -188,35 +201,61 @@
         function generateNextHighwayLevel() {
             document.getElementById('lbl-feedback').innerText = "Adjust lanes, then launch traffic...";
             document.getElementById('lbl-feedback').style.color = "#64748b";
+            document.getElementById('btn-dispatch').disabled = false;
 
-            // Metric curriculum questions directly referencing image_e59501.png
-            const conversionDatabase = [
-                { directive: "Route vehicles matching 4 meters", correct: "400 cm", wrong: ["40 cm", "4000 cm"] },
-                { directive: "Route vehicles matching 7 kilometers", correct: "7000 m", wrong: ["700 m", "70 m"] },
-                { directive: "Route vehicles matching 3 kilograms", correct: "3000 g", wrong: ["300 g", "30000 g"] },
-                { directive: "Route vehicles matching 2 liters", correct: "2000 ml", wrong: ["200 ml", "20 ml"] },
-                { directive: "Route vehicles matching 50 millimeters", correct: "5 cm", wrong: ["500 cm", "0.5 cm"] },
-                { directive: "Route vehicles matching 8.5 kilograms", correct: "8500 g", wrong: ["850 g", "85 g"] }
+            // Completely expanded randomized math database matrix
+            const basePool = [
+                { val: 5, unit: 'm', cVal: '500 cm', w1: '50 cm', w2: '5000 cm' },
+                { val: 12, unit: 'm', cVal: '1200 cm', w1: '120 cm', w2: '12000 cm' },
+                { val: 3.5, unit: 'm', cVal: '350 cm', w1: '35 cm', w2: '3500 cm' },
+                { val: 9, unit: 'km', cVal: '9000 m', w1: '900 m', w2: '90 m' },
+                { val: 1.5, unit: 'km', cVal: '1500 m', w1: '150 m', w2: '15000 m' },
+                { val: 4, unit: 'kg', cVal: '4000 g', w1: '400 g', w2: '40000 g' },
+                { val: 6.5, unit: 'kg', cVal: '6500 g', w1: '650 g', w2: '65000 g' },
+                { val: 0.5, unit: 'kg', cVal: '500 g', w1: '50 g', w2: '5000 g' },
+                { val: 3, unit: 'L', cVal: '3000 ml', w1: '300 ml', w2: '30 ml' },
+                { val: 7.5, unit: 'L', cVal: '7500 ml', w1: '750 ml', w2: '75000 ml' },
+                { val: 80, unit: 'mm', cVal: '8 cm', w1: '80 cm', w2: '0.8 cm' },
+                { val: 250, unit: 'mm', cVal: '25 cm', w1: '250 cm', w2: '2.5 cm' }
             ];
 
-            currentTargetQuery = conversionDatabase[Math.floor(Math.random() * conversionDatabase.length)];
+            // Pull a completely random item every time
+            let chosen = basePool[Math.floor(Math.random() * basePool.length)];
+            
+            let typeLabel = "WEIGHT";
+            if(chosen.unit === 'm' || chosen.unit === 'km' || chosen.unit === 'mm') typeLabel = "LENGTH";
+            if(chosen.unit === 'L') typeLabel = "CAPACITY";
+
+            currentTargetQuery = {
+                directive: `Route ${typeLabel}: ${chosen.val} ${chosen.unit}`,
+                correct: chosen.cVal,
+                wrong: [chosen.w1, chosen.w2]
+            };
+
             document.getElementById('lbl-highway-directive').innerText = currentTargetQuery.directive;
 
-            // Generate options structure and scramble
-            let pool = [
+            // Shuffle option list placement positions
+            let scrambledPool = [
                 { text: currentTargetQuery.correct, isTruePath: true },
                 { text: currentTargetQuery.wrong[0], isTruePath: false },
                 { text: currentTargetQuery.wrong[1], isTruePath: false }
             ].sort(() => Math.random() - 0.5);
 
-            laneOptionsData = pool;
-            alignRouteLane(0); // Set lane 1 active by default
+            laneOptionsData = scrambledPool;
+
+            // Reset Vehicle attributes for the round
+            currentVehicle.progress = 0;
+            currentVehicle.isMoving = false;
+            currentVehicle.type = Math.random() > 0.5 ? 'car' : 'bike';
+            currentVehicle.color = ['#f43f5e', '#3b82f6', '#10b981', '#eab308'][Math.floor(Math.random() * 4)];
+
+            alignRouteLane(0); 
         }
 
         function alignRouteLane(index) {
+            if (currentVehicle.isMoving) return; // Prevent adjustment mid-drive
             selectedLaneIndex = index;
 
-            // Manage styling of interactive buttons
             for (let i = 0; i < 3; i++) {
                 const btn = document.getElementById(`sw-${i}`);
                 if (btn) {
@@ -224,69 +263,108 @@
                     else btn.classList.remove('active');
                 }
             }
-
-            renderHighwayMap();
         }
 
-        function renderHighwayMap() {
+        // Math Bezier math projection calculator to place vehicles directly onto the roadway curve
+        function getBezierXY(t, p0, p1, p2, p3) {
+            let cx = 3 * (p1.x - p0.x);
+            let bx = 3 * (p2.x - p1.x) - cx;
+            let ax = p3.x - p0.x - cx - bx;
+
+            let cy = 3 * (p1.y - p0.y);
+            let by = 3 * (p2.y - p1.y) - cy;
+            let ay = p3.y - p0.y - cy - by;
+
+            let x = (ax * t * t * t) + (bx * t * t) + (cx * t) + p0.x;
+            let y = (ay * t * t * t) + (by * t * t) + (cy * t) + p0.y;
+
+            return { x: x, y: y };
+        }
+
+        function startGameLoop() {
+            function loop() {
+                updatePhysics();
+                renderCanvasGraphics();
+                animationFrameId = requestAnimationFrame(loop);
+            }
+            loop();
+        }
+
+        function updatePhysics() {
+            if (currentVehicle.isMoving) {
+                currentVehicle.progress += 0.015; // Animation speed step rate
+                if (currentVehicle.progress >= 1) {
+                    currentVehicle.progress = 1;
+                    currentVehicle.isMoving = false;
+                    evaluateLevelOutcome();
+                }
+            }
+        }
+
+        function renderCanvasGraphics() {
             canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
             const w = canvasElement.width;
             const h = canvasElement.height;
+            const laneYPositions = [h * 0.23, h * 0.5, h * 0.77];
 
-            // 1. Draw solid dark asphalt background highway blocks
+            // 1. Draw solid dark highway asphalt blocks
             canvasContext.fillStyle = '#1e293b';
-            
-            // Entrance Hub
             canvasContext.fillRect(0, h/2 - 25, 60, 50);
 
-            // Three branching exit highway lanes
-            const laneYPositions = [h * 0.25, h * 0.5, h * 0.75];
             for (let i = 0; i < 3; i++) {
                 canvasContext.fillRect(w - 120, laneYPositions[i] - 20, 120, 40);
             }
 
-            // 2. Draw procedural neon glowing connectivity lanes
-            canvasContext.lineWidth = 6;
+            // 2. Render Winding Connections
+            canvasContext.lineWidth = 8;
             canvasContext.lineCap = 'round';
-            canvasContext.lineJoin = 'round';
 
             for (let i = 0; i < 3; i++) {
-                const isActiveConnection = (i === selectedLaneIndex);
-                
-                // Color lane blue if selected active path, otherwise a subtle dark slate
-                canvasContext.strokeStyle = isActiveConnection ? '#38bdf8' : '#334155';
+                const isActive = (i === selectedLaneIndex);
+                canvasContext.strokeStyle = isActive ? '#38bdf8' : '#273549';
                 
                 canvasContext.beginPath();
                 canvasContext.moveTo(10, h / 2);
                 canvasContext.lineTo(60, h / 2);
-                // Curve smoothly up or down into target lane
                 canvasContext.bezierCurveTo(w * 0.4, h / 2, w * 0.4, laneYPositions[i], w - 100, laneYPositions[i]);
                 canvasContext.lineTo(w, laneYPositions[i]);
                 canvasContext.stroke();
-
-                // Draw decorative white center dashed line if active route is aligned
-                if (isActiveConnection) {
-                    canvasContext.strokeStyle = '#ffffff';
-                    canvasContext.lineWidth = 1.5;
-                    canvasContext.setLineDash([6, 6]);
-                    canvasContext.stroke();
-                    canvasContext.setLineDash([]);
-                    canvasContext.lineWidth = 6;
-                }
             }
 
-            // 3. Draw Starting Point Carrier Vehicle Pod
-            canvasContext.fillStyle = '#10b981';
-            canvasContext.beginPath();
-            canvasContext.arc(30, h / 2, 10, 0, Math.PI * 2);
-            canvasContext.fill();
+            // 3. Draw Animated Traffic Vehicle
+            let p0 = { x: 30, y: h / 2 };
+            let p1 = { x: w * 0.4, y: h / 2 };
+            let p2 = { x: w * 0.4, y: laneYPositions[selectedLaneIndex] };
+            let p3 = { x: w - 50, y: laneYPositions[selectedLaneIndex] };
+            
+            let vehPos = getBezierXY(currentVehicle.progress, p0, p1, p2, p3);
 
-            // 4. Draw Toll Gate terminal stations on exit lanes
+            canvasContext.save();
+            canvasContext.translate(vehPos.x, vehPos.y);
+            canvasContext.fillStyle = currentVehicle.color;
+
+            if (currentVehicle.type === 'car') {
+                // Render sleek vector car chassis block
+                canvasContext.fillRect(-14, -7, 28, 14);
+                // Windows
+                canvasContext.fillStyle = '#ffffff';
+                canvasContext.fillRect(2, -5, 6, 10);
+                canvasContext.fillRect(-8, -5, 6, 10);
+            } else {
+                // Render motor bike streamline vector representation
+                canvasContext.fillRect(-10, -3, 20, 6);
+                // Wheels
+                canvasContext.fillStyle = '#000000';
+                canvasContext.beginPath(); canvasContext.arc(-7, 3, 3, 0, Math.PI*2); canvasContext.fill();
+                canvasContext.beginPath(); canvasContext.arc(7, 3, 3, 0, Math.PI*2); canvasContext.fill();
+            }
+            canvasContext.restore();
+
+            // 4. Draw Toll Gate terminal boxes
             for (let i = 0; i < 3; i++) {
                 const option = laneOptionsData[i];
 
-                // Station box shell
                 canvasContext.fillStyle = '#0f172a';
                 canvasContext.strokeStyle = (i === selectedLaneIndex) ? '#38bdf8' : '#475569';
                 canvasContext.lineWidth = 2;
@@ -295,35 +373,48 @@
                 canvasContext.fill();
                 canvasContext.stroke();
 
-                // Station conversion rate text labels
                 canvasContext.fillStyle = '#ffffff';
                 canvasContext.font = 'bold 12px sans-serif';
                 canvasContext.textAlign = 'center';
                 canvasContext.textBaseline = 'middle';
                 canvasContext.fillText(option ? option.text : '', w - 62, laneYPositions[i]);
 
-                // Station ID Tag (e.g. "L1")
                 canvasContext.fillStyle = '#64748b';
                 canvasContext.font = '9px monospace';
-                canvasContext.fillText(`GATE ${i+1}`, w - 130, laneYPositions[i]);
+                canvasContext.fillText(`LANE ${i+1}`, w - 130, laneYPositions[i]);
             }
         }
 
         function dispatchVehicles() {
+            if (currentVehicle.isMoving) return;
+            document.getElementById('btn-dispatch').disabled = true;
+            currentVehicle.isMoving = true;
+            document.getElementById('lbl-feedback').innerText = "Traffic flowing through junction...";
+            document.getElementById('lbl-feedback').style.color = '#38bdf8';
+        }
+
+        function evaluateLevelOutcome() {
             const chosenPath = laneOptionsData[selectedLaneIndex];
             const feedbackText = document.getElementById('lbl-feedback');
 
             if (chosenPath && chosenPath.isTruePath) {
-                feedbackText.innerText = "✓ ROUTE SUCCESSFUL! Connection configured perfectly.";
-                feedbackText.style.color = "#34d399";
+                feedbackText.innerText = "✓ PASSED TOLL GATE! Correct metric configuration.";
+                feedbackText.style.color = "#10b981";
                 
-                // Advance into next highway sequence
                 setTimeout(() => {
                     generateNextHighwayLevel();
                 }, 1800);
             } else {
-                feedbackText.innerText = "✗ TRAFFIC BLOCK! Mismatched metric conversion value at toll gate.";
-                feedbackText.style.color = "#f87171";
+                feedbackText.innerText = "✗ ROADBLOCK CRASH! Incorrect metric conversion target.";
+                feedbackText.style.color = "#f43f5e";
+                
+                setTimeout(() => {
+                    // Reset position back for another retry on the same puzzle
+                    currentVehicle.progress = 0;
+                    document.getElementById('btn-dispatch').disabled = false;
+                    feedbackText.innerText = "Realign connections to clear the road.";
+                    feedbackText.style.color = "#64748b";
+                }, 2000);
             }
         }
     </script>
