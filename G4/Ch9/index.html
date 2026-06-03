@@ -37,7 +37,7 @@
             transition: opacity 0.5s ease;
         }
 
-        /* Regulated 5-Second Splash Screen - Updated to Pure White Background */
+        /* Regulated 5-Second Splash Screen - Perfect layout match to blueprints */
         #hard-splash {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -51,8 +51,9 @@
         }
         .splash-img {
             width: 240px;
+            max-width: 60%;
             height: auto;
-            margin-bottom: 24px;
+            margin-bottom: 28px;
             object-fit: contain;
         }
 
@@ -201,9 +202,9 @@
     <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
     <div id="hard-splash">
-        <img src="assets/logo.png" class="splash-img" alt="Innovine Solutions Logo" onerror="this.style.display='none';">
-        <div style="width:160px; height:6px; background-color:#e5e7eb; border-radius:10px; overflow:hidden;">
-            <div id="loader-progress-fill" style="width:0%; height:100%; background-color:#22c55e; transition: width 0.1s ease;"></div>
+        <img src="assets/logo.png" class="splash-img" alt="Innovine Solutions">
+        <div style="width: 200px; height: 8px; background-color: #e2e8f0; border-radius: 20px; overflow: hidden;">
+            <div id="loader-progress-fill" style="width: 0%; height: 100%; background-color: #22c55e; border-radius: 20px; transition: width 0.05s linear;"></div>
         </div>
     </div>
 
@@ -227,12 +228,17 @@
         let selectedCards = [];
         let engineLock = false;
 
-        // Progress Ticker hitting exactly 100% at precisely 5.0 seconds
+        // Regulated 5-Second (5000ms) Progress Bar Mechanics Ticker
         let progressVal = 0;
+        const loaderIntervalMs = 50; 
+        const totalDurationMs = 5000;
+        const stepsCount = totalDurationMs / loaderIntervalMs;
+        const percentagePerStep = 100 / stepsCount;
+
         const progressTicker = setInterval(() => {
-            progressVal += 2;
+            progressVal += percentagePerStep;
             const bar = document.getElementById('loader-progress-fill');
-            if (bar) bar.style.width = progressVal + '%';
+            if (bar) bar.style.width = Math.min(progressVal, 100) + '%';
 
             if (progressVal >= 100) {
                 clearInterval(progressTicker);
@@ -241,12 +247,12 @@
                 if (splash) splash.style.opacity = '0';
                 
                 setTimeout(() => {
-                    if (splash.parentNode) splash.parentNode.removeChild(splash);
-                    mainLayout.style.opacity = '1';
+                    if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
+                    if (mainLayout) mainLayout.style.opacity = '1';
                     renderMenuOverlay();
-                }, 400);
+                }, 500);
             }
-        }, 100);
+        }, loaderIntervalMs);
 
         function renderMenuOverlay() {
             document.getElementById('arena').innerHTML = `
@@ -271,7 +277,6 @@
             document.getElementById('lbl-score').innerText = currentScore;
             document.getElementById('lbl-attempts').innerText = attemptsCount;
 
-            // 6 explicit fractional pairs making up a clean 3x4 layout grid
             const masterPairs = [
                 { text: "Reduce<br>6/8", matchId: 1 },
                 { text: "3/4", matchId: 1 },
@@ -292,7 +297,6 @@
                 { text: "4/8", matchId: 6 }
             ];
 
-            // Random grid shuffling
             cardPoolData = masterPairs.sort(() => Math.random() - 0.5);
 
             const arena = document.getElementById('arena');
@@ -332,7 +336,6 @@
             const second = selectedCards[1];
 
             if (first.data.matchId === second.data.matchId) {
-                // MATCH ACCUMULATED
                 setTimeout(() => {
                     playAudioAsset('s-correct');
                     document.getElementById(`card-${first.index}`).classList.add('matched');
@@ -344,13 +347,11 @@
                     selectedCards = [];
                     engineLock = false;
 
-                    // Victory determination check
                     if (document.querySelectorAll('.crate-card.matched').length === 12) {
                         renderVictoryPanel();
                     }
                 }, 400);
             } else {
-                // MATCH FAILED
                 setTimeout(() => {
                     playAudioAsset('s-wrong');
                     document.getElementById(`card-${first.index}`).classList.remove('flipped');
