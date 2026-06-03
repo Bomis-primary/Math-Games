@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chronos Paddle Breakout</title>
+    <title>Space Time Invaders</title>
     <style>
         * {
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Courier New', Courier, monospace;
             margin: 0;
             padding: 0;
             user-select: none;
@@ -16,8 +16,8 @@
         body, html {
             width: 100%;
             height: 100%;
-            background-color: #050410;
-            color: #ffffff;
+            background-color: #03010a;
+            color: #00ffcc;
             overflow: hidden;
         }
         
@@ -28,36 +28,40 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 15px;
+            padding: 10px;
             position: relative;
         }
 
-        .menu-panel {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 24px;
-            padding: 40px 25px;
+        .cabinet-panel {
+            background: rgba(0, 10, 20, 0.7);
+            border: 3px solid #00ffcc;
+            border-radius: 16px;
+            padding: 30px 20px;
             max-width: 480px;
             width: 100%;
             text-align: center;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+            box-shadow: 0 0 30px rgba(0, 255, 204, 0.3);
         }
-        .btn-start {
-            background: linear-gradient(135deg, #a855f7, #ec4899);
-            color: #ffffff;
+        .btn-arcade {
+            background: #00ffcc;
+            color: #03010a;
             border: none;
-            padding: 15px 45px;
-            font-size: 1.15rem;
-            border-radius: 30px;
-            cursor: pointer;
+            padding: 14px 40px;
+            font-size: 1.2rem;
             font-weight: bold;
-            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.3);
+            border-radius: 4px;
+            cursor: pointer;
+            box-shadow: 0 0 15px #00ffcc;
             margin-top: 20px;
+            text-transform: uppercase;
+        }
+        .btn-arcade:active {
+            background: #00b38f;
         }
 
-        .game-grid {
+        .game-layout {
             width: 100%;
-            max-width: 500px;
+            max-width: 480px;
             height: 100%;
             display: flex;
             flex-direction: column;
@@ -67,80 +71,44 @@
             display: flex;
             justify-content: space-between;
             font-weight: bold;
-            color: #ec4899;
+            font-size: 1rem;
             padding: 5px 0;
-            font-size: 1.05rem;
+            border-bottom: 1px dashed #00ffcc;
+            margin-bottom: 8px;
         }
 
-        /* Sector Linear Track */
-        .track-container {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 14px;
-            padding: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .track-node {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: #1e1b4b;
-            border: 2px solid #4338ca;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 0.7rem;
-            color: #a5b4fc;
-            font-weight: bold;
-            transition: all 0.3s ease;
-        }
-        .track-node.active {
-            background: #ec4899;
-            border-color: #ffffff;
-            color: #ffffff;
-            box-shadow: 0 0 12px #ec4899;
-            transform: scale(1.15);
-        }
-        .track-node.cleared {
-            background: #10b981;
-            border-color: #10b981;
-            color: #ffffff;
-        }
-
-        .mission-header {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
+        .dashboard-header {
+            background: rgba(0, 255, 204, 0.05);
+            border: 1px solid #00ffcc;
+            border-radius: 8px;
             padding: 12px;
             text-align: center;
             margin-bottom: 10px;
         }
-        .mission-tag {
+        .dashboard-tag {
             font-size: 0.75rem;
-            color: #a855f7;
+            color: #ff007f;
             text-transform: uppercase;
             letter-spacing: 2px;
             font-weight: bold;
             margin-bottom: 3px;
         }
-        .mission-text {
-            font-size: 1.2rem;
+        .dashboard-text {
+            font-size: 1.15rem;
             font-weight: bold;
+            color: #ffff00;
         }
 
-        /* Hit the Ball Brick Canvas Frame */
-        .canvas-container {
+        /* Video Game Monitor Display Canvas wrapper */
+        .monitor-frame {
             width: 100%;
-            background: linear-gradient(180deg, #090717 0%, #03020a 100%);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
+            background: #010005;
+            border: 2px solid #00ffcc;
+            border-radius: 12px;
             position: relative;
             flex-grow: 1;
             overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0, 255, 204, 0.2);
         }
         canvas {
             display: block;
@@ -148,30 +116,30 @@
             height: 100%;
         }
 
-        /* Controller steering bars */
-        .touch-controls {
+        /* Tactile Action Control Deck buttons layout */
+        .deck-controls {
             display: flex;
             justify-content: space-between;
             width: 100%;
             margin-top: 10px;
             height: 55px;
         }
-        .control-btn {
-            width: 48%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: #ffffff;
-            font-size: 1.4rem;
+        .deck-btn {
+            background: rgba(0, 255, 204, 0.1);
+            border: 2px solid #00ffcc;
+            border-radius: 6px;
+            color: #00ffcc;
+            font-size: 1.2rem;
             font-weight: bold;
             display: flex;
             justify-content: center;
             align-items: center;
             cursor: pointer;
         }
-        .control-btn:active {
-            background: rgba(236, 72, 153, 0.2);
-        }
+        .move-btn { width: 26%; }
+        .fire-btn { width: 42%; background: rgba(255, 0, 127, 0.15); border-color: #ff007f; color: #ff007f; }
+        .deck-btn:active { background: #00ffcc; color: #03010a; }
+        .fire-btn:active { background: #ff007f; color: #ffffff; }
 
         #hard-splash {
             position: fixed;
@@ -188,54 +156,54 @@
 </head>
 <body>
 
-    <!-- Native Audio Objects -->
+    <!-- Standard Audio Node Components Map -->
     <audio id="s-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
     <audio id="s-win" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
 
-    <!-- Self-Destructing Bootloader Preloader -->
+    <!-- Self-Cleaning Loading Shield Layout -->
     <div id="hard-splash">
         <img src="assets/logo.png" style="max-width:240px; margin-bottom:20px;" onerror="this.style.display='none'; document.getElementById('fb-text').style.display='block';">
-        <h1 id="fb-text" style="display:none; font-size:2.4rem; margin-bottom:15px; letter-spacing:1px;">INNOVINE</h1>
+        <h1 id="fb-text" style="display:none; font-size:2.2rem; margin-bottom:15px; letter-spacing:2px; font-weight:bold;">INNOVINE</h1>
         <div style="width:200px; height:6px; background-color:#e2e8f0; border-radius:3px; overflow:hidden;">
-            <div id="loader-progress-fill" style="width:0%; height:100%; background-color:#ec4899;"></div>
+            <div id="loader-progress-fill" style="width:0%; height:100%; background-color:#00ffcc;"></div>
         </div>
     </div>
 
     <div id="viewport-root"></div>
 
     <script>
-        let currentSector = 0;
-        const totalSectors = 10;
+        let gameScore = 0;
+        let shipShields = 3;
         
         let canvasElement = null;
         let canvasContext = null;
         let animationFrameHandle = null;
 
-        // Paddle Configuration Space
-        let paddleX = 180;
-        const paddleWidth = 85;
-        const paddleHeight = 14;
-        let paddleDirection = 0; // -1 = Left, 1 = Right
+        // Space Fighter Variables
+        let playerShipX = 200;
+        const playerShipWidth = 44;
+        const playerShipHeight = 18;
+        let movementDirection = 0; // -1 = Left, 1 = Right
 
-        // Ball Mechanics Workspace
-        let ballX = 225;
-        let ballY = 250;
-        let ballRadius = 7;
-        let ballVelocityX = 3;
-        let ballVelocityY = -3;
+        // Active Projectiles Array
+        let laserProjectiles = [];
+        let invaderShapesList = [];
+        
+        // Puzzle target types mappings based on image_e623a0.png
+        const TIME_MODES = {
+            FORMAT_24: "24-HOUR CLOCK MATCH",
+            CONVERSION: "UNIT CONVERSION MATCH",
+            ELAPSED: "ELAPSED TIME MATCH"
+        };
+        
+        let currentTargetObjectiveType = "";
+        let currentQuestionText = "";
+        let currentCorrectAnswer = "";
+        let waveSpawnTimer = 0;
+        let isEngineRunning = false;
 
-        // Static target options targets coordinates
-        let correctTargetIndex = 0; // 0 = Left Answer Orb, 1 = Right Answer Orb
-        let targetOrbs = [
-            { x: 110, y: 60, radius: 45, label: "" }, // Left Orb
-            { x: 340, y: 60, radius: 45, label: "" }  // Right Orb
-        ];
-
-        let activeIsRunning = false;
-        let flashFrameAlert = false;
-
-        // Run preloader tick
+        // Fire initialization load step tickers
         let progressVal = 0;
         const progressTicker = setInterval(() => {
             progressVal += 5;
@@ -246,311 +214,333 @@
                 clearInterval(progressTicker);
                 purgeSplashAndBuildMenu();
             }
-        }, 40);
+        }, 30);
 
         function purgeSplashAndBuildMenu() {
             const splashMask = document.getElementById('hard-splash');
             if (splashMask) {
-                splashMask.parentNode.removeChild(splashMask); // Destroys completely out of HTML tree flow
+                splashMask.parentNode.removeChild(splashMask); // Exits block dynamically out of active DOM frame layout tree execution context
             }
             renderMenuScreen();
         }
 
         function renderMenuScreen() {
-            activeIsRunning = false;
+            isEngineRunning = false;
             if (animationFrameHandle) cancelAnimationFrame(animationFrameHandle);
             
             document.getElementById('viewport-root').innerHTML = `
-                <div class="menu-panel">
-                    <h1 style="color:#ec4899; font-size:1.8rem; margin-bottom:12px;">Paddle Time Breakout</h1>
-                    <p style="color:#b2b2cc; font-size:0.95rem; line-height:1.6; text-align:left; margin-bottom:20px;">
-                        Advance through all 10 linear track milestones! Move your deflection paddle to keep the energy ball alive and hit the floating answer orb containing the correct conversion solution.
+                <div class="cabinet-panel">
+                    <h1 style="color:#00ffcc; font-size:1.7rem; margin-bottom:12px; text-shadow:0 0 10px #00ffcc;">SPACE TIME INVADERS</h1>
+                    <p style="color:#88aaaa; font-size:0.85rem; line-height:1.6; text-align:left; margin-bottom:20px;">
+                        Chronos matrix blocks are invading your coordinate track! Read the calculation query at the top of the deck, track beneath the matching solution value, and open fire!
                     </p>
-                    <div style="color:#a855f7; font-size:0.85rem; margin-bottom:20px; font-weight:bold;">
-                        🎮 Keyboard: Left / Right Arrow Keys<br>📱 Screen: Hold Left / Right Bottom Buttons
+                    <div style="color:#ff007f; font-size:0.8rem; margin-bottom:20px; font-weight:bold; border:1px dashed #ff007f; padding:8px;">
+                        🕹️ KEYBOARD CONTROLS:<br>ARROW KEYS = MOVE | SPACEBAR = FIRE LASER
                     </div>
-                    <button class="btn-start" onclick="initiateGameEngine()">LAUNCH SYSTEM</button>
+                    <button class="btn-arcade" onclick="initiateGameEngine()">INSERT COIN</button>
                 </div>
             `;
         }
 
         function initiateGameEngine() {
-            currentSector = 0;
-            activeIsRunning = true;
+            gameScore = 0;
+            shipShields = 3;
+            invaderShapesList = [];
+            laserProjectiles = [];
+            waveSpawnTimer = 0;
+            isEngineRunning = true;
+
             buildGameLayoutDOM();
-            generateNextChronosQuestion();
-            resetBallPhysics();
-            initializeCanvasEngineLoop();
+            cycleNewTargetObjective();
+            runCanvasGameLoop();
             attachSteeringControls();
         }
 
         function buildGameLayoutDOM() {
-            let nodesHtml = "";
-            for (let i = 0; i < totalSectors; i++) {
-                nodesHtml += `<div class="track-node" id="node-${i}">${i + 1}</div>`;
-            }
-
             document.getElementById('viewport-root').innerHTML = `
-                <div class="game-grid">
+                <div class="game-layout">
                     <div class="hud-row">
-                        <div>Milestone Track: <span id="lbl-sector">1</span> / 10</div>
-                        <div>Chapter 08: Time</div>
+                        <div>SCORE: <span id="lbl-score">0000</span></div>
+                        <div>SHIELDS: <span id="lbl-shields">███</span></div>
                     </div>
 
-                    <div class="track-container">
-                        ${nodesHtml}
+                    <div class="dashboard-header">
+                        <div class="dashboard-tag" id="lbl-target-tag">CLOCK COMPUTER LOCK-ON</div>
+                        <div class="dashboard-text" id="lbl-target-prompt">LOADING TARGET...</div>
                     </div>
 
-                    <div class="mission-header">
-                        <div class="mission-tag" id="lbl-task-tag">Loading...</div>
-                        <div class="mission-text" id="lbl-task-text">-</div>
+                    <div class="monitor-frame">
+                        <canvas id="arcade-canvas" width="440" height="420"></canvas>
                     </div>
 
-                    <div class="canvas-container">
-                        <canvas id="breakout-canvas" width="450" height="400"></canvas>
-                    </div>
-
-                    <div class="touch-controls">
-                        <div class="control-btn" id="btn-left-press">◀</div>
-                        <div class="control-btn" id="btn-right-press">▶</div>
+                    <div class="deck-controls">
+                        <div class="deck-btn move-btn" id="btn-left-press">◀</div>
+                        <div class="deck-btn fire-btn" id="btn-fire-press">FIRE</div>
+                        <div class="deck-btn move-btn" id="btn-right-press">▶</div>
                     </div>
                 </div>
             `;
 
-            canvasElement = document.getElementById('breakout-canvas');
+            canvasElement = document.getElementById('arcade-canvas');
             canvasContext = canvasElement.getContext('2d');
-            paddleX = (canvasElement.width / 2) - (paddleWidth / 2);
-            updateTrackVisuals();
+            playerShipX = (canvasElement.width / 2) - (playerShipWidth / 2);
         }
 
-        function updateTrackVisuals() {
-            for (let i = 0; i < totalSectors; i++) {
-                const node = document.getElementById(`node-${i}`);
-                if (!node) continue;
-                node.className = "track-node";
-                if (i < currentSector) {
-                    node.classList.add("cleared");
-                } else if (i === currentSector) {
-                    node.classList.add("active");
+        function cycleNewTargetObjective() {
+            // Pick a curriculum concept from image_e623a0.png
+            const modes = Object.keys(TIME_MODES);
+            const chosenMode = modes[Math.floor(Math.random() * modes.length)];
+            currentTargetObjectiveType = TIME_MODES[chosenMode];
+
+            let pool = [];
+
+            if (chosenMode === "FORMAT_24") {
+                pool = [
+                    { q: "04:00 PM in 24-Hr Clock format", a: "16:00", w: ["04:00", "20:00", "14:00"] },
+                    { q: "09:30 PM in 24-Hr Clock format", a: "21:30", w: ["09:30", "19:30", "23:30"] },
+                    { q: "11:15 PM in 24-Hr Clock format", a: "23:15", w: ["11:15", "13:15", "22:15"] },
+                    { q: "12:20 AM in 24-Hr Clock format", a: "00:20", w: ["12:20", "24:20", "02:20"] }
+                ];
+            } else if (chosenMode === "CONVERSION") {
+                pool = [
+                    { q: "Convert 3 Hours into Minutes", a: "180 min", w: ["120 min", "150 min", "240 min"] },
+                    { q: "Convert 2 Minutes into Seconds", a: "120 sec", w: ["200 sec", "60 sec", "180 sec"] },
+                    { q: "Convert 1 Hr 15 Min into Minutes", a: "75 min", w: ["115 min", "60 min", "150 min"] },
+                    { q: "Convert 4 Minutes into Seconds", a: "240 sec", w: ["140 sec", "400 sec", "200 sec"] }
+                ];
+            } else {
+                pool = [
+                    { q: "Elapsed time: 03:15 PM to 04:45 PM", a: "1h 30m", w: ["2h 30m", "1h 15m", "0h 45m"] },
+                    { q: "Elapsed time: 09:00 AM to 11:15 AM", a: "2h 15m", w: ["1h 15m", "2h 45m", "3h 15m"] },
+                    { q: "Elapsed time: 13:00 to 14:40 Hours", a: "1h 40m", w: ["2h 40m", "0h 40m", "1h 20m"] }
+                ];
+            }
+
+            const activePuzzle = pool[Math.floor(Math.random() * pool.length)];
+            currentQuestionText = activePuzzle.q;
+            currentCorrectAnswer = activePuzzle.a;
+
+            document.getElementById('lbl-target-tag').innerText = currentTargetObjectiveType;
+            document.getElementById('lbl-target-prompt').innerText = currentQuestionText;
+            
+            spawnInvaderClusterWave(activePuzzle.w);
+        }
+
+        function spawnInvaderClusterWave(distractors) {
+            invaderShapesList = [];
+            const columnsCount = 3;
+            const segmentSpacingX = canvasElement.width / columnsCount;
+            
+            // Randomly select one column position to hold the correct answer
+            const targetColumnIndex = Math.floor(Math.random() * columnsCount);
+
+            // Shuffle incorrect answer choices
+            let wrongChoices = [...distractors].sort(() => Math.random() - 0.5);
+
+            for (let i = 0; i < columnsCount; i++) {
+                let textValue = "";
+                let isCorrectNode = false;
+                
+                if (i === targetColumnIndex) {
+                    textValue = currentCorrectAnswer;
+                    isCorrectNode = true;
+                } else {
+                    textValue = wrongChoices.pop() || "10:00";
                 }
+
+                invaderShapesList.push({
+                    x: (i * segmentSpacingX) + (segmentSpacingX / 2),
+                    y: 40,
+                    text: textValue,
+                    isCorrect: isCorrectNode,
+                    width: 76,
+                    height: 32,
+                    speed: 0.45 + (gameScore * 0.0002) // Gradual scaling
+                });
             }
-            document.getElementById('lbl-sector').innerText = currentSector + 1;
         }
 
-        function generateNextChronosQuestion() {
-            const rollType = Math.random();
-            correctTargetIndex = Math.random() < 0.5 ? 0 : 1;
+        function runCanvasGameLoop() {
+            if (!isEngineRunning) return;
 
-            let targetTag = "";
-            let targetQuestion = "";
-            let correctValueStr = "";
-            let wrongValueStr = "";
+            updateFramePhysics();
+            renderFrameGraphics();
 
-            if (rollType < 0.34) {
-                targetTag = "Format Conversion (12h ➔ 24h)";
-                const choices = [
-                    { q: "Convert 03:00 PM to 24h", a: "15:00", w: "03:00" },
-                    { q: "Convert 08:30 PM to 24h", a: "20:30", w: "08:30" },
-                    { q: "Convert 10:15 PM to 24h", a: "22:15", w: "10:15" },
-                    { q: "Convert 06:00 PM to 24h", a: "18:00", w: "06:00" }
-                ];
-                const choice = choices[Math.floor(Math.random() * choices.length)];
-                targetQuestion = choice.q; correctValueStr = choice.a; wrongValueStr = choice.w;
-            } 
-            else if (rollType < 0.67) {
-                targetTag = "Time Unit Conversion";
-                const choices = [
-                    { q: "How many minutes are in 3 hours?", a: "180 Min", w: "120 Min" },
-                    { q: "How many seconds are in 2 minutes?", a: "120 Sec", w: "200 Sec" },
-                    { q: "Convert 1 Hour 20 min into minutes", a: "80 Min", w: "120 Min" },
-                    { q: "How many minutes are in 4 hours?", a: "240 Min", w: "140 Min" }
-                ];
-                const choice = choices[Math.floor(Math.random() * choices.length)];
-                targetQuestion = choice.q; correctValueStr = choice.a; wrongValueStr = choice.w;
-            } 
-            else {
-                targetTag = "Elapsed Duration Interval";
-                const choices = [
-                    { q: "Minutes elapsed from 01:15 to 02:00?", a: "45 Min", w: "15 Min" },
-                    { q: "Hours elapsed between 09:00 AM and 02:00 PM?", a: "5 Hours", w: "4 Hours" },
-                    { q: "Minutes elapsed from 10:30 to 11:15?", a: "45 Min", w: "35 Min" }
-                ];
-                const choice = choices[Math.floor(Math.random() * choices.length)];
-                targetQuestion = choice.q; correctValueStr = choice.a; wrongValueStr = choice.w;
-            }
-
-            document.getElementById('lbl-task-tag').innerText = targetTag;
-            document.getElementById('lbl-task-text').innerText = targetQuestion;
-
-            targetOrbs[0].label = (correctTargetIndex === 0) ? correctValueStr : wrongValueStr;
-            targetOrbs[1].label = (correctTargetIndex === 1) ? correctValueStr : wrongValueStr;
+            animationFrameHandle = requestAnimationFrame(runCanvasGameLoop);
         }
 
-        function resetBallPhysics() {
-            ballX = canvasElement.width / 2;
-            ballY = canvasElement.height - 60;
-            ballVelocityX = (Math.random() > 0.5 ? 2.5 : -2.5);
-            ballVelocityY = -3.5;
-        }
+        function updateFramePhysics() {
+            // Ship lateral movement bounds enforcement
+            if (movementDirection === -1 && playerShipX > 5) playerShipX -= 5;
+            if (movementDirection === 1 && playerShipX < (canvasElement.width - playerShipWidth - 5)) playerShipX += 5;
 
-        function initializeCanvasEngineLoop() {
-            if (!activeIsRunning) return;
-
-            updatePhysics();
-            renderGraphics();
-
-            animationFrameHandle = requestAnimationFrame(initializeCanvasEngineLoop);
-        }
-
-        function updatePhysics() {
-            // Locomotion processing for hitting tracking paddle edges
-            if (paddleDirection === -1 && paddleX > 0) paddleX -= 6;
-            if (paddleDirection === 1 && paddleX < (canvasElement.width - paddleWidth)) paddleX += 6;
-
-            // Vector travel ball physics equations
-            ballX += ballVelocityX;
-            ballY += ballVelocityY;
-
-            // Bounce on left and right walls
-            if (ballX - ballRadius <= 0 || ballX + ballRadius >= canvasElement.width) {
-                ballVelocityX = -ballVelocityX;
-            }
-            // Bounce on top wall
-            if (ballY - ballRadius <= 0) {
-                ballVelocityY = -ballVelocityY;
-            }
-
-            // Paddle impact intersection mechanics
-            const paddleTopY = canvasElement.height - 35;
-            if (ballY + ballRadius >= paddleTopY && ballY - ballRadius <= paddleTopY + paddleHeight) {
-                if (ballX >= paddleX && ballX <= paddleX + paddleWidth) {
-                    // Control ball rebound reflection angle depending on paddle sector hit position
-                    let hitPointPercent = (ballX - paddleX) / paddleWidth;
-                    ballVelocityX = 8 * (hitPointPercent - 0.5);
-                    ballVelocityY = -Math.abs(ballVelocityY);
-                    ballY = paddleTopY - ballRadius; // Unstick buffer
+            // Projectile vector stepping
+            for (let i = laserProjectiles.length - 1; i >= 0; i--) {
+                let laser = laserProjectiles[i];
+                laser.y -= 8;
+                
+                if (laser.y < 0) {
+                    laserProjectiles.splice(i, 1);
                 }
             }
 
-            // Fall below bottom trigger - Auto reset cleanly
-            if (ballY > canvasElement.height) {
-                resetBallPhysics();
-            }
+            // Descend invaders downward
+            let hitLowBoundary = false;
+            for (let i = 0; i < invaderShapesList.length; i++) {
+                let invader = invaderShapesList[i];
+                invader.y += invader.speed;
 
-            // Target orbs hit circular bounds checks
-            for (let i = 0; i < targetOrbs.length; i++) {
-                let orb = targetOrbs[i];
-                let distDX = ballX - orb.x;
-                let distDY = ballY - orb.y;
-                let scalarDistance = Math.sqrt(distDX * distDX + distDY * distDY);
+                if (invader.y > canvasElement.height - 60) {
+                    hitLowBoundary = true;
+                }
 
-                if (scalarDistance <= orb.radius + ballRadius) {
-                    // Intersect hit resolved!
-                    if (i === correctTargetIndex) {
-                        playAudioFile('s-correct');
-                        currentSector++;
-                        if (currentSector >= totalSectors) {
-                            activeIsRunning = false;
-                            renderVictoryScreen();
+                // Laser contact collision matrix calculation
+                for (let j = laserProjectiles.length - 1; j >= 0; j--) {
+                    let laser = laserProjectiles[j];
+                    
+                    // Simple box bounding checking
+                    if (laser.x >= invader.x - invader.width/2 && laser.x <= invader.x + invader.width/2) {
+                        if (laser.y >= invader.y - invader.height/2 && laser.y <= invader.y + invader.height/2) {
+                            laserProjectiles.splice(j, 1);
+                            
+                            if (invader.isCorrect) {
+                                playAudioFile('s-correct');
+                                gameScore += 100;
+                                document.getElementById('lbl-score').innerText = String(gameScore).padStart(4, '0');
+                                cycleNewTargetObjective();
+                            } else {
+                                playAudioFile('s-wrong');
+                                registerShieldDamage();
+                            }
                             return;
-                        } else {
-                            updateTrackVisuals();
-                            generateNextChronosQuestion();
-                            resetBallPhysics();
                         }
-                    } else {
-                        playAudioFile('s-wrong');
-                        flashScreenErrorRed();
-                        ballVelocityY = Math.abs(ballVelocityY); // Deflect ball back downwards
                     }
-                    break;
                 }
+            }
+
+            if (hitLowBoundary) {
+                registerShieldDamage();
             }
         }
 
-        function flashScreenErrorRed() {
-            flashFrameAlert = true;
-            setTimeout(() => { flashFrameAlert = false; }, 200);
+        function registerShieldDamage() {
+            shipShields--;
+            let shieldBars = "";
+            for (let i = 0; i < shipShields; i++) shieldBars += "█";
+            if (shieldBars === "") shieldBars = "EMPTY";
+            
+            document.getElementById('lbl-shields').innerText = shieldBars;
+
+            if (shipShields <= 0) {
+                isEngineRunning = false;
+                renderGameOverScreen();
+            } else {
+                cycleNewTargetObjective();
+            }
         }
 
-        function renderGraphics() {
+        function triggerLaserBeamFiringSequence() {
+            if (!isEngineRunning) return;
+            laserProjectiles.push({
+                x: playerShipX + (playerShipWidth / 2),
+                y: canvasElement.height - 35
+            });
+        }
+
+        function renderFrameGraphics() {
             canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
-            if (flashFrameAlert) {
-                canvasContext.fillStyle = 'rgba(239, 68, 68, 0.15)';
-                canvasContext.fillRect(0,0, canvasElement.width, canvasElement.height);
+            // Perimeter Boundary line
+            canvasContext.strokeStyle = '#ff0055';
+            canvasContext.lineWidth = 1;
+            canvasContext.setLineDash([4, 4]);
+            canvasContext.beginPath();
+            canvasContext.moveTo(0, canvasElement.height - 50);
+            canvasContext.lineTo(canvasElement.width, canvasElement.height - 50);
+            canvasContext.stroke();
+            canvasContext.setLineDash([]); 
+
+            // Fighter Craft
+            canvasContext.fillStyle = '#00ffcc';
+            canvasContext.fillRect(playerShipX, canvasElement.height - 30, playerShipWidth, playerShipHeight);
+            canvasContext.fillRect(playerShipX + (playerShipWidth / 2) - 3, canvasElement.height - 36, 6, 6);
+
+            // Lasers
+            canvasContext.fillStyle = '#ff007f';
+            for (let i = 0; i < laserProjectiles.length; i++) {
+                canvasContext.fillRect(laserProjectiles[i].x - 2, laserProjectiles[i].y, 4, 10);
             }
 
-            // Draw floating objective targets
-            for (let i = 0; i < targetOrbs.length; i++) {
-                let orb = targetOrbs[i];
+            // Time Blocks Invaders
+            for (let i = 0; i < invaderShapesList.length; i++) {
+                let invader = invaderShapesList[i];
                 
-                // Outer ring
-                canvasContext.strokeStyle = (i === 0) ? '#a855f7' : '#ec4899';
-                canvasContext.lineWidth = 3;
+                // Draw digital matrix housing box
+                canvasContext.strokeStyle = 'rgba(0, 255, 204, 0.3)';
+                canvasContext.fillStyle = 'rgba(0, 20, 30, 0.85)';
+                canvasContext.lineWidth = 2;
+                
                 canvasContext.beginPath();
-                canvasContext.arc(orb.x, orb.y, orb.radius, 0, Math.PI * 2);
+                canvasContext.rect(invader.x - invader.width/2, invader.y - invader.height/2, invader.width, invader.height);
+                canvasContext.fill();
                 canvasContext.stroke();
 
-                // Inner text values
+                // Draw Text inside block
                 canvasContext.fillStyle = '#ffffff';
-                canvasContext.font = 'bold 13px sans-serif';
+                canvasContext.font = 'bold 12px monospace';
                 canvasContext.textAlign = 'center';
-                canvasContext.fillText(orb.label, orb.x, orb.y + 5);
+                canvasContext.textBaseline = 'middle';
+                canvasContext.fillText(invader.text, invader.x, invader.y);
             }
-
-            // Draw bouncing game ball
-            canvasContext.fillStyle = '#ffffff';
-            canvasContext.shadowColor = '#ec4899';
-            canvasContext.shadowBlur = 10;
-            canvasContext.beginPath();
-            canvasContext.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
-            canvasContext.fill();
-            canvasContext.shadowBlur = 0; // clear shadow
-
-            // Draw defensive bumper paddle tracking bar
-            canvasContext.fillStyle = '#ec4899';
-            canvasContext.fillRect(paddleX, canvasElement.height - 35, paddleWidth, paddleHeight);
         }
 
         function attachSteeringControls() {
-            // Physical desktop keyboard inputs map handles
             window.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowLeft') paddleDirection = -1;
-                if (e.key === 'ArrowRight') paddleDirection = 1;
+                if (e.key === 'ArrowLeft') movementDirection = -1;
+                if (e.key === 'ArrowRight') movementDirection = 1;
+                if (e.key === ' ' || e.key === 'Spacebar') {
+                    e.preventDefault();
+                    triggerLaserBeamFiringSequence();
+                }
             });
             window.addEventListener('keyup', (e) => {
-                if (e.key === 'ArrowLeft' && paddleDirection === -1) paddleDirection = 0;
-                if (e.key === 'ArrowRight' && paddleDirection === 1) paddleDirection = 0;
+                if (e.key === 'ArrowLeft' && movementDirection === -1) movementDirection = 0;
+                if (e.key === 'ArrowRight' && movementDirection === 1) movementDirection = 0;
             });
 
-            // Touch UI listeners mapping inputs configurations
             const leftBtn = document.getElementById('btn-left-press');
             const rightBtn = document.getElementById('btn-right-press');
+            const fireBtn = document.getElementById('btn-fire-press');
 
-            if (leftBtn && rightBtn) {
-                leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); paddleDirection = -1; });
-                leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(paddleDirection === -1) paddleDirection = 0; });
-                rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); paddleDirection = 1; });
-                rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(paddleDirection === 1) paddleDirection = 0; });
+            if (leftBtn && rightBtn && fireBtn) {
+                leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); movementDirection = -1; });
+                leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(movementDirection === -1) movementDirection = 0; });
+                
+                rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); movementDirection = 1; });
+                rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(movementDirection === 1) movementDirection = 0; });
 
-                // Fallback mouse testing behaviors support
-                leftBtn.addEventListener('mousedown', () => paddleDirection = -1);
-                leftBtn.addEventListener('mouseup', () => { if(paddleDirection === -1) paddleDirection = 0; });
-                rightBtn.addEventListener('mousedown', () => paddleDirection = 1);
-                rightBtn.addEventListener('mouseup', () => { if(paddleDirection === 1) paddleDirection = 0; });
+                fireBtn.addEventListener('touchstart', (e) => { e.preventDefault(); triggerLaserBeamFiringSequence(); });
+
+                // Cross platform desktop mouse click checks
+                leftBtn.addEventListener('mousedown', () => movementDirection = -1);
+                leftBtn.addEventListener('mouseup', () => { if(movementDirection === -1) movementDirection = 0; });
+                rightBtn.addEventListener('mousedown', () => movementDirection = 1);
+                rightBtn.addEventListener('mouseup', () => { if(movementDirection === 1) movementDirection = 0; });
+                fireBtn.addEventListener('mousedown', () => triggerLaserBeamFiringSequence());
             }
         }
 
-        function renderVictoryScreen() {
+        function renderGameOverScreen() {
             document.getElementById('viewport-root').innerHTML = `
-                <div class="menu-panel" style="border-color: rgba(16, 185, 129, 0.4);">
-                    <div style="font-size:3.5rem; margin-bottom:10px;">🏆</div>
-                    <h1 style="color:#10b981; font-size:1.8rem; margin-bottom:10px;">Breakout Completed!</h1>
-                    <p style="color:#b2b2cc; font-size:0.95rem; margin-bottom:25px; line-height:1.5;">
-                        Sensational coordinate analysis! You smashed through all 10 time challenge sectors with perfect accuracy.
+                <div class="cabinet-panel" style="border-color: #ff0055; box-shadow: 0 0 30px rgba(255,0,85,0.4);">
+                    <h1 style="color:#ff0055; font-size:1.8rem; margin-bottom:10px;">MISSION OVER</h1>
+                    <p style="color:#bfa2a8; font-size:0.9rem; margin-bottom:15px;">
+                        Final Score: <span style="color:#00ffcc; font-weight:bold;">${gameScore}</span>
                     </p>
-                    <button class="btn-start" onclick="renderMenuScreen()">Play Again</button>
+                    <p style="color:#8899aa; font-size:0.8rem; line-height:1.4; margin-bottom:20px;">
+                        Great defense work interpreting clock differences, configurations, and elapsed tracking intervals from image_e623a0.png!
+                    </p>
+                    <button class="btn-arcade" onclick="renderMenuScreen()">CONTINUE</button>
                 </div>
             `;
         }
