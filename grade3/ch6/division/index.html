@@ -1,1 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chef Dyna's Magical Bakery - Division Game</title>
+<style>
+  body { margin:0; font-family: 'Arial', sans-serif; background: #FFF8F0; }
+  .screen { display: none; width: 100vw; height: 100vh; justify-content: center; align-items: center; flex-direction: column; text-align: center; position: relative; }
+  .active { display: flex; }
+  .logo { width: 200px; margin-top: 50px; }
+  .game-bg { width: 100%; height: 100%; position: absolute; top:0; left:0; z-index: -1; object-fit: cover; }
+  .items { display: flex; flex-wrap: wrap; justify-content: center; margin-top:20px; }
+  .item { width:60px; height:60px; margin:10px; cursor: pointer; }
+  .tray { width:80px; height:80px; margin:15px; border: 2px dashed #8A2BE2; display:flex; justify-content:center; align-items:center; font-weight:bold; color:#8A2BE2; }
+  button { margin-top:20px; padding:10px 20px; font-size:18px; background:#8A2BE2; color:white; border:none; border-radius:10px; cursor:pointer; }
+  input { font-size:18px; padding:5px; width:100px; text-align:center; }
+  .feedback { margin-top:10px; font-size:20px; font-weight:bold; color:#8A2BE2; }
+</style>
+</head>
+<body>
 
+<!-- Splash Screen -->
+<div id="splash" class="screen active">
+  <img src="assets/innovine-logo.png" alt="Logo" class="logo">
+</div>
+
+<!-- Mission Intro -->
+<div id="intro" class="screen">
+  <img src="assets/bg.png" class="game-bg" alt="Background">
+  <h2 style="z-index:1; color:#333;">Welcome to Chef Dyna's Magical Bakery!</h2>
+  <p style="z-index:1; color:#333;">Help Chef Dyna divide magical treats equally.</p>
+  <button onclick="startGame()">Start Mission</button>
+</div>
+
+<!-- Game Screens -->
+<div id="gameContainer">
+
+  <!-- Game 1: Basic Division -->
+  <div id="game1" class="screen">
+    <img src="assets/bg.png" class="game-bg" alt="Background">
+    <h2>Mission 1: Divide 12 cupcakes into 4 trays</h2>
+    <div class="items" id="cupcakes"></div>
+    <div class="items" id="trays"></div>
+    <div class="feedback" id="feedback1"></div>
+  </div>
+
+  <!-- Game 2: Long Division -->
+  <div id="game2" class="screen">
+    <img src="assets/bg.png" class="game-bg" alt="Background">
+    <h2>Mission 2: Divide 126 cookies into 6 boxes</h2>
+    <p>How many cookies in each box?</p>
+    <input type="number" id="cookiesInput" placeholder="Enter number">
+    <button onclick="checkCookies()">Submit</button>
+    <div class="feedback" id="feedback2"></div>
+  </div>
+
+  <!-- Game 3: Division with Remainder -->
+  <div id="game3" class="screen">
+    <img src="assets/bg.png" class="game-bg" alt="Background">
+    <h2>Mission 3: Divide 458 candies among 7 wizards</h2>
+    <div class="items" id="candies"></div>
+    <div class="items" id="wizards"></div>
+    <div class="feedback" id="feedback3"></div>
+  </div>
+
+  <!-- Game 4: Division by 10 -->
+  <div id="game4" class="screen">
+    <img src="assets/bg.png" class="game-bg" alt="Background">
+    <h2>Mission 4: Divide 250 muffins into packs of 10</h2>
+    <div class="items" id="muffins"></div>
+    <div class="items" id="packs"></div>
+    <div class="feedback" id="feedback4"></div>
+  </div>
+
+</div>
+
+<!-- End Screen -->
+<div id="endScreen" class="screen">
+  <img src="assets/bg.png" class="game-bg" alt="Background">
+  <h2>Congratulations!</h2>
+  <p>You helped Chef Dyna divide all treats perfectly!</p>
+  <img src="assets/muffin.png" alt="Celebration" style="width:200px;">
+  <button onclick="restartGame()">Play Again</button>
+</div>
+
+<!-- Audio -->
+<audio id="correctAudio" src="assets/correct.mp3"></audio>
+<audio id="wrongAudio" src="assets/wrong.mp3"></audio>
+<audio id="clapAudio" src="assets/freesound_community-claps-44774.mp3"></audio>
+
+<script>
+  // Splash screen timer
+  setTimeout(() => {
+    document.getElementById('splash').classList.remove('active');
+    document.getElementById('intro').classList.add('active');
+  }, 3000);
+
+  function startGame() {
+    document.getElementById('intro').classList.remove('active');
+    document.getElementById('game1').classList.add('active');
+    initGame1();
+  }
+
+  // ---------------- GAME 1 ----------------
+  let draggedItem = null;
+  let game1Attempts = 0;
+
+  function initGame1() {
+    const cupcakesDiv = document.getElementById('cupcakes');
+    cupcakesDiv.innerHTML = '';
+    for (let i=0;i<12;i++){
+      const c = document.createElement('img');
+      c.src = 'assets/cupcake.png';
+      c.className = 'item';
+      c.draggable = true;
+      c.id = 'cupcake'+i;
+      c.addEventListener('dragstart', e => draggedItem=e.target);
+      cupcakesDiv.appendChild(c);
+    }
+    const traysDiv = document.getElementById('trays');
+    traysDiv.innerHTML='';
+    for (let i=0;i<4;i++){
+      const t = document.createElement('div');
+      t.className='tray';
+      t.id='tray'+i;
+      t.textContent='0';
+      t.addEventListener('dragover', e => e.preventDefault());
+      t.addEventListener('drop', drop1);
+      traysDiv.appendChild(t);
+    }
+    document.getElementById('feedback1').textContent='';
+  }
+
+  function drop1(e){
+    e.preventDefault();
+    let tray = e.target;
+    tray.textContent = parseInt(tray.textContent)+1;
+    tray.appendChild(draggedItem);
+    checkGame1Complete();
+  }
+
+  function checkGame1Complete(){
+    let total=0;
+    for(let i=0;i<4;i++){
+      total+=parseInt(document.getElementById('tray'+i).textContent);
+    }
+    if(total===12){
+      document.getElementById('feedback1').textContent='Great Job!';
+      document.getElementById('correctAudio').play();
+      setTimeout(()=>{ nextGame(2); },1500);
+    }
+  }
+
+  // ---------------- GAME 2 ----------------
+  function checkCookies(){
+    const val=parseInt(document.getElementById('cookiesInput').value);
+    if(val===21){
+      document.getElementById('feedback2').textContent='Correct! 126 ÷ 6 = 21';
+      document.getElementById('correctAudio').play();
+      setTimeout(()=>{ nextGame(3); },1500);
+    } else {
+      document.getElementById('feedback2').textContent='Try again!';
+      document.getElementById('wrongAudio').play();
+    }
+  }
+
+  // ---------------- GAME 3 ----------------
+  let game3Distributed=0;
+  function initGame3(){
+    const candiesDiv = document.getElementById('candies');
+    candiesDiv.innerHTML='';
+    for(let i=0;i<458;i++){
+      const c = document.createElement('img');
+      c.src='assets/candy.png';
+      c.className='item';
+      c.style.width='20px';
+      c.style.height='20px';
+      c.draggable=true;
+      c.addEventListener('dragstart', e=>draggedItem=e.target);
+      candiesDiv.appendChild(c);
+    }
+    const wizardsDiv=document.getElementById('wizards');
+    wizardsDiv.innerHTML='';
+    for(let i=0;i<7;i++){
+      const w=document.createElement('div');
+      w.className='tray';
+      w.id='wizard'+i;
+      w.textContent='0';
+      w.addEventListener('dragover', e=>e.preventDefault());
+      w.addEventListener('drop', drop3);
+      wizardsDiv.appendChild(w);
+    }
+    game3Distributed=0;
+    document.getElementById('feedback3').textContent='';
+  }
+
+  function drop3(e){
+    e.preventDefault();
+    let wizard=e.target;
+    wizard.textContent=parseInt(wizard.textContent)+1;
+    wizard.appendChild(draggedItem);
+    game3Distributed++;
+    if(game3Distributed>=458){
+      document.getElementById('feedback3').textContent='Perfect! All candies distributed.';
+      document.getElementById('correctAudio').play();
+      setTimeout(()=>{ nextGame(4); },1500);
+    }
+  }
+
+  // ---------------- GAME 4 ----------------
+  let packsCreated=0;
+  function initGame4(){
+    const muffinsDiv=document.getElementById('muffins');
+    muffinsDiv.innerHTML='';
+    for(let i=0;i<250;i++){
+      const m=document.createElement('img');
+      m.src='assets/muffin.png';
+      m.className='item';
+      m.style.width='25px'; m.style.height='25px';
+      m.draggable=true;
+      m.addEventListener('dragstart', e=>draggedItem=e.target);
+      muffinsDiv.appendChild(m);
+    }
+    const packsDiv=document.getElementById('packs');
+    packsDiv.innerHTML='';
+    for(let i=0;i<25;i++){
+      const p=document.createElement('div');
+      p.className='tray';
+      p.id='pack'+i;
+      p.textContent='0';
+      p.addEventListener('dragover', e=>e.preventDefault());
+      p.addEventListener('drop', drop4);
+      packsDiv.appendChild(p);
+    }
+    packsCreated=0;
+    document.getElementById('feedback4').textContent='';
+  }
+
+  function drop4(e){
+    e.preventDefault();
+    let pack=e.target;
+    pack.textContent=parseInt(pack.textContent)+1;
+    pack.appendChild(draggedItem);
+    packsCreated++;
+    if(packsCreated>=250){
+      document.getElementById('feedback4').textContent='Excellent! All muffins packed.';
+      document.getElementById('correctAudio').play();
+      setTimeout(()=>{ endGame(); },1500);
+    }
+  }
+
+  // ---------------- Navigation ----------------
+  function nextGame(num){
+    for(let i=1;i<=4;i++) document.getElementById('game'+i).classList.remove('active');
+    document.getElementById('game'+num).classList.add('active');
+    if(num===3) initGame3();
+    if(num===4) initGame4();
+  }
+
+  function endGame(){
+    for(let i=1;i<=4;i++) document.getElementById('game'+i).classList.remove('active');
+    document.getElementById('endScreen').classList.add('active');
+  }
+
+  function restartGame(){
+    document.getElementById('endScreen').classList.remove('active');
+    startGame();
+  }
+
+  initGame1();
+</script>
+
+</body>
+</html>
