@@ -135,16 +135,18 @@
         .fire-btn { width: 45%; background: rgba(0, 245, 212, 0.15); border-color: #00f5d4; color: #00f5d4; }
         .deck-btn:active { background: #00f5d4; color: #060410; }
 
+        /* Managed Launch Cover Panel */
         #hard-splash {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-color: #ffffff;
-            color: #111111;
+            background-color: #0b0f19;
+            color: #ffffff;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 99999;
+            transition: opacity 0.5s ease;
         }
     </style>
 </head>
@@ -154,11 +156,10 @@
     <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
     <audio id="s-win" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
 
-    <!-- Self-Purging UI Loading Cover Shield -->
     <div id="hard-splash">
-        <img src="assets/logo.png" style="max-width:240px; margin-bottom:20px;" onerror="this.style.display='none'; document.getElementById('fb-text').style.display='block';">
-        <h1 id="fb-text" style="display:none; font-size:2.2rem; margin-bottom:15px; letter-spacing:1px; font-weight:bold;">INNOVINE</h1>
-        <div style="width:200px; height:6px; background-color:#e2e8f0; border-radius:3px; overflow:hidden;">
+        <img src="assets/logo.png" style="max-width:140px; margin-bottom:20px; object-fit:contain;" onerror="this.style.display='none'; document.getElementById('fb-text').style.display='block';">
+        <h1 id="fb-text" style="display:none; font-size:2.2rem; margin-bottom:15px; letter-spacing:1px; font-weight:bold; color:#00f5d4;">INNOVINE</h1>
+        <div style="width:200px; height:6px; background-color:#1e293b; border-radius:3px; overflow:hidden; margin-top:10px;">
             <div id="loader-progress-fill" style="width:0%; height:100%; background-color:#00f5d4;"></div>
         </div>
     </div>
@@ -187,25 +188,35 @@
         let expectedCorrectAnswer = "";
         let isEngineRunning = false;
 
-        // Progress loader timeline ticker
+        // Regulated 5-Second (5000ms) Progress Timeline Engine Loading Sequence
         let progressVal = 0;
+        const loaderIntervalMs = 50; // Triggers loop updates
+        const totalDurationMs = 5000;
+        const stepsCount = totalDurationMs / loaderIntervalMs;
+        const percentagePerStep = 100 / stepsCount;
+
         const progressTicker = setInterval(() => {
-            progressVal += 5;
+            progressVal += percentagePerStep;
             const element = document.getElementById('loader-progress-fill');
-            if (element) element.style.width = progressVal + '%';
+            if (element) element.style.width = Math.min(progressVal, 100) + '%';
 
             if (progressVal >= 100) {
                 clearInterval(progressTicker);
                 purgeSplashAndBuildMenu();
             }
-        }, 30);
+        }, loaderIntervalMs);
 
         function purgeSplashAndBuildMenu() {
             const splashMask = document.getElementById('hard-splash');
             if (splashMask) {
-                splashMask.parentNode.removeChild(splashMask); // Evicts the component tree safety layout completely
+                splashMask.style.opacity = '0';
+                setTimeout(() => {
+                    if (splashMask.parentNode) splashMask.parentNode.removeChild(splashMask);
+                    renderMenuScreen();
+                }, 500);
+            } else {
+                renderMenuScreen();
             }
-            renderMenuScreen();
         }
 
         function renderMenuScreen() {
@@ -270,7 +281,6 @@
         }
 
         function generateNextChronosQuestion() {
-            // Objectives pulled directly from image_e623a0.png outcomes list
             const curriculumPool = [
                 { tag: "24-Hour Clock conversion", q: "Convert 05:00 PM to 24h", a: "17:00", w: ["05:00", "23:00", "15:00"] },
                 { tag: "24-Hour Clock conversion", q: "Convert 10:30 PM to 24h", a: "22:30", w: ["10:30", "20:30", "12:30"] },
@@ -295,7 +305,6 @@
             const segments = 3;
             const segmentWidth = canvasElement.width / segments;
             
-            // Randomly set column location for the valid correct answer diamond
             const winColumn = Math.floor(Math.random() * segments);
             let incorrectAnswers = [...wrongPool].sort(() => Math.random() - 0.5);
 
@@ -312,11 +321,11 @@
 
                 crystalDiamondsList.push({
                     x: (i * segmentWidth) + (segmentWidth / 2),
-                    y: 60 + Math.random() * 40, // Staggered depths inside cave
+                    y: 60 + Math.random() * 40,
                     label: answerText,
                     isCorrect: correctFlag,
                     radius: 26,
-                    bobbingOffset: Math.random() * 100 // Smooth floating motion animation offset
+                    bobbingOffset: Math.random() * 100
                 });
             }
         }
@@ -331,22 +340,18 @@
         }
 
         function updateFramePhysics() {
-            // Slide wagon left/right
             if (horizontalMovementMode === -1 && minerShipX > 5) minerShipX -= 5;
             if (horizontalMovementMode === 1 && minerShipX < (canvasElement.width - minerShipWidth - 5)) minerShipX += 5;
 
-            // Retract or extend grapple hook projectiles upward
             for (let i = activeHarpoonsList.length - 1; i >= 0; i--) {
                 let hook = activeHarpoonsList[i];
-                hook.y -= 9; // Launch velocity speed upward
+                hook.y -= 9;
                 
-                // Remove if it shoots past top roof
                 if (hook.y < 0) {
                     activeHarpoonsList.splice(i, 1);
                     continue;
                 }
 
-                // Check collision against static diamond shapes
                 for (let j = crystalDiamondsList.length - 1; j >= 0; j--) {
                     let gem = crystalDiamondsList[j];
                     
@@ -355,13 +360,15 @@
                     let distanceSq = Math.sqrt(dx*dx + dy*dy);
 
                     if (distanceSq <= gem.radius) {
-                        // Diamond hit and grabbed!
                         activeHarpoonsList.splice(i, 1);
                         
                         if (gem.isCorrect) {
                             playAudioFile('s-correct');
                             currentScore += 10;
                             document.getElementById('lbl-score').innerText = currentScore;
+                            
+                            // Trigger combined cheers tracking safely
+                            playAudioFile('s-win');
                             generateNextChronosQuestion();
                         } else {
                             playAudioFile('s-wrong');
@@ -384,13 +391,12 @@
                 isEngineRunning = false;
                 renderGameOverScreen();
             } else {
-                // Refresh the current target layout safely
                 generateNextChronosQuestion();
             }
         }
 
         function triggerHarpoonGrappleSequence() {
-            if (!isEngineRunning || activeHarpoonsList.length > 0) return; // Allow 1 hook shot at a time
+            if (!isEngineRunning || activeHarpoonsList.length > 0) return;
             activeHarpoonsList.push({
                 x: minerShipX + (minerShipWidth / 2),
                 y: canvasElement.height - 32
@@ -400,7 +406,7 @@
         function renderFrameGraphics() {
             canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
-            // Draw Grappling cables lines if launched
+            // Draw Grappling cables
             canvasContext.strokeStyle = '#9d4edd';
             canvasContext.lineWidth = 2;
             for (let i = 0; i < activeHarpoonsList.length; i++) {
@@ -410,44 +416,38 @@
                 canvasContext.lineTo(hook.x, hook.y);
                 canvasContext.stroke();
 
-                // Draw harpoon hook tip point arrow head
                 canvasContext.fillStyle = '#00f5d4';
                 canvasContext.fillRect(hook.x - 3, hook.y - 4, 6, 8);
             }
 
-            // Draw Mining Harpoon Wagon Carrier at base tracking row
+            // Draw Mining Wagon
             canvasContext.fillStyle = '#3a2d7d';
             canvasContext.fillRect(minerShipX, canvasElement.height - 25, minerShipWidth, minerShipHeight);
-            // Metallic anchor housing point nozzle
             canvasContext.fillStyle = '#00f5d4';
             canvasContext.fillRect(minerShipX + (minerShipWidth / 2) - 4, canvasElement.height - 32, 8, 8);
 
-            // Draw floating glowing Diamond Crystals
+            // Draw floating Diamond Crystals
             let timeTicker = Date.now() * 0.003;
             for (let i = 0; i < crystalDiamondsList.length; i++) {
                 let gem = crystalDiamondsList[i];
-                
-                // Add a gentle floating bobbing animation
                 let bobY = gem.y + Math.sin(timeTicker + gem.bobbingOffset) * 6;
 
                 canvasContext.save();
                 canvasContext.translate(gem.x, bobY);
 
-                // Draw Diamond vector paths polygon vertices
                 canvasContext.fillStyle = '#241a49';
                 canvasContext.strokeStyle = '#00f5d4';
                 canvasContext.lineWidth = 3;
                 
                 canvasContext.beginPath();
-                canvasContext.moveTo(0, -gem.radius); // Top point
-                canvasContext.lineTo(gem.radius - 4, 0); // Right point
-                canvasContext.lineTo(0, gem.radius); // Bottom point
-                canvasContext.lineTo(-gem.radius + 4, 0); // Left point
+                canvasContext.moveTo(0, -gem.radius); 
+                canvasContext.lineTo(gem.radius - 4, 0); 
+                canvasContext.lineTo(0, gem.radius); 
+                canvasContext.lineTo(-gem.radius + 4, 0); 
                 canvasContext.closePath();
                 canvasContext.fill();
                 canvasContext.stroke();
 
-                // Print target math text answers inside diamond core
                 canvasContext.fillStyle = '#ffffff';
                 canvasContext.font = 'bold 12px sans-serif';
                 canvasContext.textAlign = 'center';
@@ -459,7 +459,6 @@
         }
 
         function attachSteeringControls() {
-            // Physical keyboard mapping inputs handler hookups
             window.addEventListener('keydown', (e) => {
                 if (e.key === 'ArrowLeft') horizontalMovementMode = -1;
                 if (e.key === 'ArrowRight') horizontalMovementMode = 1;
@@ -473,7 +472,6 @@
                 if (e.key === 'ArrowRight' && horizontalMovementMode === 1) horizontalMovementMode = 0;
             });
 
-            // Handheld Touch Control bindings setup
             const leftBtn = document.getElementById('btn-left-press');
             const rightBtn = document.getElementById('btn-right-press');
             const fireBtn = document.getElementById('btn-fire-press');
@@ -487,7 +485,6 @@
 
                 fireBtn.addEventListener('touchstart', (e) => { e.preventDefault(); triggerHarpoonGrappleSequence(); });
 
-                // Cross platform mouse listeners fallback support tracking
                 leftBtn.addEventListener('mousedown', () => horizontalMovementMode = -1);
                 leftBtn.addEventListener('mouseup', () => { if(horizontalMovementMode === -1) horizontalMovementMode = 0; });
                 rightBtn.addEventListener('mousedown', () => horizontalMovementMode = 1);
