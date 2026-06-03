@@ -7,21 +7,20 @@
 <style>
 body {
   margin: 0;
-  font-family: 'Arial', sans-serif;
+  font-family: Arial, sans-serif;
   background: linear-gradient(135deg, #f7f3fc, #e0f7fa);
-  overflow: hidden;
 }
 #gameCanvas {
-  background: #ffffff;
   display: block;
-  margin: 0 auto;
+  margin: 20px auto;
   border: 2px solid #ccc;
   touch-action: none;
+  background: #fff;
 }
 #instruction {
   text-align: center;
   font-size: 18px;
-  margin: 10px;
+  margin: 5px;
   color: #333;
 }
 #endScreen {
@@ -64,14 +63,14 @@ let level = 0;
 let attempts = 0;
 
 // Points
-let points = [
+const points = [
   {x:100, y:100, label:'A'}, 
   {x:300, y:100, label:'B'}, 
   {x:100, y:300, label:'C'}, 
   {x:300, y:300, label:'D'}
 ];
 
-// Level tasks
+// Levels
 const levels = [
   {type:'identifyPoint', question:'Tap point B', answer:'B'},
   {type:'lineSegment', question:'Draw a line segment from A to B', from:'A', to:'B'},
@@ -83,21 +82,8 @@ const levels = [
 let dragging = false;
 let dragStart = null;
 
-// Logo screen
-const logoImg = new Image();
-logoImg.src = 'assets/innovine-logo.png';
-logoImg.onload = () => drawLogo();
-
-function drawLogo(){
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.drawImage(logoImg, canvas.width/2-100, canvas.height/2-100, 200, 200);
-  instruction.innerText = '';
-  setTimeout(()=>{ level=0; startLevel(); }, 2500);
-}
-
-// Utility
-function getPointByLabel(label){ return points.find(p=>p.label===label); }
-function drawPoints(){
+// Draw points
+function drawPoints() {
   points.forEach(p=>{
     ctx.beginPath();
     ctx.arc(p.x, p.y, 12, 0, Math.PI*2);
@@ -111,82 +97,81 @@ function drawPoints(){
   });
 }
 
-function startLevel(){
-  attempts=0;
+// Start a level
+function startLevel() {
+  attempts = 0;
   ctx.clearRect(0,0,canvas.width,canvas.height);
   drawPoints();
   const lv = levels[level];
   instruction.innerText = lv.question;
 
-  removeAllListeners();
+  // Remove old listeners
+  canvas.replaceWith(canvas.cloneNode(true));
+  const newCanvas = document.getElementById('gameCanvas');
+  canvas = newCanvas;
 
   if(lv.type==='identifyPoint') canvas.addEventListener('click', handlePointClick);
   else if(lv.type==='lineSegment'||lv.type==='ray'){
     canvas.addEventListener('pointerdown', startDrag);
     canvas.addEventListener('pointermove', dragMove);
     canvas.addEventListener('pointerup', endDrag);
+  } else if(lv.type==='shape'||lv.type==='mcq'){
+    drawOptions(lv);
   }
-  else if(lv.type==='shape'||lv.type==='mcq') drawOptions(lv);
 }
 
-// Remove all previous listeners
-function removeAllListeners(){
-  canvas.replaceWith(canvas.cloneNode(true));
-  canvas = document.getElementById('gameCanvas');
-}
+// Utilities
+function getPointByLabel(label){ return points.find(p=>p.label===label); }
 
-// Point click
+// Identify point
 function handlePointClick(e){
-  const rect=canvas.getBoundingClientRect();
-  const x=e.clientX-rect.left;
-  const y=e.clientY-rect.top;
-  const lv=levels[level];
-  const clickedPoint=points.find(p=>{
-    const dx=x-p.x, dy=y-p.y;
-    return Math.sqrt(dx*dx+dy*dy)<15;
-  });
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const lv = levels[level];
+  const clickedPoint = points.find(p=>Math.hypot(x-p.x, y-p.y)<15);
   if(clickedPoint){
     if(clickedPoint.label===lv.answer) correct();
     else wrong();
   }
 }
 
-// Drag handlers
+// Line & ray drag
 function startDrag(e){
-  const rect=canvas.getBoundingClientRect();
-  const x=e.clientX-rect.left;
-  const y=e.clientY-rect.top;
-  const lv=levels[level];
-  const fromPoint=getPointByLabel(lv.from);
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const lv = levels[level];
+  const fromPoint = getPointByLabel(lv.from);
   if(Math.hypot(x-fromPoint.x, y-fromPoint.y)<15){ dragging=true; dragStart=fromPoint; }
 }
 function dragMove(e){
   if(!dragging) return;
-  const rect=canvas.getBoundingClientRect();
-  const x=e.clientX-rect.left;
-  const y=e.clientY-rect.top;
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
   ctx.clearRect(0,0,canvas.width,canvas.height);
   drawPoints();
   ctx.beginPath();
   ctx.moveTo(dragStart.x, dragStart.y);
   ctx.lineTo(x, y);
-  ctx.strokeStyle='#2196f3';
-  ctx.lineWidth=4;
+  ctx.strokeStyle = '#2196f3';
+  ctx.lineWidth = 4;
   ctx.stroke();
 }
 function endDrag(e){
   if(!dragging) return;
   dragging=false;
-  const rect=canvas.getBoundingClientRect();
-  const x=e.clientX-rect.left;
-  const y=e.clientY-rect.top;
-  const lv=levels[level];
-  const toPoint=getPointByLabel(lv.to);
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  const lv = levels[level];
+  const toPoint = getPointByLabel(lv.to);
   if(Math.hypot(x-toPoint.x, y-toPoint.y)<25) correct();
   else wrong();
 }
 
-// Draw options
+// Draw MCQ options
 function drawOptions(lv){
   ctx.clearRect(0,0,canvas.width,canvas.height);
   drawPoints();
@@ -196,23 +181,18 @@ function drawOptions(lv){
     ctx.fillRect(50, startY+i*50, 300, 40);
     ctx.fillStyle='#000';
     ctx.font='18px Arial';
-    ctx.fillText(opt,70,startY+i*50+28);
+    ctx.fillText(opt, 70, startY+i*50+28);
   });
-  canvas.addEventListener('click', handleOptionClick);
-}
-
-function handleOptionClick(e){
-  const rect=canvas.getBoundingClientRect();
-  const x=e.clientX-rect.left;
-  const y=e.clientY-rect.top;
-  const lv=levels[level];
-  const startY=380;
-  lv.options.forEach((opt,i)=>{
-    if(x>50 && x<350 && y>startY+i*50 && y<startY+i*50+40){
-      canvas.removeEventListener('click', handleOptionClick);
-      if(opt===lv.answer) correct();
-      else wrong();
-    }
+  canvas.addEventListener('click', function(e){
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    lv.options.forEach((opt,i)=>{
+      if(x>50 && x<350 && y>startY+i*50 && y<startY+i*50+40){
+        if(opt===lv.answer) correct();
+        else wrong();
+      }
+    });
   });
 }
 
@@ -222,11 +202,10 @@ function correct(){
   showConfetti();
   setTimeout(nextLevel, 700);
 }
-
 function wrong(){
   wrongSound.play();
   attempts++;
-  if(attempts>=2) setTimeout(nextLevel, 700);
+  if(attempts>=2) setTimeout(nextLevel,700);
 }
 
 // Next level
@@ -252,7 +231,7 @@ playAgainBtn.addEventListener('click', ()=>{
   startLevel();
 });
 
-// Simple Confetti
+// Confetti animation
 function showConfetti(){
   const confetti = [];
   for(let i=0;i<100;i++){
@@ -263,7 +242,7 @@ function showConfetti(){
     drawPoints();
     confetti.forEach(c=>{
       ctx.fillStyle=c.color;
-      ctx.fillRect(c.x,c.y,5,10);
+      ctx.fillRect(c.x, c.y, 5, 10);
       c.y+=c.dy;
     });
     if(confetti.some(c=>c.y<canvas.height)) requestAnimationFrame(animate);
@@ -271,6 +250,8 @@ function showConfetti(){
   animate();
 }
 
+// Start first level
+window.onload = startLevel;
 </script>
 </body>
 </html>
