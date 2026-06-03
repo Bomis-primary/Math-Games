@@ -3,543 +3,187 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Dragon Food Rescue</title>
-
+<title>Meteor Cleanup Mission – Subtraction 9999</title>
 <style>
-
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
+body {
+  margin: 0;
+  font-family: 'Arbutus', cursive;
+  overflow: hidden;
+  background: #000;
 }
-
-body{
-background:url('assets/dragon-background.jpg');
-background-size:cover;
-background-position:center;
-min-height:100vh;
-text-align:center;
+#splash, #game, #endScreen {
+  width: 100%;
+  height: 100vh;
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #fff;
 }
-
-.header{
-background:white;
-padding:10px;
-box-shadow:0 2px 6px rgba(0,0,0,.2);
+#splash img { width: 200px; margin-bottom: 20px;}
+#overlay {
+  position: absolute;
+  top:0; left:0; width:100%; height:100%;
+  background: rgba(0,0,0,0.35);
+  z-index:1;
 }
-
-.logo{
-height:70px;
+h1,h2,#questionBox,#scoreBoard,#levelDisplay,#crystalMeter {
+  position: relative;
+  z-index:2;
+  text-shadow: 2px 2px 5px #000;
 }
-
-.container{
-max-width:1000px;
-margin:auto;
-padding:20px;
+#questionBox { font-size: 2em; margin:10px; }
+#aliens {
+  position: relative; width: 100%; height: 60%;
 }
-
-.screen{
-display:none;
+.alien {
+  width: 120px; height: 120px;
+  position: absolute;
+  cursor: pointer;
 }
-
-.active{
-display:block;
+.alien-number {
+  position: absolute;
+  bottom: 5px; width: 100%;
+  text-align: center; font-size: 1.5em; font-weight: bold;
+  color: #fff; background: rgba(0,0,0,0.5);
+  border-radius: 10px; text-shadow: 2px 2px 5px #000;
 }
-
-.card{
-background:white;
-padding:25px;
-border-radius:20px;
-box-shadow:0 5px 15px rgba(0,0,0,.2);
-margin-top:20px;
+.wiggle { animation: wiggle 0.5s; }
+@keyframes wiggle {0% {rotate:0deg;}25%{rotate:15deg;}50%{rotate:-15deg;}75%{rotate:10deg;}100%{rotate:0deg;}}
+#playAgainBtn,#startBtn {
+  padding: 12px 25px; font-size:1.5em; background-color:#4b2e83;
+  color:white; border:none; border-radius:10px; cursor:pointer; margin-top:20px;
 }
-
-.btn{
-background:#c0392b;
-color:white;
-border:none;
-padding:14px 24px;
-border-radius:10px;
-font-size:18px;
-cursor:pointer;
-margin-top:15px;
-}
-
-.btn:hover{
-background:#a93226;
-}
-
-.question{
-font-size:24px;
-margin-bottom:20px;
-}
-
-.option{
-display:block;
-width:100%;
-margin:10px 0;
-padding:15px;
-border:none;
-border-radius:10px;
-background:#c0392b;
-color:white;
-font-size:18px;
-cursor:pointer;
-}
-
-.option:hover{
-background:#a93226;
-}
-
-.image-area{
-margin:20px auto;
-}
-
-.object-image{
-width:250px;
-height:250px;
-object-fit:contain;
-}
-
-.progress-container{
-width:100%;
-background:#ddd;
-border-radius:20px;
-overflow:hidden;
-margin:15px 0;
-}
-
-.progress-bar{
-height:22px;
-width:0%;
-background:#2ecc71;
-transition:.3s;
-}
-
-#message{
-font-size:20px;
-font-weight:bold;
-height:30px;
-margin-top:15px;
-}
-
-.mission{
-font-size:22px;
-font-weight:bold;
-color:#27ae60;
-}
-
-.win-text{
-font-size:32px;
-color:#e67e22;
-}
-
-#villageStatus{
-font-size:20px;
-font-weight:bold;
-margin-top:10px;
-}
-
+#playAgainBtn:hover,#startBtn:hover {background-color:#6a4cb0;}
+#player {position:absolute; bottom:10px; left:50%; width:120px; margin-left:-60px;}
 </style>
 </head>
-
 <body>
 
-<div class="header">
-<img src="assets/innovine-logo.png" class="logo">
+<div id="splash">
+  <img src="assets/innovine-logo.png" alt="Logo">
+  <h1>MISSION: METEOR CLEANUP</h1>
+  <h2>Help Nova collect the correct meteors by solving subtraction problems!</h2>
+  <h2>GOAL: Solve all 10 subtraction problems to clear space and save the galaxy.</h2>
+  <button id="startBtn">Start Mission</button>
 </div>
 
-<div class="container">
-
-<div id="startScreen" class="screen active">
-
-<div class="card">
-
-<h1>🐲 Dragon Food Rescue</h1>
-
-<br>
-
-<p>
-A hungry dragon is stealing village supplies.
-Help villagers calculate what remains and save the kingdom.
-</p>
-
-<button class="btn" onclick="showInstructions()">
-Start Rescue
-</button>
-
+<div id="game">
+  <div id="overlay"></div>
+  <h2 id="levelDisplay">Level 1 – Meteor Bay</h2>
+  <div id="scoreBoard">Score: 0</div>
+  <div id="crystalMeter">Treasures: <span>⚪⚪⚪⚪⚪</span></div>
+  <div id="questionBox">Question Here</div>
+  <div id="aliens"></div>
+  <img id="player" src="assets/nova.png">
 </div>
 
-</div>
-
-<div id="instructionScreen" class="screen">
-
-<div class="card">
-
-<h2>📖 Instructions</h2>
-
-<br>
-
-<p>✔ Learn subtraction</p>
-<p>✔ Identify minuend and subtrahend</p>
-<p>✔ Practice borrowing</p>
-<p>✔ Solve story sums</p>
-<p>✔ Save the village</p>
-
-<button class="btn" onclick="startGame()">
-Begin Missions
-</button>
-
-</div>
-
-</div>
-
-<div id="gameScreen" class="screen">
-
-<div class="card">
-
-<div class="mission" id="missionCount">
-Mission 1 / 10
-</div>
-
-<div class="progress-container">
-<div class="progress-bar" id="progressBar"></div>
-</div>
-
-<div id="villageStatus">
-Buildings Saved: 0 / 10
-</div>
-
-<div id="question" class="question"></div>
-
-<div class="image-area" id="imageArea"></div>
-
-<div id="options"></div>
-
-<div id="message"></div>
-
-</div>
-
-</div>
-
-<div id="winScreen" class="screen">
-
-<div class="card">
-
-<div class="win-text">
-🏆 Village Saved!
-</div>
-
-<br>
-
-<img src="assets/hero-badge.png" width="180">
-
-<br><br>
-
-<p>
-You defeated the dragon and saved the kingdom.
-</p>
-
-<br>
-
-<button class="btn" onclick="location.reload()">
-Play Again
-</button>
-
-</div>
-
-</div>
-
+<div id="endScreen">
+  <h1>Mission Complete!</h1>
+  <h2>Well Done, Nova cleared the meteors!</h2>
+  <button id="playAgainBtn">Play Again</button>
 </div>
 
 <audio id="correctSound" src="assets/correct.mp3"></audio>
 <audio id="wrongSound" src="assets/wrong.mp3"></audio>
-<audio id="winSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+<audio id="clapSound" src="assets/freesound_community-claps-44774.mp3"></audio>
 
 <script>
+// 10 subtraction problems (3-3-4)
+const questions=[
+  {q:"876 - 432 = ?", options:[444,443,445], answer:444},
+  {q:"1000 - 576 = ?", options:[424,425,423], answer:424},
+  {q:"999 - 123 = ?", options:[876,875,877], answer:876},
+  {q:"4321 - 1987 = ?", options:[2334,2335,2333], answer:2334},
+  {q:"5000 - 2456 = ?", options:[2544,2543,2545], answer:2544},
+  {q:"3000 - 1876 = ?", options:[1124,1125,1123], answer:1124},
+  {q:"9876 - 4321 = ?", options:[5555,5554,5556], answer:5555},
+  {q:"8765 - 4321 = ?", options:[4444,4445,4443], answer:4444},
+  {q:"9999 - 8765 = ?", options:[1234,1235,1233], answer:1234},
+  {q:"5000 - 1234 = ?", options:[3766,3765,3767], answer:3766}
+];
 
-let level=1;
-let correctAnswer="";
+let currentQuestion=0, score=0;
+const splash=document.getElementById("splash");
+const game=document.getElementById("game");
+const endScreen=document.getElementById("endScreen");
+const questionBox=document.getElementById("questionBox");
+const aliensDiv=document.getElementById("aliens");
+const scoreBoard=document.getElementById("scoreBoard");
+const levelDisplay=document.getElementById("levelDisplay");
+const crystalMeter=document.getElementById("crystalMeter");
+const startBtn=document.getElementById("startBtn");
+const playAgainBtn=document.getElementById("playAgainBtn");
+const correctSound=document.getElementById("correctSound");
+const wrongSound=document.getElementById("wrongSound");
 
-function switchScreen(id){
-
-document.querySelectorAll(".screen").forEach(screen=>{
-screen.classList.remove("active");
+// Start button
+startBtn.addEventListener("click",()=>{
+  splash.style.display="none";
+  game.style.display="flex";
+  showQuestion();
 });
 
-document.getElementById(id).classList.add("active");
+function showQuestion(){
+  if(currentQuestion>=questions.length){ endGame(); return;}
+  const q=questions[currentQuestion];
+  questionBox.textContent=q.q;
 
+  let levelIndex=Math.floor(currentQuestion/3);
+  let levelNames=["Level 1 – Meteor Bay","Level 2 – Asteroid Field","Level 3 – Galaxy Core"];
+  levelDisplay.textContent=levelNames[levelIndex];
+
+  // Treasure meter
+  let treasuresCollected=currentQuestion%5;
+  let treasureStr="";
+  for(let i=0;i<5;i++) treasureStr+=i<treasuresCollected?"🔷":"⚪";
+  crystalMeter.innerHTML="Treasures: "+treasureStr;
+
+  // Display options
+  aliensDiv.innerHTML="";
+  q.options.forEach((option,index)=>{
+    const div=document.createElement("div");
+    div.classList.add("alien");
+    div.style.left=(50+index*140)+"px";
+    div.style.top="20px";
+
+    const numberLabel=document.createElement("div");
+    numberLabel.classList.add("alien-number");
+    numberLabel.textContent=option;
+    div.appendChild(numberLabel);
+
+    aliensDiv.appendChild(div);
+
+    // Falling animation
+    let floatInterval=setInterval(()=>{
+      let curTop=parseFloat(div.style.top);
+      if(curTop<400) div.style.top=(curTop+2)+"px";
+    },20);
+
+    div.addEventListener("click",()=>{
+      if(option===q.answer){
+        correctSound.currentTime=0; correctSound.play();
+        score+=10; scoreBoard.textContent="Score: "+score;
+        clearInterval(floatInterval);
+        currentQuestion++;
+        showQuestion();
+      } else{
+        wrongSound.currentTime=0; wrongSound.play();
+        numberLabel.style.background="rgba(255,0,0,0.5)";
+        setTimeout(()=>numberLabel.style.background="rgba(0,0,0,0.5)",500);
+      }
+    });
+  });
 }
 
-function showInstructions(){
-switchScreen("instructionScreen");
+function endGame(){
+  game.style.display="none";
+  endScreen.style.display="flex";
+  document.getElementById("clapSound")?.play();
 }
 
-function startGame(){
-switchScreen("gameScreen");
-generateQuestion();
-}
-
-function shuffle(array){
-return array.sort(()=>Math.random()-0.5);
-}
-  function generateQuestion(){
-
-if(level>10){
-showWinScreen();
-return;
-}
-
-document.getElementById("message").innerHTML="";
-
-let question="";
-let answer="";
-let options=[];
-let image="";
-
-if(level===1){
-
-question="🐲 Mission 1: Dragon Rule Check<br><br>7564 − 0 = ?";
-
-image="assets/dragon.png";
-
-answer="7564";
-
-options=[
-"7564",
-"0",
-"7563",
-"7565"
-];
-
-}
-
-if(level===2){
-
-question="🐲 Mission 2: In 7564 − 1234, which number is the minuend?";
-
-image="assets/food-crate.png";
-
-answer="7564";
-
-options=[
-"7564",
-"1234",
-"6330",
-"0"
-];
-
-}
-
-if(level===3){
-
-question="🐲 Mission 3: In 7564 − 1234, which number is the subtrahend?";
-
-image="assets/gold-chest.png";
-
-answer="1234";
-
-options=[
-"7564",
-"1234",
-"6330",
-"0"
-];
-
-}
-
-if(level===4){
-
-question="🐲 Mission 4: Easy Rescue<br><br>8642 − 3211 = ?";
-
-image="assets/village.png";
-
-answer="5431";
-
-options=[
-"5431",
-"5331",
-"5421",
-"5531"
-];
-
-}
-
-if(level===5){
-
-question="🐲 Mission 5: Borrowing Challenge<br><br>6542 − 2785 = ?";
-
-image="assets/grain-sack.png";
-
-answer="3757";
-
-options=[
-"3757",
-"3657",
-"3857",
-"3747"
-];
-
-}
-
-if(level===6){
-
-question="🐲 Mission 6: Dragon Attack<br><br>7000 − 2486 = ?";
-
-image="assets/water-barrel.png";
-
-answer="4514";
-
-options=[
-"4514",
-"4414",
-"4524",
-"4614"
-];
-
-}
-
-if(level===7){
-
-question="🐲 Mission 7: Castle Supplies<br><br>9876 − 4321 = ?";
-
-image="assets/castle.png";
-
-answer="5555";
-
-options=[
-"5555",
-"5455",
-"5655",
-"5545"
-];
-
-}
-
-if(level===8){
-
-question="🐲 Mission 8: A dragon stole 2345 gold coins from 6789 coins. How many remain?";
-
-image="assets/gold-chest.png";
-
-answer="4444";
-
-options=[
-"4444",
-"4344",
-"4544",
-"4454"
-];
-
-}
-
-if(level===9){
-
-question="🐲 Mission 9: A store had 9000 grain sacks. Dragon ate 3567 sacks. How many remain?";
-
-image="assets/grain-sack.png";
-
-answer="5433";
-
-options=[
-"5433",
-"5333",
-"5533",
-"5423"
-];
-
-}
-
-if(level===10){
-
-question="🐲 Final Battle! A village had 8450 supplies. Lost 3789 supplies. How many remain?";
-
-image="assets/dragon.png";
-
-answer="4661";
-
-options=[
-"4661",
-"4561",
-"4761",
-"4651"
-];
-
-}
-
-correctAnswer=answer;
-
-options=shuffle(options);
-
-document.getElementById("question").innerHTML=
-question;
-
-document.getElementById("imageArea").innerHTML=
-`<img src="${image}" class="object-image">`;
-
-let html="";
-
-options.forEach(option=>{
-
-html += `
-<button class="option"
-onclick="checkAnswer('${option}')">
-${option}
-</button>
-`;
-
+playAgainBtn.addEventListener("click",()=>{
+  currentQuestion=0; score=0; scoreBoard.textContent="Score: 0";
+  endScreen.style.display="none"; game.style.display="flex"; showQuestion();
 });
-
-document.getElementById("options").innerHTML=
-html;
-
-}
-
-function checkAnswer(selected){
-
-if(selected===correctAnswer){
-
-document.getElementById("correctSound").play();
-
-document.getElementById("message").innerHTML=
-"✅ Supplies Saved!";
-
-level++;
-
-document.getElementById("missionCount").innerHTML=
-`Mission ${Math.min(level,10)} / 10`;
-
-document.getElementById("villageStatus").innerHTML=
-`Buildings Saved: ${Math.min(level-1,10)} / 10`;
-
-document.getElementById("progressBar").style.width=
-((level-1)*10)+"%";
-
-}
-else{
-  document.getElementById("wrongSound").play();
-
-document.getElementById("message").innerHTML=
-`❌ Correct Answer: ${correctAnswer}`;
-
-}
-
-setTimeout(generateQuestion,1500);
-
-}
-
-function showWinScreen(){
-
-document.getElementById("winSound").play();
-
-switchScreen("winScreen");
-
-document.getElementById("progressBar").style.width="100%";
-
-}
-
-</script>
-
-</body>
-</html>
