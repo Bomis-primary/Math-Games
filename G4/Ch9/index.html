@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fraction Diamond Rush</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #090514;
+            color: #ffffff;
+            overflow: hidden;
+        }
+        
+        #viewport-root {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            position: relative;
+        }
+
+        .rush-panel {
+            background: linear-gradient(145deg, #1b0f3a, #0b061a);
+            border: 2px solid #e0aaff;
+            border-radius: 20px;
+            padding: 35px 20px;
+            max-width: 460px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(224, 170, 255, 0.2);
+        }
+        .btn-mine {
+            background: #e0aaff;
+            color: #090514;
+            border: none;
+            padding: 14px 40px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(224, 170, 255, 0.4);
+            margin-top: 20px;
+            text-transform: uppercase;
+        }
+
+        .game-layout {
+            width: 100%;
+            max-width: 480px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .hud-row {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            font-size: 1rem;
+            color: #bac2de;
+            padding: 5px 0;
+        }
+        .hud-value {
+            color: #e0aaff;
+        }
+
+        .mission-panel {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            padding: 12px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .mission-tag {
+            font-size: 0.75rem;
+            color: #c77dff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        .mission-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        /* Cave Mining Grid Frame */
+        .cave-frame {
+            width: 100%;
+            background: #05020a;
+            border: 2px solid rgba(224, 170, 255, 0.15);
+            border-radius: 16px;
+            position: relative;
+            flex-grow: 1;
+            overflow: hidden;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Deck controls */
+        .deck-controls {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 10px;
+            height: 55px;
+        }
+        .deck-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 1.3rem;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        .move-btn { width: 25%; }
+        .fire-btn { width: 45%; background: rgba(224, 170, 255, 0.15); border-color: #e0aaff; color: #e0aaff; }
+        .deck-btn:active { background: #e0aaff; color: #090514; }
+
+        #hard-splash {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #ffffff;
+            color: #111111;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="s-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+    <audio id="s-win" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
+
+    <!-- Self-Purging UI Loading Cover Shield -->
+    <div id="hard-splash">
+        <img src="assets/logo.png" style="max-width:240px; margin-bottom:20px;" onerror="this.style.display='none'; document.getElementById('fb-text').style.display='block';">
+        <h1 id="fb-text" style="display:none; font-size:2.2rem; margin-bottom:15px; letter-spacing:1px; font-weight:bold;">INNOVINE</h1>
+        <div style="width:200px; height:6px; background-color:#e2e8f0; border-radius:3px; overflow:hidden;">
+            <div id="loader-progress-fill" style="width:0%; height:100%; background-color:#e0aaff;"></div>
+        </div>
+    </div>
+
+    <div id="viewport-root"></div>
+
+    <script>
+        let currentScore = 0;
+        let livesLeft = 3;
+        
+        let canvasElement = null;
+        let canvasContext = null;
+        let animationFrameHandle = null;
+
+        // Harpoon Miner Coordinates
+        let minerShipX = 200;
+        const minerShipWidth = 52;
+        const minerShipHeight = 22;
+        let horizontalMovementMode = 0; // -1 = Left, 1 = Right
+
+        // Diamond Crystals and Harpoon Lasers Arrays
+        let activeHarpoonsList = [];
+        let crystalDiamondsList = [];
+        
+        let targetQuestionText = "";
+        let expectedCorrectAnswer = "";
+        let isEngineRunning = false;
+
+        // Progress loader timeline ticker
+        let progressVal = 0;
+        const progressTicker = setInterval(() => {
+            progressVal += 5;
+            const element = document.getElementById('loader-progress-fill');
+            if (element) element.style.width = progressVal + '%';
+
+            if (progressVal >= 100) {
+                clearInterval(progressTicker);
+                purgeSplashAndBuildMenu();
+            }
+        }, 30);
+
+        function purgeSplashAndBuildMenu() {
+            const splashMask = document.getElementById('hard-splash');
+            if (splashMask) {
+                splashMask.parentNode.removeChild(splashMask); // Evicts the component safely
+            }
+            renderMenuScreen();
+        }
+
+        function renderMenuScreen() {
+            isEngineRunning = false;
+            if (animationFrameHandle) cancelAnimationFrame(animationFrameHandle);
+            
+            document.getElementById('viewport-root').innerHTML = `
+                <div class="rush-panel">
+                    <h1 style="color:#e0aaff; font-size:1.8rem; margin-bottom:12px;">FRACTION DIAMOND RUSH</h1>
+                    <p style="color:#a29dbd; font-size:0.9rem; line-height:1.6; text-align:left; margin-bottom:20px;">
+                        Explore the math caves! Read the fraction objective on your panel, steer your cart underneath the matching value gem, and fire your grapple laser hook to harvest it!
+                    </p>
+                    <div style="color:#c77dff; font-size:0.85rem; margin-bottom:20px; font-weight:bold;">
+                        ⌨️ Key Controls: Arrow Keys to slide | Spacebar to Shoot Hook
+                    </div>
+                    <button class="btn-mine" onclick="initiateGameEngine()">START RUSH</button>
+                </div>
+            `;
+        }
+
+        function initiateGameEngine() {
+            currentScore = 0;
+            livesLeft = 3;
+            crystalDiamondsList = [];
+            activeHarpoonsList = [];
+            isEngineRunning = true;
+
+            buildGameLayoutDOM();
+            generateNextFractionQuestion();
+            runCanvasGameLoop();
+            attachSteeringControls();
+        }
+
+        function buildGameLayoutDOM() {
+            document.getElementById('viewport-root').innerHTML = `
+                <div class="game-layout">
+                    <div class="hud-row">
+                        <div>SCORE: <span id="lbl-score" class="hud-value">00</span></div>
+                        <div>LIVES: <span id="lbl-lives" class="hud-value">❤️❤️❤️</span></div>
+                    </div>
+
+                    <div class="mission-panel">
+                        <div class="mission-tag" id="lbl-task-tag">FRACTION OBJECTIVE</div>
+                        <div class="mission-text" id="lbl-task-text">LOADING...</div>
+                    </div>
+
+                    <div class="cave-frame">
+                        <canvas id="rush-canvas" width="440" height="420"></canvas>
+                    </div>
+
+                    <div class="deck-controls">
+                        <div class="deck-btn move-btn" id="btn-left-press">◀</div>
+                        <div class="deck-btn fire-btn" id="btn-fire-press">LAUNCH HOOK</div>
+                        <div class="deck-btn move-btn" id="btn-right-press">▶</div>
+                    </div>
+                </div>
+            `;
+
+            canvasElement = document.getElementById('rush-canvas');
+            canvasContext = canvasElement.getContext('2d');
+            minerShipX = (canvasElement.width / 2) - (minerShipWidth / 2);
+        }
+
+        function generateNextFractionQuestion() {
+            // Objectives curated to mirror curriculum items from image_e60dd7.png
+            const curriculumPool = [
+                { tag: "Lowest Terms Reduction", q: "Reduce 6/8 to its lowest terms", a: "3/4", w: ["1/2", "2/3", "5/6"] },
+                { tag: "Lowest Terms Reduction", q: "Reduce 9/12 to its lowest terms", a: "3/4", w: ["1/3", "2/3", "4/5"] },
+                { tag: "Equivalent Fraction Matching", q: "Find a fraction equivalent to 1/2", a: "4/8", w: ["2/6", "3/8", "4/10"] },
+                { tag: "Equivalent Fraction Matching", q: "Find a fraction equivalent to 2/3", a: "6/9", w: ["4/9", "5/6", "2/6"] },
+                { tag: "Fraction of a Number", q: "Calculate 1/4 of 24", a: "6", w: ["4", "8", "12"] },
+                { tag: "Fraction of a Number", q: "Calculate 2/3 of 15", a: "10", w: ["5", "12", "6"] },
+                { tag: "Classification Mode", q: "Identify the Improper Fraction", a: "7/4", w: ["3/5", "1/2", "5/6"] },
+                { tag: "Mixed Number Conversion", q: "Convert 5/2 to a mixed number", a: "2 1/2", w: ["1 1/2", "2 1/4", "3 1/2"] }
+            ];
+
+            const activeChoice = curriculumPool[Math.floor(Math.random() * curriculumPool.length)];
+            targetQuestionText = activeChoice.q;
+            expectedCorrectAnswer = activeChoice.a;
+
+            document.getElementById('lbl-task-tag').innerText = activeChoice.tag;
+            document.getElementById('lbl-task-text').innerText = targetQuestionText;
+            
+            spawnDiamondClusters(activeChoice.w);
+        }
+
+        function spawnDiamondClusters(wrongPool) {
+            crystalDiamondsList = [];
+            const segments = 3;
+            const segmentWidth = canvasElement.width / segments;
+            
+            // Randomly set column location for the correct answer diamond
+            const winColumn = Math.floor(Math.random() * segments);
+            let incorrectAnswers = [...wrongPool].sort(() => Math.random() - 0.5);
+
+            for (let i = 0; i < segments; i++) {
+                let answerText = "";
+                let correctFlag = false;
+
+                if (i === winColumn) {
+                    answerText = expectedCorrectAnswer;
+                    correctFlag = true;
+                } else {
+                    answerText = incorrectAnswers.pop() || "1/2";
+                }
+
+                crystalDiamondsList.push({
+                    x: (i * segmentWidth) + (segmentWidth / 2),
+                    y: 70 + Math.random() * 50, // Floating depths inside cave
+                    label: answerText,
+                    isCorrect: correctFlag,
+                    radius: 28,
+                    bobbingOffset: Math.random() * 100 // Smooth independent floating animations
+                });
+            }
+        }
+
+        function runCanvasGameLoop() {
+            if (!isEngineRunning) return;
+
+            updateFramePhysics();
+            renderFrameGraphics();
+
+            animationFrameHandle = requestAnimationFrame(runCanvasGameLoop);
+        }
+
+        function updateFramePhysics() {
+            // Slide wagon left/right
+            if (horizontalMovementMode === -1 && minerShipX > 5) minerShipX -= 5;
+            if (horizontalMovementMode === 1 && minerShipX < (canvasElement.width - minerShipWidth - 5)) minerShipX += 5;
+
+            // Retract or extend grapple hook projectiles upward
+            for (let i = activeHarpoonsList.length - 1; i >= 0; i--) {
+                let hook = activeHarpoonsList[i];
+                hook.y -= 10; // Hook shot speed
+                
+                if (hook.y < 0) {
+                    activeHarpoonsList.splice(i, 1);
+                    continue;
+                }
+
+                // Check collision against static diamond shapes
+                for (let j = crystalDiamondsList.length - 1; j >= 0; j--) {
+                    let gem = crystalDiamondsList[j];
+                    
+                    let dx = hook.x - gem.x;
+                    let dy = hook.y - gem.y;
+                    let distance = Math.sqrt(dx*dx + dy*dy);
+
+                    if (distance <= gem.radius) {
+                        activeHarpoonsList.splice(i, 1);
+                        
+                        if (gem.isCorrect) {
+                            playAudioFile('s-correct');
+                            currentScore += 10;
+                            document.getElementById('lbl-score').innerText = currentScore;
+                            generateNextFractionQuestion();
+                        } else {
+                            playAudioFile('s-wrong');
+                            deductLifeToken();
+                        }
+                        return;
+                    }
+                }
+            }
+        }
+
+        function deductLifeToken() {
+            livesLeft--;
+            let hearts = "";
+            for (let i = 0; i < livesLeft; i++) hearts += "❤️";
+            if (hearts === "") hearts = "NONE";
+            document.getElementById('lbl-lives').innerText = hearts;
+
+            if (livesLeft <= 0) {
+                isEngineRunning = false;
+                renderGameOverScreen();
+            } else {
+                generateNextFractionQuestion();
+            }
+        }
+
+        function triggerHarpoonGrappleSequence() {
+            if (!isEngineRunning || activeHarpoonsList.length > 0) return; // Limit to one grapple active on-screen
+            activeHarpoonsList.push({
+                x: minerShipX + (minerShipWidth / 2),
+                y: canvasElement.height - 32
+            });
+        }
+
+        function renderFrameGraphics() {
+            canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            // Draw Grappling line cords
+            canvasContext.strokeStyle = '#c77dff';
+            canvasContext.lineWidth = 2;
+            for (let i = 0; i < activeHarpoonsList.length; i++) {
+                let hook = activeHarpoonsList[i];
+                canvasContext.beginPath();
+                canvasContext.moveTo(minerShipX + (minerShipWidth / 2), canvasElement.height - 25);
+                canvasContext.lineTo(hook.x, hook.y);
+                canvasContext.stroke();
+
+                // Hook tip point
+                canvasContext.fillStyle = '#e0aaff';
+                canvasContext.fillRect(hook.x - 3, hook.y - 4, 6, 8);
+            }
+
+            // Draw Mining Wagon Carrier at baseline
+            canvasContext.fillStyle = '#3c096c';
+            canvasContext.fillRect(minerShipX, canvasElement.height - 25, minerShipWidth, minerShipHeight);
+            canvasContext.fillStyle = '#e0aaff';
+            canvasContext.fillRect(minerShipX + (minerShipWidth / 2) - 4, canvasElement.height - 32, 8, 8);
+
+            // Draw floating glowing Fraction Diamonds
+            let timeTicker = Date.now() * 0.003;
+            for (let i = 0; i < crystalDiamondsList.length; i++) {
+                let gem = crystalDiamondsList[i];
+                
+                // Add gentle floating animation bobbing
+                let bobY = gem.y + Math.sin(timeTicker + gem.bobbingOffset) * 6;
+
+                canvasContext.save();
+                canvasContext.translate(gem.x, bobY);
+
+                // Draw Diamond vector shapes
+                canvasContext.fillStyle = '#10002b';
+                canvasContext.strokeStyle = '#e0aaff';
+                canvasContext.lineWidth = 3;
+                
+                canvasContext.beginPath();
+                canvasContext.moveTo(0, -gem.radius); 
+                canvasContext.lineTo(gem.radius - 4, 0); 
+                canvasContext.lineTo(0, gem.radius); 
+                canvasContext.lineTo(-gem.radius + 4, 0); 
+                canvasContext.closePath();
+                canvasContext.fill();
+                canvasContext.stroke();
+
+                // Print target math fraction answers inside diamond
+                canvasContext.fillStyle = '#ffffff';
+                canvasContext.font = 'bold 13px sans-serif';
+                canvasContext.textAlign = 'center';
+                canvasContext.textBaseline = 'middle';
+                canvasContext.fillText(gem.label, 0, 1);
+
+                canvasContext.restore();
+            }
+        }
+
+        function attachSteeringControls() {
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') horizontalMovementMode = -1;
+                if (e.key === 'ArrowRight') horizontalMovementMode = 1;
+                if (e.key === ' ' || e.key === 'Spacebar') {
+                    e.preventDefault();
+                    triggerHarpoonGrappleSequence();
+                }
+            });
+            window.addEventListener('keyup', (e) => {
+                if (e.key === 'ArrowLeft' && horizontalMovementMode === -1) horizontalMovementMode = 0;
+                if (e.key === 'ArrowRight' && horizontalMovementMode === 1) horizontalMovementMode = 0;
+            });
+
+            // Handheld Touch Control bindings setup
+            const leftBtn = document.getElementById('btn-left-press');
+            const rightBtn = document.getElementById('btn-right-press');
+            const fireBtn = document.getElementById('btn-fire-press');
+
+            if (leftBtn && rightBtn && fireBtn) {
+                leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); horizontalMovementMode = -1; });
+                leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(horizontalMovementMode === -1) horizontalMovementMode = 0; });
+                
+                rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); horizontalMovementMode = 1; });
+                rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(horizontalMovementMode === 1) horizontalMovementMode = 0; });
+
+                fireBtn.addEventListener('touchstart', (e) => { e.preventDefault(); triggerHarpoonGrappleSequence(); });
+
+                // Cross platform mouse fallback tracking
+                leftBtn.addEventListener('mousedown', () => horizontalMovementMode = -1);
+                leftBtn.addEventListener('mouseup', () => { if(horizontalMovementMode === -1) horizontalMovementMode = 0; });
+                rightBtn.addEventListener('mousedown', () => horizontalMovementMode = 1);
+                rightBtn.addEventListener('mouseup', () => { if(horizontalMovementMode === 1) horizontalMovementMode = 0; });
+                fireBtn.addEventListener('mousedown', () => triggerHarpoonGrappleSequence());
+            }
+        }
+
+        function renderGameOverScreen() {
+            document.getElementById('viewport-root').innerHTML = `
+                <div class="rush-panel" style="border-color: #ff0055;">
+                    <h1 style="color:#ff0055; font-size:1.6rem; margin-bottom:10px;">CAVE DEPLETED</h1>
+                    <p style="color:#ffffff; font-size:1rem; margin-bottom:15px;">
+                        Final Score: <span style="color:#e0aaff; font-weight:bold;">${currentScore} Points</span>
+                    </p>
+                    <p style="color:#a29dbd; font-size:0.85rem; line-height:1.4; margin-bottom:25px;">
+                        Outstanding work applying your fraction classification, reduction, and whole number evaluations from image_e60dd7.png!
+                    </p>
+                    <button class="btn-mine" onclick="renderMenuScreen()">PLAY AGAIN</button>
+                </div>
+            `;
+        }
+
+        function playAudioFile(id) {
+            try {
+                const sound = document.getElementById(id);
+                if (sound) {
+                    sound.currentTime = 0;
+                    sound.play().catch(() => {});
+                }
+            } catch (err) {}
+        }
+    </script>
+</body>
+</html>
