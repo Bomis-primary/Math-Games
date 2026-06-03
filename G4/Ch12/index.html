@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Vault Master: Patterns & Symmetry Laboratory</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #070a12;
+            color: #e2e8f0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #viewport-root {
+            width: 100%;
+            max-width: 440px;
+            height: 100%;
+            max-height: 740px;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            gap: 12px;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            position: relative;
+        }
+
+        /* Plain Logo Minimal White Splash Screen */
+        #hard-splash {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #ffffff;
+            z-index: 9999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
+        }
+        
+        .splash-content-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            max-width: 320px;
+        }
+
+        .splash-logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .splash-img {
+            max-width: 80%;
+            height: 95px;
+            object-fit: contain;
+        }
+
+        /* Educational Learning Outcomes Modal Layer */
+        #instruction-modal {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.96);
+            z-index: 5000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            border-radius: 16px;
+        }
+        .ins-box {
+            background: #111827;
+            border: 2px solid #a855f7;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(168, 85, 247, 0.2);
+            text-align: left;
+        }
+        .ins-header-badge {
+            background: #8b5cf6;
+            color: #ffffff;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+        .ins-title {
+            font-size: 1.3rem;
+            color: #e9d5ff;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+        .ins-list {
+            margin-left: 16px;
+            margin-bottom: 20px;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            line-height: 1.5;
+        }
+        .ins-list li {
+            margin-bottom: 6px;
+        }
+
+        .lab-display {
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+        }
+
+        .control-panel {
+            background: #022c22;
+            border: 2px solid #10b981;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 4px;
+            box-shadow: inset 0 0 8px rgba(0,0,0,0.6);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .panel-info {
+            display: flex;
+            flex-direction: column;
+        }
+        .ticker-title {
+            font-size: 0.7rem;
+            color: #34d399;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            font-weight: 700;
+        }
+        .ticker-problem {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-top: 2px;
+        }
+
+        .simulation-frame {
+            flex-grow: 1;
+            background: #111827;
+            border: 2px solid #1e293b;
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            min-height: 300px;
+        }
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .console-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            width: 100%;
+        }
+        .option-row-btn {
+            background: #1f2937;
+            border: 1px solid #4b5563;
+            color: #e5e7eb;
+            border-radius: 12px;
+            padding: 12px 6px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+        }
+        .option-row-btn:active {
+            background: #374151;
+        }
+        .option-row-btn.selected {
+            background: #a855f7;
+            border-color: #c084fc;
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(168, 85, 247, 0.4);
+        }
+
+        .action-dispatch-btn {
+            width: 100%;
+            background: #059669;
+            color: #ffffff;
+            border: none;
+            border-radius: 12px;
+            padding: 16px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+        }
+        .action-dispatch-btn.purple-btn {
+            background: #7c3aed;
+            box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+        }
+
+        .status-banner {
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            min-height: 22px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="hard-splash">
+        <div class="splash-content-wrapper">
+            <div class="splash-logo-container">
+                <img src="assets/logo.png" class="splash-img" alt="Innovine Solutions Logo">
+            </div>
+        </div>
+    </div>
+
+    <div id="viewport-root">
+        
+        <div id="instruction-modal">
+            <div class="ins-box">
+                <span class="ins-header-badge">CHAPTER 12</span>
+                <h2 class="ins-title">Patterns & Symmetry</h2>
+                <ul class="ins-list">
+                    <li>Identify and explain the use of symmetry in patterns.</li>
+                    <li>Describe number patterns in addition and multiplication.</li>
+                    <li>Investigate how patterns can be used to create simple codes.</li>
+                    <li>Design original patterns that incorporate symmetry.</li>
+                </ul>
+                <button class="action-dispatch-btn purple-btn" onclick="dismissInstructions()">Enter Laboratory</button>
+            </div>
+        </div>
+
+        <div class="lab-display">
+            <div class="control-panel">
+                <div class="panel-info">
+                    <div class="ticker-title" id="lbl-mode-title">Symmetry Mode: Reflective</div>
+                    <div class="ticker-problem" id="lbl-stats-readout">Active Nodes: 0 | Sequence: Multiples</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="simulation-frame">
+            <canvas id="pattern-canvas"></canvas>
+        </div>
+
+        <div class="status-banner" id="lbl-status-toast" style="color: #9ca3af;">Tap tiles to construct symmetrical code patterns</div>
+
+        <div class="console-grid">
+            <button class="option-row-btn selected" id="opt-sym-reflective" onclick="setSymmetryMode('reflective')">Reflective</button>
+            <button class="option-row-btn" id="opt-sym-rotational" onclick="setSymmetryMode('rotational')">Rotational</button>
+            <button class="option-row-btn" id="opt-sym-none" onclick="setSymmetryMode('none')">Free Draw</button>
+        </div>
+
+        <button class="action-dispatch-btn" id="btn-clear" onclick="clearPatternMatrix()">Clear Matrix Ledger</button>
+    </div>
+
+    <script>
+        let canvasElement = null;
+        let canvasContext = null;
+        let audioCtx = null;
+
+        // Pattern Matrix Grid Dimensions
+        const gridRows = 8;
+        const gridCols = 8;
+        let gridStateMatrix = Array(gridRows).fill().map(() => Array(gridCols).fill(0));
+        let activeSymmetryMode = 'reflective'; // reflective, rotational, none
+
+        // Standard 5-Second Master Clock Sequence
+        let timeElapsed = 0;
+        const totalDuration = 5000; 
+        const tickInterval = 100;
+        
+        const progressTicker = setInterval(() => {
+            timeElapsed += tickInterval;
+            
+            if (timeElapsed >= totalDuration) {
+                clearInterval(progressTicker);
+                const splash = document.getElementById('hard-splash');
+                const mainApp = document.getElementById('viewport-root');
+                if (splash) splash.style.opacity = '0';
+                setTimeout(() => {
+                    if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
+                    if (mainApp) mainApp.style.opacity = '1';
+                    initSystemContext();
+                }, 500);
+            }
+        }, tickInterval);
+
+        function initSystemContext() {
+            canvasElement = document.getElementById('pattern-canvas');
+            canvasContext = canvasElement.getContext('2d');
+            
+            recalculateCanvasDimensions();
+            attachCanvasInputListeners();
+            runRenderLoop();
+        }
+
+        function dismissInstructions() {
+            const modal = document.getElementById('instruction-modal');
+            if (modal && modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function recalculateCanvasDimensions() {
+            const rect = canvasElement.getBoundingClientRect();
+            canvasElement.width = rect.width;
+            canvasElement.height = rect.height;
+        }
+
+        function attachCanvasInputListeners() {
+            canvasElement.addEventListener('touchstart', handleCanvasInteraction, { passive: false });
+            canvasElement.addEventListener('mousedown', handleCanvasInteraction);
+        }
+
+        function handleCanvasInteraction(e) {
+            e.preventDefault();
+            const rect = canvasElement.getBoundingClientRect();
+            let clientX, clientY;
+
+            if (e.touches && e.touches.length > 0) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            const touchX = clientX - rect.left;
+            const touchY = clientY - rect.top;
+
+            const cellW = canvasElement.width / gridCols;
+            const cellH = canvasElement.height / gridRows;
+
+            const col = Math.floor(touchX / cellW);
+            const row = Math.floor(touchY / cellH);
+
+            if (row >= 0 && row < gridRows && col >= 0 && col < gridCols) {
+                toggleGridCellWithSymmetry(row, col);
+                playMatrixTone(row, col);
+                updateStatsReadout();
+            }
+        }
+
+        function toggleGridCellWithSymmetry(r, c) {
+            const targetNewState = gridStateMatrix[r][c] === 0 ? 1 : 0;
+            
+            // Primary cell toggle
+            gridStateMatrix[r][c] = targetNewState;
+
+            if (activeSymmetryMode === 'reflective') {
+                // Horizontal reflection axis match
+                gridStateMatrix[r][gridCols - 1 - c] = targetNewState;
+            } else if (activeSymmetryMode === 'rotational') {
+                // 180 Degree Central Rotation point match
+                gridStateMatrix[gridRows - 1 - r][gridCols - 1 - c] = targetNewState;
+            }
+        }
+
+        function setSymmetryMode(mode) {
+            activeSymmetryMode = mode;
+            const modes = ['reflective', 'rotational', 'none'];
+            modes.forEach(m => {
+                document.getElementById(`opt-sym-${m}`).classList.remove('selected');
+            });
+            document.getElementById(`opt-sym-${mode}`).classList.add('selected');
+            
+            const modeTitles = {
+                'reflective': 'Symmetry Mode: Reflective (Y-Axis)',
+                'rotational': 'Symmetry Mode: 180° Rotational',
+                'none': 'Symmetry Mode: Free Draw Matrix'
+            };
+            document.getElementById('lbl-mode-title').innerText = modeTitles[mode];
+            updateStatsReadout();
+        }
+
+        function updateStatsReadout() {
+            let activeCount = 0;
+            for(let r=0; r<gridRows; r++) {
+                for(let c=0; c<gridCols; c++) {
+                    if(gridStateMatrix[r][c] === 1) activeCount++;
+                }
+            }
+            // Number Pattern multiplier computation hook simulation
+            const numericalMultiplierCode = activeCount * 4;
+            document.getElementById('lbl-stats-readout').innerText = `Active Nodes: ${activeCount} | Code Additive Scalar: +${numericalMultiplierCode}`;
+        }
+
+        function clearPatternMatrix() {
+            gridStateMatrix = Array(gridRows).fill().map(() => Array(gridCols).fill(0));
+            updateStatsReadout();
+        }
+
+        function runRenderLoop() {
+            renderMatrixGraphics();
+            requestAnimationFrame(runRenderLoop);
+        }
+
+        function renderMatrixGraphics() {
+            if (!canvasContext) return;
+            canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            const w = canvasElement.width;
+            const h = canvasElement.height;
+            const cellW = w / gridCols;
+            const cellH = h / gridRows;
+
+            // Draw active cells and calculation numerical matrix values
+            for (let r = 0; r < gridRows; r++) {
+                for (let c = 0; c < gridCols; c++) {
+                    if (gridStateMatrix[r][c] === 1) {
+                        // Color variation depending on position vectors to show numerical pattern sequences
+                        canvasContext.fillStyle = `hsl(${(r * 25 + c * 15) % 360}, 75%, 50%)`;
+                        canvasContext.fillRect(c * cellW + 2, r * cellH + 2, cellW - 4, cellH - 4);
+                    }
+
+                    // Draw baseline coordinate matrix outline mapping codes
+                    canvasContext.strokeStyle = '#1e293b';
+                    canvasContext.lineWidth = 1;
+                    canvasContext.strokeRect(c * cellW, r * cellH, cellW, cellH);
+
+                    // Overlay small math sequence indexes inside rows/columns
+                    canvasContext.fillStyle = '#475569';
+                    canvasContext.font = '9px monospace';
+                    canvasContext.fillText(`${(r+1)*(c+1)}`, c * cellW + 4, r * cellH + 12);
+                }
+            }
+
+            // Overlay symmetry lines guide vectors if enabled
+            if (activeSymmetryMode === 'reflective') {
+                canvasContext.strokeStyle = 'rgba(168, 85, 247, 0.6)';
+                canvasContext.lineWidth = 3;
+                canvasContext.setLineDash([6, 4]);
+                canvasContext.beginPath();
+                canvasContext.moveTo(w / 2, 0);
+                canvasContext.lineTo(w / 2, h);
+                canvasContext.stroke();
+                canvasContext.setLineDash([]);
+            }
+        }
+
+        function playMatrixTone(r, c) {
+            if (!audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                const now = audioCtx.currentTime;
+                osc.type = 'sine';
+                
+                // Frequency mapped dynamically to show multiplication table values (Row * Col progression)
+                const numericalPitchSeed = 180 + ((r + 1) * (c + 1) * 6);
+                osc.frequency.setValueAtTime(numericalPitchSeed, now);
+                
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                
+                osc.start(now);
+                osc.stop(now + 0.3);
+            } catch (e) {
+                // Audio safely bypassed
+            }
+        }
+    </script>
+</body>
+</html>
