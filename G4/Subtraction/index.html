@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Innovine Subtraction Quest</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f8ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .screen {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+        }
+        .active {
+            display: flex;
+        }
+        /* Splash Screen */
+        #splash-screen {
+            background-color: #ffffff;
+            animation: fadeOut 0.5s ease-in-out 4.7s forwards;
+        }
+        .logo-placeholder {
+            max-width: 300px;
+            max-height: 150px;
+            margin-bottom: 20px;
+        }
+        .loading-bar {
+            width: 200px;
+            height: 10px;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .loading-progress {
+            width: 0%;
+            height: 100%;
+            background-color: #4caf50;
+            animation: load 4.5s linear forwards;
+        }
+        /* Menu Screen */
+        #menu-screen {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            color: #333;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            max-width: 500px;
+            width: 90%;
+        }
+        h1 { color: #4a5568; margin-top: 0; }
+        .instructions {
+            text-align: left;
+            line-height: 1.6;
+            margin: 20px 0;
+            color: #4a5568;
+        }
+        .btn {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn:hover {
+            background-color: #45a049;
+            transform: scale(1.05);
+        }
+        /* Game Screen */
+        #game-screen {
+            background-color: #eef2f7;
+        }
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            width: 90%;
+            max-width: 600px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 20px;
+        }
+        .problem-box {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: #2d3748;
+            margin: 30px 0;
+            letter-spacing: 2px;
+        }
+        .options-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            width: 90%;
+            max-width: 500px;
+        }
+        .option-btn {
+            background-color: white;
+            border: 3px solid #cbd5e0;
+            border-radius: 12px;
+            padding: 20px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #2d3748;
+        }
+        .option-btn:hover {
+            border-color: #4299e1;
+            background-color: #ebf8ff;
+            transform: translateY(-3px);
+        }
+        /* Feedback styles triggered by JS */
+        .correct-flash { background-color: #c6f6d5 !important; border-color: #38a169 !important; }
+        .wrong-flash { background-color: #fed7d7 !important; border-color: #e53e3e !important; }
+
+        /* Win Screen */
+        #win-screen {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+        .win-card {
+            background: white;
+            color: #333;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .trophy { font-size: 5rem; margin-bottom: 10px; }
+
+        /* Animations */
+        @keyframes load {
+            to { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Game Assets Linked from the Assets Folder -->
+    <audio id="sound-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+    <audio id="sound-win" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
+
+    <!-- 1. Splash Screen (5 Seconds) -->
+    <div id="splash-screen" class="screen active">
+        <img class="logo-placeholder" src="assets/logo.png" alt="Innovine Logo" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';">
+        <h1 id="logo-fallback" style="display:none; font-size: 3rem; color: #333; margin-bottom: 20px;">INNOVINE</h1>
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+    </div>
+
+    <!-- 2. Menu / Instructions Screen -->
+    <div id="menu-screen" class="screen">
+        <div class="card">
+            <h1>Subtraction Quest</h1>
+            <div class="instructions">
+                <p><strong>Welcome Mathematician!</strong> Your mission is to solve Grade 4 subtraction problems.</p>
+                <ul>
+                    <li>Answer <strong>10 questions</strong> correctly to win the game.</li>
+                    <li>Read the problem carefully, calculate your answer, and click the correct block.</li>
+                    <li>Watch out! Incorrect answers will cost you a point.</li>
+                </ul>
+            </div>
+            <button class="btn" onclick="startGame()">START GAME</button>
+        </div>
+    </div>
+
+    <!-- 3. Interactive Game Screen -->
+    <div id="game-screen" class="screen">
+        <div class="game-header">
+            <div>Score: <span id="score-display">0</span> / 10</div>
+            <div>Question: <span id="question-counter">1</span></div>
+        </div>
+        
+        <div class="problem-box" id="problem-display">0 - 0 = ?</div>
+        
+        <div class="options-container">
+            <button class="option-btn" onclick="checkAnswer(this)"></button>
+            <button class="option-btn" onclick="checkAnswer(this)"></button>
+            <button class="option-btn" onclick="checkAnswer(this)"></button>
+            <button class="option-btn" onclick="checkAnswer(this)"></button>
+        </div>
+    </div>
+
+    <!-- 4. Win / Victory Screen -->
+    <div id="win-screen" class="screen">
+        <div class="win-card">
+            <div class="trophy">🏆</div>
+            <h1 style="color: #2f855a;">Spectacular Job!</h1>
+            <p style="font-size: 1.2rem; margin-bottom: 20px;">You mastered the Grade 4 subtraction challenge!</p>
+            <button class="btn" onclick="resetGame()" style="background-color: #2f855a;">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        // Game State Variables
+        let score = 0;
+        let questionNumber = 1;
+        let currentCorrectAnswer = 0;
+        const targetScore = 10;
+
+        // Audio elements
+        const soundCorrect = document.getElementById('sound-correct');
+        const soundWrong = document.getElementById('sound-wrong');
+        const soundWin = document.getElementById('sound-win');
+
+        // Audio helper function
+        function playSound(audioElement) {
+            audioElement.currentTime = 0;
+            audioElement.play().catch(e => console.log("Audio play blocked until user clicks on screen."));
+        }
+
+        // 5-Second Splash Screen Logic
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                transitionScreen('splash-screen', 'menu-screen');
+            }, 5000); 
+        });
+
+        function transitionScreen(fromId, toId) {
+            document.getElementById(fromId).classList.remove('active');
+            document.getElementById(toId).classList.add('active');
+        }
+
+        function startGame() {
+            score = 0;
+            questionNumber = 1;
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('question-counter').innerText = questionNumber;
+            transitionScreen('menu-screen', 'game-screen');
+            generateQuestion();
+        }
+
+        // Generates Grade 4 subtraction problems (3-digit and 4-digit numbers with regrouping)
+        function generateQuestion() {
+            const num1 = Math.floor(Math.random() * 8000) + 1000; // 1000 to 9000
+            const num2 = Math.floor(Math.random() * (num1 - 100)) + 99; // Ensures num2 is always smaller
+            
+            currentCorrectAnswer = num1 - num2;
+            document.getElementById('problem-display').innerText = `${num1} - ${num2}`;
+
+            // Generate wrong options that look realistic
+            let options = new Set();
+            options.add(currentCorrectAnswer);
+
+            while(options.size < 4) {
+                let variance = (Math.floor(Math.random() * 20) + 1) * (Math.random() > 0.5 ? 1 : -1);
+                if(Math.random() > 0.7) variance = Math.random() > 0.5 ? 10 : 100;
+                
+                let wrongOption = currentCorrectAnswer + variance;
+                if(wrongOption > 0 && wrongOption !== currentCorrectAnswer) {
+                    options.add(wrongOption);
+                }
+            }
+
+            // Shuffle options array
+            let shuffledOptions = Array.from(options).sort(() => Math.random() - 0.5);
+            
+            // Assign to buttons
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach((btn, index) => {
+                btn.innerText = shuffledOptions[index];
+                btn.className = 'option-btn'; // Reset classes
+                btn.disabled = false;
+            });
+        }
+
+        function checkAnswer(selectedButton) {
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(btn => btn.disabled = true);
+
+            const chosenAnswer = parseInt(selectedButton.innerText);
+
+            if (chosenAnswer === currentCorrectAnswer) {
+                score++;
+                document.getElementById('score-display').innerText = score;
+                selectedButton.classList.add('correct-flash');
+                playSound(soundCorrect);
+            } else {
+                if(score > 0) score--; 
+                document.getElementById('score-display').innerText = score;
+                selectedButton.classList.add('wrong-flash');
+                playSound(soundWrong);
+                
+                buttons.forEach(btn => {
+                    if(parseInt(btn.innerText) === currentCorrectAnswer) {
+                        btn.classList.add('correct-flash');
+                    }
+                });
+            }
+
+            // Check Win Condition or move to next turn
+            setTimeout(() => {
+                if (score >= targetScore) {
+                    playSound(soundWin);
+                    transitionScreen('game-screen', 'win-screen');
+                } else {
+                    questionNumber++;
+                    document.getElementById('question-counter').innerText = questionNumber;
+                    generateQuestion();
+                }
+            }, 1500);
+        }
+
+        function resetGame() {
+            transitionScreen('win-screen', 'menu-screen');
+        }
+    </script>
+</body>
+</html>
