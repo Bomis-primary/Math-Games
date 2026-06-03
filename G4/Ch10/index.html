@@ -49,11 +49,26 @@
             align-items: center;
             transition: opacity 0.5s ease;
         }
-        .splash-img {
+        .splash-img-container {
             width: 100px;
-            height: auto;
+            height: 100px;
             margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .splash-img {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
             object-fit: contain;
+            z-index: 2;
+        }
+        /* Programmatic fallback asset styling */
+        .vector-logo-fallback {
+            width: 100%;
+            height: 100%;
+            z-index: 1;
         }
         .splash-title {
             font-size: 1.8rem;
@@ -70,6 +85,15 @@
             padding: 16px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .hud-logo-container {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 8px;
+            position: relative;
         }
 
         .signpost {
@@ -79,6 +103,7 @@
             padding: 12px;
             margin-bottom: 6px;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            width: 100%;
         }
         .signpost-title {
             font-size: 0.75rem;
@@ -172,7 +197,14 @@
     <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
     <div id="hard-splash">
-        <img src="assets/logo.png" class="splash-img" alt="Logo" onerror="this.style.display='none';">
+        <div class="splash-img-container">
+            <svg class="vector-logo-fallback" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="50" cy="50" r="45" fill="#1e293b" stroke="#38bdf8" stroke-width="4"/>
+                <path d="M25 65 L50 25 L75 65 Z" fill="none" stroke="#34d399" stroke-width="6" stroke-linejoin="round"/>
+                <path d="M50 25 L50 65" fill="none" stroke="#ea580c" stroke-width="4" stroke-dasharray="6,4"/>
+            </svg>
+            <img src="assets/logo.png" class="splash-img" alt="Logo" onerror="this.style.opacity='0';">
+        </div>
         <h1 class="splash-title">Metric Highway</h1>
         <div style="width:140px; height:6px; background-color:#1e293b; border-radius:10px; overflow:hidden;">
             <div id="loader-progress-fill" style="width:0%; height:100%; background-color:#38bdf8; transition: width 0.1s ease;"></div>
@@ -181,7 +213,13 @@
 
     <div id="viewport-root">
         <div class="control-panel">
-            <img src="assets/logo.png" style="width:40px; margin-bottom:8px;" onerror="this.style.display='none';">
+            <div class="hud-logo-container">
+                <svg class="vector-logo-fallback" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="50" cy="50" r="45" fill="#111827" stroke="#38bdf8" stroke-width="5"/>
+                    <path d="M25 65 L50 25 L75 65 Z" fill="none" stroke="#34d399" stroke-width="7" stroke-linejoin="round"/>
+                </svg>
+                <img src="assets/logo.png" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:contain;" onerror="this.style.opacity='0';">
+            </div>
             <div class="signpost">
                 <div class="signpost-title">TRAFFIC WEIGHT & TRACK ROUTING</div>
                 <div class="signpost-value" id="lbl-highway-directive">Configuring Junctions...</div>
@@ -214,6 +252,9 @@
         let canvasElement = null;
         let canvasContext = null;
         let animationFrameId = null;
+
+        // Unified HTML5 Audio Pipeline
+        let audioCtx = null;
 
         // Vehicle State Properties
         let currentVehicle = {
@@ -464,6 +505,12 @@
 
         function dispatchVehicles() {
             if (currentVehicle.isMoving || currentVehicle.isTumbling) return;
+            
+            // Lazy setup of the programmatic audio context on user interaction
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            
             document.getElementById('btn-dispatch').disabled = true;
             currentVehicle.isMoving = true;
             document.getElementById('lbl-feedback').innerText = "Traffic flow dispatched...";
@@ -477,7 +524,7 @@
 
             if (chosenPath && chosenPath.isTruePath) {
                 currentVehicle.progress = 1.0; 
-                playAudioFile('s-correct');
+                playAudioFile('s-correct', 'correct');
                 feedbackText.innerText = "✓ PASSED TOLL GATE! Conversion cleared.";
                 feedbackText.style.color = "#10b981";
                 
@@ -486,7 +533,7 @@
                 }, 1500);
             } else {
                 currentVehicle.isTumbling = true;
-                playAudioFile('s-wrong');
+                playAudioFile('s-wrong', 'wrong');
                 feedbackText.innerText = "💥 ACCIDENT ROADBLOCK! Vehicle is tumbling!";
                 feedbackText.style.color = "#f43f5e";
             }
@@ -506,14 +553,56 @@
             feedbackText.style.color = "#64748b";
         }
 
-        function playAudioFile(id) {
+        // Dual-Engine Audio Player (Plays source assets, falls back onto programmatic oscillators if missing)
+        function playAudioFile(htmlId, fallbackType) {
+            let assetPlayedSuccessfully = false;
             try {
-                const sound = document.getElementById(id);
-                if (sound) {
+                const sound = document.getElementById(htmlId);
+                if (sound && sound.duration > 0 && !sound.paused) {
                     sound.currentTime = 0;
-                    sound.play().catch(() => {});
                 }
-            } catch (err) {}
+                if (sound) {
+                    sound.play()
+                        .then(() => { assetPlayedSuccessfully = true; })
+                        .catch(() => { triggerSynthesizerFallback(fallbackType); });
+                } else {
+                    triggerSynthesizerFallback(fallbackType);
+                }
+            } catch (err) {
+                triggerSynthesizerFallback(fallbackType);
+            }
+        }
+
+        // Programmatic Audio Synthesizer Engine
+        function triggerSynthesizerFallback(type) {
+            if (!audioCtx) return;
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'correct') {
+                // Happy arpeggio ding
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, now); // D5
+                osc.frequency.setValueAtTime(880.00, now + 0.1); // A5
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                osc.start(now);
+                osc.stop(now + 0.35);
+            } else if (type === 'wrong') {
+                // Low crash explosion hum
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.linearRampToValueAtTime(40, now + 0.4);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+                osc.start(now);
+                osc.stop(now + 0.45);
+            }
         }
     </script>
 </body>
