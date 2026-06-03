@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Geometry Spatial Vortex</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #060514;
+            color: #ffffff;
+            overflow: hidden;
+        }
+        
+        #viewport-root {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 24px;
+            padding: 35px 25px;
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        }
+        .btn-launch {
+            background: linear-gradient(135deg, #00bbf9, #ff007f);
+            color: #ffffff;
+            border: none;
+            padding: 14px 40px;
+            font-size: 1.15rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(0, 187, 249, 0.3);
+        }
+
+        .arena-grid {
+            width: 100%;
+            max-width: 650px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+        }
+        .hud-header {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            font-size: 1.1rem;
+            color: #00bbf9;
+            font-weight: bold;
+            padding: 10px 0;
+        }
+        
+        .vortex-container {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-top: 20px;
+            flex-grow: 1;
+            position: relative;
+        }
+        .vortex-basket {
+            width: 45%;
+            height: 80%;
+            border: 2px dashed rgba(255,255,255,0.2);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.25rem;
+            padding: 15px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.02);
+            transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
+        }
+        .basket-left {
+            border-color: #00f5d4;
+            color: #00f5d4;
+            background: rgba(0, 245, 212, 0.02);
+        }
+        .basket-right {
+            border-color: #ff007f;
+            color: #ff007f;
+            background: rgba(255, 0, 127, 0.02);
+        }
+        
+        .basket-hover-left {
+            background: rgba(0, 245, 212, 0.15) !important;
+            transform: scale(1.03);
+        }
+        .basket-hover-right {
+            background: rgba(255, 0, 127, 0.15) !important;
+            transform: scale(1.03);
+        }
+
+        .spawn-deck {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 50;
+        }
+        .draggable-token {
+            width: 110px;
+            height: 110px;
+            background: #141226;
+            border: 3px solid #00bbf9;
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: grab;
+            box-shadow: 0 8px 25px rgba(0, 187, 249, 0.4);
+            touch-action: none;
+        }
+        .draggable-token:active {
+            cursor: grabbing;
+        }
+        canvas {
+            background: transparent;
+            pointer-events: none; /* Stops internal canvas element from messing with drag drop mouse captures */
+        }
+
+        #hard-splash {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #ffffff;
+            color: #111111;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 99999;
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="s-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+    <audio id="s-win" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
+
+    <div id="hard-splash">
+        <img src="assets/logo.png" style="max-width:240px; margin-bottom:20px;" onerror="this.style.display='none'; document.getElementById('fb-text').style.display='block';">
+        <h1 id="fb-text" style="display:none; font-size:2.4rem; margin-bottom:15px; letter-spacing:1px;">INNOVINE</h1>
+        <div style="width:200px; height:6px; background-color:#e2e8f0; border-radius:3px; overflow:hidden;">
+            <div id="loader-progress-fill" style="width:0%; height:100%; background-color:#00f5d4;"></div>
+        </div>
+    </div>
+
+    <div id="viewport-root"></div>
+
+    <script>
+        let scoreCounter = 0;
+        const scoreLimit = 10;
+        
+        let currentPoolMode = ""; // "LINE_VS_SEGMENT", "OPEN_VS_CLOSED", "RADIUS_VS_DIAMETER"
+        let activeTargetKey = ""; // Tracks the correct side condition
+        
+        let isDragging = false;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let elementStartX = 0;
+        let elementStartY = 0;
+
+        // Clean layout bootstrap timer
+        let progressVal = 0;
+        const progressTicker = setInterval(() => {
+            progressVal += 5;
+            const element = document.getElementById('loader-progress-fill');
+            if (element) element.style.width = progressVal + '%';
+
+            if (progressVal >= 100) {
+                clearInterval(progressTicker);
+                purgeSplashAndBuildMenu();
+            }
+        }, 60);
+
+        function purgeSplashAndBuildMenu() {
+            const splashMask = document.getElementById('hard-splash');
+            if (splashMask) {
+                splashMask.parentNode.removeChild(splashMask);
+            }
+            renderMenuScreen();
+        }
+
+        function renderMenuScreen() {
+            document.getElementById('viewport-root').innerHTML = `
+                <div class="dashboard-card">
+                    <h1 style="color:#00f5d4; font-size:2rem; margin-bottom:12px;">Spatial Vortex</h1>
+                    <p style="color:#b2b2cc; font-size:0.95rem; line-height:1.6; text-align:left; margin-bottom:25px;">
+                        Analyze the geometric item rendered inside the central token. Drag the shape left or right into the matching target label vortex to sort it!
+                    </p>
+                    <button class="btn-launch" onclick="initiateGameEngine()">START LAB</button>
+                </div>
+            `;
+        }
+
+        function initiateGameEngine() {
+            scoreCounter = 0;
+            renderGameBoard();
+            generateNextPuzzleWave();
+        }
+
+        function renderGameBoard() {
+            document.getElementById('viewport-root').innerHTML = `
+                <div class="arena-grid">
+                    <div class="hud-header">
+                        <div>Score Tracker: <span id="label-score">0</span> / 10</div>
+                        <div>Geometry & Spatial Sense</div>
+                    </div>
+                    
+                    <div class="vortex-container">
+                        <div class="vortex-basket basket-left" id="v-left">
+                            <span style="font-size:0.75rem; letter-spacing:1px; opacity:0.6; margin-bottom:5px;">VORTEX A</span>
+                            <div id="text-left-basket">-</div>
+                        </div>
+                        
+                        <div class="spawn-deck" id="spawn-deck">
+                            <div class="draggable-token" id="drag-token">
+                                <canvas id="vector-canvas" width="100" height="100"></canvas>
+                            </div>
+                        </div>
+                        
+                        <div class="vortex-basket basket-right" id="v-right">
+                            <span style="font-size:0.75rem; letter-spacing:1px; opacity:0.6; margin-bottom:5px;">VORTEX B</span>
+                            <div id="text-right-basket">-</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            setupDragAndDropListeners();
+        }
+
+        function generateNextPuzzleWave() {
+            const token = document.getElementById('drag-token');
+            if (token) {
+                token.style.transform = 'translate(0px, 0px)';
+                token.style.borderColor = '#00bbf9';
+            }
+
+            // Pick a randomized geometric sub-concept goal from Chapter 7
+            const modeRoll = Math.random();
+            
+            if (modeRoll < 0.34) {
+                currentPoolMode = "LINE_VS_SEGMENT";
+                document.getElementById('text-left-basket').innerText = "STRAIGHT\nLINE";
+                document.getElementById('text-right-basket').innerText = "LINE\nSEGMENT";
+                activeTargetKey = Math.random() < 0.5 ? "LEFT" : "RIGHT";
+            } else if (modeRoll < 0.67) {
+                currentPoolMode = "OPEN_VS_CLOSED";
+                document.getElementById('text-left-basket').innerText = "OPEN\nCURVE";
+                document.getElementById('text-right-basket').innerText = "CLOSED\nCURVE";
+                activeTargetKey = Math.random() < 0.5 ? "LEFT" : "RIGHT";
+            } else {
+                currentPoolMode = "RADIUS_VS_DIAMETER";
+                document.getElementById('text-left-basket').innerText = "CIRCLE\nRADIUS";
+                document.getElementById('text-right-basket').innerText = "CIRCLE\nDIAMETER";
+                activeTargetKey = Math.random() < 0.5 ? "LEFT" : "RIGHT";
+            }
+
+            drawGeometricTokenGraphics();
+        }
+
+        function drawGeometricTokenGraphics() {
+            const canvas = document.getElementById('vector-canvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 100, 100);
+            
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 4;
+            ctx.fillStyle = '#ff007f';
+
+            if (currentPoolMode === "LINE_VS_SEGMENT") {
+                if (activeTargetKey === "LEFT") {
+                    // Draw a straight line with arrows on both ends
+                    ctx.beginPath();
+                    ctx.moveTo(15, 50); ctx.lineTo(85, 50);
+                    ctx.stroke();
+                    // Left Arrowhead
+                    ctx.beginPath(); ctx.moveTo(25, 40); ctx.lineTo(15, 50); ctx.lineTo(25, 60); ctx.stroke();
+                    // Right Arrowhead
+                    ctx.beginPath(); ctx.moveTo(75, 40); ctx.lineTo(85, 50); ctx.lineTo(75, 60); ctx.stroke();
+                } else {
+                    // Draw a defined line segment bounded by closed dot end-points
+                    ctx.style = '#ffffff';
+                    ctx.beginPath(); ctx.moveTo(25, 50); ctx.lineTo(75, 50); ctx.stroke();
+                    // End points
+                    ctx.beginPath(); ctx.arc(25, 50, 5, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(75, 50, 5, 0, Math.PI * 2); ctx.fill();
+                }
+            } 
+            else if (currentPoolMode === "OPEN_VS_CLOSED") {
+                if (activeTargetKey === "LEFT") {
+                    // Open Curve shape
+                    ctx.beginPath();
+                    ctx.arc(50, 50, 30, 0.2, Math.PI * 1.7);
+                    ctx.stroke();
+                } else {
+                    // Closed Curve shape
+                    ctx.beginPath();
+                    ctx.ellipse(50, 50, 35, 22, Math.PI / 4, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            } 
+            else if (currentPoolMode === "RADIUS_VS_DIAMETER") {
+                // Core background guide circle base silhouette
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+                ctx.beginPath(); ctx.arc(50, 50, 35, 0, Math.PI * 2); ctx.stroke();
+                
+                // Highlighted center vertex anchor node
+                ctx.beginPath(); ctx.arc(50, 50, 4, 0, Math.PI * 2); ctx.fill();
+                
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = '#00f5d4';
+                if (activeTargetKey === "LEFT") {
+                    // Radius vector (Center running to edge margin)
+                    ctx.beginPath(); ctx.moveTo(50, 50); ctx.lineTo(75, 25); ctx.stroke();
+                } else {
+                    // Diameter vector running all the way through the center vertex
+                    ctx.beginPath(); ctx.moveTo(25, 75); ctx.lineTo(75, 25); ctx.stroke();
+                }
+            }
+        }
+
+        function setupDragAndDropListeners() {
+            const token = document.getElementById('drag-token');
+            if (!token) return;
+
+            token.addEventListener('mousedown', dragStart);
+            token.addEventListener('touchstart', dragStart, { passive: false });
+
+            window.addEventListener('mousemove', dragMove);
+            window.addEventListener('touchmove', dragMove, { passive: false });
+
+            window.addEventListener('mouseup', dragEnd);
+            window.addEventListener('touchend', dragEnd);
+        }
+
+        function dragStart(e) {
+            isDragging = true;
+            const clientX = e.clientX || e.touches[0].clientX;
+            const clientY = e.clientY || e.touches[0].clientY;
+            
+            touchStartX = clientX;
+            touchStartY = clientY;
+            elementStartX = 0;
+            elementStartY = 0;
+        }
+
+        function dragMove(e) {
+            if (!isDragging) return;
+            
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
+            
+            if (!clientX || !clientY) return;
+
+            const deltaX = clientX - touchStartX;
+            const deltaY = clientY - touchStartY;
+
+            elementStartX = deltaX;
+            elementStartY = deltaY;
+
+            const token = document.getElementById('drag-token');
+            if (token) {
+                token.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+            }
+
+            const leftBasket = document.getElementById('v-left');
+            const rightBasket = document.getElementById('v-right');
+
+            if (deltaX < -60) {
+                leftBasket.classList.add('basket-hover-left');
+                rightBasket.classList.remove('basket-hover-right');
+            } else if (deltaX > 60) {
+                rightBasket.classList.add('basket-hover-right');
+                leftBasket.classList.remove('basket-hover-left');
+            } else {
+                leftBasket.classList.remove('basket-hover-left');
+                rightBasket.classList.remove('basket-hover-right');
+            }
+        }
+
+        function dragEnd() {
+            if (!isDragging) return;
+            isDragging = false;
+
+            document.getElementById('v-left').classList.remove('basket-hover-left');
+            document.getElementById('v-right').classList.remove('basket-hover-right');
+
+            if (elementStartX < -75) {
+                evaluatePlacementChoice("LEFT");
+            } else if (elementStartX > 75) {
+                evaluatePlacementChoice("RIGHT");
+            } else {
+                const token = document.getElementById('drag-token');
+                if (token) token.style.transform = 'translate(0px, 0px)';
+            }
+        }
+
+        function evaluatePlacementChoice(chosenSide) {
+            if (chosenSide === activeTargetKey) {
+                scoreCounter++;
+                document.getElementById('label-score').innerText = scoreCounter;
+                playAudioFile('s-correct');
+
+                if (scoreCounter >= scoreLimit) {
+                    playAudioFile('s-win');
+                    renderWinScreen();
+                } else {
+                    generateNextPuzzleWave();
+                }
+            } else {
+                playAudioFile('s-wrong');
+                const token = document.getElementById('drag-token');
+                if (token) token.style.borderColor = '#ef4444';
+                
+                setTimeout(() => {
+                    generateNextPuzzleWave();
+                }, 400);
+            }
+        }
+
+        function renderWinScreen() {
+            document.getElementById('viewport-root').innerHTML = `
+                <div class="dashboard-card" style="border-color: rgba(0, 255, 127, 0.3);">
+                    <div style="font-size:3.5rem; margin-bottom:10px;">🏆</div>
+                    <h1 style="color:#00f5d4; font-size:1.8rem; margin-bottom:10px;">Spatial Level Clear!</h1>
+                    <p style="color:#cfdec9; font-size:0.95rem; margin-bottom:25px; line-height:1.5;">
+                        Incredible spatial recognition! You identified line metrics, curves, and circular parts flawlessly.
+                    </p>
+                    <button class="btn-launch" style="background:linear-gradient(135deg, #00f5d4, #7f00ff);" onclick="renderMenuScreen()">Play Again</button>
+                </div>
+            `;
+        }
+
+        function playAudioFile(id) {
+            try {
+                const sound = document.getElementById(id);
+                if (sound) {
+                    sound.currentTime = 0;
+                    sound.play().catch(() => {});
+                }
+            } catch (err) {}
+        }
+    </script>
+</body>
+</html>
