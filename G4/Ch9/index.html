@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Fraction Citrus Harvest</title>
+    <title>Fraction Citrus Harvest: Memory Match</title>
     <style>
         * {
             box-sizing: border-box;
@@ -88,7 +88,7 @@
             margin-top: 25px;
         }
 
-        /* Main Game HUD */
+        /* Game HUD */
         .hud-row {
             display: flex;
             justify-content: space-between;
@@ -105,29 +105,7 @@
             color: #431407;
         }
 
-        .mission-panel {
-            background: #ffffff;
-            border: 1px solid #fed7aa;
-            border-radius: 20px;
-            padding: 16px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(234, 88, 12, 0.03);
-        }
-        .mission-tag {
-            font-size: 0.8rem;
-            color: #ea580c;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-        .mission-text {
-            font-size: 1.35rem;
-            font-weight: 800;
-            color: #431407;
-        }
-
-        /* Orchard Arena Space */
+        /* Memory Grid Space */
         .arena-container {
             width: 100%;
             background: linear-gradient(180deg, #ffedd5 0%, #fef3c7 100%);
@@ -135,85 +113,87 @@
             border-radius: 28px;
             position: relative;
             flex-grow: 1;
-            overflow: hidden;
+            padding: 16px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(4, 1fr);
+            gap: 10px;
             box-shadow: inset 0 4px 20px rgba(0,0,0,0.02), 0 10px 25px rgba(0,0,0,0.05);
         }
 
-        /* Central Blending Collector */
-        .blender-deck {
-            position: absolute;
-            bottom: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 140px;
-            height: 140px;
-            background: radial-gradient(circle, #fed7aa 20%, #ea580c 100%);
-            border: 6px solid #ffffff;
-            border-radius: 50%;
-            box-shadow: 0 8px 24px rgba(234, 88, 12, 0.3);
-            z-index: 10;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .blender-blades {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: 3px dashed rgba(255, 255, 255, 0.8);
-            animation: spinBlades 4s linear infinite;
-        }
-        @keyframes spinBlades {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Floating Citrus Bubble Targets */
-        .citrus-bubble {
-            position: absolute;
-            width: 72px;
-            height: 72px;
-            background: radial-gradient(circle at 30% 30%, #f97316, #ea580c);
-            border: 3px solid #ffffff;
-            border-radius: 50%;
-            box-shadow: 0 8px 16px rgba(234, 88, 12, 0.15);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: #ffffff;
-            font-weight: 800;
-            font-size: 1.1rem;
+        /* 3D Card Flip Styling */
+        .crate-card {
+            perspective: 1000px;
             cursor: pointer;
-            z-index: 5;
-            transform: translate(-50%, -50%);
-            transition: transform 0.1s linear, top 0.4s cubic-bezier(0.25, 1, 0.5, 1), left 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-        .citrus-bubble::before {
-            content: '';
-            position: absolute;
-            top: -5px; left: 26px;
-            width: 14px; height: 8px;
-            background: #22c55e;
-            border-radius: 0 10px 0 10px;
+            width: 100%;
+            height: 100%;
         }
 
-        /* Laser Drag Beam Graphic overlay */
-        .tractor-beam {
+        .crate-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-style: preserve-3d;
+        }
+
+        .crate-card.flipped .crate-inner {
+            transform: rotateY(180deg);
+        }
+
+        .crate-front, .crate-back {
             position: absolute;
-            background: linear-gradient(90deg, transparent, rgba(234, 88, 12, 0.4), transparent);
-            width: 4px;
-            transform-origin: bottom center;
-            z-index: 2;
-            display: none;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            font-weight: 800;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        /* Card Front (Hidden State - Crate Graphic) */
+        .crate-front {
+            background: linear-gradient(135deg, #b45309, #78350f);
+            border: 3px solid #ffffff;
+            color: #fef3c7;
+            font-size: 1.5rem;
+        }
+        .crate-front::after {
+            content: '🍊';
+            font-size: 1.4rem;
+            opacity: 0.8;
+        }
+
+        /* Card Back (Revealed State - Math Value) */
+        .crate-back {
+            background: #ffffff;
+            border: 3px solid #ea580c;
+            color: #431407;
+            font-size: 0.95rem;
+            transform: rotateY(180deg);
+            line-height: 1.2;
+        }
+
+        .crate-card.matched {
             pointer-events: none;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
 
-        /* Bottom Support Deck Layout */
+        /* Bottom Deck Layout */
         .deck-controls {
             display: flex;
             width: 100%;
-            height: 56px;
+            height: 50px;
         }
-        .auto-btn {
+        .reset-btn {
             width: 100%;
             background: #ffffff;
             border: 2px solid #fed7aa;
@@ -222,22 +202,18 @@
             font-size: 0.95rem;
             font-weight: 800;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
             cursor: pointer;
             box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-            transition: background 0.2s;
         }
-        .auto-btn:active { background: #fff7ed; }
     </style>
 </head>
 <body>
 
+    <!-- Standard Asset Registrations -->
     <audio id="s-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
+    <!-- Regulated 5-Second Splash Loading Sequence -->
     <div id="hard-splash">
         <img src="assets/logo.png" class="splash-img" alt="Logo" onerror="this.style.display='none'; document.getElementById('fb-text').style.display='block';">
         <h1 id="fb-text" class="splash-title">Citrus Harvest</h1>
@@ -249,36 +225,23 @@
     <div id="viewport-root">
         <div class="hud-row">
             <div>SCORE: <span id="lbl-score" class="hud-value">0</span></div>
-            <div>LIVES: <span id="lbl-lives" class="hud-value">❤️❤️❤️</span></div>
-        </div>
-
-        <div class="mission-panel">
-            <div class="mission-tag" id="lbl-task-tag">FRACTION OBJECTIVE</div>
-            <div class="mission-text" id="lbl-task-text">LOADING...</div>
+            <div>ATTEMPTS: <span id="lbl-attempts" class="hud-value">0</span></div>
         </div>
 
         <div class="arena-container" id="arena">
-            <div class="tractor-beam" id="beam"></div>
-            
-            <div class="citrus-bubble" id="fruit-0" onclick="processExtraction(0)"></div>
-            <div class="citrus-bubble" id="fruit-1" onclick="processExtraction(1)"></div>
-            <div class="citrus-bubble" id="fruit-2" onclick="processExtraction(2)"></div>
-
-            <div class="blender-deck">
-                <div class="blender-blades"></div>
-            </div>
+            <!-- Grid cards injected dynamically via Javascript -->
         </div>
 
         <div class="deck-controls">
-            <button class="auto-btn" onclick="triggerAutoVacuum()">Instant Harvest Correct Target</button>
+            <button class="reset-btn" onclick="renderMenuOverlay()">Mix & Re-shingle Crates</button>
         </div>
     </div>
 
     <script>
         let currentScore = 0;
-        let livesLeft = 3;
-        let activeQuestion = null;
-        let poolAnswers = [];
+        let attemptsCount = 0;
+        let cardPoolData = [];
+        let selectedCards = [];
         let engineLock = false;
 
         // Progress Ticker Configured to hit 100% at precisely 5.0 Seconds
@@ -302,139 +265,131 @@
         }, 100);
 
         function renderMenuOverlay() {
-            // Reuses arena panel viewport space for uniform scaling bounds
             document.getElementById('arena').innerHTML = `
-                <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.2); backdrop-filter:blur(4px); display:flex; justify-content:center; align-items:center; z-index:100;">
-                    <div class="orchard-panel" style="max-width:360px; box-shadow:none; background:#ffffff;">
+                <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.1); backdrop-filter:blur(4px); display:flex; justify-content:center; align-items:center; z-index:100; padding: 12px;">
+                    <div class="orchard-panel" style="box-shadow:none; background:#ffffff;">
                         <img src="assets/logo.png" style="width:60px; margin-bottom:10px;" onerror="this.style.display='none';">
-                        <h2 style="color:#ea580c; font-size:1.6rem; font-weight:900; margin-bottom:8px;">Juice Squeeze Mode</h2>
+                        <h2 style="color:#ea580c; font-size:1.6rem; font-weight:900; margin-bottom:8px;">Harvest Match</h2>
                         <p style="color:#7c2d12; font-size:0.9rem; line-height:1.5; margin-bottom:20px;">
-                            Fruits are loose inside the field space! Tap the target matching the fraction objective to drag it down into the blender.
+                            The grove crates are sealed! Flip them open to pair matching mathematical fractional values together.
                         </p>
-                        <button class="btn-action" style="margin:0; padding:12px 35px;" onclick="startJuiceEngine()">START BLEND</button>
+                        <button class="btn-action" style="margin:0; padding:12px 35px;" onclick="buildHarvestGrid()">REVEAL ORCHARD</button>
                     </div>
                 </div>
             `;
         }
 
-        function startJuiceEngine() {
+        function buildHarvestGrid() {
             currentScore = 0;
-            livesLeft = 3;
+            attemptsCount = 0;
+            selectedCards = [];
+            engineLock = false;
             document.getElementById('lbl-score').innerText = currentScore;
-            document.getElementById('lbl-lives').innerText = "❤️❤️❤️";
-            resetArenaLayoutElements();
-            generateNextProblemInstance();
-        }
+            document.getElementById('lbl-attempts').innerText = attemptsCount;
 
-        function resetArenaLayoutElements() {
-            document.getElementById('arena').innerHTML = `
-                <div class="tractor-beam" id="beam"></div>
-                <div class="citrus-bubble" id="fruit-0" onclick="processExtraction(0)"></div>
-                <div class="citrus-bubble" id="fruit-1" onclick="processExtraction(1)"></div>
-                <div class="citrus-bubble" id="fruit-2" onclick="processExtraction(2)"></div>
-                <div class="blender-deck"><div class="blender-blades"></div></div>
-            `;
-        }
+            // 6 Distinct Pairs making a complete 12-card grid
+            const masterPairs = [
+                { id: 1, text: "Reduce<br>6/8", matchId: 1, val: 0.75 },
+                { id: 2, text: "3/4", matchId: 1, val: 0.75 },
+                
+                { id: 3, text: "Equivalent<br>of 1/3", matchId: 2, val: 0.33 },
+                { id: 4, text: "3/9", matchId: 2, val: 0.33 },
+                
+                { id: 5, text: "1/5 of 25", matchId: 3, val: 5 },
+                { id: 6, text: "5", matchId: 3, val: 5 },
+                
+                { id: 7, text: "3/4 of 16", matchId: 4, val: 12 },
+                { id: 8, text: "12", matchId: 4, val: 12 },
 
-        function generateNextProblemInstance() {
-            const curriculumPool = [
-                { tag: "Lowest Terms Reduction", q: "Reduce 6/8 to lowest terms", a: "3/4", w: ["1/2", "2/3", "5/6"] },
-                { tag: "Lowest Terms Reduction", q: "Reduce 10/15 to lowest terms", a: "2/3", w: ["1/3", "3/5", "4/5"] },
-                { tag: "Equivalent Fractions", q: "Find equivalent to 1/3", a: "3/9", w: ["2/9", "3/6", "4/8"] },
-                { tag: "Equivalent Fractions", q: "Find equivalent to 3/4", a: "6/8", w: ["5/8", "6/10", "9/10"] },
-                { tag: "Fraction of a Number", q: "Calculate 1/5 of 25", a: "5", w: ["4", "6", "10"] },
-                { tag: "Fraction of a Number", q: "Calculate 3/4 of 16", a: "12", w: ["4", "8", "16"] }
+                { id: 9, text: "Reduce<br>10/15", matchId: 5, val: 0.66 },
+                { id: 10, text: "2/3", matchId: 5, val: 0.66 },
+
+                { id: 11, text: "Equivalent<br>of 2/4", matchId: 6, val: 0.5 },
+                { id: 12, text: "4/8", matchId: 6, val: 0.5 }
             ];
 
-            activeQuestion = curriculumPool[Math.floor(Math.random() * curriculumPool.length)];
-            document.getElementById('lbl-task-tag').innerText = activeQuestion.tag;
-            document.getElementById('lbl-task-text').innerText = activeQuestion.q;
+            // Pure random sorting shuffle
+            cardPoolData = masterPairs.sort(() => Math.random() - 0.5);
 
-            let wrongPool = [...activeQuestion.w].sort(() => Math.random() - 0.5);
-            const correctIndex = Math.floor(Math.random() * 3);
+            const arena = document.getElementById('arena');
+            arena.innerHTML = '';
 
-            poolAnswers = [];
-            
-            // Random distribution scatter positioning across coordinates
-            const configurations = [
-                { left: "22%", top: "25%" },
-                { left: "50%", top: "40%" },
-                { left: "78%", top: "20%" }
-            ].sort(() => Math.random() - 0.5);
-
-            for (let i = 0; i < 3; i++) {
-                const isCorrect = (i === correctIndex);
-                const textVal = isCorrect ? activeQuestion.a : wrongPool.pop();
-                
-                poolAnswers.push({ text: textVal, isCorrect: isCorrect, coords: configurations[i] });
-
-                const node = document.getElementById(`fruit-${i}`);
-                if (node) {
-                    node.innerText = textVal;
-                    node.style.left = configurations[i].left;
-                    node.style.top = configurations[i].top;
-                    node.style.transform = "translate(-50%, -50%) scale(1)";
-                    node.style.opacity = "1";
-                }
-            }
-            engineLock = false;
+            cardPoolData.forEach((card, index) => {
+                const cardMarkup = `
+                    <div class="crate-card" id="card-${index}" onclick="handleCardFlip(${index})">
+                        <div class="crate-inner">
+                            <div class="crate-front"></div>
+                            <div class="crate-back">${card.text}</div>
+                        </div>
+                    </div>
+                `;
+                arena.innerHTML += cardMarkup;
+            });
         }
 
-        function processExtraction(index) {
+        function handleCardFlip(index) {
             if (engineLock) return;
-            engineLock = true;
+            
+            const targetedCard = document.getElementById(`card-${index}`);
+            
+            // Prevent re-clicking an already turned up or resolved card
+            if (targetedCard.classList.contains('flipped') || targetedCard.classList.contains('matched')) return;
 
-            const targetElement = document.getElementById(`fruit-${index}`);
-            if (!targetElement) return;
+            targetedCard.classList.add('flipped');
+            selectedCards.push({ index: index, data: cardPoolData[index] });
 
-            // Animate pulling downwards to the blender deck coordinates
-            targetElement.style.left = "50%";
-            targetElement.style.top = "90%";
-            targetElement.style.transform = "translate(-50%, -50%) scale(0.2)";
-            targetElement.style.opacity = "0.4";
+            if (selectedCards.length === 2) {
+                engineLock = true;
+                attemptsCount++;
+                document.getElementById('lbl-attempts').innerText = attemptsCount;
+                checkMatchCondition();
+            }
+        }
 
-            setTimeout(() => {
-                const choice = poolAnswers[index];
-                if (choice && choice.isCorrect) {
+        function checkMatchCondition() {
+            const first = selectedCards[0];
+            const second = selectedCards[1];
+
+            if (first.data.matchId === second.data.matchId) {
+                // SUCCESS MATCH
+                setTimeout(() => {
                     playAudioAsset('s-correct');
+                    document.getElementById(`card-${first.index}`).classList.add('matched');
+                    document.getElementById(`card-${second.index}`).classList.add('matched');
+                    
                     currentScore += 10;
                     document.getElementById('lbl-score').innerText = currentScore;
-                } else {
-                    playAudioAsset('s-wrong');
-                    livesLeft--;
-                    let hearts = "";
-                    for (let i = 0; i < livesLeft; i++) hearts += "❤️";
-                    document.getElementById('lbl-lives').innerText = hearts || "NONE";
-                }
+                    
+                    selectedCards = [];
+                    engineLock = false;
 
-                targetElement.style.opacity = "0";
-
-                setTimeout(() => {
-                    if (livesLeft <= 0) {
-                        renderGameOverPanel();
-                    } else {
-                        generateNextProblemInstance();
+                    // Check win condition (all matched)
+                    if (document.querySelectorAll('.crate-card.matched').length === 12) {
+                        renderVictoryPanel();
                     }
-                }, 300);
-            }, 400);
-        }
-
-        function triggerAutoVacuum() {
-            const matchIndex = poolAnswers.findIndex(item => item.isCorrect);
-            if (matchIndex !== -1) {
-                processExtraction(matchIndex);
+                }, 500);
+            } else {
+                // FAILED MATCH
+                setTimeout(() => {
+                    playAudioAsset('s-wrong');
+                    document.getElementById(`card-${first.index}`).classList.remove('flipped');
+                    document.getElementById(`card-${second.index}`).classList.remove('flipped');
+                    
+                    selectedCards = [];
+                    engineLock = false;
+                }, 1000);
             }
         }
 
-        function renderGameOverPanel() {
+        function renderVictoryPanel() {
             document.getElementById('arena').innerHTML = `
-                <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.02); backdrop-filter:blur(8px); display:flex; justify-content:center; align-items:center; z-index:100;">
-                    <div class="orchard-panel" style="max-width:360px; border-color:#ef4444;">
-                        <h2 style="color:#ef4444; font-size:1.6rem; font-weight:900; margin-bottom:8px;">Tank Depleted</h2>
+                <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.02); backdrop-filter:blur(8px); display:flex; justify-content:center; align-items:center; z-index:100; padding:12px;">
+                    <div class="orchard-panel" style="border-color:#22c55e;">
+                        <h2 style="color:#22c55e; font-size:1.6rem; font-weight:900; margin-bottom:8px;">Orchard Cleared!</h2>
                         <p style="color:#7c2d12; font-size:1.05rem; margin-bottom:20px;">
-                            Final Yield: <span style="font-weight:900; color:#ea580c;">${currentScore} Points</span>
+                            Matched everything in <span style="font-weight:900; color:#ea580c;">${attemptsCount} attempts</span>!
                         </p>
-                        <button class="btn-action" style="background:#ef4444; margin:0;" onclick="renderMenuOverlay()">CONTINUE</button>
+                        <button class="btn-action" style="background:#22c55e; margin:0;" onclick="renderMenuOverlay()">PLAY AGAIN</button>
                     </div>
                 </div>
             `;
@@ -449,17 +404,6 @@
                 }
             } catch(e) {}
         }
-
-        // Core Desktop Keyboard Listeners Mapping
-        window.addEventListener('keydown', (e) => {
-            if (e.key === '1' || e.key === 'ArrowLeft') processExtraction(0);
-            if (e.key === '2' || e.key === 'ArrowDown') processExtraction(1);
-            if (e.key === '3' || e.key === 'ArrowRight') processExtraction(2);
-            if (e.key === ' ' || e.key === 'Enter') {
-                e.preventDefault();
-                triggerAutoVacuum();
-            }
-        });
     </script>
 </body>
 </html>
