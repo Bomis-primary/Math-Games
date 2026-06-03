@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Time Diamond Runner</title>
+    <title>Chronos Paddle Breakout</title>
     <style>
         * {
             box-sizing: border-box;
@@ -16,7 +16,7 @@
         body, html {
             width: 100%;
             height: 100%;
-            background-color: #060412;
+            background-color: #050410;
             color: #ffffff;
             overflow: hidden;
         }
@@ -43,15 +43,15 @@
             box-shadow: 0 15px 40px rgba(0,0,0,0.6);
         }
         .btn-start {
-            background: linear-gradient(135deg, #00bbf9, #00f5d4);
-            color: #060412;
+            background: linear-gradient(135deg, #a855f7, #ec4899);
+            color: #ffffff;
             border: none;
             padding: 15px 45px;
             font-size: 1.15rem;
             border-radius: 30px;
             cursor: pointer;
             font-weight: bold;
-            box-shadow: 0 6px 20px rgba(0, 245, 212, 0.3);
+            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.3);
             margin-top: 20px;
         }
 
@@ -67,36 +67,75 @@
             display: flex;
             justify-content: space-between;
             font-weight: bold;
-            color: #00bbf9;
+            color: #ec4899;
             padding: 5px 0;
             font-size: 1.05rem;
+        }
+
+        /* Sector Linear Track */
+        .track-container {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .track-node {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #1e1b4b;
+            border: 2px solid #4338ca;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.7rem;
+            color: #a5b4fc;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .track-node.active {
+            background: #ec4899;
+            border-color: #ffffff;
+            color: #ffffff;
+            box-shadow: 0 0 12px #ec4899;
+            transform: scale(1.15);
+        }
+        .track-node.cleared {
+            background: #10b981;
+            border-color: #10b981;
+            color: #ffffff;
         }
 
         .mission-header {
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
-            padding: 15px;
+            padding: 12px;
             text-align: center;
             margin-bottom: 10px;
         }
         .mission-tag {
             font-size: 0.75rem;
-            color: #00f5d4;
+            color: #a855f7;
             text-transform: uppercase;
             letter-spacing: 2px;
             font-weight: bold;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
         }
         .mission-text {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             font-weight: bold;
         }
 
-        /* Active Dynamic Run Screen Canvas Area */
+        /* Hit the Ball Brick Canvas Frame */
         .canvas-container {
             width: 100%;
-            background: linear-gradient(180deg, #0d0a21 0%, #05030f 100%);
+            background: linear-gradient(180deg, #090717 0%, #03020a 100%);
             border: 2px solid rgba(255, 255, 255, 0.1);
             border-radius: 16px;
             position: relative;
@@ -109,13 +148,13 @@
             height: 100%;
         }
 
-        /* Mobile Controller Steering Overlays */
+        /* Controller steering bars */
         .touch-controls {
             display: flex;
             justify-content: space-between;
             width: 100%;
             margin-top: 10px;
-            height: 60px;
+            height: 55px;
         }
         .control-btn {
             width: 48%;
@@ -123,7 +162,7 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             color: #ffffff;
-            font-size: 1.5rem;
+            font-size: 1.4rem;
             font-weight: bold;
             display: flex;
             justify-content: center;
@@ -131,7 +170,7 @@
             cursor: pointer;
         }
         .control-btn:active {
-            background: rgba(0, 187, 249, 0.2);
+            background: rgba(236, 72, 153, 0.2);
         }
 
         #hard-splash {
@@ -149,43 +188,54 @@
 </head>
 <body>
 
-    <!-- Native Audio Anchors -->
+    <!-- Native Audio Objects -->
     <audio id="s-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
     <audio id="s-win" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
 
-    <!-- Auto-Purging Preloader Shield Wrapper -->
+    <!-- Self-Destructing Bootloader Preloader -->
     <div id="hard-splash">
         <img src="assets/logo.png" style="max-width:240px; margin-bottom:20px;" onerror="this.style.display='none'; document.getElementById('fb-text').style.display='block';">
         <h1 id="fb-text" style="display:none; font-size:2.4rem; margin-bottom:15px; letter-spacing:1px;">INNOVINE</h1>
         <div style="width:200px; height:6px; background-color:#e2e8f0; border-radius:3px; overflow:hidden;">
-            <div id="loader-progress-fill" style="width:0%; height:100%; background-color:#00bbf9;"></div>
+            <div id="loader-progress-fill" style="width:0%; height:100%; background-color:#ec4899;"></div>
         </div>
     </div>
 
-    <!-- Central Viewport Mount Point Node -->
     <div id="viewport-root"></div>
 
     <script>
-        let gameScore = 0;
-        const victoryCondition = 10;
+        let currentSector = 0;
+        const totalSectors = 10;
         
         let canvasElement = null;
         let canvasContext = null;
         let animationFrameHandle = null;
 
-        // Interactive Simulation Settings Data
-        let playerShipX = 220;
-        const playerShipWidth = 60;
-        const playerShipHeight = 15;
-        let shipVelocityDirection = 0; // -1 for left, 1 for right, 0 for idle
+        // Paddle Configuration Space
+        let paddleX = 180;
+        const paddleWidth = 85;
+        const paddleHeight = 14;
+        let paddleDirection = 0; // -1 = Left, 1 = Right
 
-        let fallingDiamondsList = [];
-        let itemSpawnCountdown = 0;
-        let challengeSolutionValue = 0;
+        // Ball Mechanics Workspace
+        let ballX = 225;
+        let ballY = 250;
+        let ballRadius = 7;
+        let ballVelocityX = 3;
+        let ballVelocityY = -3;
+
+        // Static target options targets coordinates
+        let correctTargetIndex = 0; // 0 = Left Answer Orb, 1 = Right Answer Orb
+        let targetOrbs = [
+            { x: 110, y: 60, radius: 45, label: "" }, // Left Orb
+            { x: 340, y: 60, radius: 45, label: "" }  // Right Orb
+        ];
+
         let activeIsRunning = false;
+        let flashFrameAlert = false;
 
-        // Screen load state tracking ticker
+        // Run preloader tick
         let progressVal = 0;
         const progressTicker = setInterval(() => {
             progressVal += 5;
@@ -201,7 +251,7 @@
         function purgeSplashAndBuildMenu() {
             const splashMask = document.getElementById('hard-splash');
             if (splashMask) {
-                splashMask.parentNode.removeChild(splashMask); // Evicts asset container out of hierarchy tree immediately
+                splashMask.parentNode.removeChild(splashMask); // Destroys completely out of HTML tree flow
             }
             renderMenuScreen();
         }
@@ -212,36 +262,43 @@
             
             document.getElementById('viewport-root').innerHTML = `
                 <div class="menu-panel">
-                    <h1 style="color:#00bbf9; font-size:2rem; margin-bottom:12px;">Diamond Runner</h1>
+                    <h1 style="color:#ec4899; font-size:1.8rem; margin-bottom:12px;">Paddle Time Breakout</h1>
                     <p style="color:#b2b2cc; font-size:0.95rem; line-height:1.6; text-align:left; margin-bottom:20px;">
-                        Steer your energy collection ship left and right on the bottom track! Look closely at the time conversion challenge card at the top, then catch only the falling diamonds containing the correct answer value. 
+                        Advance through all 10 linear track milestones! Move your deflection paddle to keep the energy ball alive and hit the floating answer orb containing the correct conversion solution.
                     </p>
-                    <div style="color:#00f5d4; font-size:0.85rem; margin-bottom:20px; font-weight:bold;">
-                        🎮 Desktop: Use Left / Right Arrow Keys<br>📱 Mobile: Tap Left / Right Screen Buttons
+                    <div style="color:#a855f7; font-size:0.85rem; margin-bottom:20px; font-weight:bold;">
+                        🎮 Keyboard: Left / Right Arrow Keys<br>📱 Screen: Hold Left / Right Bottom Buttons
                     </div>
-                    <button class="btn-start" onclick="initiateGameEngine()">START RUN</button>
+                    <button class="btn-start" onclick="initiateGameEngine()">LAUNCH SYSTEM</button>
                 </div>
             `;
         }
 
         function initiateGameEngine() {
-            gameScore = 0;
-            fallingDiamondsList = [];
-            itemSpawnCountdown = 0;
+            currentSector = 0;
             activeIsRunning = true;
-            
             buildGameLayoutDOM();
             generateNextChronosQuestion();
+            resetBallPhysics();
             initializeCanvasEngineLoop();
             attachSteeringControls();
         }
 
         function buildGameLayoutDOM() {
+            let nodesHtml = "";
+            for (let i = 0; i < totalSectors; i++) {
+                nodesHtml += `<div class="track-node" id="node-${i}">${i + 1}</div>`;
+            }
+
             document.getElementById('viewport-root').innerHTML = `
                 <div class="game-grid">
                     <div class="hud-row">
-                        <div>Diamonds: <span id="lbl-score">0</span> / 10</div>
+                        <div>Milestone Track: <span id="lbl-sector">1</span> / 10</div>
                         <div>Chapter 08: Time</div>
+                    </div>
+
+                    <div class="track-container">
+                        ${nodesHtml}
                     </div>
 
                     <div class="mission-header">
@@ -249,8 +306,8 @@
                         <div class="mission-text" id="lbl-task-text">-</div>
                     </div>
 
-                    <div class="canvas-container" id="canvas-wrapper">
-                        <canvas id="run-canvas" width="450" height="450"></canvas>
+                    <div class="canvas-container">
+                        <canvas id="breakout-canvas" width="450" height="400"></canvas>
                     </div>
 
                     <div class="touch-controls">
@@ -260,220 +317,238 @@
                 </div>
             `;
 
-            canvasElement = document.getElementById('run-canvas');
+            canvasElement = document.getElementById('breakout-canvas');
             canvasContext = canvasElement.getContext('2d');
-            playerShipX = (canvasElement.width / 2) - (playerShipWidth / 2);
+            paddleX = (canvasElement.width / 2) - (paddleWidth / 2);
+            updateTrackVisuals();
+        }
+
+        function updateTrackVisuals() {
+            for (let i = 0; i < totalSectors; i++) {
+                const node = document.getElementById(`node-${i}`);
+                if (!node) continue;
+                node.className = "track-node";
+                if (i < currentSector) {
+                    node.classList.add("cleared");
+                } else if (i === currentSector) {
+                    node.classList.add("active");
+                }
+            }
+            document.getElementById('lbl-sector').innerText = currentSector + 1;
         }
 
         function generateNextChronosQuestion() {
-            fallingDiamondsList = [];
             const rollType = Math.random();
+            correctTargetIndex = Math.random() < 0.5 ? 0 : 1;
 
             let targetTag = "";
             let targetQuestion = "";
+            let correctValueStr = "";
+            let wrongValueStr = "";
 
             if (rollType < 0.34) {
-                // Topic format calculations
-                targetTag = "Format Shift (12h ➔ 24h)";
+                targetTag = "Format Conversion (12h ➔ 24h)";
                 const choices = [
-                    { q: "What hour marker is 04:00 PM?", a: 16 },
-                    { q: "What hour marker is 09:00 PM?", a: 21 },
-                    { q: "What hour marker is 11:00 PM?", a: 23 },
-                    { q: "What hour marker is 07:00 PM?", a: 19 }
+                    { q: "Convert 03:00 PM to 24h", a: "15:00", w: "03:00" },
+                    { q: "Convert 08:30 PM to 24h", a: "20:30", w: "08:30" },
+                    { q: "Convert 10:15 PM to 24h", a: "22:15", w: "10:15" },
+                    { q: "Convert 06:00 PM to 24h", a: "18:00", w: "06:00" }
                 ];
                 const choice = choices[Math.floor(Math.random() * choices.length)];
-                targetQuestion = choice.q;
-                challengeSolutionValue = choice.a;
+                targetQuestion = choice.q; correctValueStr = choice.a; wrongValueStr = choice.w;
             } 
             else if (rollType < 0.67) {
-                // Topic unit conversions calculation matrix
-                targetTag = "Time Metric Conversion";
+                targetTag = "Time Unit Conversion";
                 const choices = [
-                    { q: "How many minutes are in 2 hours?", a: 120 },
-                    { q: "How many seconds are in 3 minutes?", a: 180 },
-                    { q: "How many minutes are in 1 hour 40 min?", a: 100 },
-                    { q: "How many seconds are in 1 minute 15 sec?", a: 75 }
+                    { q: "How many minutes are in 3 hours?", a: "180 Min", w: "120 Min" },
+                    { q: "How many seconds are in 2 minutes?", a: "120 Sec", w: "200 Sec" },
+                    { q: "Convert 1 Hour 20 min into minutes", a: "80 Min", w: "120 Min" },
+                    { q: "How many minutes are in 4 hours?", a: "240 Min", w: "140 Min" }
                 ];
                 const choice = choices[Math.floor(Math.random() * choices.length)];
-                targetQuestion = choice.q;
-                challengeSolutionValue = choice.a;
+                targetQuestion = choice.q; correctValueStr = choice.a; wrongValueStr = choice.w;
             } 
             else {
-                // Topic elapsed time boundaries calculation
                 targetTag = "Elapsed Duration Interval";
                 const choices = [
-                    { q: "Minutes elapsed from 02:15 PM to 03:00 PM?", a: 45 },
-                    { q: "Minutes elapsed from 11:40 AM to 12:20 PM?", a: 40 },
-                    { q: "Hours elapsed between 08:00 AM and 01:00 PM?", a: 5 },
-                    { q: "Minutes elapsed from 06:10 Hours to 07:00 Hours?", a: 50 }
+                    { q: "Minutes elapsed from 01:15 to 02:00?", a: "45 Min", w: "15 Min" },
+                    { q: "Hours elapsed between 09:00 AM and 02:00 PM?", a: "5 Hours", w: "4 Hours" },
+                    { q: "Minutes elapsed from 10:30 to 11:15?", a: "45 Min", w: "35 Min" }
                 ];
                 const choice = choices[Math.floor(Math.random() * choices.length)];
-                targetQuestion = choice.q;
-                challengeSolutionValue = choice.a;
+                targetQuestion = choice.q; correctValueStr = choice.a; wrongValueStr = choice.w;
             }
 
             document.getElementById('lbl-task-tag').innerText = targetTag;
             document.getElementById('lbl-task-text').innerText = targetQuestion;
+
+            targetOrbs[0].label = (correctTargetIndex === 0) ? correctValueStr : wrongValueStr;
+            targetOrbs[1].label = (correctTargetIndex === 1) ? correctValueStr : wrongValueStr;
+        }
+
+        function resetBallPhysics() {
+            ballX = canvasElement.width / 2;
+            ballY = canvasElement.height - 60;
+            ballVelocityX = (Math.random() > 0.5 ? 2.5 : -2.5);
+            ballVelocityY = -3.5;
         }
 
         function initializeCanvasEngineLoop() {
             if (!activeIsRunning) return;
 
-            // Physics calculation loops updates
-            updateSimulationPhysics();
-            renderSimulationGraphics();
+            updatePhysics();
+            renderGraphics();
 
             animationFrameHandle = requestAnimationFrame(initializeCanvasEngineLoop);
         }
 
-        function updateSimulationPhysics() {
-            // Apply runner spaceship locomotion speeds
-            if (shipVelocityDirection === -1 && playerShipX > 0) {
-                playerShipX -= 7;
-            } else if (shipVelocityDirection === 1 && playerShipX < (canvasElement.width - playerShipWidth)) {
-                playerShipX += 7;
+        function updatePhysics() {
+            // Locomotion processing for hitting tracking paddle edges
+            if (paddleDirection === -1 && paddleX > 0) paddleX -= 6;
+            if (paddleDirection === 1 && paddleX < (canvasElement.width - paddleWidth)) paddleX += 6;
+
+            // Vector travel ball physics equations
+            ballX += ballVelocityX;
+            ballY += ballVelocityY;
+
+            // Bounce on left and right walls
+            if (ballX - ballRadius <= 0 || ballX + ballRadius >= canvasElement.width) {
+                ballVelocityX = -ballVelocityX;
+            }
+            // Bounce on top wall
+            if (ballY - ballRadius <= 0) {
+                ballVelocityY = -ballVelocityY;
             }
 
-            // Spawn falling diamonds values streams over time intervals
-            itemSpawnCountdown--;
-            if (itemSpawnCountdown <= 0) {
-                itemSpawnCountdown = 45; // loop counter cycles reset cadence bound
-                
-                // Decide if spawning the correct solution diamond or a distraction dummy
-                const deliverTrueSolution = Math.random() < 0.35;
-                let particleValue = 0;
-
-                if (deliverTrueSolution) {
-                    particleValue = challengeSolutionValue;
-                } else {
-                    // Create an incorrect distraction offset dummy diamond value
-                    const randomOffset = (Math.floor(Math.random() * 4) + 1) * (Math.random() < 0.5 ? 5 : -5);
-                    particleValue = Math.max(2, challengeSolutionValue + randomOffset);
+            // Paddle impact intersection mechanics
+            const paddleTopY = canvasElement.height - 35;
+            if (ballY + ballRadius >= paddleTopY && ballY - ballRadius <= paddleTopY + paddleHeight) {
+                if (ballX >= paddleX && ballX <= paddleX + paddleWidth) {
+                    // Control ball rebound reflection angle depending on paddle sector hit position
+                    let hitPointPercent = (ballX - paddleX) / paddleWidth;
+                    ballVelocityX = 8 * (hitPointPercent - 0.5);
+                    ballVelocityY = -Math.abs(ballVelocityY);
+                    ballY = paddleTopY - ballRadius; // Unstick buffer
                 }
-
-                fallingDiamondsList.push({
-                    x: Math.random() * (canvasElement.width - 40) + 10,
-                    y: -10,
-                    value: particleValue,
-                    speed: Math.random() * 2 + 2.5
-                });
             }
 
-            // Move falling elements downward and check boundaries
-            for (let i = fallingDiamondsList.length - 1; i >= 0; i--) {
-                const item = fallingDiamondsList[i];
-                item.y += item.speed;
+            // Fall below bottom trigger - Auto reset cleanly
+            if (ballY > canvasElement.height) {
+                resetBallPhysics();
+            }
 
-                // Collision detection against runner paddle ship
-                const catchBufferY = canvasElement.height - 40;
-                if (item.y >= catchBufferY && item.y <= catchBufferY + playerShipHeight) {
-                    if (item.x >= playerShipX - 15 && item.x <= playerShipX + playerShipWidth + 15) {
-                        
-                        // Hit registration check
-                        if (item.value === challengeSolutionValue) {
-                            playAudioFile('s-correct');
-                            gameScore++;
-                            document.getElementById('lbl-score').innerText = gameScore;
+            // Target orbs hit circular bounds checks
+            for (let i = 0; i < targetOrbs.length; i++) {
+                let orb = targetOrbs[i];
+                let distDX = ballX - orb.x;
+                let distDY = ballY - orb.y;
+                let scalarDistance = Math.sqrt(distDX * distDX + distDY * distDY);
 
-                            if (gameScore >= victoryCondition) {
-                                playAudioFile('s-win');
-                                activeIsRunning = false;
-                                renderVictoryScreen();
-                                return;
-                            } else {
-                                generateNextChronosQuestion();
-                            }
+                if (scalarDistance <= orb.radius + ballRadius) {
+                    // Intersect hit resolved!
+                    if (i === correctTargetIndex) {
+                        playAudioFile('s-correct');
+                        currentSector++;
+                        if (currentSector >= totalSectors) {
+                            activeIsRunning = false;
+                            renderVictoryScreen();
+                            return;
                         } else {
-                            // Caught incorrect answer value matrix
-                            playAudioFile('s-wrong');
-                            flashShipErrorColor();
+                            updateTrackVisuals();
+                            generateNextChronosQuestion();
+                            resetBallPhysics();
                         }
-                        fallingDiamondsList.splice(i, 1);
-                        continue;
+                    } else {
+                        playAudioFile('s-wrong');
+                        flashScreenErrorRed();
+                        ballVelocityY = Math.abs(ballVelocityY); // Deflect ball back downwards
                     }
-                }
-
-                // Remove diamond if it drops past screen boundary bottom track
-                if (item.y > canvasElement.height) {
-                    fallingDiamondsList.splice(i, 1);
+                    break;
                 }
             }
         }
 
-        let flashAlertActive = false;
-        function flashShipErrorColor() {
-            flashAlertActive = true;
-            setTimeout(() => { flashAlertActive = false; }, 250);
+        function flashScreenErrorRed() {
+            flashFrameAlert = true;
+            setTimeout(() => { flashFrameAlert = false; }, 200);
         }
 
-        function renderSimulationGraphics() {
+        function renderGraphics() {
             canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
-            // Draw player ship pad vector
-            canvasContext.fillStyle = flashAlertActive ? '#ef4444' : '#00f5d4';
-            canvasContext.shadowColor = canvasContext.fillStyle;
-            canvasContext.shadowBlur = 12;
-            canvasContext.fillRect(playerShipX, canvasElement.height - 40, playerShipWidth, playerShipHeight);
-            canvasContext.shadowBlur = 0; // reset
-
-            // Draw falling diamonds
-            for (let i = 0; i < fallingDiamondsList.length; i++) {
-                const diamond = fallingDiamondsList[i];
-                
-                canvasContext.fillStyle = '#ff007f';
-                canvasContext.beginPath();
-                canvasContext.moveTo(diamond.x, diamond.y - 12); // top point
-                canvasContext.lineTo(diamond.x + 14, diamond.y); // right point
-                canvasContext.lineTo(diamond.x, diamond.y + 12); // bottom point
-                canvasContext.lineTo(diamond.x - 14, diamond.y); // left point
-                canvasContext.closePath();
-                canvasContext.fill();
-
-                // Text value inside diamond node mapping
-                canvasContext.fillStyle = '#ffffff';
-                canvasContext.font = 'bold 12px sans-serif';
-                canvasContext.textAlign = 'center';
-                canvasContext.fillText(diamond.value, diamond.x, diamond.y + 4);
+            if (flashFrameAlert) {
+                canvasContext.fillStyle = 'rgba(239, 68, 68, 0.15)';
+                canvasContext.fillRect(0,0, canvasElement.width, canvasElement.height);
             }
+
+            // Draw floating objective targets
+            for (let i = 0; i < targetOrbs.length; i++) {
+                let orb = targetOrbs[i];
+                
+                // Outer ring
+                canvasContext.strokeStyle = (i === 0) ? '#a855f7' : '#ec4899';
+                canvasContext.lineWidth = 3;
+                canvasContext.beginPath();
+                canvasContext.arc(orb.x, orb.y, orb.radius, 0, Math.PI * 2);
+                canvasContext.stroke();
+
+                // Inner text values
+                canvasContext.fillStyle = '#ffffff';
+                canvasContext.font = 'bold 13px sans-serif';
+                canvasContext.textAlign = 'center';
+                canvasContext.fillText(orb.label, orb.x, orb.y + 5);
+            }
+
+            // Draw bouncing game ball
+            canvasContext.fillStyle = '#ffffff';
+            canvasContext.shadowColor = '#ec4899';
+            canvasContext.shadowBlur = 10;
+            canvasContext.beginPath();
+            canvasContext.arc(ballX, ballY, ballRadius, 0, Math.PI * 2);
+            canvasContext.fill();
+            canvasContext.shadowBlur = 0; // clear shadow
+
+            // Draw defensive bumper paddle tracking bar
+            canvasContext.fillStyle = '#ec4899';
+            canvasContext.fillRect(paddleX, canvasElement.height - 35, paddleWidth, paddleHeight);
         }
 
         function attachSteeringControls() {
-            // Keyboard controls
+            // Physical desktop keyboard inputs map handles
             window.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowLeft') shipVelocityDirection = -1;
-                if (e.key === 'ArrowRight') shipVelocityDirection = 1;
+                if (e.key === 'ArrowLeft') paddleDirection = -1;
+                if (e.key === 'ArrowRight') paddleDirection = 1;
             });
             window.addEventListener('keyup', (e) => {
-                if (e.key === 'ArrowLeft' && shipVelocityDirection === -1) shipVelocityDirection = 0;
-                if (e.key === 'ArrowRight' && shipVelocityDirection === 1) shipVelocityDirection = 0;
+                if (e.key === 'ArrowLeft' && paddleDirection === -1) paddleDirection = 0;
+                if (e.key === 'ArrowRight' && paddleDirection === 1) paddleDirection = 0;
             });
 
-            // Touch UI overlay controls integration
+            // Touch UI listeners mapping inputs configurations
             const leftBtn = document.getElementById('btn-left-press');
             const rightBtn = document.getElementById('btn-right-press');
 
             if (leftBtn && rightBtn) {
-                leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); shipVelocityDirection = -1; });
-                leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(shipVelocityDirection === -1) shipVelocityDirection = 0; });
-                
-                rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); shipVelocityDirection = 1; });
-                rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(shipVelocityDirection === 1) shipVelocityDirection = 0; });
+                leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); paddleDirection = -1; });
+                leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(paddleDirection === -1) paddleDirection = 0; });
+                rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); paddleDirection = 1; });
+                rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(paddleDirection === 1) paddleDirection = 0; });
 
-                // Fallback mouse listeners for testing mobile nodes layout safely
-                leftBtn.addEventListener('mousedown', () => shipVelocityDirection = -1);
-                leftBtn.addEventListener('mouseup', () => { if(shipVelocityDirection === -1) shipVelocityDirection = 0; });
-                rightBtn.addEventListener('mousedown', () => shipVelocityDirection = 1);
-                rightBtn.addEventListener('mouseup', () => { if(shipVelocityDirection === 1) shipVelocityDirection = 0; });
+                // Fallback mouse testing behaviors support
+                leftBtn.addEventListener('mousedown', () => paddleDirection = -1);
+                leftBtn.addEventListener('mouseup', () => { if(paddleDirection === -1) paddleDirection = 0; });
+                rightBtn.addEventListener('mousedown', () => paddleDirection = 1);
+                rightBtn.addEventListener('mouseup', () => { if(paddleDirection === 1) paddleDirection = 0; });
             }
         }
 
         function renderVictoryScreen() {
             document.getElementById('viewport-root').innerHTML = `
-                <div class="menu-panel" style="border-color: rgba(0, 245, 212, 0.4);">
+                <div class="menu-panel" style="border-color: rgba(16, 185, 129, 0.4);">
                     <div style="font-size:3.5rem; margin-bottom:10px;">🏆</div>
-                    <h1 style="color:#00f5d4; font-size:1.8rem; margin-bottom:10px;">Time Circuit Cleared!</h1>
+                    <h1 style="color:#10b981; font-size:1.8rem; margin-bottom:10px;">Breakout Completed!</h1>
                     <p style="color:#b2b2cc; font-size:0.95rem; margin-bottom:25px; line-height:1.5;">
-                        Sensational speed run! You tracked conversion intervals and clock positions perfectly across all vectors.
+                        Sensational coordinate analysis! You smashed through all 10 time challenge sectors with perfect accuracy.
                     </p>
                     <button class="btn-start" onclick="renderMenuScreen()">Play Again</button>
                 </div>
