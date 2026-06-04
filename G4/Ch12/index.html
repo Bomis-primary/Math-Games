@@ -133,7 +133,8 @@
 
         /* Interactive Simulation Area */
         .simulation-frame {
-            height: 250px;
+            flex-grow: 1;
+            min-height: 250px;
             background: #1f2937;
             border: 2px solid #374151;
             border-radius: 14px;
@@ -194,59 +195,13 @@
             background: #374151;
             border: 1px solid #4b5563;
             color: #f1f5f9;
-            padding: 10px 6px;
-            font-size: 0.8rem;
+            padding: 12px 6px;
+            font-size: 0.85rem;
             font-weight: 700;
             border-radius: 8px;
             cursor: pointer;
             text-align: center;
             transition: all 0.15s ease;
-        }
-        .tool-btn.active {
-            background: #4f46e5;
-            border-color: #818cf8;
-            box-shadow: 0 2px 8px rgba(79, 70, 229, 0.4);
-        }
-        
-        /* Level 2 Number Tower Widget */
-        .tower-widget {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            background: #151b2d;
-            padding: 10px;
-            border-radius: 12px;
-            border: 1px solid #1e293b;
-        }
-        .tower-row {
-            display: flex;
-            gap: 6px;
-        }
-        .tower-cell {
-            width: 52px;
-            height: 30px;
-            background: #f59e0b;
-            color: #0f172a;
-            font-family: monospace;
-            font-weight: 800;
-            font-size: 0.9rem;
-            border-radius: 4px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        .tower-input {
-            width: 52px;
-            height: 30px;
-            background: #334155;
-            color: #ffffff;
-            border: 2px solid #64748b;
-            border-radius: 4px;
-            text-align: center;
-            font-weight: 800;
-            font-size: 0.9rem;
         }
 
         /* Interactive Footer Trigger buttons */
@@ -279,6 +234,7 @@
 </head>
 <body>
 
+    <!-- Minimal White Splash Screen -->
     <div id="hard-splash">
         <div class="splash-content-wrapper">
             <div class="splash-logo-container">
@@ -289,11 +245,13 @@
 
     <div id="viewport-root">
         
+        <!-- Chapter Switcher Header Navigation -->
         <div class="level-switcher">
             <button class="mode-tab active" id="tab-l1" onclick="switchLevelMode(1)">Level 1: Verification Test</button>
             <button class="mode-tab" id="tab-l2" onclick="switchLevelMode(2)">Level 2: Creative Sandbox</button>
         </div>
 
+        <!-- ================= LEVEL 1 PANEL ================= -->
         <div id="panel-l1" class="panel active">
             <div class="lab-display">
                 <div class="control-panel">
@@ -313,11 +271,12 @@
             <button class="action-dispatch-btn" id="btn-submit-l1" onclick="verifyL1Answer()">Verify Pattern Code</button>
         </div>
 
+        <!-- ================= LEVEL 2 PANEL (SIMPLIFIED) ================= -->
         <div id="panel-l2" class="panel">
             <div class="lab-display">
                 <div class="control-panel">
-                    <div class="ticker-title">Chapter 12 Creator Core</div>
-                    <div class="ticker-problem" id="lbl-sandbox-desc">Tap or draw inside the grid to explore active mirror reflections, 90° rotations, or tessellating tiles!</div>
+                    <div class="ticker-title">Symmetry Drawing Board</div>
+                    <div class="ticker-problem">Touch and drag your finger anywhere on the canvas to paint. Watch it mirror automatically across the middle line!</div>
                 </div>
             </div>
 
@@ -325,30 +284,11 @@
                 <canvas id="l2-canvas"></canvas>
             </div>
 
+            <!-- Simplified Clean Action Bar -->
             <div class="sandbox-controls">
-                <div class="ticker-title">Canvas Modes & Symmetry Transformers</div>
                 <div class="tool-row">
-                    <button class="tool-btn active" id="tool-mirror" onclick="setSandboxTool('mirror')">Mirror Line</button>
-                    <button class="tool-btn" id="tool-rotate" onclick="setSandboxTool('rotate')">90° Spin</button>
-                    <button class="tool-btn" id="tool-tessellate" onclick="setSandboxTool('tessellate')">Tessellate Tile</button>
-                </div>
-                <div class="tool-row">
-                    <button class="tool-btn" style="background:#475569;" onclick="clearSandboxCanvas()">Clear Screen</button>
-                    <button class="tool-btn" id="btn-show-class" style="background:#7c3aed; color:#ffffff;" onclick="triggerClassPresentation()">Present to Class</button>
-                </div>
-            </div>
-
-            <div class="tower-widget">
-                <div class="ticker-title" style="margin-bottom:4px;">Interactive Number Tower Simulator</div>
-                <div class="tower-row"><div class="tower-cell" id="tw-top" style="background:#f59e0b;">?</div></div>
-                <div class="tower-row">
-                    <div class="tower-cell" id="tw-m1" style="background:#fbbf24;">?</div>
-                    <div class="tower-cell" id="tw-m2" style="background:#fbbf24;">?</div>
-                </div>
-                <div class="tower-row">
-                    <input class="tower-input" type="number" id="t-in1" value="3" oninput="calculateSandboxTower()">
-                    <input class="tower-input" type="number" id="t-in2" value="5" oninput="calculateSandboxTower()">
-                    <input class="tower-input" type="number" id="t-in3" value="2" oninput="calculateSandboxTower()">
+                    <button class="tool-btn" style="background:#475569;" onclick="clearSandboxCanvas()">Clear Canvas</button>
+                    <button class="tool-btn" style="background:#7c3aed; color:#ffffff;" onclick="triggerClassPresentation()">Present to Class</button>
                 </div>
             </div>
         </div>
@@ -370,10 +310,8 @@
 
         // Level 2 Parameters
         let l2Canvas, l2Ctx;
-        let activeSandboxTool = 'mirror'; 
         let isDrawing = false;
         let sandboxPoints = [];
-        let rotationAngleStep = 0;
 
         // Standard 5-Second Splash Screen Clock Ticker
         let splashElapsed = 0;
@@ -403,7 +341,6 @@
             buildL1QuestionPool();
             loadL1Task();
             initSandboxEventHandlers();
-            calculateSandboxTower();
 
             // Core Game Rendering Frame loop
             function coreAppTick() {
@@ -433,6 +370,9 @@
             document.getElementById('panel-l1').classList.toggle('active', lvl === 1);
             document.getElementById('panel-l2').classList.toggle('active', lvl === 2);
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Handle mid-action scale updates if views switch
+            setTimeout(recalculateCanvasResolutions, 50);
         }
 
         // ================= LEVEL 1 SYSTEM ENGINES =================
@@ -586,23 +526,7 @@
             }
         }
 
-        // ================= LEVEL 2 CREATIVE ENGINE =================
-        function setSandboxTool(tool) {
-            activeSandboxTool = tool;
-            document.getElementById('tool-mirror').classList.toggle('active', tool === 'mirror');
-            document.getElementById('tool-rotate').classList.toggle('active', tool === 'rotate');
-            document.getElementById('tool-tessellate').classList.toggle('active', tool === 'tessellate');
-            
-            if (tool === 'rotate') {
-                rotationAngleStep = (rotationAngleStep + 90) % 360;
-                document.getElementById('lbl-sandbox-desc').innerText = `90° Rotational Spin active! Tapping creates rotated geometric components around axes.`;
-            } else if (tool === 'mirror') {
-                document.getElementById('lbl-sandbox-desc').innerText = `Mirror Line Reflection active! Strokes on one half automatically calculate identical inverse paths.`;
-            } else {
-                document.getElementById('lbl-sandbox-desc').innerText = `Tessellation Engine operational! Tiles snap perfectly side-by-side with zero overlap gaps.`;
-            }
-        }
-
+        // ================= LEVEL 2 CREATIVE ENGINE (SIMPLIFIED) =================
         function initSandboxEventHandlers() {
             function queryPointerPosition(e) {
                 const rect = l2Canvas.getBoundingClientRect();
@@ -636,32 +560,17 @@
         }
 
         function appendSandboxPoint(x, y) {
-            sandboxPoints.push({ x: x, y: y, mode: activeSandboxTool, angle: rotationAngleStep });
-            if (sandboxPoints.length > 1000) sandboxPoints.shift();
+            sandboxPoints.push({ x: x, y: y });
+            if (sandboxPoints.length > 1200) sandboxPoints.shift();
         }
 
         function clearSandboxCanvas() {
             sandboxPoints = [];
-            document.getElementById('lbl-sandbox-desc').innerText = "Sandbox cleared. Draw inside the frame matrix to test shapes.";
-        }
-
-        function calculateSandboxTower() {
-            const val1 = parseInt(document.getElementById('t-in1').value) || 0;
-            const val2 = parseInt(document.getElementById('t-in2').value) || 0;
-            const val3 = parseInt(document.getElementById('t-in3').value) || 0;
-
-            const mid1 = val1 + val2;
-            const mid2 = val2 + val3;
-            const sumTop = mid1 + mid2;
-
-            document.getElementById('tw-m1').innerText = mid1;
-            document.getElementById('tw-m2').innerText = mid2;
-            document.getElementById('tw-top').innerText = sumTop;
         }
 
         function triggerClassPresentation() {
             triggerToneOutput(440, 880);
-            alert("✨ Classroom Presentation Live ✨\n\nYour original mathematical symmetry designs and computed Number Tower matrix layers have been compiled and sent directly to the classroom digital display board layout!");
+            alert("✨ Classroom Presentation Live ✨\n\nYour layout has been synchronized and sent directly to the primary group display screen!");
         }
 
         function renderL2Graphics() {
@@ -669,47 +578,32 @@
             const w = l2Canvas.width, h = l2Canvas.height;
             l2Ctx.clearRect(0, 0, w, h);
 
-            // Subtle background tracking line grid
+            // Grid background lines
             l2Ctx.strokeStyle = '#2d3748';
             l2Ctx.lineWidth = 1;
             const gridSize = 30;
-            for(let x=0; x<w; x+=gridSize) {
+            for(let x = 0; x < w; x += gridSize) {
                 l2Ctx.beginPath(); l2Ctx.moveTo(x, 0); l2Ctx.lineTo(x, h); l2Ctx.stroke();
             }
-            for(let y=0; y<h; y+=gridSize) {
+            for(let y = 0; y < h; y += gridSize) {
                 l2Ctx.beginPath(); l2Ctx.moveTo(0, y); l2Ctx.lineTo(w, y); l2Ctx.stroke();
             }
 
-            // Draw center folding mirror axis plane 
-            l2Ctx.strokeStyle = 'rgba(219, 39, 119, 0.5)';
+            // Central mirror line divider axis plane 
+            l2Ctx.strokeStyle = '#db2777';
             l2Ctx.lineWidth = 3;
-            l2Ctx.setLineDash([8, 4]);
             l2Ctx.beginPath(); l2Ctx.moveTo(w/2, 0); l2Ctx.lineTo(w/2, h); l2Ctx.stroke();
-            l2Ctx.setLineDash([]);
 
-            // Draw user interaction vectors
+            // Render live symmetrical ink points
             sandboxPoints.forEach(p => {
-                l2Ctx.fillStyle = p.mode === 'mirror' ? '#38bdf8' : p.mode === 'rotate' ? '#fbbf24' : '#a7f3d0';
+                // Original active finger paint plot path
+                l2Ctx.fillStyle = '#38bdf8';
+                l2Ctx.fillRect(p.x - 4, p.y - 4, 8, 8);
                 
-                if (p.mode === 'tessellate') {
-                    // Fast snapping interlocking block mechanism
-                    let snapX = Math.floor(p.x / 24) * 24;
-                    let snapY = Math.floor(p.y / 24) * 24;
-                    l2Ctx.fillRect(snapX, snapY, 22, 22);
-                } 
-                else if (p.mode === 'rotate') {
-                    l2Ctx.save();
-                    l2Ctx.translate(p.x, p.y);
-                    l2Ctx.rotate((p.angle * Math.PI) / 180);
-                    l2Ctx.fillRect(-7, -7, 14, 14);
-                    l2Ctx.restore();
-                } 
-                else {
-                    l2Ctx.fillRect(p.x - 3, p.y - 3, 6, 6);
-                    let mirrorInverseX = w - p.x; 
-                    l2Ctx.fillStyle = '#db2777';
-                    l2Ctx.fillRect(mirrorInverseX - 3, p.y - 3, 6, 6);
-                }
+                // Perfect relative horizontally mirrored twin dot
+                let mirrorInverseX = w - p.x; 
+                l2Ctx.fillStyle = '#e11d48';
+                l2Ctx.fillRect(mirrorInverseX - 4, p.y - 4, 8, 8);
             });
         }
 
