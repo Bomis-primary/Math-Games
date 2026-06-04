@@ -13,10 +13,26 @@
             user-select: none;
             -webkit-user-select: none;
         }
+        
+        /* Custom Theme-Compliant Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #022c22;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #047857;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #059669;
+        }
+
         body, html {
             width: 100%;
             height: 100%;
-            background-color: #042f1a; /* Dark Jungle Green Background */
+            background-color: #042f1a;
             background-image: radial-gradient(circle at 50% 50%, #064e3b 0%, #022c22 100%);
             color: #f1f5f9;
             overflow: hidden;
@@ -63,7 +79,7 @@
             object-fit: contain;
         }
 
-        /* Level Mode Switcher Tabs */
+        /* Level Switcher */
         .level-switcher {
             display: flex;
             background: #022c22;
@@ -91,7 +107,7 @@
             box-shadow: 0 2px 10px rgba(5, 150, 105, 0.6);
         }
 
-        /* Panel Visibility Rules */
+        /* Panels */
         .panel {
             display: none;
             flex-direction: column;
@@ -103,10 +119,9 @@
             display: flex;
         }
 
-        /* Instruction Display Card Header */
         .lab-display {
             background: #022c22;
-            border: 2px solid #78350f; /* Wood Bark Border styling */
+            border: 2px solid #78350f;
             border-radius: 14px;
             padding: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.6);
@@ -132,7 +147,6 @@
             line-height: 1.4;
         }
 
-        /* Data Target Notice Board */
         .data-notice-board {
             background: #0f172a;
             border: 2px dashed #34d399;
@@ -155,7 +169,6 @@
             text-shadow: 0 0 5px rgba(245, 158, 11, 0.5);
         }
 
-        /* Simulation Canvas Frames */
         .simulation-frame {
             flex-grow: 1;
             min-height: 280px;
@@ -172,7 +185,6 @@
             height: 100%;
         }
 
-        /* Choice Selectors for Quiz (L1) */
         .console-grid {
             display: flex;
             flex-direction: column;
@@ -198,7 +210,6 @@
             box-shadow: 0 0 10px rgba(5, 150, 105, 0.4);
         }
 
-        /* Control Action Triggers */
         .sandbox-controls {
             display: flex;
             flex-direction: column;
@@ -227,10 +238,9 @@
             transition: all 0.15s ease;
         }
 
-        /* Bottom Process Dispatch Buttons */
         .action-dispatch-btn {
             width: 100%;
-            background: #d97706; /* Vibrant Safari Amber */
+            background: #d97706;
             color: #ffffff;
             border: none;
             border-radius: 12px;
@@ -324,11 +334,31 @@
     </div>
 
     <script>
-        // Core Synthesized Audio Engine
-        let audioCtx = null;
+        // Audio Asset Engine Mapping Your Files
+        const audioAssets = {
+            click: new Audio('assets/wrong.mp3'), // Using short tap audio behaviors
+            correct: new Audio('assets/correct.mp3'),
+            wrong: new Audio('assets/wrong.mp3'),
+            success: new Audio('assets/freesound_community-claps-44774.mp3') // Your applause file
+        };
+
+        // Custom sound settings to lower volume on basic click elements
+        audioAssets.click.volume = 0.3;
+
+        function playAssetSound(type) {
+            try {
+                if (audioAssets[type]) {
+                    audioAssets[type].currentTime = 0; 
+                    audioAssets[type].play();
+                }
+            } catch (error) {
+                console.warn("Audio error: ", error);
+            }
+        }
+
         let activeLevel = 1;
 
-        // Level 1 Interactive Parameters
+        // Level 1 Parameters
         let l1Canvas, l1Ctx;
         let currentL1Task = 0;
         let selectedL1Opt = -1;
@@ -336,14 +366,14 @@
         let l1AnimationTimer = 0;
         let l1AnimationType = 'none';
 
-        // Level 2 Interactive Parameters (Zoo Edition)
+        // Level 2 Parameters
         let l2Canvas, l2Ctx;
         const barCategories = ["Lions", "Elephants", "Monkeys", "Giraffes"];
         const targetZooData = [5, 8, 3, 6]; 
         let activeBarData = [0, 0, 0, 0];   
         const maxBarValue = 10;
 
-        // Standard 5-Second Splash Screen Clock Ticker
+        // Splash screen clock loader
         let splashElapsed = 0;
         const splashInterval = 100;
         const splashTicker = setInterval(() => {
@@ -368,7 +398,7 @@
             l2Ctx = l2Canvas.getContext('2d');
 
             recalculateCanvasResolutions();
-            buildL1QuestionPool();
+            buildDynamicL1Pool();
             loadL1Task();
             initSandboxGraphClickHandlers();
 
@@ -404,25 +434,17 @@
             document.getElementById('tab-l2').classList.toggle('active', lvl === 2);
             document.getElementById('panel-l1').classList.toggle('active', lvl === 1);
             document.getElementById('panel-l2').classList.toggle('active', lvl === 2);
-            ensureAudioContext();
+            playAssetSound('click');
             
-            // Re-trigger layout calculations to ensure canvas dimensions are correct upon dynamic tab viewing
             setTimeout(() => {
                 recalculateCanvasResolutions();
             }, 40);
         }
 
-        function ensureAudioContext() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        }
-
-        // Helper function to render decorative trees onto the jungle maps
         function drawJungleTree(ctx, x, y, size) {
-            ctx.fillStyle = '#5c2d16'; // Trunk
+            ctx.fillStyle = '#5c2d16'; 
             ctx.fillRect(x - size * 0.15, y, size * 0.3, size * 0.6);
-            ctx.fillStyle = '#065f46'; // Deep Foliage Clouds
+            ctx.fillStyle = '#065f46'; 
             ctx.beginPath();
             ctx.arc(x, y - size * 0.1, size * 0.45, 0, Math.PI * 2);
             ctx.arc(x - size * 0.2, y - size * 0.3, size * 0.35, 0, Math.PI * 2);
@@ -430,9 +452,9 @@
             ctx.fill();
         }
 
-        // ================= LEVEL 1 SYSTEM ENGINES =================
-        function buildL1QuestionPool() {
-            challengePool = [
+        // ================= LEVEL 1 DYNAMIC RANDOMIZED ENGINE =================
+        function buildDynamicL1Pool() {
+            const masterQuestions = [
                 {
                     type: 'tally_check',
                     text: "Zoo Log Verification: Look at the tally counts provided on screen. What is the total sum count of the logged animals?",
@@ -460,8 +482,54 @@
                     options: ["Count value: 1", "Count value: 5", "Count value: 0"],
                     correctIdx: 2,
                     data: [6, 0, 8]
+                },
+                {
+                    type: 'tally_check',
+                    text: "Tally Verification: Add the counts for Elephants and Monkeys together. What is their combined sum?",
+                    options: ["9 Animals Total", "7 Animals Total", "10 Animals Total"],
+                    correctIdx: 0,
+                    data: [4, 5, 4]
+                },
+                {
+                    type: 'max_bar',
+                    text: "Population Review: Which animal enclosure tracking line lists the lowest population footprint inside this subset group?",
+                    options: ["Lions", "Elephants", "Monkeys"],
+                    correctIdx: 1,
+                    data: [7, 2, 6]
+                },
+                {
+                    type: 'difference_calc',
+                    text: "Graph Variance: Check the grid gap between Monkeys and Elephants. What is the precise numerical difference value?",
+                    options: ["3 steps", "5 steps", "2 steps"],
+                    correctIdx: 1,
+                    data: [3, 1, 6]
+                },
+                {
+                    type: 'tally_check',
+                    text: "Morning Roster Check: Read the custom layout marks carefully. What is the specific tally metric total for the first row entry?",
+                    options: ["4 items", "5 items", "8 items"],
+                    correctIdx: 1,
+                    data: [5, 3, 2]
+                },
+                {
+                    type: 'max_bar',
+                    text: "Enclosure Grid Audit: A wild feeding group spiked our chart limits! Which option shows the max data block peak found on the graph layout?",
+                    options: ["Peak is 10 units", "Peak is 8 units", "Peak is 5 units"],
+                    correctIdx: 0,
+                    data: [10, 5, 3]
+                },
+                {
+                    type: 'empty_match',
+                    text: "Data Reporting Audit: If an animal species leaves the preserve map completely, how should its bar chart column look?",
+                    options: ["Filled up to top", "Stays fully at 0 height", "Rises up to step 2"],
+                    correctIdx: 1,
+                    data: [4, 0, 5]
                 }
             ];
+
+            // Shuffle algorithm to randomize query selections across app restarts
+            let shuffled = masterQuestions.sort(() => 0.5 - Math.random());
+            challengePool = shuffled.slice(0, 4); // Select a fresh batch of 4 questions
         }
 
         function loadL1Task() {
@@ -477,6 +545,7 @@
                 const btn = document.getElementById(`opt-${i}`);
                 btn.innerText = task.options[i];
                 btn.classList.remove('selected');
+                btn.style.display = 'block';
             }
             selectedL1Opt = -1;
             l1AnimationTimer = 0;
@@ -487,16 +556,14 @@
         }
 
         function selectL1Option(idx) {
-            ensureAudioContext();
             selectedL1Opt = idx;
             for (let i = 0; i < 3; i++) {
                 document.getElementById(`opt-${i}`).classList.toggle('selected', i === idx);
             }
-            triggerToneOutput(440, 0, 'sine', 0.05);
+            playAssetSound('click');
         }
 
         function verifyL1Answer() {
-            ensureAudioContext();
             if (selectedL1Opt === -1) {
                 document.getElementById('lbl-status-toast').innerText = "⚠️ Select an analysis option first!";
                 document.getElementById('lbl-status-toast').style.color = "#fbbf24";
@@ -508,13 +575,13 @@
                 l1AnimationTimer = 35;
                 document.getElementById('lbl-status-toast').innerText = "✓ Data log parameters successfully verified!";
                 document.getElementById('lbl-status-toast').style.color = "#34d399";
-                playFeedbackSound(true);
+                playAssetSound('correct');
             } else {
                 l1AnimationType = 'error';
                 l1AnimationTimer = 35;
                 document.getElementById('lbl-status-toast').innerText = "❌ Incorrect analysis. Re-tally column configurations.";
                 document.getElementById('lbl-status-toast').style.color = "#f87171";
-                playFeedbackSound(false);
+                playAssetSound('wrong');
             }
         }
 
@@ -530,10 +597,10 @@
             document.getElementById('lbl-status-toast').style.color = "#60a5fa";
             for (let i = 0; i < 3; i++) document.getElementById(`opt-${i}`).style.display = 'none';
             const sub = document.getElementById('btn-submit-l1');
-            sub.innerText = "Restart Assessment Loop";
+            sub.innerText = "Restart New Random Loop";
             sub.disabled = false;
             sub.onclick = () => { location.reload(); };
-            playFeedbackSound(true);
+            playAssetSound('success');
         }
 
         function renderL1Graphics() {
@@ -541,7 +608,6 @@
             const w = l1Canvas.width, h = l1Canvas.height;
             l1Ctx.clearRect(0, 0, w, h);
             
-            // Jungle Canopy Background Base Fill
             l1Ctx.fillStyle = '#064e3b';
             l1Ctx.fillRect(0, 0, w, h);
 
@@ -556,7 +622,6 @@
                 
                 for(let i=0; i<3; i++) {
                     let cy = 20 + i*rowH;
-                    // Textured wooden log block styles
                     l1Ctx.fillStyle = '#022c22';
                     l1Ctx.fillRect(15, cy, w-30, rowH - 8);
                     l1Ctx.strokeRect(15, cy, w-30, rowH - 8);
@@ -629,7 +694,6 @@
         function initSandboxGraphClickHandlers() {
             function processCanvasTap(clientX, clientY) {
                 if (activeLevel !== 2) return;
-                ensureAudioContext();
                 const rect = l2Canvas.getBoundingClientRect();
                 const x = clientX - rect.left;
                 const y = clientY - rect.top;
@@ -648,7 +712,7 @@
                         
                         if(calculatedVal >= 0 && calculatedVal <= maxBarValue) {
                             activeBarData[colIdx] = calculatedVal;
-                            triggerToneOutput(320 + (calculatedVal * 40), 0, 'sine', 0.12);
+                            playAssetSound('click');
                         }
                     }
                 }
@@ -666,15 +730,13 @@
         }
 
         function clearSandboxCanvas() {
-            ensureAudioContext();
             activeBarData = [0, 0, 0, 0];
             document.getElementById('lbl-l2-toast').innerText = "Graph values cleared. Start again!";
             document.getElementById('lbl-l2-toast').style.color = "#fbbf24";
-            triggerToneOutput(300, 150, 'triangle', 0.25);
+            playAssetSound('wrong');
         }
 
         function verifyL2GraphSolution() {
-            ensureAudioContext();
             let isCorrect = true;
             for(let i=0; i<targetZooData.length; i++) {
                 if(activeBarData[i] !== targetZooData[i]) {
@@ -687,11 +749,11 @@
             if(isCorrect) {
                 toast.innerText = "🎉 Magnificent! The bar graph matches the Zoo Registry perfectly!";
                 toast.style.color = "#34d399";
-                playTriumphantFanfare();
+                playAssetSound('success');
             } else {
                 toast.innerText = "❌ Incorrect counts. Check the top notice board box and readjust bars.";
                 toast.style.color = "#f87171";
-                playFeedbackSound(false);
+                playAssetSound('wrong');
             }
         }
 
@@ -700,30 +762,25 @@
             const w = l2Canvas.width, h = l2Canvas.height;
             l2Ctx.clearRect(0, 0, w, h);
 
-            // 1. Draw Custom Zoo Landscape Backdrop Environment
-            l2Ctx.fillStyle = '#15803d'; // Rich forest grass meadow floor
+            l2Ctx.fillStyle = '#15803d'; 
             l2Ctx.fillRect(0, 0, w, h);
 
             const padL = 40, padB = 45, padT = 25, padR = 20;
             const gw = w - padL - padR, gh = h - padT - padB;
 
-            // Draw center deep blue park watering hole lake behind columns
             l2Ctx.fillStyle = '#0284c7';
             l2Ctx.beginPath();
             l2Ctx.arc(w / 2, h / 2, Math.min(gw, gh) * 0.45, 0, Math.PI * 2);
             l2Ctx.fill();
             
-            // Draw sandy beach shoreline framing the oasis lake
             l2Ctx.strokeStyle = '#eab308';
             l2Ctx.lineWidth = 3;
             l2Ctx.stroke();
 
-            // Populate backdrop trees inside corner margins
             drawJungleTree(l2Ctx, 25, 30, 24);
             drawJungleTree(l2Ctx, w - 25, 35, 26);
             drawJungleTree(l2Ctx, w - 30, h - 80, 28);
 
-            // 2. Translucent Axis Grid Indicators
             l2Ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
             l2Ctx.lineWidth = 1;
             for (let i = 0; i <= maxBarValue; i++) {
@@ -735,13 +792,12 @@
                 l2Ctx.fillText(i, 12, gy + 4);
             }
 
-            // 3. Draw Enclosure Fences and habitat bars
             const colW = gw / barCategories.length;
             const themes = [
-                "rgba(239, 68, 68, 0.95)",  // Lions (Red)
-                "rgba(59, 130, 246, 0.95)", // Elephants (Blue)
-                "rgba(245, 158, 11, 0.95)", // Monkeys (Gold)
-                "rgba(139, 92, 246, 0.95)"  // Giraffes (Purple)
+                "rgba(239, 68, 68, 0.95)",  
+                "rgba(59, 130, 246, 0.95)", 
+                "rgba(245, 158, 11, 0.95)", 
+                "rgba(139, 92, 246, 0.95)"  
             ];
 
             for (let c = 0; c < barCategories.length; c++) {
@@ -751,81 +807,35 @@
                 let by = padT + gh - barH;
                 let bw = colW * 0.7;
 
-                // Base Plot Ground Shadow
                 l2Ctx.fillStyle = 'rgba(15, 23, 42, 0.6)';
                 l2Ctx.fillRect(bx - 2, padT + gh - 4, bw + 4, 6);
 
-                // Main Neon Habitat Bar Columns
                 l2Ctx.fillStyle = themes[c];
                 l2Ctx.fillRect(bx, by, bw, barH);
 
-                // Wooden board outlines mapping coordinates
                 l2Ctx.strokeStyle = '#fef08a';
                 l2Ctx.lineWidth = 1.5;
                 if(currentVal > 0) {
                     l2Ctx.strokeRect(bx, by, bw, barH);
                     
-                    // Crossbeam decoration lines to resemble fences
                     l2Ctx.beginPath();
                     l2Ctx.moveTo(bx, by + barH * 0.3); l2Ctx.lineTo(bx + bw, by + barH * 0.3);
                     l2Ctx.moveTo(bx, by + barH * 0.7); l2Ctx.lineTo(bx + bw, by + barH * 0.7);
                     l2Ctx.stroke();
                 }
 
-                // Value labels above columns
                 l2Ctx.fillStyle = '#ffffff';
                 l2Ctx.font = 'bold 12px monospace';
                 l2Ctx.fillText(currentVal, bx + bw/2 - 4, by - 6);
 
-                // X-Axis Title Labels
                 l2Ctx.fillStyle = '#ffffff';
                 l2Ctx.font = 'bold 11px sans-serif';
                 l2Ctx.fillText(barCategories[c], bx + bw/2 - 22, padT + gh + 18);
             }
 
-            // Bottom pathway line separating graph labels
             l2Ctx.strokeStyle = '#78350f';
             l2Ctx.lineWidth = 4;
             l2Ctx.beginPath(); l2Ctx.moveTo(padL, padT + gh); l2Ctx.lineTo(w - padR, padT + gh); l2Ctx.stroke();
-        }
-
-        // ================= STANDALONE AUDIO FORMULAS =================
-        function triggerToneOutput(f1, f2, shape = 'sine', duration = 0.25) {
-            if (!audioCtx) return;
-            try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                const currentPlaybackTime = audioCtx.currentTime;
-                
-                osc.type = shape;
-                osc.frequency.setValueAtTime(f1, currentPlaybackTime);
-                if (f2) osc.frequency.setValueAtTime(f2, currentPlaybackTime + (duration * 0.4));
-                
-                gain.gain.setValueAtTime(0.08, currentPlaybackTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, currentPlaybackTime + duration);
-                
-                osc.start(currentPlaybackTime); 
-                osc.stop(currentPlaybackTime + duration);
-            } catch(e) {}
-        }
-
-        function playFeedbackSound(isRight) {
-            if (isRight) {
-                triggerToneOutput(523.25, 659.25, 'sine', 0.3);
-            } else {
-                triggerToneOutput(180, 130, 'sawtooth', 0.4);
-            }
-        }
-
-        function playTriumphantFanfare() {
-            if (!audioCtx) return;
-            const notes = [523.25, 659.25, 783.99, 1046.50];
-            notes.forEach((freq, index) => {
-                setTimeout(() => {
-                    triggerToneOutput(freq, 0, 'sine', 0.3);
-                }, index * 120);
-            });
         }
     </script>
 </body>
