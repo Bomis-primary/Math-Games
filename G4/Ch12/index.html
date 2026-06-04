@@ -14,7 +14,6 @@
             -webkit-user-select: none;
         }
         
-        /* Light Theme Scrollbars */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -56,7 +55,6 @@
             background: #ecf3f0;
         }
 
-        /* Plain White Splash Screen */
         #hard-splash {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -80,7 +78,6 @@
             object-fit: contain;
         }
 
-        /* Level Selector Navigation Header Bar Matrix Grid */
         .level-navigation-bar {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -106,7 +103,6 @@
             color: #ffffff;
         }
 
-        /* Panels layout elements */
         .panel {
             display: none;
             flex-direction: column;
@@ -194,23 +190,27 @@
             transform: scale(0.98);
         }
 
-        /* Choice grid buttons layout custom for Level 2 & 3 */
         .choices-wrapper {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 8px;
         }
         .choice-card-btn {
-            background: #f1f5f9;
+            background: #ffffff;
             border: 2px solid #cbd5e1;
-            padding: 10px;
-            font-size: 0.9rem;
+            padding: 12px;
+            font-size: 0.95rem;
             font-weight: 700;
             color: #334155;
             border-radius: 10px;
             cursor: pointer;
             text-align: center;
             transition: all 0.15s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .choice-card-btn:hover {
+            border-color: #10b981;
+            background: #f8fafc;
         }
         .choice-card-btn:active {
             transform: scale(0.97);
@@ -249,13 +249,13 @@
             <div class="lab-display">
                 <div class="control-panel">
                     <div class="ticker-title" id="lbl-l1-counter">Task 1 of 3</div>
-                    <div class="ticker-problem">Multi-Color Symmetry Map! Tap tiles on the blank side to reflect both the placement AND exact color matching values!</div>
+                    <div class="ticker-problem">Multi-Color Symmetry Map! Tap tiles on the blank right side to mirror both the placement and color values perfectly!</div>
                 </div>
             </div>
             <div class="simulation-frame">
                 <canvas id="l1-canvas"></canvas>
             </div>
-            <div class="status-banner" id="lbl-l1-toast" style="color: #047857;">Cycle colors (Blue/Orange) to build perfect mirror balance.</div>
+            <div class="status-banner" id="lbl-l1-toast" style="color: #047857;">Cycle colors (Blue/Orange) to balance the axis.</div>
             <div class="sandbox-controls">
                 <div class="tool-row">
                     <button class="tool-btn" style="background:#64748b;" onclick="resetL1Grid()">Clear Canvas Tiles</button>
@@ -268,13 +268,13 @@
             <div class="lab-display">
                 <div class="control-panel">
                     <div class="ticker-title" id="lbl-l2-counter">Task 1 of 3</div>
-                    <div class="ticker-problem">Study the primary left configuration. Which letter card below shows its correct, verified vertical mirror transformation?</div>
+                    <div class="ticker-problem">Study the primary left configuration block. Which option (A, B, C, or D) shows its correct vertical reflection?</div>
                 </div>
             </div>
             <div class="simulation-frame">
                 <canvas id="l2-canvas"></canvas>
             </div>
-            <div class="status-banner" id="lbl-l2-toast" style="color: #475569;">Examine spatial weights carefully before picking.</div>
+            <div class="status-banner" id="lbl-l2-toast" style="color: #475569;">Pick the correct matching option letter block below.</div>
             <div class="choices-wrapper">
                 <button class="choice-card-btn" onclick="submitL2Choice('A')">Option A</button>
                 <button class="choice-card-btn" onclick="submitL2Choice('B')">Option B</button>
@@ -287,13 +287,13 @@
             <div class="lab-display">
                 <div class="control-panel">
                     <div class="ticker-title" id="lbl-l3-counter">Task 1 of 3</div>
-                    <div class="ticker-problem">Alphabetic Spatial Reflection! Analyze the letter layout inside the left frame and detect its true vertical mirrored equivalent.</div>
+                    <div class="ticker-problem">Alphabetic Mirroring Quiz! Analyze the character layout inside the left frame and identify its true vertical reflection.</div>
                 </div>
             </div>
             <div class="simulation-frame">
                 <canvas id="l3-canvas"></canvas>
             </div>
-            <div class="status-banner" id="lbl-l3-toast" style="color: #475569;">Evaluate directional facing properties for P vs Q.</div>
+            <div class="status-banner" id="lbl-l3-toast" style="color: #475569;">Evaluate lookups below to find the correct reflection card.</div>
             <div class="choices-wrapper">
                 <button class="choice-card-btn" onclick="submitL3Choice('A')">Option A</button>
                 <button class="choice-card-btn" onclick="submitL3Choice('B')">Option B</button>
@@ -306,7 +306,7 @@
             <div class="lab-display">
                 <div class="control-panel">
                     <div class="ticker-title">Symmetry Sandbox Environment</div>
-                    <div class="ticker-problem">Construct customized spatial architectures! Fill matrix nodes freely or apply quick structural rotation operations.</div>
+                    <div class="ticker-problem">Construct custom patterns! Fill matrix nodes freely or apply structural 90-degree rotation modifiers.</div>
                 </div>
             </div>
             <div class="simulation-frame">
@@ -324,7 +324,6 @@
     </div>
 
     <script>
-        // Audio Configurations
         const audioAssets = {
             correct: new Audio('assets/correct.mp3'),
             wrong: new Audio('assets/wrong.mp3'),
@@ -340,27 +339,16 @@
                 osc.frequency.setValueAtTime(540, audioCtx.currentTime);
                 gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.06);
-            } catch (e) {
-                console.log("Audio fallback active");
-            }
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.06);
+            } catch (e) { console.log("Audio fallback active"); }
         }
 
         function playAssetSound(type) {
-            try {
-                if (audioAssets[type]) {
-                    audioAssets[type].currentTime = 0; 
-                    audioAssets[type].play();
-                }
-            } catch (error) {
-                console.warn("Audio skipped: ", error);
-            }
+            try { if (audioAssets[type]) { audioAssets[type].currentTime = 0; audioAssets[type].play(); } } 
+            catch (error) { console.warn("Audio skipped: ", error); }
         }
 
-        // App Panels Navigation Control
         let currentPanelId = "l1";
         function switchLabPanel(panelKey) {
             playNeutralClickSound();
@@ -375,29 +363,22 @@
             recalculateCanvasResolutions();
         }
 
-        // Operational Global Variables
         let l1Canvas, l1Ctx, l2Canvas, l2Ctx, l3Canvas, l3Ctx, l4Canvas, l4Ctx;
         const l1GridSize = 6;
         const l2MiniGridSize = 4;
         const l4GridSize = 8;
 
-        // Level 1 Multi-color (0: blank, 1: Blue, 2: Orange)
         let l1TargetMatrix = [], l1PlayerMatrix = [];
-        // Level 2 Structures
-        let l2MainPattern = [], l2CorrectMirror = [], l2CorrectOptionKey = '';
-        // Level 3 Letter Engine
-        let l3SourceLetter = 'P', l3CorrectOptionKey = '';
-        // Level 4 Canvas
+        let l2MainPattern = [], l2OptionsData = {}, l2CorrectOptionKey = '';
+        let l3SourceLetter = 'P', l3OptionsData = {}, l3CorrectOptionKey = '';
         let l4Matrix = [];
 
         let l1Round = 0, l2Round = 0, l3Round = 0;
         const totalRoundTasks = 3;
 
-        // 5-Second Splash Loader
         let splashElapsed = 0;
-        const splashInterval = 100;
         const splashTicker = setInterval(() => {
-            splashElapsed += splashInterval;
+            splashElapsed += 100;
             if (splashElapsed >= 5000) {
                 clearInterval(splashTicker);
                 const splash = document.getElementById('hard-splash');
@@ -409,7 +390,7 @@
                     initLabApplicationSuite();
                 }, 500);
             }
-        }, splashInterval);
+        }, 100);
 
         function initLabApplicationSuite() {
             l1Canvas = document.getElementById('l1-canvas'); l1Ctx = l1Canvas.getContext('2d');
@@ -443,7 +424,7 @@
             });
         }
 
-        // ================= LEVEL 1: COLOR PATTERN GENERATOR =================
+        // ================= LEVEL 1: COLOR PATTERN SPECTRUM =================
         function generateL1ColorChallenge() {
             document.getElementById('lbl-l1-counter').innerText = `Task ${l1Round + 1} of ${totalRoundTasks}`;
             l1TargetMatrix = Array(l1GridSize).fill(0).map(() => Array(l1GridSize).fill(0));
@@ -452,8 +433,8 @@
 
             for (let r = 0; r < l1GridSize; r++) {
                 for (let c = 0; c < half; c++) {
-                    if (Math.random() < 0.5) {
-                        l1TargetMatrix[r][c] = Math.random() < 0.5 ? 1 : 2; // 1=Blue, 2=Orange
+                    if (Math.random() < 0.55) {
+                        l1TargetMatrix[r][c] = Math.random() < 0.5 ? 1 : 2; 
                     }
                 }
             }
@@ -503,8 +484,8 @@
             const startX = (w - size) / 2, startY = (h - size) / 2, cell = size / l1GridSize;
             const half = l1GridSize / 2;
 
-            const colorMapping = { 0: "#e2e8f0", 1: "#2563eb", 2: "#ea580c" }; // Empty, Blue, Orange
-            const targetColorMapping = { 0: "#cbd5e1", 1: "#1d4ed8", 2: "#c2410c" }; // Darker tone source side
+            const colorMapping = { 0: "#f1f5f9", 1: "#3b82f6", 2: "#f97316" }; 
+            const targetColorMapping = { 0: "#cbd5e1", 1: "#1d4ed8", 2: "#c2410c" }; 
 
             for (let r = 0; r < l1GridSize; r++) {
                 for (let c = 0; c < l1GridSize; c++) {
@@ -513,47 +494,70 @@
 
                     l1Ctx.fillStyle = isPlayerSide ? colorMapping[l1PlayerMatrix[r][c]] : targetColorMapping[l1TargetMatrix[r][c]];
                     l1Ctx.fillRect(cx + 1.5, cy + 1.5, cell - 3, cell - 3);
-                    l1Ctx.strokeStyle = 'rgba(0,0,0,0.12)'; l1Ctx.strokeRect(cx, cy, cell, cell);
+                    l1Ctx.strokeStyle = 'rgba(0,0,0,0.1)'; l1Ctx.strokeRect(cx, cy, cell, cell);
                 }
             }
 
-            // Center Mirror line
             l1Ctx.strokeStyle = '#d97706'; l1Ctx.lineWidth = 4;
             l1Ctx.beginPath(); l1Ctx.moveTo(startX + (half * cell), startY - 4); l1Ctx.lineTo(startX + (half * cell), startY + size + 4); l1Ctx.stroke();
         }
 
-        // ================= LEVEL 2: IDENTIFY MIRROR SHAPE =================
+        // ================= LEVEL 2: IDENTIFY GRID MIRROR VISUALIZER =================
         function generateL2MirrorChallenge() {
             document.getElementById('lbl-l2-counter').innerText = `Task ${l2Round + 1} of ${totalRoundTasks}`;
             l2MainPattern = Array(l2MiniGridSize).fill(0).map(() => Array(l2MiniGridSize).fill(false));
-            l2CorrectMirror = Array(l2MiniGridSize).fill(0).map(() => Array(l2MiniGridSize).fill(false));
-
+            
+            // Draw a distinct random asymmetric block shape on the left
             for (let r = 0; r < l2MiniGridSize; r++) {
                 for (let c = 0; c < l2MiniGridSize; c++) {
-                    l2MainPattern[r][c] = Math.random() < 0.5;
-                    l2CorrectMirror[r][(l2MiniGridSize - 1) - c] = l2MainPattern[r][c];
+                    l2MainPattern[r][c] = (Math.random() < 0.45);
                 }
             }
-            const optionsArr = ['A', 'B', 'C', 'D'];
-            l2CorrectOptionKey = optionsArr[Math.floor(Math.random() * 4)];
-            document.getElementById('lbl-l2-toast').innerText = "Examine options A, B, C or D via buttons below.";
+
+            // Correct Vertical mirror calculation
+            let correctMirror = Array(l2MiniGridSize).fill(0).map(() => Array(l2MiniGridSize).fill(false));
+            for (let r = 0; r < l2MiniGridSize; r++) {
+                for (let c = 0; c < l2MiniGridSize; c++) {
+                    correctMirror[r][(l2MiniGridSize - 1) - c] = l2MainPattern[r][c];
+                }
+            }
+
+            const keys = ['A', 'B', 'C', 'D'];
+            l2CorrectOptionKey = keys[Math.floor(Math.random() * 4)];
+
+            keys.forEach(key => {
+                if (key === l2CorrectOptionKey) {
+                    l2OptionsData[key] = correctMirror;
+                } else {
+                    // Create distinctly wrong scrambled variations
+                    let wrongVariant = Array(l2MiniGridSize).fill(0).map(() => Array(l2MiniGridSize).fill(false));
+                    for (let r = 0; r < l2MiniGridSize; r++) {
+                        for (let c = 0; c < l2MiniGridSize; c++) {
+                            wrongVariant[r][c] = Math.random() < 0.45;
+                        }
+                    }
+                    l2OptionsData[key] = wrongVariant;
+                }
+            });
+
+            document.getElementById('lbl-l2-toast').innerText = "Pick the choice showing precise left-to-right mirror balance.";
             document.getElementById('lbl-l2-toast').style.color = "#475569";
         }
 
-        function submitL2Choice(ans) {
+        function submitL2Choice(key) {
             const toast = document.getElementById('lbl-l2-toast');
-            if (ans === l2CorrectOptionKey) {
+            if (key === l2CorrectOptionKey) {
                 l2Round++;
                 if (l2Round >= totalRoundTasks) {
                     toast.innerText = "🎉 Spatial evaluation complete! Vision parameters excellent!";
                     toast.style.color = "#059669"; playAssetSound('success');
                 } else {
-                    toast.innerText = "✓ Exact transformation recognized! Loading next geometry matrix...";
+                    toast.innerText = "✓ Exact transformation recognized! Shifting challenge matrices...";
                     toast.style.color = "#059669"; playAssetSound('correct');
                     setTimeout(() => generateL2MirrorChallenge(), 1250);
                 }
             } else {
-                toast.innerText = "❌ Identification error. That orientation fails reflection parameters.";
+                toast.innerText = "❌ Identification error. That pattern orientation fails reflection checks.";
                 toast.style.color = "#dc2626"; playAssetSound('wrong');
             }
         }
@@ -563,33 +567,83 @@
             const w = l2Canvas.width, h = l2Canvas.height;
             l2Ctx.clearRect(0, 0, w, h); l2Ctx.fillStyle = '#f8fafc'; l2Ctx.fillRect(0, 0, w, h);
 
-            const pad = 12, size = Math.min(w / 2 - (pad * 2), h - (pad * 2));
-            const leftX = (w / 2 - size) / 2, leftY = (h - size) / 2, cell = size / l2MiniGridSize;
+            // Left Master Grid Draw Block
+            const leftBoxSize = Math.min(w * 0.4, h - 40);
+            const leftX = 20, leftY = (h - leftBoxSize) / 2;
+            const leftCell = leftBoxSize / l2MiniGridSize;
 
             for (let r = 0; r < l2MiniGridSize; r++) {
                 for (let c = 0; c < l2MiniGridSize; c++) {
                     l2Ctx.fillStyle = l2MainPattern[r][c] ? "#475569" : "#e2e8f0";
-                    l2Ctx.fillRect(leftX + (c * cell) + 1, leftY + (r * cell) + 1, cell - 2, cell - 2);
-                    l2Ctx.strokeStyle = 'rgba(0,0,0,0.12)'; l2Ctx.strokeRect(leftX + (c * cell), leftY + (r * cell), cell, cell);
+                    l2Ctx.fillRect(leftX + (c * leftCell) + 1, leftY + (r * leftCell) + 1, leftCell - 2, leftCell - 2);
+                    l2Ctx.strokeStyle = 'rgba(0,0,0,0.15)'; l2Ctx.strokeRect(leftX + (c * leftCell), leftY + (r * leftCell), leftCell, leftCell);
                 }
             }
 
+            // Golden Divider Axis line
+            const dividerX = w * 0.46;
             l2Ctx.strokeStyle = '#d97706'; l2Ctx.lineWidth = 4;
-            l2Ctx.beginPath(); l2Ctx.moveTo(w / 2, 8); l2Ctx.lineTo(w / 2, h - 8); l2Ctx.stroke();
+            l2Ctx.beginPath(); l2Ctx.moveTo(dividerX, 10); l2Ctx.lineTo(dividerX, h - 10); l2Ctx.stroke();
 
-            l2Ctx.fillStyle = '#64748b'; l2Ctx.font = "bold 14px 'Segoe UI'"; l2Ctx.textAlign = 'center';
-            l2Ctx.fillText(`[ Option ${l2CorrectOptionKey} is Mirror ]`, w * 0.75, h / 2 - 10);
-            l2Ctx.font = "12px 'Segoe UI'"; l2Ctx.fillText("Check all 4 variables via buttons.", w * 0.75, h / 2 + 12);
+            // Right Option Matrix Grid Quad-Layout drawing block (2x2 Grid Layout inside the right view pane)
+            const rightPaneX = dividerX + 10;
+            const rightPaneW = w - rightPaneX - 10;
+            const quadW = rightPaneW / 2 - 8, quadH = (h - 40) / 2 - 8;
+            const keys = ['A', 'B', 'C', 'D'];
+
+            keys.forEach((key, idx) => {
+                let colOffset = idx % 2;
+                let rowOffset = Math.floor(idx / 2);
+                let qX = rightPaneX + colOffset * (quadW + 12);
+                let qY = 15 + rowOffset * (quadH + 16);
+
+                // Option Label
+                l2Ctx.fillStyle = '#059669'; l2Ctx.font = "bold 11px sans-serif";
+                l2Ctx.fillText(key, qX, qY + 10);
+
+                let subCellW = quadW / l2MiniGridSize;
+                let subCellH = (quadH - 14) / l2MiniGridSize;
+                let gridData = l2OptionsData[key] || [];
+
+                for (let r = 0; r < l2MiniGridSize; r++) {
+                    for (let c = 0; c < l2MiniGridSize; c++) {
+                        if (gridData[r] && gridData[r][c]) { l2Ctx.fillStyle = '#334155'; } 
+                        else { l2Ctx.fillStyle = '#f1f5f9'; }
+                        l2Ctx.fillRect(qX + (c * subCellW), qY + 14 + (r * subCellH), subCellW - 1, subCellH - 1);
+                        l2Ctx.strokeStyle = 'rgba(0,0,0,0.08)';
+                        l2Ctx.strokeRect(qX + (c * subCellW), qY + 14 + (r * subCellH), subCellW, subCellH);
+                    }
+                }
+            });
         }
 
-        // ================= LEVEL 3: P & Q ALPHABETIC REFLECTION =================
+        // ================= LEVEL 3: P & Q ALPHABETIC REFLECTION VISUALIZER =================
         function generateL3LetterChallenge() {
             document.getElementById('lbl-l3-counter').innerText = `Task ${l3Round + 1} of ${totalRoundTasks}`;
-            l3SourceLetter = Math.random() < 0.5 ? 'P' : 'Q';
+            
+            const pairs = [
+                { src: 'P', mir: 'Q' },
+                { src: 'Q', mir: 'P' },
+                { src: 'B', mir: 'D' },
+                { src: 'D', mir: 'B' }
+            ];
+            let activePair = pairs[Math.floor(Math.random() * pairs.length)];
+            l3SourceLetter = activePair.src;
+
             const optionsArr = ['A', 'B', 'C', 'D'];
             l3CorrectOptionKey = optionsArr[Math.floor(Math.random() * 4)];
 
-            document.getElementById('lbl-l3-toast').innerText = "Examine letter stems and back loops to track reflection values.";
+            const wrongPool = ['P', 'Q', 'B', 'D', 'S', 'Z', 'R'];
+            optionsArr.forEach(key => {
+                if (key === l3CorrectOptionKey) {
+                    l3OptionsData[key] = activePair.mir;
+                } else {
+                    let filtered = wrongPool.filter(l => l !== activePair.mir);
+                    l3OptionsData[key] = filtered[Math.floor(Math.random() * filtered.length)];
+                }
+            });
+
+            document.getElementById('lbl-l3-toast').innerText = "Track letter facing properties and find its true mirror companion.";
             document.getElementById('lbl-l3-toast').style.color = "#475569";
         }
 
@@ -601,12 +655,12 @@
                     toast.innerText = "🎉 Exceptional character processing! Structural reflection mastery achieved!";
                     toast.style.color = "#059669"; playAssetSound('success');
                 } else {
-                    toast.innerText = "✓ Superb observation! Restructuring next dynamic character module...";
+                    toast.innerText = "✓ Superb observation! Compiling next character glyph profile...";
                     toast.style.color = "#059669"; playAssetSound('correct');
                     setTimeout(() => generateL3LetterChallenge(), 1250);
                 }
             } else {
-                toast.innerText = "❌ Incorrect option. Remember, P mirrors directly into a customized Q profile shape representation.";
+                toast.innerText = "❌ Mismatch. Remember: P mirrors into Q, and B mirrors into D vertically.";
                 toast.style.color = "#dc2626"; playAssetSound('wrong');
             }
         }
@@ -616,25 +670,48 @@
             const w = l3Canvas.width, h = l3Canvas.height;
             l3Ctx.clearRect(0, 0, w, h); l3Ctx.fillStyle = '#f8fafc'; l3Ctx.fillRect(0, 0, w, h);
 
-            // Left Display Box
-            l3Ctx.fillStyle = '#ffffff'; l3Ctx.fillRect(30, 40, w / 2 - 50, h - 80);
-            l3Ctx.strokeStyle = '#cbd5e1'; l3Ctx.lineWidth = 2; l3Ctx.strokeRect(30, 40, w / 2 - 50, h - 80);
+            // Left Display Canvas Box Frame
+            l3Ctx.fillStyle = '#ffffff'; l3Ctx.fillRect(20, 35, w * 0.4, h - 70);
+            l3Ctx.strokeStyle = '#cbd5e1'; l3Ctx.lineWidth = 2; l3Ctx.strokeRect(20, 35, w * 0.4, h - 70);
 
-            l3Ctx.fillStyle = '#1e293b'; l3Ctx.font = "bold 72px 'Segoe UI', monospace";
+            l3Ctx.fillStyle = '#1e293b'; l3Ctx.font = "bold 76px 'Segoe UI', monospace";
             l3Ctx.textAlign = 'center'; l3Ctx.textBaseline = 'middle';
-            l3Ctx.fillText(l3SourceLetter, 30 + (w / 2 - 50) / 2, h / 2);
+            l3Ctx.fillText(l3SourceLetter, 20 + (w * 0.4) / 2, h / 2);
 
-            // Mirror Axis line
+            // Central Split Axis Mirror Line
+            const dividerX = w * 0.47;
             l3Ctx.strokeStyle = '#d97706'; l3Ctx.lineWidth = 4;
-            l3Ctx.beginPath(); l3Ctx.moveTo(w / 2, 20); l3Ctx.lineTo(w / 2, h - 20); l3Ctx.stroke();
+            l3Ctx.beginPath(); l3Ctx.moveTo(dividerX, 15); l3Ctx.lineTo(dividerX, h - 15); l3Ctx.stroke();
 
-            // Right Instruction Block Context
-            l3Ctx.fillStyle = '#64748b'; l3Ctx.font = "bold 15px 'Segoe UI'";
-            l3Ctx.fillText(`Correct answer is linked to Card [ ${l3CorrectOptionKey} ]`, w * 0.75, h / 2 - 8);
-            l3Ctx.font = "12px 'Segoe UI'"; l3Ctx.fillText("Evaluate characters carefully", w * 0.75, h / 2 + 16);
+            // Right Visual Alphabet Card Boxes Draw Block
+            const rightPaneX = dividerX + 15;
+            const rightPaneW = w - rightPaneX - 15;
+            const quadW = rightPaneW / 2 - 6, quadH = (h - 50) / 2 - 6;
+            const keys = ['A', 'B', 'C', 'D'];
+
+            keys.forEach((key, idx) => {
+                let colOffset = idx % 2;
+                let rowOffset = Math.floor(idx / 2);
+                let qX = rightPaneX + colOffset * (quadW + 10);
+                let qY = 20 + rowOffset * (quadH + 12);
+
+                // Option Choice Card background frame boundaries
+                l3Ctx.fillStyle = '#ffffff'; l3Ctx.fillRect(qX, qY, quadW, quadH);
+                l3Ctx.strokeStyle = '#e2e8f0'; l3Ctx.lineWidth = 1.5; l3Ctx.strokeRect(qX, qY, quadW, quadH);
+
+                // Label Badge identification marker tag
+                l3Ctx.fillStyle = '#059669'; l3Ctx.font = "bold 11px sans-serif";
+                l3Ctx.textAlign = 'left'; l3Ctx.textBaseline = 'top';
+                l3Ctx.fillText(key, qX + 4, qY + 4);
+
+                // Letter Glyphs value output
+                l3Ctx.fillStyle = '#334155'; l3Ctx.font = "bold 28px sans-serif";
+                l3Ctx.textAlign = 'center'; l3Ctx.textBaseline = 'middle';
+                l3Ctx.fillText(l3OptionsData[key] || '', qX + quadW / 2, qY + quadH / 2);
+            });
         }
 
-        // ================= LEVEL 4: GRID SYMMETRY SANDBOX HUB =================
+        // ================= LEVEL 4: GRID SYMMETRY SANDBOX ENVIRONMENT =================
         function initL4SandboxGrid() { l4Matrix = Array(l4GridSize).fill(0).map(() => Array(l4GridSize).fill(false)); }
         function clearL4Sandbox() { initL4SandboxGrid(); playAssetSound('wrong'); }
         function rotateL4CanvasPattern() {
@@ -660,7 +737,7 @@
             }
         }
 
-        // ================= UNIFIED TARGET INPUT INTERACTORS =================
+        // ================= INPUT EVENT LISTENER ASSIGNMENTS =================
         function initInputEventHandlers() {
             function handleScreenInteraction(clientX, clientY) {
                 if (currentPanelId === "l1" && l1Canvas) {
@@ -673,7 +750,7 @@
                     if (x >= startX && x <= startX + size && y >= startY && y <= startY + size) {
                         const col = Math.floor((x - startX) / cell), row = Math.floor((y - startY) / cell);
                         if (col >= half && row >= 0 && row < l1GridSize && col < l1GridSize) {
-                            l1PlayerMatrix[row][col] = (l1PlayerMatrix[row][col] + 1) % 3; // Cycle 0 -> 1 -> 2
+                            l1PlayerMatrix[row][col] = (l1PlayerMatrix[row][col] + 1) % 3; 
                             playNeutralClickSound();
                         }
                     }
