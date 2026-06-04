@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vault Master: Grade 4 Pattern Verification</title>
+    <title>Chapter 12: Patterns & Symmetry Lab</title>
     <style>
         * {
             box-sizing: border-box;
@@ -16,7 +16,7 @@
         body, html {
             width: 100%;
             height: 100%;
-            background-color: #0b0f19;
+            background-color: #090d16;
             color: #f1f5f9;
             overflow: hidden;
             display: flex;
@@ -31,14 +31,14 @@
             max-height: 740px;
             display: flex;
             flex-direction: column;
-            padding: 16px;
-            gap: 12px;
+            padding: 14px;
+            gap: 10px;
             opacity: 0;
             transition: opacity 0.5s ease;
             position: relative;
         }
 
-        /* Minimal White Splash Screen */
+        /* White Splash Screen */
         #hard-splash {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -49,499 +49,658 @@
             align-items: center;
             transition: opacity 0.5s ease;
         }
-        
-        .splash-content-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            max-width: 320px;
-        }
-
-        .splash-logo-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-        }
-
         .splash-img {
-            max-width: 75%;
+            max-width: 70%;
             height: auto;
-            object-fit: contain;
         }
 
-        /* Grade 4 Instructional Modal Layer */
-        #instruction-modal {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(11, 15, 25, 0.98);
-            z-index: 5000;
+        /* Nav Header to Switch Modes */
+        .level-switcher {
             display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            border-radius: 16px;
+            background: #111827;
+            border: 2px solid #374151;
+            border-radius: 12px;
+            padding: 4px;
+            gap: 4px;
         }
-        .ins-box {
-            background: #1e1b4b;
-            border: 3px solid #db2777;
-            padding: 24px;
-            border-radius: 16px;
-            box-shadow: 0 10px 30px rgba(219, 39, 119, 0.25);
-            text-align: left;
-            width: 100%;
+        .mode-tab {
+            flex: 1;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            background: transparent;
+            color: #94a3b8;
+            border: none;
+            transition: all 0.2s ease;
         }
-        .ins-header-badge {
+        .mode-tab.active {
             background: #db2777;
             color: #ffffff;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            display: inline-block;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-        }
-        .ins-title {
-            font-size: 1.4rem;
-            color: #fdf2f8;
-            font-weight: 800;
-            margin-bottom: 10px;
-        }
-        .ins-text {
-            font-size: 0.9rem;
-            color: #cbd5e1;
-            line-height: 1.5;
-            margin-bottom: 20px;
         }
 
+        /* Main Workspace Panels */
+        .panel {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .panel.active {
+            display: flex;
+        }
+
+        /* Info Display Card */
         .lab-display {
             background: #111827;
             border: 2px solid #374151;
-            border-radius: 16px;
+            border-radius: 14px;
             padding: 12px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
         }
-
         .control-panel {
             background: #1e1e38;
             border: 2px solid #4f46e5;
-            border-radius: 10px;
-            padding: 10px;
+            border-radius: 8px;
+            padding: 8px 12px;
         }
         .ticker-title {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: #818cf8;
             text-transform: uppercase;
-            letter-spacing: 1px;
             font-weight: 700;
+            letter-spacing: 0.5px;
         }
         .ticker-problem {
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             font-weight: 600;
             color: #ffffff;
-            margin-top: 4px;
-            line-height: 1.4;
+            margin-top: 2px;
+            line-height: 1.3;
         }
 
+        /* Canvas Frame */
         .simulation-frame {
-            flex-grow: 1;
+            height: 240px;
             background: #1f2937;
             border: 2px solid #374151;
-            border-radius: 16px;
+            border-radius: 14px;
             position: relative;
             overflow: hidden;
-            min-height: 260px;
         }
         canvas {
             display: block;
             width: 100%;
             height: 100%;
+            cursor: crosshair;
         }
 
+        /* Level 1 Console Options */
         .console-grid {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            width: 100%;
+            gap: 6px;
         }
         .option-row-btn {
             width: 100%;
             background: #111827;
             border: 2px solid #374151;
             color: #e5e7eb;
-            border-radius: 12px;
-            padding: 12px 14px;
-            font-size: 0.9rem;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
             text-align: left;
-            transition: all 0.2s ease;
-        }
-        .option-row-btn:active {
-            background: #374151;
         }
         .option-row-btn.selected {
             background: #db2777;
             border-color: #f472b6;
             color: #ffffff;
-            box-shadow: 0 0 12px rgba(219, 39, 119, 0.4);
         }
 
+        /* Sandbox (L2) Action Shelf */
+        .sandbox-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #111827;
+            padding: 12px;
+            border-radius: 14px;
+            border: 2px solid #374151;
+        }
+        .tool-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .tool-btn {
+            flex: 1;
+            background: #374151;
+            border: 1px solid #4b5563;
+            color: #f1f5f9;
+            padding: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: center;
+        }
+        .tool-btn.active {
+            background: #4f46e5;
+            border-color: #818cf8;
+        }
+        
+        /* Level 2 Number Tower UI Widget */
+        .tower-widget {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            background: #151b2d;
+            padding: 8px;
+            border-radius: 10px;
+        }
+        .tower-row {
+            display: flex;
+            gap: 4px;
+        }
+        .tower-cell {
+            width: 48px;
+            height: 28px;
+            background: #f59e0b;
+            color: #0f172a;
+            font-family: monospace;
+            font-weight: 700;
+            font-size: 0.85rem;
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .tower-input {
+            width: 48px;
+            height: 28px;
+            background: #334155;
+            color: #ffffff;
+            border: 1px solid #64748b;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+        }
+
+        /* Action Footer Submits */
         .action-dispatch-btn {
             width: 100%;
             background: #059669;
             color: #ffffff;
             border: none;
             border-radius: 12px;
-            padding: 14px;
-            font-size: 1rem;
+            padding: 12px;
+            font-size: 0.95rem;
             font-weight: 700;
             cursor: pointer;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
         }
-
         .status-banner {
             text-align: center;
             font-weight: 700;
-            font-size: 0.85rem;
-            min-height: 22px;
+            font-size: 0.8rem;
+            min-height: 18px;
         }
     </style>
 </head>
 <body>
 
+    <!-- Minimal White Splash Screen -->
     <div id="hard-splash">
         <div class="splash-content-wrapper">
-            <div class="splash-logo-container">
-                <img src="assets/logo.png" class="splash-img" alt="Innovine Solutions">
-            </div>
+            <img src="assets/logo.png" class="splash-img" alt="Innovine Solutions">
         </div>
     </div>
 
     <div id="viewport-root">
         
-        <div id="instruction-modal">
-            <div class="ins-box">
-                <span class="ins-header-badge">Grade 4 Mathematics</span>
-                <h2 class="ins-title">Patterns & Symmetry Quiz</h2>
-                <p class="ins-text">
-                    Test your pattern detective skills! Find missing line-symmetry shapes, finish multiplying and adding sequences, and break down secret math codes to level up.
-                </p>
-                <button class="action-dispatch-btn" onclick="dismissInstructions()">Start Quiz</button>
+        <!-- Chapter Navigation Switcher -->
+        <div class="level-switcher">
+            <button class="mode-tab active" id="tab-l1" onclick="switchLevelMode(1)">Level 1: Verification Test</button>
+            <button class="mode-tab" id="tab-l2" onclick="switchLevelMode(2)">Level 2: Creative Sandbox</button>
+        </div>
+
+        <!-- ================= LEVEL 1 PANEL ================= -->
+        <div id="panel-l1" class="panel active">
+            <div class="lab-display">
+                <div class="control-panel">
+                    <div class="ticker-title" id="lbl-task-counter">Challenge 1 of 4</div>
+                    <div class="ticker-problem" id="lbl-question-text">Loading Grade 4 math patterns...</div>
+                </div>
+            </div>
+            <div class="simulation-frame">
+                <canvas id="l1-canvas"></canvas>
+            </div>
+            <div class="status-banner" id="lbl-status-toast" style="color: #94a3b8;">Analyze the pattern and pick your response.</div>
+            <div class="console-grid">
+                <button class="option-row-btn" id="opt-0" onclick="selectL1Option(0)">Option A</button>
+                <button class="option-row-btn" id="opt-1" onclick="selectL1Option(1)">Option B</button>
+                <button class="option-row-btn" id="opt-2" onclick="selectL1Option(2)">Option C</button>
+            </div>
+            <button class="action-dispatch-btn" id="btn-submit-l1" onclick="verifyL1Answer()">Verify Code Answer</button>
+        </div>
+
+        <!-- ================= LEVEL 2 PANEL ================= -->
+        <div id="panel-l2" class="panel">
+            <div class="lab-display">
+                <div class="control-panel">
+                    <div class="ticker-title">Chapter 12 Creator Canvas</div>
+                    <div class="ticker-problem" id="lbl-sandbox-desc">Draw to check mirror line reflections, apply 90° rotations, or stamp interlocking tiles!</div>
+                </div>
+            </div>
+
+            <div class="simulation-frame">
+                <canvas id="l2-canvas"></canvas>
+            </div>
+
+            <!-- Interactive Sandbox Configuration Engine -->
+            <div class="sandbox-controls">
+                <div class="ticker-title">Canvas Modes & Symmetry Tools</div>
+                <div class="tool-row">
+                    <button class="tool-btn active" id="tool-mirror" onclick="setSandboxTool('mirror')">Mirror Paint</button>
+                    <button class="tool-btn" id="tool-rotate" onclick="setSandboxTool('rotate')">90° Rotation</button>
+                    <button class="tool-btn" id="tool-tessellate" onclick="setSandboxTool('tessellate')">Tessellate Tiling</button>
+                </div>
+                <div class="tool-row">
+                    <button class="tool-btn" style="background:#475569;" onclick="clearSandboxCanvas()">Clear Fields</button>
+                    <button class="tool-btn" id="btn-show-class" style="background:#7c3aed;" onclick="triggerClassPresentation()">Present to Class</button>
+                </div>
+            </div>
+
+            <!-- Dynamic Number Tower Math Block -->
+            <div class="tower-widget">
+                <div class="ticker-title" style="margin-bottom:4px;">Interactive Number Tower Builder (Page 229)</div>
+                <div class="tower-row"><div class="tower-cell" id="tw-top" style="background:#f59e0b;">?</div></div>
+                <div class="tower-row">
+                    <div class="tower-cell" id="tw-m1" style="background:#fbbf24;">?</div>
+                    <div class="tower-cell" id="tw-m2" style="background:#fbbf24;">?</div>
+                </div>
+                <div class="tower-row">
+                    <input class="tower-input" type="number" id="t-in1" value="2" oninput="calculateSandboxTower()">
+                    <input class="tower-input" type="number" id="t-in2" value="3" oninput="calculateSandboxTower()">
+                    <input class="tower-input" type="number" id="t-in3" value="4" oninput="calculateSandboxTower()">
+                </div>
             </div>
         </div>
 
-        <div class="lab-display">
-            <div class="control-panel">
-                <div class="ticker-title" id="lbl-task-counter">Challenge 1 of 4</div>
-                <div class="ticker-problem" id="lbl-question-text">Analyzing grid setup...</div>
-            </div>
-        </div>
-
-        <div class="simulation-frame">
-            <canvas id="diagnostic-canvas"></canvas>
-        </div>
-
-        <div class="status-banner" id="lbl-status-toast" style="color: #94a3b8;">Choose the missing part to solve the puzzle.</div>
-
-        <div class="console-grid">
-            <button class="option-row-btn" id="opt-0" onclick="selectEvaluationOption(0)">Option A</button>
-            <button class="option-row-btn" id="opt-1" onclick="selectEvaluationOption(1)">Option B</button>
-            <button class="option-row-btn" id="opt-2" onclick="selectEvaluationOption(2)">Option C</button>
-        </div>
-
-        <button class="action-dispatch-btn" id="btn-submit" onclick="verifyDiagnosticAnswer()">Submit Answer</button>
     </div>
 
     <script>
-        let canvasElement = null;
-        let canvasContext = null;
+        // System and Context variables
         let audioCtx = null;
+        let activeLevel = 1;
 
-        let currentTaskIndex = 0;
-        let selectedOptionIndex = -1;
-        let activeChallengeData = null;
+        // Level 1 variables
+        let l1Canvas, l1Ctx;
+        let currentL1Task = 0;
+        let selectedL1Opt = -1;
         let challengePool = [];
+        let l1AnimationTimer = 0;
+        let l1AnimationType = 'none';
 
-        let feedbackAnimationTimer = 0;
-        let feedbackAnimationType = 'none';
+        // Level 2 variables
+        let l2Canvas, l2Ctx;
+        let activeSandboxTool = 'mirror'; // mirror, rotate, tessellate
+        let isDrawing = false;
+        let sandboxPoints = [];
+        let rotationStep = 0;
 
-        // 5-Second Splash Ticker Sequence
-        let timeElapsed = 0;
-        const totalDuration = 5000; 
-        const tickInterval = 100;
-        
-        const progressTicker = setInterval(() => {
-            timeElapsed += tickInterval;
-            if (timeElapsed >= totalDuration) {
-                clearInterval(progressTicker);
+        // 5-Second Splash Controller
+        let splashElapsed = 0;
+        const splashInterval = 100;
+        const splashTicker = setInterval(() => {
+            splashElapsed += splashInterval;
+            if (splashElapsed >= 5000) {
+                clearInterval(splashTicker);
                 const splash = document.getElementById('hard-splash');
                 const mainApp = document.getElementById('viewport-root');
                 if (splash) splash.style.opacity = '0';
                 setTimeout(() => {
                     if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
                     if (mainApp) mainApp.style.opacity = '1';
-                    initDiagnosticSystem();
+                    setupMainAppEngines();
                 }, 500);
             }
-        }, tickInterval);
+        }, splashInterval);
 
-        function initDiagnosticSystem() {
-            canvasElement = document.getElementById('diagnostic-canvas');
-            canvasContext = canvasElement.getContext('2d');
-            
-            recalculateCanvasDimensions();
-            populateChallengePool();
-            loadCurrentTask();
-            runRenderLoop();
+        function setupMainAppEngines() {
+            // Init L1
+            l1Canvas = document.getElementById('l1-canvas');
+            l1Ctx = l1Canvas.getContext('2d');
+            // Init L2
+            l2Canvas = document.getElementById('l2-canvas');
+            l2Ctx = l2Canvas.getContext('2d');
+
+            resizeAppCanvases();
+            buildL1QuestionPool();
+            loadL1Task();
+            setupSandboxInputListeners();
+            calculateSandboxTower();
+
+            // Unified Render Animation loop
+            function systemTick() {
+                renderL1Graphics();
+                renderL2Graphics();
+                if (l1AnimationTimer > 0) {
+                    l1AnimationTimer--;
+                    if (l1AnimationTimer === 0) advanceL1Round();
+                }
+                requestAnimationFrame(systemTick);
+            }
+            requestAnimationFrame(systemTick);
         }
 
-        function dismissInstructions() {
-            const modal = document.getElementById('instruction-modal');
-            if (modal && modal.parentNode) modal.parentNode.removeChild(modal);
+        function resizeAppCanvases() {
+            [l1Canvas, l2Canvas].forEach(c => {
+                const rect = c.parentNode.getBoundingClientRect();
+                c.width = rect.width;
+                c.height = rect.height;
+            });
+        }
+
+        function switchLevelMode(lvl) {
+            activeLevel = lvl;
+            document.getElementById('tab-l1').classList.toggle('active', lvl === 1);
+            document.getElementById('tab-l2').classList.toggle('active', lvl === 2);
+            document.getElementById('panel-l1').classList.toggle('active', lvl === 1);
+            document.getElementById('panel-l2').classList.toggle('active', lvl === 2);
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
 
-        function recalculateCanvasDimensions() {
-            const rect = canvasElement.getBoundingClientRect();
-            canvasElement.width = rect.width;
-            canvasElement.height = rect.height;
-        }
-
-        function populateChallengePool() {
-            // Grade 4 appropriate structural questions
+        // ================= LEVEL 1 CODE LOGIC =================
+        function buildL1QuestionPool() {
             challengePool = [
                 {
-                    type: 'reflective_grid',
-                    text: "Find the cell that makes a mirror reflection across the pink line. Which block is missing?",
-                    options: ["Row 2, Column 6", "Row 2, Column 5", "Row 3, Column 6"],
-                    correctIdx: 0,
-                    renderData: { points: [{r: 1, c: 1}], missingReflection: {r: 1, c: 6} }
+                    type: 'mirror_art',
+                    text: "Mirror Art (Page 221): Look at the left side of the reflection fold. Which letter reflects perfectly into 'q'?",
+                    options: ["The Letter 'p'", "The Letter 'b'", "The Letter 'd'"],
+                    correctIdx: 0
                 },
                 {
-                    type: 'number_pattern',
-                    text: "Follow the multiplication skip pattern on the tiles: 4, 8, 12, 16, __. What number fits in the blank space?",
-                    options: ["18 (Add 2)", "20 (Next multiple of 4)", "24 (Multiply by 2)"],
-                    correctIdx: 1,
-                    renderData: { sequence: [4, 8, 12, 16, '?'] }
+                    type: 'skip_count',
+                    text: "Addition Skip Counting (Page 222): Fill the missing box for this (+4) pattern track: 1, 5, 9, 13, 17, __.",
+                    options: ["19", "21", "25"],
+                    correctIdx: 1
                 },
                 {
-                    type: 'pattern_contrast',
-                    text: "Look at the pattern grid. If Row 1 adds +3 each step, and Row 2 multiplies by ×2 each step, what is the next value for Row 2 [ 2, 4, 8, __ ]?",
-                    options: ["10", "12", "16"],
-                    correctIdx: 2,
-                    renderData: { sequence: [2, 4, 8, '?'] }
+                    type: 'number_tower',
+                    text: "Number Towers (Page 229): Two side-by-side cells add together to make the brick above them. If bricks are 2 and 3, what is above?",
+                    options: ["1", "6", "5"],
+                    correctIdx: 2
                 },
                 {
-                    type: 'code_decryption',
-                    text: "Crack the grid code system! If block code A = 4, B = 8, and C = 12 (Skip-counting by 4), what letters match the code numbers '12 - 4 - 8'?",
-                    options: ["C - A - B", "C - B - A", "B - A - C"],
-                    correctIdx: 0,
-                    renderData: { cipherHint: "Rule: Count by 4s" }
+                    type: 'word_code',
+                    text: "Substituted Secret Codes (Page 230): If 'Blue' is called 'White' and 'White' is called 'Orange', what is the color of milk?",
+                    options: ["Orange", "White", "Blue"],
+                    correctIdx: 0
                 }
             ];
         }
 
-        function loadCurrentTask() {
-            if (currentTaskIndex >= challengePool.length) {
-                displayFinalAssessmentResult();
+        function loadL1Task() {
+            if (currentL1Task >= challengePool.length) {
+                showL1SuiteCompletion();
                 return;
             }
-
-            activeChallengeData = challengePool[currentTaskIndex];
-            document.getElementById('lbl-task-counter').innerText = `Challenge ${currentTaskIndex + 1} of ${challengePool.length}`;
-            document.getElementById('lbl-question-text').innerText = activeChallengeData.text;
+            const task = challengePool[currentL1Task];
+            document.getElementById('lbl-task-counter').innerText = `Challenge ${currentL1Task + 1} of ${challengePool.length}`;
+            document.getElementById('lbl-question-text').innerText = task.text;
 
             for (let i = 0; i < 3; i++) {
                 const btn = document.getElementById(`opt-${i}`);
-                btn.innerText = activeChallengeData.options[i];
+                btn.innerText = task.options[i];
                 btn.classList.remove('selected');
             }
-
-            selectedOptionIndex = -1;
-            feedbackAnimationTimer = 0;
-            feedbackAnimationType = 'none';
-            document.getElementById('lbl-status-toast').innerText = "Look closely at the screen layout to solve it!";
+            selectedL1Opt = -1;
+            l1AnimationTimer = 0;
+            l1AnimationType = 'none';
+            document.getElementById('lbl-status-toast').innerText = "Analyze the pattern context and pick your response.";
             document.getElementById('lbl-status-toast').style.color = "#94a3b8";
-            document.getElementById('btn-submit').disabled = false;
+            document.getElementById('btn-submit-l1').disabled = false;
         }
 
-        function selectEvaluationOption(idx) {
-            selectedOptionIndex = idx;
+        function selectL1Option(idx) {
+            selectedL1Opt = idx;
             for (let i = 0; i < 3; i++) {
-                const btn = document.getElementById(`opt-${i}`);
-                if (i === idx) btn.classList.add('selected');
-                else btn.classList.remove('selected');
+                document.getElementById(`opt-${i}`).classList.toggle('selected', i === idx);
             }
         }
 
-        function verifyDiagnosticAnswer() {
-            if (selectedOptionIndex === -1) {
-                document.getElementById('lbl-status-toast').innerText = "⚠️ Please tap one option to answer!";
-                document.getElementById('lbl-status-toast').style.color = "#f59e0b";
+        function verifyL1Answer() {
+            if (selectedL1Opt === -1) {
+                document.getElementById('lbl-status-toast').innerText = "⚠️ Select an answer choice first!";
+                document.getElementById('lbl-status-toast').style.color = "#fbbf24";
                 return;
             }
-
-            document.getElementById('btn-submit').disabled = true;
-
-            if (selectedOptionIndex === activeChallengeData.correctIdx) {
-                feedbackAnimationType = 'correct';
-                feedbackAnimationTimer = 35;
-                document.getElementById('lbl-status-toast').innerText = "Great job! That is completely correct!";
+            document.getElementById('btn-submit-l1').disabled = true;
+            if (selectedL1Opt === challengePool[currentL1Task].correctIdx) {
+                l1AnimationType = 'correct';
+                l1AnimationTimer = 35;
+                document.getElementById('lbl-status-toast').innerText = "✓ Perfect Check! Learning outcome validated.";
                 document.getElementById('lbl-status-toast').style.color = "#34d399";
-                playFeedbackTone(523.25, 659.25); // C5 to E5 positive major interval chord
+                playBeep(580, 750);
             } else {
-                feedbackAnimationType = 'error';
-                feedbackAnimationTimer = 35;
-                document.getElementById('lbl-status-toast').innerText = "Not quite. Check the pattern rules and try again.";
+                l1AnimationType = 'error';
+                l1AnimationTimer = 35;
+                document.getElementById('lbl-status-toast').innerText = "❌ Incorrect pattern rule. Retrying block...";
                 document.getElementById('lbl-status-toast').style.color = "#f87171";
-                playFeedbackTone(293.66, 220.00); // Negative low interval drop
+                playBeep(260, 200);
             }
         }
 
-        function advanceAssessmentRound() {
-            if (feedbackAnimationType === 'correct') {
-                currentTaskIndex++;
-            }
-            loadCurrentTask();
+        function advanceL1Round() {
+            if (l1AnimationType === 'correct') currentL1Task++;
+            loadL1Task();
         }
 
-        function displayFinalAssessmentResult() {
-            document.getElementById('lbl-task-counter').innerText = "Level Completed!";
-            document.getElementById('lbl-question-text').innerText = "Awesome! You passed the Grade 4 Symmetry and Patterns Check!";
-            document.getElementById('lbl-status-toast').innerText = "You are ready for Level 2 Custom Sandbox Mode!";
+        function showL1SuiteCompletion() {
+            document.getElementById('lbl-task-counter').innerText = "Suite Cleared";
+            document.getElementById('lbl-question-text').innerText = "All Chapter 12 verification tasks successfully answered! Proceed to sandbox production.";
+            document.getElementById('lbl-status-toast').innerText = "Level 1 Verified! Click Level 2 tab above to create original designs.";
             document.getElementById('lbl-status-toast').style.color = "#f472b6";
-            
-            for (let i = 0; i < 3; i++) {
-                document.getElementById(`opt-${i}`).style.display = 'none';
-            }
-            const submitBtn = document.getElementById('btn-submit');
-            submitBtn.innerText = "Play Quiz Again";
-            submitBtn.disabled = false;
-            submitBtn.onclick = () => { location.reload(); };
+            for (let i = 0; i < 3; i++) document.getElementById(`opt-${i}`).style.display = 'none';
+            const sub = document.getElementById('btn-submit-l1');
+            sub.innerText = "Restart Assessment";
+            sub.disabled = false;
+            sub.onclick = () => { location.reload(); };
         }
 
-        function runRenderLoop() {
-            renderAssessmentGraphics();
-            if (feedbackAnimationTimer > 0) {
-                feedbackAnimationTimer--;
-                if (feedbackAnimationTimer === 0) {
-                    advanceAssessmentRound();
-                }
-            }
-            requestAnimationFrame(runRenderLoop);
-        }
+        function renderL1Graphics() {
+            if (!l1Ctx) return;
+            const w = l1Canvas.width, h = l1Canvas.height;
+            l1Ctx.clearRect(0, 0, w, h);
+            const t = challengePool[currentL1Task];
+            if (!t) return;
 
-        function renderAssessmentGraphics() {
-            if (!canvasContext || !activeChallengeData) return;
-            canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
-
-            const w = canvasElement.width;
-            const h = canvasElement.height;
-
-            if (activeChallengeData.type === 'reflective_grid') {
-                const rows = 8, cols = 8;
-                const cellW = w / cols;
-                const cellH = h / rows;
-
-                // Simple 8x8 Grid Layout
-                for (let r = 0; r < rows; r++) {
-                    for (let c = 0; c < cols; c++) {
-                        canvasContext.strokeStyle = '#374151';
-                        canvasContext.lineWidth = 1;
-                        canvasContext.strokeRect(c * cellW, r * cellH, cellW, cellH);
-                    }
-                }
-
-                // Left hand starting block
-                canvasContext.fillStyle = '#60a5fa';
-                activeChallengeData.renderData.points.forEach(pt => {
-                    canvasContext.fillRect(pt.c * cellW + 4, pt.r * cellH + 4, cellW - 8, cellH - 8);
+            if (t.type === 'mirror_art') {
+                // Mirror layout visualizer
+                l1Ctx.strokeStyle = '#db2777';
+                l1Ctx.lineWidth = 3;
+                l1Ctx.beginPath(); l1Ctx.moveTo(w/2, 10); l1Ctx.lineTo(w/2, h-10); l1Ctx.stroke();
+                l1Ctx.fillStyle = '#60a5fa'; l1Ctx.font = 'bold 70px monospace';
+                l1Ctx.fillText("p", w/4 - 20, h/2 + 20);
+                l1Ctx.fillStyle = '#f472b6';
+                l1Ctx.fillText("q", (w*3/4) - 20, h/2 + 20);
+            } else if (t.type === 'skip_count') {
+                // Horizontal tracks
+                let items = [1, 5, 9, 13, 17, "?"];
+                let step = w / 7;
+                items.forEach((item, idx) => {
+                    l1Ctx.fillStyle = item === "?" ? "#db2777" : "#374151";
+                    l1Ctx.fillRect(idx*step + 10, h/2 - 25, step - 6, 50);
+                    l1Ctx.fillStyle = "#ffffff";
+                    l1Ctx.font = "bold 16px monospace";
+                    l1Ctx.fillText(item, idx*step + step/3, h/2 + 6);
                 });
-
-                // Question mark box on right side mirror node
-                canvasContext.fillStyle = 'rgba(219, 39, 119, 0.2)';
-                const mRef = activeChallengeData.renderData.missingReflection;
-                canvasContext.fillRect(mRef.c * cellW + 2, mRef.r * cellH + 2, cellW - 4, cellH - 4);
-                
-                canvasContext.fillStyle = '#f472b6';
-                canvasContext.font = 'bold 14px sans-serif';
-                canvasContext.fillText("?", mRef.c * cellW + (cellW/2) - 4, mRef.r * cellH + (cellH/2) + 5);
-
-                // Central Reflective Line
-                canvasContext.strokeStyle = '#db2777';
-                canvasContext.lineWidth = 3;
-                canvasContext.beginPath();
-                canvasContext.moveTo(w / 2, 0);
-                canvasContext.lineTo(w / 2, h);
-                canvasContext.stroke();
-            } 
-            else if (activeChallengeData.type === 'number_pattern' || activeChallengeData.type === 'pattern_contrast') {
-                // Number Track rendering
-                canvasContext.fillStyle = '#111827';
-                canvasContext.fillRect(20, h/2 - 40, w - 40, 80);
-                canvasContext.strokeStyle = '#4f46e5';
-                canvasContext.lineWidth = 2;
-                canvasContext.strokeRect(20, h/2 - 40, w - 40, 80);
-
-                canvasContext.fillStyle = '#ffffff';
-                canvasContext.font = 'bold 22px monospace';
-                canvasContext.textAlign = 'center';
-                let seqStr = activeChallengeData.renderData.sequence.join(" , ");
-                canvasContext.fillText(seqStr, w / 2, h / 2 + 8);
-                canvasContext.textAlign = 'left';
-            }
-            else if (activeChallengeData.type === 'code_decryption') {
-                canvasContext.fillStyle = '#111827';
-                canvasContext.fillRect(20, 20, w - 40, h - 40);
-                canvasContext.strokeStyle = '#374151';
-                canvasContext.strokeRect(20, 20, w - 40, h - 40);
-
-                canvasContext.fillStyle = '#fbbf24';
-                canvasContext.font = 'bold 16px sans-serif';
-                canvasContext.fillText("Decoder Core Rulebook:", 40, 55);
-                
-                canvasContext.fillStyle = '#e2e8f0';
-                canvasContext.font = '14px monospace';
-                canvasContext.fillText("Block A = 4", 40, 95);
-                canvasContext.fillText("Block B = 8", 40, 125);
-                canvasContext.fillText("Block C = 12", 40, 155);
-                
-                canvasContext.fillStyle = '#a7f3d0';
-                canvasContext.font = 'bold 18px monospace';
-                canvasContext.fillText("Find Code: 12 - 4 - 8", 40, h - 45);
+            } else if (t.type === 'number_tower') {
+                // Mini 3 block tower representation
+                let bw = 60, bh = 35;
+                let cx = w/2;
+                l1Ctx.fillStyle = '#eab308';
+                l1Ctx.fillRect(cx - bw/2, h/2 - bh, bw, bh); // Top
+                l1Ctx.fillRect(cx - bw - 2, h/2, bw, bh); // Left Base
+                l1Ctx.fillRect(cx + 2, h/2, bw, bh); // Right Base
+                l1Ctx.fillStyle = '#0f172a'; l1Ctx.font = 'bold 14px sans-serif';
+                l1Ctx.fillText("?", cx - 5, h/2 - bh/3);
+                l1Ctx.fillText("2", cx - bw/2 - 5, h/2 + bh*2/3);
+                l1Ctx.fillText("3", cx + bw/2 - 5, h/2 + bh*2/3);
+            } else {
+                // Question text code splash
+                l1Ctx.fillStyle = "#111827"; l1Ctx.fillRect(20, 20, w-40, h-40);
+                l1Ctx.fillStyle = "#a7f3d0"; l1Ctx.font = "italic 15px sans-serif";
+                l1Ctx.fillText("Milk → White → Orange ?", 40, h/2);
             }
 
-            // Quick feedback color overlay
-            if (feedbackAnimationTimer > 0) {
-                canvasContext.fillStyle = feedbackAnimationType === 'correct' ? 'rgba(52, 211, 153, 0.2)' : 'rgba(248, 113, 113, 0.2)';
-                canvasContext.fillRect(0, 0, w, h);
+            if (l1AnimationTimer > 0) {
+                l1Ctx.fillStyle = l1AnimationType === 'correct' ? 'rgba(52, 211, 153, 0.25)' : 'rgba(248, 113, 113, 0.25)';
+                l1Ctx.fillRect(0,0,w,h);
             }
         }
 
-        function playFeedbackTone(f1, f2) {
+        // ================= LEVEL 2 SANDBOX CODE ENGINE =================
+        function setSandboxTool(tool) {
+            activeSandboxTool = tool;
+            document.getElementById('tool-mirror').classList.toggle('active', tool === 'mirror');
+            document.getElementById('tool-rotate').classList.toggle('active', tool === 'rotate');
+            document.getElementById('tool-tessellate').classList.toggle('active', tool === 'tessellate');
+            
+            if (tool === 'rotate') {
+                rotationStep = (rotationStep + 90) % 360;
+                document.getElementById('lbl-sandbox-desc').innerText = `Rotating current stroke asset clockwise by 90°! (Page 222)`;
+            } else if (tool === 'mirror') {
+                document.getElementById('lbl-sandbox-desc').innerText = `Mirror Symmetry Active. Draw on left to auto-reflect perfectly across the fold plane! (Page 221)`;
+            } else {
+                document.getElementById('lbl-sandbox-desc').innerText = `Tessellation Engine active. Draws rows of tight interlocking blocks with zero gap overlays! (Page 227)`;
+            }
+        }
+
+        function setupSandboxInputListeners() {
+            function getMousePos(e) {
+                const rect = l2Canvas.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                return { x: clientX - rect.left, y: clientY - rect.top };
+            }
+
+            function engageDraw(e) {
+                if (activeLevel !== 2) return;
+                isDrawing = true;
+                const pos = getMousePos(e);
+                saveSandboxPoint(pos.x, pos.y);
+            }
+
+            function moveDraw(e) {
+                if (!isDrawing || activeLevel !== 2) return;
+                const pos = getMousePos(e);
+                saveSandboxPoint(pos.x, pos.y);
+            }
+
+            function releaseDraw() { isDrawing = false; }
+
+            l2Canvas.addEventListener('mousedown', engageDraw);
+            l2Canvas.addEventListener('mousemove', moveDraw);
+            window.addEventListener('mouseup', releaseDraw);
+
+            l2Canvas.addEventListener('touchstart', engageDraw, { passive: true });
+            l2Canvas.addEventListener('touchmove', moveDraw, { passive: true });
+            window.addEventListener('touchend', releaseDraw);
+        }
+
+        function saveSandboxPoint(x, y) {
+            sandboxPoints.push({ x: x, y: y, tool: activeSandboxTool, angle: rotationStep });
+            if (sandboxPoints.length > 800) sandboxPoints.shift();
+        }
+
+        function clearSandboxCanvas() {
+            sandboxPoints = [];
+            document.getElementById('lbl-sandbox-desc').innerText = "Canvas cleared. Design your brand new geometrical symmetry structures!";
+        }
+
+        function calculateSandboxTower() {
+            // Evaluates addition/multiplication tower rules
+            const b1 = parseInt(document.getElementById('t-in1').value) || 0;
+            const b2 = parseInt(document.getElementById('t-in2').value) || 0;
+            const b3 = parseInt(document.getElementById('t-in3').value) || 0;
+
+            const m1 = b1 + b2;
+            const m2 = b2 + b3;
+            const top = m1 + m2;
+
+            document.getElementById('tw-m1').innerText = m1;
+            document.getElementById('tw-m2').innerText = m2;
+            document.getElementById('tw-top').innerText = top;
+        }
+
+        function triggerClassPresentation() {
+            // Presentation mode outcome fulfillment
+            playBeep(440, 880);
+            alert("✨ Class Presentation Simulator Active ✨\n\nYour original symmetry canvas artwork and computed Number Tower system have been simulated and successfully presented to the virtual classroom billboard projection!");
+        }
+
+        function renderL2Graphics() {
+            if (!l2Ctx || activeLevel !== 2) return;
+            const w = l2Canvas.width, h = l2Canvas.height;
+            l2Ctx.clearRect(0,0,w,h);
+
+            // Draw center folding mirror guide line
+            l2Ctx.strokeStyle = 'rgba(219, 39, 119, 0.4)';
+            l2Ctx.lineWidth = 2;
+            l2Ctx.setLineDash([6, 4]);
+            l2Ctx.beginPath(); l2Ctx.moveTo(w/2, 0); l2Ctx.lineTo(w/2, h); l2Ctx.stroke();
+            l2Ctx.setLineDash([]);
+
+            // Draw historical sandbox paths
+            sandboxPoints.forEach(pt => {
+                l2Ctx.fillStyle = pt.tool === 'mirror' ? '#38bdf8' : pt.tool === 'rotate' ? '#fbbf24' : '#a7f3d0';
+                
+                if (pt.tool === 'tessellate') {
+                    // Lock items grid layout tiling block pattern
+                    let tileX = Math.floor(pt.x / 25) * 25;
+                    let tileY = Math.floor(pt.y / 25) * 25;
+                    l2Ctx.fillRect(tileX, tileY, 23, 23);
+                } 
+                else if (pt.tool === 'rotate') {
+                    // Rotate rendering around path nodes
+                    l2Ctx.save();
+                    l2Ctx.translate(pt.x, pt.y);
+                    l2Ctx.rotate((pt.angle * Math.PI) / 180);
+                    l2Ctx.fillRect(-6, -6, 12, 12);
+                    l2Ctx.restore();
+                } 
+                else {
+                    // Standard mirror paint point + its mirror equivalent axis
+                    l2Ctx.fillRect(pt.x - 3, pt.y - 3, 6, 6);
+                    let mx = w - pt.x; 
+                    l2Ctx.fillStyle = '#db2777';
+                    l2Ctx.fillRect(mx - 3, pt.y - 3, 6, 6);
+                }
+            });
+        }
+
+        function playBeep(f1, f2) {
             if (!audioCtx) return;
             try {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                
+                osc.connect(gain); gain.connect(audioCtx.destination);
                 const now = audioCtx.currentTime;
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(f1, now);
-                osc.frequency.setValueAtTime(f2, now + 0.1);
-                
-                gain.gain.setValueAtTime(0.12, now);
+                if (f2) osc.frequency.setValueAtTime(f2, now + 0.1);
+                gain.gain.setValueAtTime(0.1, now);
                 gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                
-                osc.start(now);
-                osc.stop(now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
             } catch(e) {}
         }
     </script>
