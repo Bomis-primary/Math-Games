@@ -1,1 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Measurement & Estimation - Category Matching</title>
+<style>
+  body { margin:0; font-family: Arial, sans-serif; background: #FFF8F0; display:flex; flex-direction:column; align-items:center; }
+  h2 { color:#8A2BE2; text-align:center; margin-top:20px; }
+  #game { display:flex; flex-wrap: wrap; justify-content:center; margin-top:30px; }
+  .card { width:100px; height:100px; border:2px solid #8A2BE2; margin:10px; display:flex; justify-content:center; align-items:center; cursor:pointer; background:white; border-radius:10px; }
+  .card img { max-width:80%; max-height:80%; }
+  .matched { border:3px solid #4CAF50; background:#C8E6C9; cursor:default; }
+  #feedback { margin-top:20px; font-size:18px; color:#8A2BE2; }
+  button { margin-top:20px; padding:10px 20px; font-size:16px; background:#8A2BE2; color:white; border:none; border-radius:10px; cursor:pointer; }
+</style>
+</head>
+<body>
 
+<h2>Measurement & Estimation Matching Game</h2>
+<p>Match each object to its measurement category!</p>
+<div id="game"></div>
+<div id="feedback"></div>
+<button onclick="startGame()">Restart Game</button>
+
+<script>
+let firstCard = null;
+let secondCard = null;
+let lock = false;
+let matchedCount = 0;
+
+// Categories with icon images
+const categories = [
+  {name:'Length', img:'assets/length.png'},
+  {name:'Weight', img:'assets/weight.png'},
+  {name:'Capacity', img:'assets/capacity.png'}
+];
+
+// Object cards
+const objects = [
+  {img:'assets/ruler.png', category:'Length'},
+  {img:'assets/tape.png', category:'Length'},
+  {img:'assets/ribbon.png', category:'Length'},
+  {img:'assets/apple.png', category:'Weight'},
+  {img:'assets/bag_flour.png', category:'Weight'},
+  {img:'assets/bottle.png', category:'Capacity'},
+  {img:'assets/measuring_cup.png', category:'Capacity'},
+  {img:'assets/milk_carton.png', category:'Capacity'}
+];
+
+function startGame() {
+  firstCard=null;
+  secondCard=null;
+  lock=false;
+  matchedCount=0;
+  document.getElementById('feedback').textContent='';
+
+  // Combine objects and category cards for the grid
+  let cards=[];
+  objects.forEach(o=>cards.push({...o, type:'object'}));
+  categories.forEach(c=>cards.push({...c, category:c.name, type:'category'}));
+
+  // Shuffle cards
+  for(let i=cards.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [cards[i],cards[j]]=[cards[j],cards[i]];
+  }
+
+  // Render grid
+  const gameDiv=document.getElementById('game');
+  gameDiv.innerHTML='';
+  cards.forEach((c,index)=>{
+    const cardDiv=document.createElement('div');
+    cardDiv.className='card';
+    cardDiv.dataset.category=c.category;
+    cardDiv.dataset.index=index;
+
+    const img=document.createElement('img');
+    img.src=c.img;
+    cardDiv.appendChild(img);
+
+    cardDiv.addEventListener('click',()=>flipCard(cardDiv));
+    gameDiv.appendChild(cardDiv);
+  });
+}
+
+function flipCard(card){
+  if(lock || card.classList.contains('matched') || card===firstCard) return;
+
+  card.style.border='3px solid #FF9800';
+
+  if(!firstCard){
+    firstCard=card;
+  } else {
+    secondCard=card;
+    checkMatch();
+  }
+}
+
+function checkMatch(){
+  lock=true;
+  if(firstCard.dataset.category===secondCard.dataset.category){
+    firstCard.classList.add('matched');
+    secondCard.classList.add('matched');
+    matchedCount+=2;
+    document.getElementById('feedback').textContent='✅ Correct match!';
+    resetTurn();
+    if(matchedCount===objects.length + categories.length){
+      document.getElementById('feedback').textContent='🎉 All matched! Well done!';
+    }
+  } else {
+    document.getElementById('feedback').textContent='❌ Try again!';
+    setTimeout(()=>{
+      firstCard.style.border='2px solid #8A2BE2';
+      secondCard.style.border='2px solid #8A2BE2';
+      resetTurn();
+    },1000);
+  }
+}
+
+function resetTurn(){
+  firstCard=null;
+  secondCard=null;
+  lock=false;
+}
+
+// Initialize game
+startGame();
+</script>
+
+</body>
+</html>
