@@ -80,6 +80,32 @@
             object-fit: contain;
         }
 
+        /* Level Selection Tab Matrix Grid */
+        .level-navigation-bar {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            background: #ffffff;
+            padding: 4px;
+            border-radius: 12px;
+            border: 2px solid #10b981;
+            gap: 4px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .nav-tab {
+            text-align: center;
+            padding: 8px 0;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #64748b;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+        .nav-tab.active {
+            background: #059669;
+            color: #ffffff;
+        }
+
         /* Panels layout elements */
         .panel {
             display: none;
@@ -190,7 +216,13 @@
 
     <div id="viewport-root">
 
-        <!-- Level 1 Panel -->
+        <div class="level-navigation-bar">
+            <div id="tab-l1" class="nav-tab active" onclick="switchLabPanel('l1')">L1: Mirror Axis</div>
+            <div id="tab-l2" class="nav-tab" onclick="switchLabPanel('l2')">L2: Sandbox</div>
+            <div id="tab-l3" class="nav-tab" onclick="switchLabPanel('l3')">L3: Rotational</div>
+            <div id="tab-l4" class="nav-tab" onclick="switchLabPanel('l4')">L4: Repair Lab</div>
+        </div>
+
         <div id="panel-l1" class="panel active">
             <div class="lab-display">
                 <div class="control-panel">
@@ -206,6 +238,62 @@
                 <div class="tool-row">
                     <button class="tool-btn" style="background:#64748b;" onclick="resetL1Grid()">Clear Canvas Tiles</button>
                     <button class="tool-btn" style="background:#059669; color:#fff; border-color: #047857;" onclick="verifyL1Symmetry()">Verify Mirror Check</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="panel-l2" class="panel">
+            <div class="lab-display">
+                <div class="control-panel">
+                    <div class="ticker-title">Rotational Lab & Sandbox Space</div>
+                    <div class="ticker-problem">Design customizable geometric alignments! Adjust matrix nodes or test rotational transformations below.</div>
+                </div>
+            </div>
+            <div class="simulation-frame">
+                <canvas id="l2-canvas"></canvas>
+            </div>
+            <div class="status-banner" id="lbl-l2-toast" style="color: #475569;">Tap grid blocks to build complex spatial configurations.</div>
+            <div class="sandbox-controls">
+                <div class="tool-row">
+                    <button class="tool-btn" onclick="rotateL2CanvasPattern()">Rotate Canvas (90°)</button>
+                    <button class="tool-btn" style="background:#dc2626; border-color:#b91c1c;" onclick="clearL2Sandbox()">Wipe Canvas</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="panel-l3" class="panel">
+            <div class="lab-display">
+                <div class="control-panel">
+                    <div class="ticker-title" id="lbl-l3-counter">Task 1 of 3</div>
+                    <div class="ticker-problem">Rotational Symmetry! Match the red top-left quarter by mapping its 90° clockwise rotation inside the blue bottom-right canvas quadrant.</div>
+                </div>
+            </div>
+            <div class="simulation-frame">
+                <canvas id="l3-canvas"></canvas>
+            </div>
+            <div class="status-banner" id="lbl-l3-toast" style="color: #047857;">Rotate the pattern around the center point.</div>
+            <div class="sandbox-controls">
+                <div class="tool-row">
+                    <button class="tool-btn" style="background:#64748b;" onclick="resetL3Grid()">Clear Workspace</button>
+                    <button class="tool-btn" style="background:#059669; color:#fff;" onclick="verifyL3Symmetry()">Verify Rotation</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="panel-l4" class="panel">
+            <div class="lab-display">
+                <div class="control-panel">
+                    <div class="ticker-title" id="lbl-l4-counter">Task 1 of 3</div>
+                    <div class="ticker-problem">Symmetry Anomaly Scan! One tile is completely incorrect and breaks vertical alignment. Spot and tap the error cell to repair it!</div>
+                </div>
+            </div>
+            <div class="simulation-frame">
+                <canvas id="l4-canvas"></canvas>
+            </div>
+            <div class="status-banner" id="lbl-l4-toast" style="color: #e11d48;">Scan carefully to detect the mismatched broken node.</div>
+            <div class="sandbox-controls">
+                <div class="tool-row">
+                    <button class="tool-btn" style="background:#059669; color:#fff;" onclick="generateL4Challenge()">Generate New Puzzle</button>
                 </div>
             </div>
         </div>
@@ -249,14 +337,37 @@
             }
         }
 
-        // Level 1 Parameters
-        let l1Canvas, l1Ctx;
+        // App Navigation Control
+        let currentPanelId = "l1";
+        function switchLabPanel(panelKey) {
+            playNeutralClickSound();
+            currentPanelId = panelKey;
+            
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            
+            document.getElementById(`tab-${panelKey}`).classList.add('active');
+            document.getElementById(`panel-${panelKey}`).classList.add('active');
+            
+            recalculateCanvasResolutions();
+        }
+
+        // Shared Parameters
+        let l1Canvas, l1Ctx, l2Canvas, l2Ctx, l3Canvas, l3Ctx, l4Canvas, l4Ctx;
         const l1GridSize = 6; 
-        let l1TargetMatrix = []; 
-        let l1PlayerMatrix = [];
-        let l1Round = 0;
-        const totalL1Rounds = 3;
+        const l2GridSize = 8;
+        const l3GridSize = 6; // Quad map space (3x3 blocks per division)
+        const l4GridSize = 6;
+
+        let l1TargetMatrix = [], l1PlayerMatrix = [];
+        let l2Matrix = [];
+        let l3TargetMatrix = [], l3PlayerMatrix = [];
+        let l4Matrix = [];
+        
+        let l1Round = 0, l3Round = 0, l4Round = 0;
+        const totalRoundsCount = 3;
         const l1AxisConfigs = ["vertical", "horizontal", "vertical"]; 
+        let l4FaultRow = -1, l4FaultCol = -1;
 
         // 5-Second Splash Ticker 
         let splashElapsed = 0;
@@ -279,39 +390,51 @@
         function initLabApplicationSuite() {
             l1Canvas = document.getElementById('l1-canvas');
             l1Ctx = l1Canvas.getContext('2d');
+            l2Canvas = document.getElementById('l2-canvas');
+            l2Ctx = l2Canvas.getContext('2d');
+            l3Canvas = document.getElementById('l3-canvas');
+            l3Ctx = l3Canvas.getContext('2d');
+            l4Canvas = document.getElementById('l4-canvas');
+            l4Ctx = l4Canvas.getContext('2d');
 
             recalculateCanvasResolutions();
             generateL1SymmetryChallenge();
+            initL2SandboxGrid();
+            generateL3SymmetryChallenge();
+            generateL4Challenge();
             initInputEventHandlers();
 
             function coreAppTick() {
-                renderL1SymmetryWorkspace();
+                if (currentPanelId === "l1") renderL1SymmetryWorkspace();
+                else if (currentPanelId === "l2") renderL2SandboxWorkspace();
+                else if (currentPanelId === "l3") renderL3SymmetryWorkspace();
+                else if (currentPanelId === "l4") renderL4Workspace();
                 requestAnimationFrame(coreAppTick);
             }
             requestAnimationFrame(coreAppTick);
         }
 
         function recalculateCanvasResolutions() {
-            if (l1Canvas && l1Canvas.parentNode) {
-                const rect = l1Canvas.parentNode.getBoundingClientRect();
-                l1Canvas.width = rect.width || 400;
-                l1Canvas.height = rect.height || 280;
-            }
+            [l1Canvas, l2Canvas, l3Canvas, l4Canvas].forEach(canvas => {
+                if (canvas && canvas.parentNode) {
+                    const rect = canvas.parentNode.getBoundingClientRect();
+                    canvas.width = rect.width || 400;
+                    canvas.height = rect.height || 280;
+                }
+            });
         }
 
         // ================= LEVEL 1 CODE ENGINES =================
         function generateL1SymmetryChallenge() {
-            document.getElementById('lbl-l1-counter').innerText = `Task ${l1Round + 1} of ${totalL1Rounds}`;
+            document.getElementById('lbl-l1-counter').innerText = `Task ${l1Round + 1} of ${totalRoundsCount}`;
             l1TargetMatrix = Array(l1GridSize).fill(0).map(() => Array(l1GridSize).fill(false));
             l1PlayerMatrix = Array(l1GridSize).fill(0).map(() => Array(l1GridSize).fill(false));
-
             const mode = l1AxisConfigs[l1Round % l1AxisConfigs.length];
             const half = l1GridSize / 2;
 
             for (let r = 0; r < l1GridSize; r++) {
                 for (let c = 0; c < l1GridSize; c++) {
-                    let isSourceHalf = (mode === "vertical") ? (c < half) : (r < half);
-                    if (isSourceHalf) {
+                    if ((mode === "vertical" && c < half) || (mode === "horizontal" && r < half)) {
                         l1TargetMatrix[r][c] = Math.random() < 0.45;
                     }
                 }
@@ -319,13 +442,7 @@
         }
 
         function resetL1Grid() {
-            for (let r = 0; r < l1GridSize; r++) {
-                for (let c = 0; c < l1GridSize; c++) {
-                    l1PlayerMatrix[r][c] = false;
-                }
-            }
-            document.getElementById('lbl-l1-toast').innerText = "Canvas cleared. Mirror the pattern blocks.";
-            document.getElementById('lbl-l1-toast').style.color = "#b45309";
+            l1PlayerMatrix = Array(l1GridSize).fill(0).map(() => Array(l1GridSize).fill(false));
             playAssetSound('wrong');
         }
 
@@ -336,18 +453,10 @@
 
             for (let r = 0; r < l1GridSize; r++) {
                 for (let c = 0; c < l1GridSize; c++) {
-                    if (mode === "vertical") {
-                        if (c >= half) {
-                            let mirrorCol = (l1GridSize - 1) - c;
-                            let shouldBeFilled = l1TargetMatrix[r][mirrorCol];
-                            if (l1PlayerMatrix[r][c] !== shouldBeFilled) completeSuccess = false;
-                        }
-                    } else {
-                        if (r >= half) {
-                            let mirrorRow = (l1GridSize - 1) - r;
-                            let shouldBeFilled = l1TargetMatrix[mirrorRow][c];
-                            if (l1PlayerMatrix[r][c] !== shouldBeFilled) completeSuccess = false;
-                        }
+                    if (mode === "vertical" && c >= half) {
+                        if (l1PlayerMatrix[r][c] !== l1TargetMatrix[r][(l1GridSize - 1) - c]) completeSuccess = false;
+                    } else if (mode === "horizontal" && r >= half) {
+                        if (l1PlayerMatrix[r][c] !== l1TargetMatrix[(l1GridSize - 1) - r][c]) completeSuccess = false;
                     }
                 }
             }
@@ -355,19 +464,16 @@
             const toast = document.getElementById('lbl-l1-toast');
             if (completeSuccess) {
                 l1Round++;
-                if (l1Round >= totalL1Rounds) {
-                    toast.innerText = "🎉 Magnificent! Perfect symmetry lab verified across all tasks!";
-                    toast.style.color = "#059669";
+                if (l1Round >= totalRoundsCount) {
+                    toast.innerText = "🎉 Magnificent! Perfect mirror lab verified!";
                     playAssetSound('success');
                 } else {
-                    toast.innerText = "✓ Match verified! Loading next symmetrical map layout...";
-                    toast.style.color = "#059669";
+                    toast.innerText = "✓ Match verified! Next map layout...";
                     playAssetSound('correct');
                     setTimeout(() => generateL1SymmetryChallenge(), 1200);
                 }
             } else {
-                toast.innerText = "❌ Symmetry deviation detected. Re-check mirrored reflections!";
-                toast.style.color = "#dc2626";
+                toast.innerText = "❌ Symmetry deviation detected. Re-check reflections!";
                 playAssetSound('wrong');
             }
         }
@@ -376,94 +482,272 @@
             if (!l1Ctx) return;
             const w = l1Canvas.width, h = l1Canvas.height;
             l1Ctx.clearRect(0, 0, w, h);
+            l1Ctx.fillStyle = '#f8fafc'; l1Ctx.fillRect(0, 0, w, h);
 
-            // Light Canvas Fill
-            l1Ctx.fillStyle = '#f8fafc';
-            l1Ctx.fillRect(0, 0, w, h);
-
-            const gridPadding = 16;
-            const boardSize = Math.min(w, h) - (gridPadding * 2);
-            const startX = (w - boardSize) / 2;
-            const startY = (h - boardSize) / 2;
-            const cellSize = boardSize / l1GridSize;
-            const mode = l1AxisConfigs[l1Round % l1AxisConfigs.length];
-            const half = l1GridSize / 2;
+            const gridPadding = 16, boardSize = Math.min(w, h) - (gridPadding * 2);
+            const startX = (w - boardSize) / 2, startY = (h - boardSize) / 2, cellSize = boardSize / l1GridSize;
+            const mode = l1AxisConfigs[l1Round % l1AxisConfigs.length], half = l1GridSize / 2;
 
             for (let r = 0; r < l1GridSize; r++) {
                 for (let c = 0; c < l1GridSize; c++) {
-                    let cx = startX + (c * cellSize);
-                    let cy = startY + (r * cellSize);
+                    let cx = startX + (c * cellSize), cy = startY + (r * cellSize);
                     let isPlayerSide = (mode === "vertical") ? (c >= half) : (r >= half);
 
-                    if (isPlayerSide) {
-                        l1Ctx.fillStyle = l1PlayerMatrix[r][c] ? "#2563eb" : "#e2e8f0";
-                    } else {
-                        l1Ctx.fillStyle = l1TargetMatrix[r][c] ? "#dc2626" : "#cbd5e1";
-                    }
+                    l1Ctx.fillStyle = isPlayerSide ? (l1PlayerMatrix[r][c] ? "#2563eb" : "#e2e8f0") : (l1TargetMatrix[r][c] ? "#dc2626" : "#cbd5e1");
                     l1Ctx.fillRect(cx + 1.5, cy + 1.5, cellSize - 3, cellSize - 3);
 
-                    if ((isPlayerSide && l1PlayerMatrix[r][c]) || (!isPlayerSide && l1TargetMatrix[r][c])) {
-                        l1Ctx.strokeStyle = '#b45309';
-                        l1Ctx.lineWidth = 1.5;
-                        l1Ctx.strokeRect(cx + 1.5, cy + 1.5, cellSize - 3, cellSize - 3);
-                    }
-
-                    l1Ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)';
-                    l1Ctx.lineWidth = 1;
+                    l1Ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)'; l1Ctx.lineWidth = 1;
                     l1Ctx.strokeRect(cx, cy, cellSize, cellSize);
-
-                    if (isPlayerSide && !l1PlayerMatrix[r][c]) {
-                        l1Ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-                        l1Ctx.fillRect(cx + cellSize/2 - 1.5, cy + cellSize/2 - 1.5, 3, 3);
-                    }
                 }
             }
 
-            // High Contrast Axis Divider
-            l1Ctx.strokeStyle = '#d97706';
-            l1Ctx.lineWidth = 4;
+            l1Ctx.strokeStyle = '#d97706'; l1Ctx.lineWidth = 4;
             l1Ctx.beginPath();
-            if (mode === "vertical") {
-                let midX = startX + (half * cellSize);
-                l1Ctx.moveTo(midX, startY - 4); l1Ctx.lineTo(midX, startY + boardSize + 4);
-            } else {
-                let midY = startY + (half * cellSize);
-                l1Ctx.moveTo(startX - 4, midY); l1Ctx.lineTo(startX + boardSize + 4, midY);
-            }
+            if (mode === "vertical") { l1Ctx.moveTo(startX + (half * cellSize), startY - 4); l1Ctx.lineTo(startX + (half * cellSize), startY + boardSize + 4); }
+            else { l1Ctx.moveTo(startX - 4, startY + (half * cellSize)); l1Ctx.lineTo(startX + boardSize + 4, startY + (half * cellSize)); }
             l1Ctx.stroke();
         }
 
-        // ================= UNIFIED EVENT TAP DISPATCHERS =================
-        function initInputEventHandlers() {
-            function handleScreenInteraction(clientX, clientY) {
-                if (!l1Canvas) return;
-                const rect = l1Canvas.getBoundingClientRect();
-                const x = clientX - rect.left;
-                const y = clientY - rect.top;
+        // ================= LEVEL 2 CODE ENGINES =================
+        function initL2SandboxGrid() { l2Matrix = Array(l2GridSize).fill(0).map(() => Array(l2GridSize).fill(false)); }
+        function clearL2Sandbox() { initL2SandboxGrid(); playAssetSound('wrong'); }
+        function rotateL2CanvasPattern() {
+            let temp = Array(l2GridSize).fill(0).map(() => Array(l2GridSize).fill(false));
+            for (let r = 0; r < l2GridSize; r++) {
+                for (let c = 0; c < l2GridSize; c++) { temp[c][(l2GridSize - 1) - r] = l2Matrix[r][c]; }
+            }
+            l2Matrix = temp; playAssetSound('correct');
+        }
+        function renderL2SandboxWorkspace() {
+            if (!l2Ctx) return;
+            const w = l2Canvas.width, h = l2Canvas.height;
+            l2Ctx.clearRect(0, 0, w, h); l2Ctx.fillStyle = '#f8fafc'; l2Ctx.fillRect(0, 0, w, h);
+            const gridPadding = 12, boardSize = Math.min(w, h) - (gridPadding * 2), startX = (w - boardSize) / 2, startY = (h - boardSize) / 2, cellSize = boardSize / l2GridSize;
 
-                const gridPadding = 16;
-                const boardSize = Math.min(l1Canvas.width, l1Canvas.height) - (gridPadding * 2);
-                const startX = (l1Canvas.width - boardSize) / 2;
-                const startY = (l1Canvas.height - boardSize) / 2;
-                const cellSize = boardSize / l1GridSize;
-                const mode = l1AxisConfigs[l1Round % l1AxisConfigs.length];
-                const half = l1GridSize / 2;
+            for (let r = 0; r < l2GridSize; r++) {
+                for (let c = 0; c < l2GridSize; c++) {
+                    let cx = startX + (c * cellSize), cy = startY + (r * cellSize);
+                    l2Ctx.fillStyle = l2Matrix[r][c] ? "#10b981" : "#e2e8f0";
+                    l2Ctx.fillRect(cx + 1, cy + 1, cellSize - 2, cellSize - 2);
+                    l2Ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)'; l2Ctx.strokeRect(cx, cy, cellSize, cellSize);
+                }
+            }
+        }
 
-                if (x >= startX && x <= startX + boardSize && y >= startY && y <= startY + boardSize) {
-                    const col = Math.floor((x - startX) / cellSize);
-                    const row = Math.floor((y - startY) / cellSize);
-                    let isPlayerZone = (mode === "vertical") ? (col >= half) : (row >= half);
-                    
-                    if (isPlayerZone && row >= 0 && row < l1GridSize && col >= 0 && col < l1GridSize) {
-                        l1PlayerMatrix[row][col] = !l1PlayerMatrix[row][col];
-                        playNeutralClickSound();
+        // ================= LEVEL 3 CODE ENGINES (Rotational Challenge) =================
+        function generateL3SymmetryChallenge() {
+            document.getElementById('lbl-l3-counter').innerText = `Task ${l3Round + 1} of ${totalRoundsCount}`;
+            l3TargetMatrix = Array(l3GridSize).fill(0).map(() => Array(l3GridSize).fill(false));
+            l3PlayerMatrix = Array(l3GridSize).fill(0).map(() => Array(l3GridSize).fill(false));
+            const half = l3GridSize / 2;
+
+            for (let r = 0; r < half; r++) {
+                for (let c = 0; c < half; c++) {
+                    l3TargetMatrix[r][c] = Math.random() < 0.5;
+                }
+            }
+        }
+
+        function resetL3Grid() {
+            l3PlayerMatrix = Array(l3GridSize).fill(0).map(() => Array(l3GridSize).fill(false));
+            playAssetSound('wrong');
+        }
+
+        function verifyL3Symmetry() {
+            const half = l3GridSize / 2;
+            let completeSuccess = true;
+
+            // Target quadrant is top-left (0 to half). Player quadrant is bottom-right (half to end).
+            // A 90 degree clockwise rotation maps: (r, c) -> (c, (half - 1) - r) relative to quadrant origins
+            for (let r = 0; r < half; r++) {
+                for (let c = 0; c < half; c++) {
+                    let targetVal = l3TargetMatrix[r][c];
+                    let expectedRotatedRow = c + half;
+                    let expectedRotatedCol = ((half - 1) - r) + half;
+
+                    if (l3PlayerMatrix[expectedRotatedRow][expectedRotatedCol] !== targetVal) {
+                        completeSuccess = false;
                     }
                 }
             }
 
-            l1Canvas.addEventListener('mousedown', (e) => handleScreenInteraction(e.clientX, e.clientY));
-            l1Canvas.addEventListener('touchstart', (e) => {
-                if (e.touches && e.touches[0]) handleScreenInteraction(e.touches[0].clientX, e.touches[0].clientY);
+            const toast = document.getElementById('lbl-l3-toast');
+            if (completeSuccess) {
+                l3Round++;
+                if (l3Round >= totalRoundsCount) {
+                    toast.innerText = "🎉 Unbelievable! Rotational alignment complete!";
+                    playAssetSound('success');
+                } else {
+                    toast.innerText = "✓ Rotation matches perfectly! Generating next quadrant matrix...";
+                    playAssetSound('correct');
+                    setTimeout(() => generateL3SymmetryChallenge(), 1200);
+                }
+            } else {
+                toast.innerText = "❌ Mismatch detected. Ensure correct 90° clockwise translation.";
+                playAssetSound('wrong');
+            }
+        }
+
+        function renderL3SymmetryWorkspace() {
+            if (!l3Ctx) return;
+            const w = l3Canvas.width, h = l3Canvas.height;
+            l3Ctx.clearRect(0, 0, w, h); l3Ctx.fillStyle = '#f8fafc'; l3Ctx.fillRect(0, 0, w, h);
+
+            const gridPadding = 16, boardSize = Math.min(w, h) - (gridPadding * 2);
+            const startX = (w - boardSize) / 2, startY = (h - boardSize) / 2, cellSize = boardSize / l3GridSize;
+            const half = l3GridSize / 2;
+
+            for (let r = 0; r < l3GridSize; r++) {
+                for (let c = 0; c < l3GridSize; c++) {
+                    let cx = startX + (c * cellSize), cy = startY + (r * cellSize);
+                    
+                    let isSourceQuad = (r < half && c < half);
+                    let isInteractiveQuad = (r >= half && c >= half);
+
+                    if (isSourceQuad) l3Ctx.fillStyle = l3TargetMatrix[r][c] ? "#dc2626" : "#cbd5e1";
+                    else if (isInteractiveQuad) l3Ctx.fillStyle = l3PlayerMatrix[r][c] ? "#2563eb" : "#e2e8f0";
+                    else l3Ctx.fillStyle = "#f1f5f9"; // Neutral zone background
+
+                    l3Ctx.fillRect(cx + 1.5, cy + 1.5, cellSize - 3, cellSize - 3);
+                    l3Ctx.strokeStyle = 'rgba(0, 0, 0, 0.12)'; l3Ctx.strokeRect(cx, cy, cellSize, cellSize);
+                }
+            }
+
+            // Cross-axis markings
+            l3Ctx.strokeStyle = '#64748b'; l3Ctx.lineWidth = 2;
+            l3Ctx.beginPath();
+            l3Ctx.moveTo(startX + (half * cellSize), startY); l3Ctx.lineTo(startX + (half * cellSize), startY + boardSize);
+            l3Ctx.moveTo(startX, startY + (half * cellSize)); l3Ctx.lineTo(startX + boardSize, startY + (half * cellSize));
+            l3Ctx.stroke();
+        }
+
+        // ================= LEVEL 4 CODE ENGINES (Asymmetry Repair Lab) =================
+        function generateL4Challenge() {
+            document.getElementById('lbl-l4-counter').innerText = `Task ${l4Round + 1} of ${totalRoundsCount}`;
+            l4Matrix = Array(l4GridSize).fill(0).map(() => Array(l4GridSize).fill(false));
+            const half = l4GridSize / 2;
+
+            // Form perfectly mirrored base vertical symmetry first
+            for (let r = 0; r < l4GridSize; r++) {
+                for (let c = 0; c < half; c++) {
+                    let active = Math.random() < 0.45;
+                    l4Matrix[r][c] = active;
+                    l4Matrix[r][(l4GridSize - 1) - c] = active;
+                }
+            }
+
+            // Inject a single fault cell strictly on the right side
+            l4FaultRow = Math.floor(Math.random() * l4GridSize);
+            l4FaultCol = half + Math.floor(Math.random() * half);
+            l4Matrix[l4FaultRow][l4FaultCol] = !l4Matrix[l4FaultRow][l4FaultCol];
+
+            document.getElementById('lbl-l4-toast').innerText = "Anomaly detected. Tap to patch the grid.";
+            document.getElementById('lbl-l4-toast').style.color = "#475569";
+        }
+
+        function renderL4Workspace() {
+            if (!l4Ctx) return;
+            const w = l4Canvas.width, h = l4Canvas.height;
+            l4Ctx.clearRect(0, 0, w, h); l4Ctx.fillStyle = '#f8fafc'; l4Ctx.fillRect(0, 0, w, h);
+
+            const gridPadding = 16, boardSize = Math.min(w, h) - (gridPadding * 2);
+            const startX = (w - boardSize) / 2, startY = (h - boardSize) / 2, cellSize = boardSize / l4GridSize;
+
+            for (let r = 0; r < l4GridSize; r++) {
+                for (let c = 0; c < l4GridSize; c++) {
+                    let cx = startX + (c * cellSize), cy = startY + (r * cellSize);
+                    l4Ctx.fillStyle = l4Matrix[r][c] ? "#475569" : "#f1f5f9";
+                    l4Ctx.fillRect(cx + 1.5, cy + 1.5, cellSize - 3, cellSize - 3);
+                    l4Ctx.strokeStyle = 'rgba(0, 0, 0, 0.15)'; l4Ctx.strokeRect(cx, cy, cellSize, cellSize);
+                }
+            }
+        }
+
+        // ================= UNIFIED TOUCH/CLICK RECEPTORS =================
+        function initInputEventHandlers() {
+            function handleScreenInteraction(clientX, clientY) {
+                let activeCanvas = (currentPanelId === "l1") ? l1Canvas : (currentPanelId === "l2" ? l2Canvas : (currentPanelId === "l3" ? l3Canvas : l4Canvas));
+                if (!activeCanvas) return;
+
+                const rect = activeCanvas.getBoundingClientRect();
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
+
+                // Level 1 logic mapping
+                if (currentPanelId === "l1") {
+                    const gridPadding = 16, boardSize = Math.min(l1Canvas.width, l1Canvas.height) - (gridPadding * 2);
+                    const startX = (l1Canvas.width - boardSize) / 2, startY = (l1Canvas.height - boardSize) / 2, cellSize = boardSize / l1GridSize;
+                    const mode = l1AxisConfigs[l1Round % l1AxisConfigs.length], half = l1GridSize / 2;
+
+                    if (x >= startX && x <= startX + boardSize && y >= startY && y <= startY + boardSize) {
+                        const col = Math.floor((x - startX) / cellSize), row = Math.floor((y - startY) / cellSize);
+                        if (((mode === "vertical" && col >= half) || (mode === "horizontal" && row >= half)) && row >= 0 && row < l1GridSize && col >= 0 && col < l1GridSize) {
+                            l1PlayerMatrix[row][col] = !l1PlayerMatrix[row][col]; playNeutralClickSound();
+                        }
+                    }
+                } 
+                // Level 2 logic mapping
+                else if (currentPanelId === "l2") {
+                    const gridPadding = 12, boardSize = Math.min(l2Canvas.width, l2Canvas.height) - (gridPadding * 2);
+                    const startX = (l2Canvas.width - boardSize) / 2, startY = (l2Canvas.height - boardSize) / 2, cellSize = boardSize / l2GridSize;
+
+                    if (x >= startX && x <= startX + boardSize && y >= startY && y <= startY + boardSize) {
+                        const col = Math.floor((x - startX) / cellSize), row = Math.floor((y - startY) / cellSize);
+                        if (row >= 0 && row < l2GridSize && col >= 0 && col < l2GridSize) {
+                            l2Matrix[row][col] = !l2Matrix[row][col]; playNeutralClickSound();
+                        }
+                    }
+                }
+                // Level 3 logic mapping
+                else if (currentPanelId === "l3") {
+                    const gridPadding = 16, boardSize = Math.min(l3Canvas.width, l3Canvas.height) - (gridPadding * 2);
+                    const startX = (l3Canvas.width - boardSize) / 2, startY = (l3Canvas.height - boardSize) / 2, cellSize = boardSize / l3GridSize;
+                    const half = l3GridSize / 2;
+
+                    if (x >= startX && x <= startX + boardSize && y >= startY && y <= startY + boardSize) {
+                        const col = Math.floor((x - startX) / cellSize), row = Math.floor((y - startY) / cellSize);
+                        if (row >= half && col >= half && row < l3GridSize && col < l3GridSize) {
+                            l3PlayerMatrix[row][col] = !l3PlayerMatrix[row][col]; playNeutralClickSound();
+                        }
+                    }
+                }
+                // Level 4 anomaly checking
+                else if (currentPanelId === "l4") {
+                    const gridPadding = 16, boardSize = Math.min(l4Canvas.width, l4Canvas.height) - (gridPadding * 2);
+                    const startX = (l4Canvas.width - boardSize) / 2, startY = (l4Canvas.height - boardSize) / 2, cellSize = boardSize / l4GridSize;
+
+                    if (x >= startX && x <= startX + boardSize && y >= startY && y <= startY + boardSize) {
+                        const col = Math.floor((x - startX) / cellSize), row = Math.floor((y - startY) / cellSize);
+                        const toast = document.getElementById('lbl-l4-toast');
+
+                        if (row === l4FaultRow && col === l4FaultCol) {
+                            l4Matrix[row][col] = !l4Matrix[row][col]; // Reverse configuration back to true matching shape
+                            l4Round++;
+                            playAssetSound('correct');
+                            if (l4Round >= totalRoundsCount) {
+                                toast.innerText = "🎉 Master Scanner! All pattern mutations safely repaired!";
+                                toast.style.color = "#059669";
+                            } else {
+                                toast.innerText = "✓ Component restored! Synchronizing next framework matrix data...";
+                                toast.style.color = "#059669";
+                                setTimeout(() => generateL4Challenge(), 1250);
+                            }
+                        } else {
+                            toast.innerText = "❌ Incorrect node. The symmetry fracture remains unstable!";
+                            toast.style.color = "#dc2626";
+                            playAssetSound('wrong');
+                        }
+                    }
+                }
+            }
+
+            window.addEventListener('mousedown', (e) => {
+                if([l1Canvas, l2Canvas, l3Canvas, l4Canvas].includes(e.target)) handleScreenInteraction(e.clientX, e.clientY);
+            });
+            window.addEventListener('touchstart', (e) => {
+                if([l1Canvas, l2Canvas, l3Canvas, l4Canvas].includes(e.target) && e.touches && e.touches[0]) {
+                    handleScreenInteraction(e.touches[0].clientX, e.touches[0].clientY);
+                }
             }, { passive: true });
         }
 
