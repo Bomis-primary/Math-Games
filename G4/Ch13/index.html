@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Data Handling & Charts Lab</title>
+    <title>Zoo Data Handling Lab</title>
     <style>
         * {
             box-sizing: border-box;
@@ -85,9 +85,9 @@
             transition: all 0.2s ease;
         }
         .mode-tab.active {
-            background: #2563eb;
+            background: #059669;
             color: #ffffff;
-            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+            box-shadow: 0 2px 8px rgba(5, 150, 105, 0.4);
         }
 
         /* Panel Visibility Rules */
@@ -111,14 +111,14 @@
             box-shadow: 0 4px 15px rgba(0,0,0,0.4);
         }
         .control-panel {
-            background: #1e1e38;
-            border: 2px solid #3b82f6;
+            background: #14532d;
+            border: 2px solid #22c55e;
             border-radius: 10px;
             padding: 10px 14px;
         }
         .ticker-title {
             font-size: 0.7rem;
-            color: #60a5fa;
+            color: #4ade80;
             text-transform: uppercase;
             font-weight: 700;
             letter-spacing: 0.8px;
@@ -131,10 +131,31 @@
             line-height: 1.4;
         }
 
+        /* Data Target Notice Board */
+        .data-notice-board {
+            background: #1e293b;
+            border: 1px dashed #64748b;
+            border-radius: 10px;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        .notice-tag {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .tag-count {
+            font-size: 1.1rem;
+            color: #f59e0b;
+        }
+
         /* Simulation Canvas Frames */
         .simulation-frame {
             flex-grow: 1;
-            min-height: 260px;
+            min-height: 250px;
             background: #1f2937;
             border: 2px solid #374151;
             border-radius: 14px;
@@ -168,10 +189,10 @@
             transition: all 0.2s ease;
         }
         .option-row-btn.selected {
-            background: #2563eb;
-            border-color: #60a5fa;
+            background: #059669;
+            border-color: #34d399;
             color: #ffffff;
-            box-shadow: 0 0 10px rgba(37, 99, 235, 0.3);
+            box-shadow: 0 0 10px rgba(5, 150, 105, 0.3);
         }
 
         /* Control Action Triggers */
@@ -245,7 +266,7 @@
         
         <div class="level-switcher">
             <button class="mode-tab active" id="tab-l1" onclick="switchLevelMode(1)">Level 1: Verification Test</button>
-            <button class="mode-tab" id="tab-l2" onclick="switchLevelMode(2)">Level 2: Creative Sandbox</button>
+            <button class="mode-tab" id="tab-l2" onclick="switchLevelMode(2)">Level 2: Zoo Chart Lab</button>
         </div>
 
         <div id="panel-l1" class="panel active">
@@ -270,18 +291,28 @@
         <div id="panel-l2" class="panel">
             <div class="lab-display">
                 <div class="control-panel">
-                    <div class="ticker-title">Interactive Bar Graph Studio</div>
-                    <div class="ticker-problem">Tap anywhere inside the grid columns to increase or decrease bar heights and map custom data segments manually.</div>
+                    <div class="ticker-title">Zoo Headcount Registry</div>
+                    <div class="ticker-problem">Read the Animal Report counts box below. Tap directly inside the columns to build a matching bar graph!</div>
                 </div>
+            </div>
+
+            <div class="data-notice-board">
+                <div class="notice-tag"><span>🦁 Lions</span><span class="tag-count">5</span></div>
+                <div class="notice-tag"><span>🐘 Elephants</span><span class="tag-count">8</span></div>
+                <div class="notice-tag"><span>🐵 Monkeys</span><span class="tag-count">3</span></div>
+                <div class="notice-tag"><span>🦒 Giraffes</span><span class="tag-count">6</span></div>
             </div>
 
             <div class="simulation-frame">
                 <canvas id="l2-canvas"></canvas>
             </div>
 
+            <div class="status-banner" id="lbl-l2-toast" style="color: #fbbf24;">Match the chart column bars to the raw data report counts!</div>
+
             <div class="sandbox-controls">
                 <div class="tool-row">
-                    <button class="tool-btn" onclick="clearSandboxCanvas()">Clear Graph Values</button>
+                    <button class="tool-btn" style="background:#475569;" onclick="clearSandboxCanvas()">Clear Graph Values</button>
+                    <button class="tool-btn" style="background:#059669; color:#fff;" onclick="verifyL2GraphSolution()">Submit Zoo Graph</button>
                 </div>
             </div>
         </div>
@@ -289,7 +320,7 @@
     </div>
 
     <script>
-        // Core Audio Context Infrastructure
+        // Core Synthesized Audio Engine
         let audioCtx = null;
         let activeLevel = 1;
 
@@ -301,11 +332,12 @@
         let l1AnimationTimer = 0;
         let l1AnimationType = 'none';
 
-        // Level 2 Interactive Parameters
+        // Level 2 Interactive Parameters (Zoo Edition)
         let l2Canvas, l2Ctx;
-        const barCategories = ["Red Gems", "Blue Gems", "Green Gems", "Gold Gems"];
+        const barCategories = ["Lions", "Elephants", "Monkeys", "Giraffes"];
+        const targetZooData = [5, 8, 3, 6]; 
+        let activeBarData = [0, 0, 0, 0];   
         const maxBarValue = 10;
-        let activeBarData = [4, 7, 3, 6]; // Live column height tracking configurations
 
         // Standard 5-Second Splash Screen Clock Ticker
         let splashElapsed = 0;
@@ -336,7 +368,6 @@
             loadL1Task();
             initSandboxGraphClickHandlers();
 
-            // Core App Tick Loop Animation Routine
             function coreAppTick() {
                 renderL1Graphics();
                 renderL2BarGraph();
@@ -363,9 +394,15 @@
             document.getElementById('tab-l2').classList.toggle('active', lvl === 2);
             document.getElementById('panel-l1').classList.toggle('active', lvl === 1);
             document.getElementById('panel-l2').classList.toggle('active', lvl === 2);
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            ensureAudioContext();
             
             setTimeout(recalculateCanvasResolutions, 50);
+        }
+
+        function ensureAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
         }
 
         // ================= LEVEL 1 SYSTEM ENGINES =================
@@ -373,22 +410,22 @@
             challengePool = [
                 {
                     type: 'tally_check',
-                    text: "Tally Verification: Look at the tally counts provided on screen. What is the total sum count of the logged cosmic elements?",
-                    options: ["12 Elements Total", "14 Elements Total", "11 Elements Total"],
+                    text: "Zoo Log Verification: Look at the tally counts provided on screen. What is the total sum count of the logged animals?",
+                    options: ["12 Animals Total", "14 Animals Total", "11 Elements Total"],
                     correctIdx: 1,
-                    data: [5, 6, 3] // Raw numerical data sets representing items
+                    data: [5, 6, 3] 
                 },
                 {
                     type: 'max_bar',
-                    text: "Bar Graph Assessment: Inspect the category heights on the grid. Which unique crystal type registered the highest total frequency count?",
-                    options: ["Alpha Quartz", "Beta Emerald", "Gamma Ruby"],
+                    text: "Zoo Graph Assessment: Inspect the category heights on the grid. Which animal type registered the highest total frequency count?",
+                    options: ["Lions", "Elephants", "Monkeys"],
                     correctIdx: 0,
                     data: [9, 4, 7]
                 },
                 {
                     type: 'difference_calc',
-                    text: "Data Comparative: Compare the frequencies of Alpha and Gamma groups. How many more items are logged in Alpha than Gamma?",
-                    options: ["2 item columns difference", "5 item columns difference", "4 item columns difference"],
+                    text: "Data Comparative: Compare the frequencies of Lions and Monkeys. How many more items are logged in Lions than Monkeys?",
+                    options: ["2 animals difference", "5 animals difference", "4 animals difference"],
                     correctIdx: 0,
                     data: [9, 4, 7]
                 },
@@ -425,13 +462,16 @@
         }
 
         function selectL1Option(idx) {
+            ensureAudioContext();
             selectedL1Opt = idx;
             for (let i = 0; i < 3; i++) {
                 document.getElementById(`opt-${i}`).classList.toggle('selected', i === idx);
             }
+            triggerToneOutput(440, 0, 'sine', 0.05); // Soft click select
         }
 
         function verifyL1Answer() {
+            ensureAudioContext();
             if (selectedL1Opt === -1) {
                 document.getElementById('lbl-status-toast').innerText = "⚠️ Select an analysis option first!";
                 document.getElementById('lbl-status-toast').style.color = "#fbbf24";
@@ -443,13 +483,13 @@
                 l1AnimationTimer = 35;
                 document.getElementById('lbl-status-toast').innerText = "✓ Data log parameters successfully verified!";
                 document.getElementById('lbl-status-toast').style.color = "#34d399";
-                triggerToneOutput(587.33, 698.46);
+                playFeedbackSound(true);
             } else {
                 l1AnimationType = 'error';
                 l1AnimationTimer = 35;
                 document.getElementById('lbl-status-toast').innerText = "❌ Incorrect analysis. Re-tally column configurations.";
                 document.getElementById('lbl-status-toast').style.color = "#f87171";
-                triggerToneOutput(293.66, 246.94);
+                playFeedbackSound(false);
             }
         }
 
@@ -468,6 +508,7 @@
             sub.innerText = "Restart Assessment Loop";
             sub.disabled = false;
             sub.onclick = () => { location.reload(); };
+            playFeedbackSound(true);
         }
 
         function renderL1Graphics() {
@@ -478,11 +519,10 @@
             if (!task) return;
 
             if (task.type === 'tally_check') {
-                // Tally Table Visuals
                 const rowH = (h - 40) / 3;
-                const labels = ["Alpha", "Beta", "Gamma"];
-                l1Ctx.lineWidth = 1;
+                const labels = ["Lions", "Elephants", "Monkeys"];
                 l1Ctx.strokeStyle = '#4b5563';
+                l1Ctx.lineWidth = 1;
                 
                 for(let i=0; i<3; i++) {
                     let cy = 20 + i*rowH;
@@ -494,11 +534,10 @@
                     l1Ctx.font = 'bold 13px sans-serif';
                     l1Ctx.fillText(labels[i], 30, cy + rowH/2 - 10);
                     
-                    // Render custom tally grouping bundles
-                    l1Ctx.strokeStyle = '#38bdf8';
+                    l1Ctx.strokeStyle = '#10b981';
                     l1Ctx.lineWidth = 3;
                     let count = task.data[i];
-                    let startX = 100;
+                    let startX = 110;
                     
                     for(let t=0; t<count; t++) {
                         if (t > 0 && t % 5 === 0) startX += 20;
@@ -517,11 +556,9 @@
                     }
                 }
             } else {
-                // Bar Graph Layout Forms
                 const padL = 40, padB = 40, padT = 20, padR = 20;
                 const gw = w - padL - padR, gh = h - padT - padB;
                 
-                // Draw Grid Intervals Axis Lines
                 l1Ctx.strokeStyle = '#374151';
                 l1Ctx.lineWidth = 1;
                 for(let i=0; i<=10; i+=2) {
@@ -532,9 +569,8 @@
                     l1Ctx.fillText(i, 15, gy + 4);
                 }
 
-                // Render Chart Bar Columns
-                const labels = ["Alpha", "Beta", "Gamma"];
-                const colors = ["#ef4444", "#10b981", "#3b82f6"];
+                const labels = ["Lions", "Elephants", "Monkeys"];
+                const colors = ["#ef4444", "#3b82f6", "#f59e0b"];
                 const colW = gw / 3;
 
                 task.data.forEach((val, idx) => {
@@ -562,6 +598,7 @@
         function initSandboxGraphClickHandlers() {
             function processCanvasTap(clientX, clientY) {
                 if (activeLevel !== 2) return;
+                ensureAudioContext();
                 const rect = l2Canvas.getBoundingClientRect();
                 const x = clientX - rect.left;
                 const y = clientY - rect.top;
@@ -575,13 +612,12 @@
                     const colIdx = Math.floor((x - padL) / colW);
                     
                     if(colIdx >= 0 && colIdx < barCategories.length) {
-                        // Determine proportional height clicked
                         const clickPct = 1 - ((y - padT) / gh);
                         const calculatedVal = Math.round(clickPct * maxBarValue);
                         
                         if(calculatedVal >= 0 && calculatedVal <= maxBarValue) {
                             activeBarData[colIdx] = calculatedVal;
-                            triggerToneOutput(300 + (calculatedVal * 40), 0);
+                            triggerToneOutput(320 + (calculatedVal * 40), 0, 'sine', 0.12); // Placing block note
                         }
                     }
                 }
@@ -597,8 +633,35 @@
         }
 
         function clearSandboxCanvas() {
+            ensureAudioContext();
             activeBarData = [0, 0, 0, 0];
-            triggerToneOutput(200, 0);
+            document.getElementById('lbl-l2-toast').innerText = "Graph values cleared. Start again!";
+            document.getElementById('lbl-l2-toast').style.color = "#fbbf24";
+            
+            // Wipe sweep sound effect
+            triggerToneOutput(300, 150, 'triangle', 0.25);
+        }
+
+        function verifyL2GraphSolution() {
+            ensureAudioContext();
+            let isCorrect = true;
+            for(let i=0; i<targetZooData.length; i++) {
+                if(activeBarData[i] !== targetZooData[i]) {
+                    isCorrect = false;
+                    break;
+                }
+            }
+
+            const toast = document.getElementById('lbl-l2-toast');
+            if(isCorrect) {
+                toast.innerText = "🎉 Magnificent! The bar graph matches the Zoo Registry perfectly!";
+                toast.style.color = "#34d399";
+                playTriumphantFanfare();
+            } else {
+                toast.innerText = "❌ Incorrect counts. Check the top notice board box and readjust bars.";
+                toast.style.color = "#f87171";
+                playFeedbackSound(false);
+            }
         }
 
         function renderL2BarGraph() {
@@ -609,21 +672,19 @@
             const padL = 40, padB = 45, padT = 25, padR = 20;
             const gw = w - padL - padR, gh = h - padT - padB;
 
-            // Draw Frequency Axis Ticks & Y Gridlines
             l2Ctx.strokeStyle = '#2d3748';
             l2Ctx.lineWidth = 1;
             for (let i = 0; i <= maxBarValue; i++) {
                 let gy = padT + gh - (i / maxBarValue) * gh;
-                l1Ctx.beginPath(); l1Ctx.moveTo(padL, gy); l1Ctx.lineTo(w - padR, gy); l1Ctx.stroke();
+                l2Ctx.beginPath(); l2Ctx.moveTo(padL, gy); l2Ctx.lineTo(w - padR, gy); l2Ctx.stroke();
                 
                 l2Ctx.fillStyle = '#64748b';
                 l2Ctx.font = '10px monospace';
                 l2Ctx.fillText(i, 15, gy + 4);
             }
 
-            // Draw Active Column Formations
             const colW = gw / barCategories.length;
-            const themes = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b"];
+            const themes = ["#f87171", "#60a5fa", "#fbbf24", "#a78bfa"];
 
             for (let c = 0; c < barCategories.length; c++) {
                 let currentVal = activeBarData[c];
@@ -632,45 +693,67 @@
                 let by = padT + gh - barH;
                 let bw = colW * 0.7;
 
-                // Column Rectangle Fill
                 l2Ctx.fillStyle = themes[c];
                 l2Ctx.fillRect(bx, by, bw, barH);
 
-                // Highlight Outline Border Line
                 l2Ctx.strokeStyle = '#ffffff';
                 l2Ctx.lineWidth = 1;
                 if(currentVal > 0) l2Ctx.strokeRect(bx, by, bw, barH);
 
-                // Category Text Label Strings
+                l2Ctx.fillStyle = '#ffffff';
+                l2Ctx.font = 'bold 11px monospace';
+                l2Ctx.fillText(currentVal, bx + bw/2 - 4, by - 6);
+
                 l2Ctx.fillStyle = '#94a3b8';
-                l2Ctx.font = 'bold 10px sans-serif';
-                let shortLabel = barCategories[c].split(" ")[0];
-                l2Ctx.fillText(shortLabel, bx + bw/2 - 12, padT + gh + 18);
+                l2Ctx.font = 'bold 11px sans-serif';
+                l2Ctx.fillText(barCategories[c], bx + bw/2 - 20, padT + gh + 18);
             }
 
-            // Central Vertical Baseline Draw
             l2Ctx.strokeStyle = '#475569';
             l2Ctx.lineWidth = 2;
-            l2Ctx.beginPath();
-            l2Ctx.moveTo(padL, padT + gh);
-            l2Ctx.lineTo(w - padR, padT + gh);
-            l2Ctx.stroke();
+            l2Ctx.beginPath(); l2Ctx.moveTo(padL, padT + gh); l2Ctx.lineTo(w - padR, padT + gh); l2Ctx.stroke();
         }
 
-        function triggerToneOutput(f1, f2) {
+        // ================= STANDALONE PRE-GIVEN AUDIO FORMULAS =================
+        function triggerToneOutput(f1, f2, shape = 'sine', duration = 0.25) {
             if (!audioCtx) return;
             try {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.connect(gain); gain.connect(audioCtx.destination);
                 const currentPlaybackTime = audioCtx.currentTime;
-                osc.type = 'sine';
+                
+                osc.type = shape;
                 osc.frequency.setValueAtTime(f1, currentPlaybackTime);
-                if (f2) osc.frequency.setValueAtTime(f2, currentPlaybackTime + 0.1);
+                if (f2) osc.frequency.setValueAtTime(f2, currentPlaybackTime + (duration * 0.4));
+                
                 gain.gain.setValueAtTime(0.08, currentPlaybackTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, currentPlaybackTime + 0.25);
-                osc.start(currentPlaybackTime); osc.stop(currentPlaybackTime + 0.25);
+                gain.gain.exponentialRampToValueAtTime(0.001, currentPlaybackTime + duration);
+                
+                osc.start(currentPlaybackTime); 
+                osc.stop(currentPlaybackTime + duration);
             } catch(e) {}
+        }
+
+        function playFeedbackSound(isRight) {
+            if (isRight) {
+                // High crisp ascending double-chime (Correct)
+                triggerToneOutput(523.25, 659.25, 'sine', 0.3);
+            } else {
+                // Harsh dropping flat buzzer frequency (Wrong)
+                triggerToneOutput(180, 130, 'sawtooth', 0.4);
+            }
+        }
+
+        function playTriumphantFanfare() {
+            if (!audioCtx) return;
+            // Success Arpeggio Sequence (C - E - G - High C)
+            const notes = [523.25, 659.25, 783.99, 1046.50];
+            notes.forEach((freq, index) => {
+                setTimeout(() => {
+                    triggerToneOutput(freq, 0, 'sine', 0.3);
+                }, index * 120);
+            });
         }
     </script>
 </body>
