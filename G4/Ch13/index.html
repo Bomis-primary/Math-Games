@@ -334,14 +334,13 @@
     </div>
 
     <script>
-        // Audio Asset Configurations - Swapping generic clicks away from wrong.mp3
+        // Audio Asset Configurations
         const audioAssets = {
             correct: new Audio('assets/correct.mp3'),
             wrong: new Audio('assets/wrong.mp3'),
             success: new Audio('assets/freesound_community-claps-44774.mp3')
         };
 
-        // Synthesize a neutral, soft mechanical blip for routine taps/clicks so 'wrong.mp3' doesn't fire
         function playNeutralClickSound() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -454,17 +453,6 @@
             setTimeout(() => {
                 recalculateCanvasResolutions();
             }, 40);
-        }
-
-        function drawJungleTree(ctx, x, y, size) {
-            ctx.fillStyle = '#5c2d16'; 
-            ctx.fillRect(x - size * 0.15, y, size * 0.3, size * 0.6);
-            ctx.fillStyle = '#065f46'; 
-            ctx.beginPath();
-            ctx.arc(x, y - size * 0.1, size * 0.45, 0, Math.PI * 2);
-            ctx.arc(x - size * 0.2, y - size * 0.3, size * 0.35, 0, Math.PI * 2);
-            ctx.arc(x + size * 0.2, y - size * 0.3, size * 0.35, 0, Math.PI * 2);
-            ctx.fill();
         }
 
         // ================= LEVEL 1 DYNAMIC RANDOMIZED ENGINE =================
@@ -595,7 +583,7 @@
                 l1AnimationTimer = 35;
                 document.getElementById('lbl-status-toast').innerText = "❌ Incorrect analysis. Re-tally column configurations.";
                 document.getElementById('lbl-status-toast').style.color = "#f87171";
-                playAssetSound('wrong'); // Strictly firing asset when wrong
+                playAssetSound('wrong'); 
             }
         }
 
@@ -747,7 +735,7 @@
             activeBarData = [0, 0, 0, 0];
             document.getElementById('lbl-l2-toast').innerText = "Graph values cleared. Start again!";
             document.getElementById('lbl-l2-toast').style.color = "#fbbf24";
-            playAssetSound('wrong'); // Intentional wrong sound layout feedback
+            playAssetSound('wrong'); 
         }
 
         function verifyL2GraphSolution() {
@@ -767,8 +755,74 @@
             } else {
                 toast.innerText = "❌ Incorrect counts. Check the top notice board box and readjust bars.";
                 toast.style.color = "#f87171";
-                playAssetSound('wrong'); // Fired strictly on mismatch metrics
+                playAssetSound('wrong'); 
             }
+        }
+
+        // Generates procedural layered jungle artwork matching reference source
+        function drawRichJungleBackground(ctx, w, h) {
+            // Sky & Misty Light Background
+            let skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+            skyGrad.addColorStop(0, '#a3e635'); // Soft bright lime sunbeam canopy
+            skyGrad.addColorStop(0.4, '#4ade80'); // Muted jungle light
+            skyGrad.addColorStop(1, '#ca8a04'); // Warm golden ground soil tone
+            ctx.fillStyle = skyGrad;
+            ctx.fillRect(0, 0, w, h);
+
+            // Layer 1: Distant Misty Jungle Trees (Silhouettes)
+            ctx.fillStyle = 'rgba(21, 128, 61, 0.25)';
+            for (let i = 20; i < w; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(i, h);
+                ctx.lineTo(i - 15, h - 140);
+                ctx.lineTo(i + 15, h - 140);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(i, h - 145, 25, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // Layer 2: Midground Deep Forest Foilage
+            ctx.fillStyle = 'rgba(6, 78, 59, 0.4)';
+            ctx.beginPath();
+            ctx.ellipse(40, h - 40, 90, 60, 0, 0, Math.PI * 2);
+            ctx.ellipse(w - 50, h - 50, 110, 70, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Layer 3: Foreground Hanging Tropical Vines and Canopy Leaves
+            ctx.fillStyle = 'rgba(2, 44, 34, 0.85)';
+            ctx.strokeStyle = 'rgba(2, 44, 34, 0.9)';
+            ctx.lineWidth = 3;
+
+            // Hanging Vines Left
+            ctx.beginPath();
+            ctx.quadraticCurveTo(30, 40, 45, 120);
+            ctx.quadraticCurveTo(15, 60, 10, 0);
+            ctx.stroke();
+
+            // Vines Right
+            ctx.beginPath();
+            ctx.quadraticCurveTo(w - 40, 50, w - 60, 140);
+            ctx.stroke();
+
+            // Broad Monstera Overhanging Canopy Leaves (Top Left & Right Corners)
+            ctx.beginPath();
+            ctx.arc(0, 0, 75, 0, Math.PI / 2);
+            ctx.lineTo(0, 0);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.arc(w, 0, 85, Math.PI, Math.PI * 1.5);
+            ctx.lineTo(w, 0);
+            ctx.fill();
+
+            // Ground Shrubs & Sillhouette Grass Bed at bottom corners
+            ctx.beginPath();
+            ctx.moveTo(0, h);
+            ctx.quadraticCurveTo(60, h - 45, 120, h);
+            ctx.moveTo(w, h);
+            ctx.quadraticCurveTo(w - 80, h - 55, w - 150, h);
+            ctx.fill();
         }
 
         function renderL2BarGraph() {
@@ -776,42 +830,34 @@
             const w = l2Canvas.width, h = l2Canvas.height;
             l2Ctx.clearRect(0, 0, w, h);
 
-            l2Ctx.fillStyle = '#15803d'; 
-            l2Ctx.fillRect(0, 0, w, h);
+            // Draw customized organic jungle backdrop instead of the old solid circle card layout
+            drawRichJungleBackground(l2Ctx, w, h);
 
             const padL = 40, padB = 45, padT = 25, padR = 20;
             const gw = w - padL - padR, gh = h - padT - padB;
 
-            l2Ctx.fillStyle = '#0284c7';
-            l2Ctx.beginPath();
-            l2Ctx.arc(w / 2, h / 2, Math.min(gw, gh) * 0.45, 0, Math.PI * 2);
-            l2Ctx.fill();
-            
-            l2Ctx.strokeStyle = '#eab308';
-            l2Ctx.lineWidth = 3;
-            l2Ctx.stroke();
-
-            drawJungleTree(l2Ctx, 25, 30, 24);
-            drawJungleTree(l2Ctx, w - 25, 35, 26);
-            drawJungleTree(l2Ctx, w - 30, h - 80, 28);
-
-            l2Ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-            l2Ctx.lineWidth = 1;
+            // Clear-visibility Graph Grid overlay
+            l2Ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
+            l2Ctx.lineWidth = 1.5;
             for (let i = 0; i <= maxBarValue; i++) {
                 let gy = padT + gh - (i / maxBarValue) * gh;
                 l2Ctx.beginPath(); l2Ctx.moveTo(padL, gy); l2Ctx.lineTo(w - padR, gy); l2Ctx.stroke();
                 
+                // Numbers Backplate for extreme visibility over complex background
+                l2Ctx.fillStyle = 'rgba(2, 44, 34, 0.75)';
+                l2Ctx.fillRect(4, gy - 7, 22, 14);
+
                 l2Ctx.fillStyle = '#ffffff';
                 l2Ctx.font = 'bold 11px monospace';
-                l2Ctx.fillText(i, 12, gy + 4);
+                l2Ctx.fillText(i, 9, gy + 4);
             }
 
             const colW = gw / barCategories.length;
             const themes = [
-                "rgba(239, 68, 68, 0.95)",  
-                "rgba(59, 130, 246, 0.95)", 
-                "rgba(245, 158, 11, 0.95)", 
-                "rgba(139, 92, 246, 0.95)"  
+                "rgba(220, 38, 38, 0.95)",  
+                "rgba(37, 99, 235, 0.95)",  
+                "rgba(217, 119, 6, 0.95)",  
+                "rgba(124, 58, 237, 0.95)"  
             ];
 
             for (let c = 0; c < barCategories.length; c++) {
@@ -821,9 +867,11 @@
                 let by = padT + gh - barH;
                 let bw = colW * 0.7;
 
-                l2Ctx.fillStyle = 'rgba(15, 23, 42, 0.6)';
+                // Base indicator shadow blocks
+                l2Ctx.fillStyle = 'rgba(15, 23, 42, 0.65)';
                 l2Ctx.fillRect(bx - 2, padT + gh - 4, bw + 4, 6);
 
+                // Main Graphical Columns
                 l2Ctx.fillStyle = themes[c];
                 l2Ctx.fillRect(bx, by, bw, barH);
 
@@ -838,17 +886,27 @@
                     l2Ctx.stroke();
                 }
 
+                // Value labels over columns
+                if(currentVal > 0) {
+                    l2Ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+                    l2Ctx.fillRect(bx + bw/2 - 10, by - 18, 20, 14);
+                }
                 l2Ctx.fillStyle = '#ffffff';
                 l2Ctx.font = 'bold 12px monospace';
-                l2Ctx.fillText(currentVal, bx + bw/2 - 4, by - 6);
+                l2Ctx.fillText(currentVal, bx + bw/2 - 4, by - 7);
+
+                // Category Labels Background Ribbons
+                l2Ctx.fillStyle = 'rgba(2, 44, 34, 0.85)';
+                l2Ctx.fillRect(bx - 4, padT + gh + 6, bw + 8, 16);
 
                 l2Ctx.fillStyle = '#ffffff';
                 l2Ctx.font = 'bold 11px sans-serif';
-                l2Ctx.fillText(barCategories[c], bx + bw/2 - 22, padT + gh + 18);
+                l2Ctx.fillText(barCategories[c], bx + bw/2 - 21, padT + gh + 18);
             }
 
-            l2Ctx.strokeStyle = '#78350f';
-            l2Ctx.lineWidth = 4;
+            // Solid wood deck base bar
+            l2Ctx.strokeStyle = '#451a03';
+            l2Ctx.lineWidth = 5;
             l2Ctx.beginPath(); l2Ctx.moveTo(padL, padT + gh); l2Ctx.lineTo(w - padR, padT + gh); l2Ctx.stroke();
         }
     </script>
