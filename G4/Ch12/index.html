@@ -131,10 +131,10 @@
             line-height: 1.4;
         }
 
-        /* Interactive Simulation Area */
+        /* Simulation Canvas Containers */
         .simulation-frame {
             flex-grow: 1;
-            min-height: 250px;
+            min-height: 260px;
             background: #1f2937;
             border: 2px solid #374151;
             border-radius: 14px;
@@ -146,7 +146,6 @@
             display: block;
             width: 100%;
             height: 100%;
-            cursor: crosshair;
         }
 
         /* Choice Selectors for Quiz (L1) */
@@ -175,7 +174,7 @@
             box-shadow: 0 0 10px rgba(219, 39, 119, 0.3);
         }
 
-        /* Sandbox Config Tools (L2) */
+        /* Control Action Shelves */
         .sandbox-controls {
             display: flex;
             flex-direction: column;
@@ -204,7 +203,7 @@
             transition: all 0.15s ease;
         }
 
-        /* Interactive Footer Trigger buttons */
+        /* Footer Submit Triggers */
         .action-dispatch-btn {
             width: 100%;
             background: #059669;
@@ -234,7 +233,6 @@
 </head>
 <body>
 
-    <!-- Minimal White Splash Screen -->
     <div id="hard-splash">
         <div class="splash-content-wrapper">
             <div class="splash-logo-container">
@@ -245,13 +243,11 @@
 
     <div id="viewport-root">
         
-        <!-- Chapter Switcher Header Navigation -->
         <div class="level-switcher">
             <button class="mode-tab active" id="tab-l1" onclick="switchLevelMode(1)">Level 1: Verification Test</button>
             <button class="mode-tab" id="tab-l2" onclick="switchLevelMode(2)">Level 2: Creative Sandbox</button>
         </div>
 
-        <!-- ================= LEVEL 1 PANEL ================= -->
         <div id="panel-l1" class="panel active">
             <div class="lab-display">
                 <div class="control-panel">
@@ -271,12 +267,11 @@
             <button class="action-dispatch-btn" id="btn-submit-l1" onclick="verifyL1Answer()">Verify Pattern Code</button>
         </div>
 
-        <!-- ================= LEVEL 2 PANEL (SIMPLIFIED) ================= -->
         <div id="panel-l2" class="panel">
             <div class="lab-display">
                 <div class="control-panel">
-                    <div class="ticker-title">Symmetry Drawing Board</div>
-                    <div class="ticker-problem">Touch and drag your finger anywhere on the canvas to paint. Watch it mirror automatically across the middle line!</div>
+                    <div class="ticker-title">Symmetry Tile Grid</div>
+                    <div class="ticker-problem">Tap any tile on the left side of the screen. Watch it color and reflect across the center mirror line immediately!</div>
                 </div>
             </div>
 
@@ -284,10 +279,9 @@
                 <canvas id="l2-canvas"></canvas>
             </div>
 
-            <!-- Simplified Clean Action Bar -->
             <div class="sandbox-controls">
                 <div class="tool-row">
-                    <button class="tool-btn" style="background:#475569;" onclick="clearSandboxCanvas()">Clear Canvas</button>
+                    <button class="tool-btn" style="background:#475569;" onclick="clearSandboxCanvas()">Clear All Tiles</button>
                     <button class="tool-btn" style="background:#7c3aed; color:#ffffff;" onclick="triggerClassPresentation()">Present to Class</button>
                 </div>
             </div>
@@ -296,7 +290,7 @@
     </div>
 
     <script>
-        // Global AudioContext
+        // Audio Context Engine
         let audioCtx = null;
         let activeLevel = 1;
 
@@ -308,10 +302,11 @@
         let l1AnimationTimer = 0;
         let l1AnimationType = 'none';
 
-        // Level 2 Parameters
+        // Level 2 Parameters (Fixed Tile Grid Map Matrix)
         let l2Canvas, l2Ctx;
-        let isDrawing = false;
-        let sandboxPoints = [];
+        const gridCols = 12; // 6 left, 6 right
+        const gridRows = 10;
+        let activeGridMap = []; // 2D array tracking color states
 
         // Standard 5-Second Splash Screen Clock Ticker
         let splashElapsed = 0;
@@ -338,14 +333,15 @@
             l2Ctx = l2Canvas.getContext('2d');
 
             recalculateCanvasResolutions();
+            resetGridMapData();
             buildL1QuestionPool();
             loadL1Task();
-            initSandboxEventHandlers();
+            initSandboxTileClickHandlers();
 
-            // Core Game Rendering Frame loop
+            // Core Game Rendering Animation Frame loop
             function coreAppTick() {
                 renderL1Graphics();
-                renderL2Graphics();
+                renderL2TileGrid();
                 if (l1AnimationTimer > 0) {
                     l1AnimationTimer--;
                     if (l1AnimationTimer === 0) advanceL1Round();
@@ -353,6 +349,13 @@
                 requestAnimationFrame(coreAppTick);
             }
             requestAnimationFrame(coreAppTick);
+        }
+
+        function resetGridMapData() {
+            activeGridMap = [];
+            for (let r = 0; r < gridRows; r++) {
+                activeGridMap.push(new Array(gridCols).fill(false));
+            }
         }
 
         function recalculateCanvasResolutions() {
@@ -371,7 +374,6 @@
             document.getElementById('panel-l2').classList.toggle('active', lvl === 2);
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             
-            // Handle mid-action scale updates if views switch
             setTimeout(recalculateCanvasResolutions, 50);
         }
 
@@ -526,85 +528,85 @@
             }
         }
 
-        // ================= LEVEL 2 CREATIVE ENGINE (SIMPLIFIED) =================
-        function initSandboxEventHandlers() {
-            function queryPointerPosition(e) {
-                const rect = l2Canvas.getBoundingClientRect();
-                const cx = e.touches ? e.touches[0].clientX : e.clientX;
-                const cy = e.touches ? e.touches[0].clientY : e.clientY;
-                return { x: cx - rect.left, y: cy - rect.top };
-            }
-
-            function processInteractionStart(e) {
+        // ================= LEVEL 2 SYSTEM ENGINES (GRID TILE EDITION) =================
+        function initSandboxTileClickHandlers() {
+            function processTileClick(clientX, clientY) {
                 if (activeLevel !== 2) return;
-                isDrawing = true;
-                const p = queryPointerPosition(e);
-                appendSandboxPoint(p.x, p.y);
+                const rect = l2Canvas.getBoundingClientRect();
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
+
+                const tileW = l2Canvas.width / gridCols;
+                const tileH = l2Canvas.height / gridRows;
+
+                const col = Math.floor(x / tileW);
+                const row = Math.floor(y / tileH);
+
+                if (row >= 0 && row < gridRows && col >= 0 && col < gridCols) {
+                    // Toggle current tile state
+                    const nextState = !activeGridMap[row][col];
+                    activeGridMap[row][col] = nextState;
+                    
+                    // Auto calculate horizontal mirror match coordinate index
+                    const mirrorCol = (gridCols - 1) - col;
+                    activeGridMap[row][mirrorCol] = nextState;
+                    
+                    triggerToneOutput(400 + (row * 30), 0);
+                }
             }
 
-            function processInteractionMove(e) {
-                if (!isDrawing || activeLevel !== 2) return;
-                const p = queryPointerPosition(e);
-                appendSandboxPoint(p.x, p.y);
-            }
+            l2Canvas.addEventListener('mousedown', (e) => {
+                processTileClick(e.clientX, e.clientY);
+            });
 
-            function processInteractionEnd() { isDrawing = false; }
-
-            l2Canvas.addEventListener('mousedown', processInteractionStart);
-            l2Canvas.addEventListener('mousemove', processInteractionMove);
-            window.addEventListener('mouseup', processInteractionEnd);
-
-            l2Canvas.addEventListener('touchstart', processInteractionStart, { passive: true });
-            l2Canvas.addEventListener('touchmove', processInteractionMove, { passive: true });
-            window.addEventListener('touchend', processInteractionEnd);
-        }
-
-        function appendSandboxPoint(x, y) {
-            sandboxPoints.push({ x: x, y: y });
-            if (sandboxPoints.length > 1200) sandboxPoints.shift();
+            l2Canvas.addEventListener('touchstart', (e) => {
+                processTileClick(e.touches[0].clientX, e.touches[0].clientY);
+            }, { passive: true });
         }
 
         function clearSandboxCanvas() {
-            sandboxPoints = [];
+            resetGridMapData();
         }
 
         function triggerClassPresentation() {
             triggerToneOutput(440, 880);
-            alert("✨ Classroom Presentation Live ✨\n\nYour layout has been synchronized and sent directly to the primary group display screen!");
+            alert("✨ Classroom Presentation Live ✨\n\nYour grid pattern layout has been synchronized and sent directly to the primary group display screen!");
         }
 
-        function renderL2Graphics() {
+        function renderL2TileGrid() {
             if (!l2Ctx || activeLevel !== 2) return;
             const w = l2Canvas.width, h = l2Canvas.height;
             l2Ctx.clearRect(0, 0, w, h);
 
-            // Grid background lines
-            l2Ctx.strokeStyle = '#2d3748';
-            l2Ctx.lineWidth = 1;
-            const gridSize = 30;
-            for(let x = 0; x < w; x += gridSize) {
-                l2Ctx.beginPath(); l2Ctx.moveTo(x, 0); l2Ctx.lineTo(x, h); l2Ctx.stroke();
-            }
-            for(let y = 0; y < h; y += gridSize) {
-                l2Ctx.beginPath(); l2Ctx.moveTo(0, y); l2Ctx.lineTo(w, y); l2Ctx.stroke();
+            const tileW = w / gridCols;
+            const tileH = h / gridRows;
+
+            // Render interactive matrix cells
+            for (let r = 0; r < gridRows; r++) {
+                for (let c = 0; c < gridCols; c++) {
+                    if (activeGridMap[r][c]) {
+                        // Left side gets active cyan color; right side gets active rose mirror color
+                        l2Ctx.fillStyle = (c < gridCols / 2) ? '#38bdf8' : '#e11d48';
+                    } else {
+                        l2Ctx.fillStyle = '#1f2937';
+                    }
+                    
+                    l2Ctx.fillRect(c * tileW + 1, r * tileH + 1, tileW - 2, tileH - 2);
+                    
+                    // Subtle cell border lines
+                    l2Ctx.strokeStyle = '#374151';
+                    l2Ctx.lineWidth = 1;
+                    l2Ctx.strokeRect(c * tileW, r * tileH, tileW, tileH);
+                }
             }
 
-            // Central mirror line divider axis plane 
+            // Highlighting central reflection axis line divide
             l2Ctx.strokeStyle = '#db2777';
-            l2Ctx.lineWidth = 3;
-            l2Ctx.beginPath(); l2Ctx.moveTo(w/2, 0); l2Ctx.lineTo(w/2, h); l2Ctx.stroke();
-
-            // Render live symmetrical ink points
-            sandboxPoints.forEach(p => {
-                // Original active finger paint plot path
-                l2Ctx.fillStyle = '#38bdf8';
-                l2Ctx.fillRect(p.x - 4, p.y - 4, 8, 8);
-                
-                // Perfect relative horizontally mirrored twin dot
-                let mirrorInverseX = w - p.x; 
-                l2Ctx.fillStyle = '#e11d48';
-                l2Ctx.fillRect(mirrorInverseX - 4, p.y - 4, 8, 8);
-            });
+            l2Ctx.lineWidth = 4;
+            l2Ctx.beginPath(); 
+            l2Ctx.moveTo(w / 2, 0); 
+            l2Ctx.lineTo(w / 2, h); 
+            l2Ctx.stroke();
         }
 
         function triggerToneOutput(f1, f2) {
@@ -617,9 +619,9 @@
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(f1, currentPlaybackTime);
                 if (f2) osc.frequency.setValueAtTime(f2, currentPlaybackTime + 0.1);
-                gain.gain.setValueAtTime(0.1, currentPlaybackTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, currentPlaybackTime + 0.35);
-                osc.start(currentPlaybackTime); osc.stop(currentPlaybackTime + 0.35);
+                gain.gain.setValueAtTime(0.08, currentPlaybackTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, currentPlaybackTime + 0.25);
+                osc.start(currentPlaybackTime); osc.stop(currentPlaybackTime + 0.25);
             } catch(e) {}
         }
     </script>
