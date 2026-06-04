@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chapter 12: Patterns & Symmetry Lab</title>
+    <title>Zoo Data Handling Lab</title>
     <style>
         * {
             box-sizing: border-box;
@@ -13,10 +13,26 @@
             user-select: none;
             -webkit-user-select: none;
         }
+        
+        /* Custom Theme-Compliant Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #011c16;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #047857;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #059669;
+        }
+
         body, html {
             width: 100%;
             height: 100%;
-            background-color: #090d16;
+            background-color: #033c2a; 
             color: #f1f5f9;
             overflow: hidden;
             display: flex;
@@ -31,14 +47,15 @@
             max-height: 740px;
             display: flex;
             flex-direction: column;
-            padding: 14px;
-            gap: 10px;
+            padding: 16px;
+            gap: 12px;
             opacity: 0;
             transition: opacity 0.5s ease;
             position: relative;
+            background: #033c2a;
         }
 
-        /* White Splash Screen */
+        /* Plain White Splash Screen */
         #hard-splash {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -56,50 +73,45 @@
             width: 100%;
             max-width: 320px;
         }
-        .splash-logo-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-        }
         .splash-img {
             max-width: 70%;
             height: auto;
             object-fit: contain;
         }
 
-        /* Nav Header to Switch Modes */
+        /* Level Switcher */
         .level-switcher {
             display: flex;
-            background: #111827;
-            border: 2px solid #374151;
+            background: #01241a;
+            border: 2px solid #047857;
             border-radius: 12px;
             padding: 4px;
             gap: 4px;
         }
         .mode-tab {
             flex: 1;
-            padding: 8px;
+            padding: 10px;
             text-align: center;
             font-size: 0.85rem;
             font-weight: 700;
             border-radius: 8px;
             cursor: pointer;
             background: transparent;
-            color: #94a3b8;
+            color: #a7f3d0;
             border: none;
             transition: all 0.2s ease;
         }
         .mode-tab.active {
-            background: #db2777;
+            background: #059669;
             color: #ffffff;
+            box-shadow: 0 2px 10px rgba(5, 150, 105, 0.6);
         }
 
-        /* Main Workspace Panels */
+        /* Panels */
         .panel {
             display: none;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             flex-grow: 1;
             overflow-y: auto;
         }
@@ -107,84 +119,105 @@
             display: flex;
         }
 
-        /* Info Display Card */
         .lab-display {
-            background: #111827;
-            border: 2px solid #374151;
+            background: #01241a;
+            border: 2px solid #78350f;
             border-radius: 14px;
             padding: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
         }
         .control-panel {
-            background: #1e1e38;
-            border: 2px solid #4f46e5;
-            border-radius: 8px;
-            padding: 8px 12px;
+            background: #0f4026;
+            border: 2px solid #22c55e;
+            border-radius: 10px;
+            padding: 10px 14px;
         }
         .ticker-title {
             font-size: 0.7rem;
-            color: #818cf8;
+            color: #4ade80;
             text-transform: uppercase;
             font-weight: 700;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.8px;
         }
         .ticker-problem {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: 600;
             color: #ffffff;
             margin-top: 2px;
-            line-height: 1.3;
+            line-height: 1.4;
         }
 
-        /* Canvas Frame */
+        .data-notice-board {
+            background: #0f172a;
+            border: 2px dashed #34d399;
+            border-radius: 10px;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-around;
+            font-size: 0.85rem;
+            font-weight: bold;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+        }
+        .notice-tag {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .tag-count {
+            font-size: 1.1rem;
+            color: #f59e0b;
+            text-shadow: 0 0 5px rgba(245, 158, 11, 0.5);
+        }
+
         .simulation-frame {
-            height: 240px;
-            background: #1f2937;
-            border: 2px solid #374151;
+            flex-grow: 1;
+            min-height: 280px;
+            background: #111827;
+            border: 3px solid #78350f;
             border-radius: 14px;
             position: relative;
             overflow: hidden;
+            box-shadow: inset 0 4px 12px rgba(0,0,0,0.7);
         }
         canvas {
             display: block;
             width: 100%;
             height: 100%;
-            cursor: crosshair;
         }
 
-        /* Level 1 Console Options */
         .console-grid {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
         }
         .option-row-btn {
             width: 100%;
-            background: #111827;
-            border: 2px solid #374151;
+            background: #01241a;
+            border: 2px solid #047857;
             color: #e5e7eb;
             border-radius: 10px;
-            padding: 10px 12px;
+            padding: 12px 14px;
             font-size: 0.85rem;
             font-weight: 600;
             cursor: pointer;
             text-align: left;
+            transition: all 0.2s ease;
         }
         .option-row-btn.selected {
-            background: #db2777;
-            border-color: #f472b6;
+            background: #059669;
+            border-color: #34d399;
             color: #ffffff;
+            box-shadow: 0 0 10px rgba(5, 150, 105, 0.4);
         }
 
-        /* Sandbox (L2) Action Shelf */
         .sandbox-controls {
             display: flex;
             flex-direction: column;
             gap: 8px;
-            background: #111827;
+            background: #01241a;
             padding: 12px;
             border-radius: 14px;
-            border: 2px solid #374151;
+            border: 2px solid #047857;
         }
         .tool-row {
             display: flex;
@@ -192,85 +225,49 @@
             align-items: center;
         }
         .tool-btn {
-            flex: 1;
-            background: #374151;
-            border: 1px solid #4b5563;
+            width: 100%;
+            background: #334155;
+            border: 1px solid #475569;
             color: #f1f5f9;
-            padding: 8px;
-            font-size: 0.8rem;
-            font-weight: 600;
+            padding: 12px 6px;
+            font-size: 0.85rem;
+            font-weight: 700;
             border-radius: 8px;
             cursor: pointer;
             text-align: center;
-        }
-        .tool-btn.active {
-            background: #4f46e5;
-            border-color: #818cf8;
-        }
-        
-        /* Level 2 Number Tower UI Widget */
-        .tower-widget {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            background: #151b2d;
-            padding: 8px;
-            border-radius: 10px;
-        }
-        .tower-row {
-            display: flex;
-            gap: 4px;
-        }
-        .tower-cell {
-            width: 48px;
-            height: 28px;
-            background: #f59e0b;
-            color: #0f172a;
-            font-family: monospace;
-            font-weight: 700;
-            font-size: 0.85rem;
-            border-radius: 4px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .tower-input {
-            width: 48px;
-            height: 28px;
-            background: #334155;
-            color: #ffffff;
-            border: 1px solid #64748b;
-            border-radius: 4px;
-            text-align: center;
-            font-weight: 700;
-            font-size: 0.85rem;
+            transition: all 0.15s ease;
         }
 
-        /* Action Footer Submits */
         .action-dispatch-btn {
             width: 100%;
-            background: #059669;
+            background: #d97706;
             color: #ffffff;
             border: none;
             border-radius: 12px;
-            padding: 12px;
+            padding: 14px;
             font-size: 0.95rem;
             font-weight: 700;
             cursor: pointer;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.4);
+        }
+        .action-dispatch-btn:disabled {
+            background: #4b5563;
+            cursor: not-allowed;
+            box-shadow: none;
         }
         .status-banner {
             text-align: center;
             font-weight: 700;
-            font-size: 0.8rem;
-            min-height: 18px;
+            font-size: 0.85rem;
+            min-height: 20px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
         }
     </style>
 </head>
 <body>
 
-    <!-- Minimal White Splash Screen -->
     <div id="hard-splash">
         <div class="splash-content-wrapper">
             <div class="splash-logo-container">
@@ -281,71 +278,55 @@
 
     <div id="viewport-root">
         
-        <!-- Chapter Navigation Switcher -->
         <div class="level-switcher">
             <button class="mode-tab active" id="tab-l1" onclick="switchLevelMode(1)">Level 1: Verification Test</button>
-            <button class="mode-tab" id="tab-l2" onclick="switchLevelMode(2)">Level 2: Creative Sandbox</button>
+            <button class="mode-tab" id="tab-l2" onclick="switchLevelMode(2)">Level 2: Zoo Chart Lab</button>
         </div>
 
-        <!-- ================= LEVEL 1 PANEL ================= -->
         <div id="panel-l1" class="panel active">
             <div class="lab-display">
                 <div class="control-panel">
                     <div class="ticker-title" id="lbl-task-counter">Challenge 1 of 4</div>
-                    <div class="ticker-problem" id="lbl-question-text">Loading Grade 4 math patterns...</div>
+                    <div class="ticker-problem" id="lbl-question-text">Loading verification task logs...</div>
                 </div>
             </div>
             <div class="simulation-frame">
                 <canvas id="l1-canvas"></canvas>
             </div>
-            <div class="status-banner" id="lbl-status-toast" style="color: #94a3b8;">Analyze the pattern and pick your response.</div>
+            <div class="status-banner" id="lbl-status-toast" style="color: #a7f3d0;">Analyze the data chart and verify the true counts.</div>
             <div class="console-grid">
                 <button class="option-row-btn" id="opt-0" onclick="selectL1Option(0)">Option A</button>
                 <button class="option-row-btn" id="opt-1" onclick="selectL1Option(1)">Option B</button>
                 <button class="option-row-btn" id="opt-2" onclick="selectL1Option(2)">Option C</button>
             </div>
-            <button class="action-dispatch-btn" id="btn-submit-l1" onclick="verifyL1Answer()">Verify Code Answer</button>
+            <button class="action-dispatch-btn" id="btn-submit-l1" onclick="verifyL1Answer()">Verify Data Pack</button>
         </div>
 
-        <!-- ================= LEVEL 2 PANEL ================= -->
         <div id="panel-l2" class="panel">
             <div class="lab-display">
                 <div class="control-panel">
-                    <div class="ticker-title">Chapter 12 Creator Canvas</div>
-                    <div class="ticker-problem" id="lbl-sandbox-desc">Draw to check mirror line reflections, apply 90° rotations, or stamp interlocking tiles!</div>
+                    <div class="ticker-title">Zoo Headcount Registry</div>
+                    <div class="ticker-problem">Read the Animal Report counts box below. Tap the grid blocks to pile up tiles matching the raw reports!</div>
                 </div>
+            </div>
+
+            <div class="data-notice-board">
+                <div class="notice-tag"><span>Lions</span><span class="tag-count">5</span></div>
+                <div class="notice-tag"><span>Elephants</span><span class="tag-count">8</span></div>
+                <div class="notice-tag"><span>Monkeys</span><span class="tag-count">3</span></div>
+                <div class="notice-tag"><span>Giraffes</span><span class="tag-count">6</span></div>
             </div>
 
             <div class="simulation-frame">
                 <canvas id="l2-canvas"></canvas>
             </div>
 
-            <!-- Interactive Sandbox Configuration Engine -->
-            <div class="sandbox-controls">
-                <div class="ticker-title">Canvas Modes & Symmetry Tools</div>
-                <div class="tool-row">
-                    <button class="tool-btn active" id="tool-mirror" onclick="setSandboxTool('mirror')">Mirror Paint</button>
-                    <button class="tool-btn" id="tool-rotate" onclick="setSandboxTool('rotate')">90° Rotation</button>
-                    <button class="tool-btn" id="tool-tessellate" onclick="setSandboxTool('tessellate')">Tessellate Tiling</button>
-                </div>
-                <div class="tool-row">
-                    <button class="tool-btn" style="background:#475569;" onclick="clearSandboxCanvas()">Clear Fields</button>
-                    <button class="tool-btn" id="btn-show-class" style="background:#7c3aed;" onclick="triggerClassPresentation()">Present to Class</button>
-                </div>
-            </div>
+            <div class="status-banner" id="lbl-l2-toast" style="color: #fbbf24;">Tap blocks to fill tiles matching the required data frequency!</div>
 
-            <!-- Dynamic Number Tower Math Block -->
-            <div class="tower-widget">
-                <div class="ticker-title" style="margin-bottom:4px;">Interactive Number Tower Builder</div>
-                <div class="tower-row"><div class="tower-cell" id="tw-top" style="background:#f59e0b;">?</div></div>
-                <div class="tower-row">
-                    <div class="tower-cell" id="tw-m1" style="background:#fbbf24;">?</div>
-                    <div class="tower-cell" id="tw-m2" style="background:#fbbf24;">?</div>
-                </div>
-                <div class="tower-row">
-                    <input class="tower-input" type="number" id="t-in1" value="2" oninput="calculateSandboxTower()">
-                    <input class="tower-input" type="number" id="t-in2" value="3" oninput="calculateSandboxTower()">
-                    <input class="tower-input" type="number" id="t-in3" value="4" oninput="calculateSandboxTower()">
+            <div class="sandbox-controls">
+                <div class="tool-row">
+                    <button class="tool-btn" style="background:#475569;" onclick="clearSandboxCanvas()">Clear Graph Values</button>
+                    <button class="tool-btn" style="background:#059669; color:#fff;" onclick="verifyL2GraphSolution()">Submit Zoo Graph</button>
                 </div>
             </div>
         </div>
@@ -353,11 +334,45 @@
     </div>
 
     <script>
-        // System and Context variables
-        let audioCtx = null;
+        // Audio Asset Configurations
+        const audioAssets = {
+            correct: new Audio('assets/correct.mp3'),
+            wrong: new Audio('assets/wrong.mp3'),
+            success: new Audio('assets/freesound_community-claps-44774.mp3')
+        };
+
+        function playNeutralClickSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.08);
+            } catch (e) {
+                console.log("Web Audio blip fell back");
+            }
+        }
+
+        function playAssetSound(type) {
+            try {
+                if (audioAssets[type]) {
+                    audioAssets[type].currentTime = 0; 
+                    audioAssets[type].play();
+                }
+            } catch (error) {
+                console.warn("Audio error: ", error);
+            }
+        }
+
         let activeLevel = 1;
 
-        // Level 1 variables
+        // Level 1 Parameters
         let l1Canvas, l1Ctx;
         let currentL1Task = 0;
         let selectedL1Opt = -1;
@@ -365,14 +380,14 @@
         let l1AnimationTimer = 0;
         let l1AnimationType = 'none';
 
-        // Level 2 variables
+        // Level 2 Parameters
         let l2Canvas, l2Ctx;
-        let activeSandboxTool = 'mirror'; // mirror, rotate, tessellate
-        let isDrawing = false;
-        let sandboxPoints = [];
-        let rotationStep = 0;
+        const barCategories = ["Lions", "Elephants", "Monkeys", "Giraffes"];
+        const targetZooData = [5, 8, 3, 6]; 
+        let activeBarData = [0, 0, 0, 0];   
+        const maxBarValue = 10;
 
-        // 5-Second Splash Controller
+        // Splash screen clock loader
         let splashElapsed = 0;
         const splashInterval = 100;
         const splashTicker = setInterval(() => {
@@ -385,43 +400,45 @@
                 setTimeout(() => {
                     if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
                     if (mainApp) mainApp.style.opacity = '1';
-                    setupMainAppEngines();
+                    initLabApplicationSuite();
                 }, 500);
             }
         }, splashInterval);
 
-        function setupMainAppEngines() {
-            // Init L1
+        function initLabApplicationSuite() {
             l1Canvas = document.getElementById('l1-canvas');
             l1Ctx = l1Canvas.getContext('2d');
-            // Init L2
             l2Canvas = document.getElementById('l2-canvas');
             l2Ctx = l2Canvas.getContext('2d');
 
-            resizeAppCanvases();
-            buildL1QuestionPool();
+            recalculateCanvasResolutions();
+            buildDynamicL1Pool();
             loadL1Task();
-            setupSandboxInputListeners();
-            calculateSandboxTower();
+            initSandboxGraphClickHandlers();
 
-            // Unified Render Animation loop
-            function systemTick() {
-                renderL1Graphics();
-                renderL2Graphics();
+            function coreAppTick() {
+                if (activeLevel === 1) {
+                    renderL1Graphics();
+                } else if (activeLevel === 2) {
+                    renderL2BarGraph();
+                }
+
                 if (l1AnimationTimer > 0) {
                     l1AnimationTimer--;
                     if (l1AnimationTimer === 0) advanceL1Round();
                 }
-                requestAnimationFrame(systemTick);
+                requestAnimationFrame(coreAppTick);
             }
-            requestAnimationFrame(systemTick);
+            requestAnimationFrame(coreAppTick);
         }
 
-        function resizeAppCanvases() {
+        function recalculateCanvasResolutions() {
             [l1Canvas, l2Canvas].forEach(c => {
-                const rect = c.parentNode.getBoundingClientRect();
-                c.width = rect.width;
-                c.height = rect.height;
+                if (c && c.parentNode) {
+                    const rect = c.parentNode.getBoundingClientRect();
+                    c.width = rect.width || 400;
+                    c.height = rect.height || 280;
+                }
             });
         }
 
@@ -431,37 +448,90 @@
             document.getElementById('tab-l2').classList.toggle('active', lvl === 2);
             document.getElementById('panel-l1').classList.toggle('active', lvl === 1);
             document.getElementById('panel-l2').classList.toggle('active', lvl === 2);
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            playNeutralClickSound();
+            
+            setTimeout(() => {
+                recalculateCanvasResolutions();
+            }, 40);
         }
 
-        // ================= LEVEL 1 CODE LOGIC =================
-        function buildL1QuestionPool() {
-            challengePool = [
+        // ================= LEVEL 1 DYNAMIC RANDOMIZED ENGINE =================
+        function buildDynamicL1Pool() {
+            const masterQuestions = [
                 {
-                    type: 'mirror_art',
-                    text: "Mirror Art: Look at the left side of the reflection fold. Which letter reflects perfectly into 'q'?",
-                    options: ["The Letter 'p'", "The Letter 'b'", "The Letter 'd'"],
-                    correctIdx: 0
+                    type: 'tally_check',
+                    text: "Zoo Log Verification: Look at the tally counts provided on screen. What is the total sum count of the logged animals?",
+                    options: ["12 Animals Total", "14 Animals Total", "11 Elements Total"],
+                    correctIdx: 1,
+                    data: [5, 6, 3] 
                 },
                 {
-                    type: 'skip_count',
-                    text: "Addition Skip Counting: Fill the missing box for this (+4) pattern track: 1, 5, 9, 13, 17, __.",
-                    options: ["19", "21", "25"],
-                    correctIdx: 1
+                    type: 'max_bar',
+                    text: "Zoo Graph Assessment: Inspect the category heights on the grid. Which animal type registered the highest total frequency count?",
+                    options: ["Lions", "Elephants", "Monkeys"],
+                    correctIdx: 0,
+                    data: [9, 4, 7]
                 },
                 {
-                    type: 'number_tower',
-                    text: "Number Towers: Two side-by-side cells add together to make the brick above them. If bricks are 2 and 3, what is above?",
-                    options: ["1", "6", "5"],
-                    correctIdx: 2
+                    type: 'difference_calc',
+                    text: "Data Comparative: Compare the frequencies of Lions and Monkeys. How many more items are logged in Lions than Monkeys?",
+                    options: ["2 animals difference", "5 animals difference", "4 animals difference"],
+                    correctIdx: 0,
+                    data: [9, 4, 7]
                 },
                 {
-                    type: 'word_code',
-                    text: "Substituted Secret Codes: If 'Blue' is called 'White' and 'White' is called 'Orange', what is the color of milk?",
-                    options: ["Orange", "White", "Blue"],
-                    correctIdx: 0
+                    type: 'empty_match',
+                    text: "Null Frequency Check: One category completely missed registration markers. What numerical count value matches a flat line category?",
+                    options: ["Count value: 1", "Count value: 5", "Count value: 0"],
+                    correctIdx: 2,
+                    data: [6, 0, 8]
+                },
+                {
+                    type: 'tally_check',
+                    text: "Tally Verification: Add the counts for Elephants and Monkeys together. What is their combined sum?",
+                    options: ["9 Animals Total", "7 Animals Total", "10 Animals Total"],
+                    correctIdx: 0,
+                    data: [4, 5, 4]
+                },
+                {
+                    type: 'max_bar',
+                    text: "Population Review: Which animal enclosure tracking line lists the lowest population footprint inside this subset group?",
+                    options: ["Lions", "Elephants", "Monkeys"],
+                    correctIdx: 1,
+                    data: [7, 2, 6]
+                },
+                {
+                    type: 'difference_calc',
+                    text: "Graph Variance: Check the grid gap between Monkeys and Elephants. What is the precise numerical difference value?",
+                    options: ["3 steps", "5 steps", "2 steps"],
+                    correctIdx: 1,
+                    data: [3, 1, 6]
+                },
+                {
+                    type: 'tally_check',
+                    text: "Morning Roster Check: Read the custom layout marks carefully. What is the specific tally metric total for the first row entry?",
+                    options: ["4 items", "5 items", "8 items"],
+                    correctIdx: 1,
+                    data: [5, 3, 2]
+                },
+                {
+                    type: 'max_bar',
+                    text: "Enclosure Grid Audit: A wild feeding group spiked our chart limits! Which option shows the max data block peak found on the graph layout?",
+                    options: ["Peak is 10 units", "Peak is 8 units", "Peak is 5 units"],
+                    correctIdx: 0,
+                    data: [10, 5, 3]
+                },
+                {
+                    type: 'empty_match',
+                    text: "Data Reporting Audit: If an animal species leaves the preserve map completely, how should its bar chart column look?",
+                    options: ["Filled up to top", "Stays fully at 0 height", "Rises up to step 2"],
+                    correctIdx: 1,
+                    data: [4, 0, 5]
                 }
             ];
+
+            let shuffled = masterQuestions.sort(() => 0.5 - Math.random());
+            challengePool = shuffled.slice(0, 4); 
         }
 
         function loadL1Task() {
@@ -477,12 +547,13 @@
                 const btn = document.getElementById(`opt-${i}`);
                 btn.innerText = task.options[i];
                 btn.classList.remove('selected');
+                btn.style.display = 'block';
             }
             selectedL1Opt = -1;
             l1AnimationTimer = 0;
             l1AnimationType = 'none';
-            document.getElementById('lbl-status-toast').innerText = "Analyze the pattern context and pick your response.";
-            document.getElementById('lbl-status-toast').style.color = "#94a3b8";
+            document.getElementById('lbl-status-toast').innerText = "Analyze the data chart and verify the true counts.";
+            document.getElementById('lbl-status-toast').style.color = "#a7f3d0";
             document.getElementById('btn-submit-l1').disabled = false;
         }
 
@@ -491,11 +562,12 @@
             for (let i = 0; i < 3; i++) {
                 document.getElementById(`opt-${i}`).classList.toggle('selected', i === idx);
             }
+            playNeutralClickSound();
         }
 
         function verifyL1Answer() {
             if (selectedL1Opt === -1) {
-                document.getElementById('lbl-status-toast').innerText = "⚠️ Select an answer choice first!";
+                document.getElementById('lbl-status-toast').innerText = "⚠️ Select an analysis option first!";
                 document.getElementById('lbl-status-toast').style.color = "#fbbf24";
                 return;
             }
@@ -503,15 +575,15 @@
             if (selectedL1Opt === challengePool[currentL1Task].correctIdx) {
                 l1AnimationType = 'correct';
                 l1AnimationTimer = 35;
-                document.getElementById('lbl-status-toast').innerText = "✓ Perfect Check! Learning outcome validated.";
+                document.getElementById('lbl-status-toast').innerText = "✓ Data log parameters successfully verified!";
                 document.getElementById('lbl-status-toast').style.color = "#34d399";
-                playBeep(580, 750);
+                playAssetSound('correct');
             } else {
                 l1AnimationType = 'error';
                 l1AnimationTimer = 35;
-                document.getElementById('lbl-status-toast').innerText = "❌ Incorrect pattern rule. Retrying block...";
+                document.getElementById('lbl-status-toast').innerText = "❌ Incorrect analysis. Re-tally column configurations.";
                 document.getElementById('lbl-status-toast').style.color = "#f87171";
-                playBeep(260, 200);
+                playAssetSound('wrong'); 
             }
         }
 
@@ -521,202 +593,278 @@
         }
 
         function showL1SuiteCompletion() {
-            document.getElementById('lbl-task-counter').innerText = "Suite Cleared";
-            document.getElementById('lbl-question-text').innerText = "All Chapter 12 verification tasks successfully answered! Proceed to sandbox production.";
-            document.getElementById('lbl-status-toast').innerText = "Level 1 Verified! Click Level 2 tab above to create original designs.";
-            document.getElementById('lbl-status-toast').style.color = "#f472b6";
+            document.getElementById('lbl-task-counter').innerText = "Assessment Finalized";
+            document.getElementById('lbl-question-text').innerText = "Excellent data reporting! All frequency structures and charts match parameters accurately.";
+            document.getElementById('lbl-status-toast').innerText = "Verification complete! Switch to Level 2 tab to sketch custom chart formats.";
+            document.getElementById('lbl-status-toast').style.color = "#60a5fa";
             for (let i = 0; i < 3; i++) document.getElementById(`opt-${i}`).style.display = 'none';
             const sub = document.getElementById('btn-submit-l1');
-            sub.innerText = "Restart Assessment";
+            sub.innerText = "Restart New Random Loop";
             sub.disabled = false;
             sub.onclick = () => { location.reload(); };
+            playAssetSound('success');
         }
 
         function renderL1Graphics() {
             if (!l1Ctx) return;
             const w = l1Canvas.width, h = l1Canvas.height;
             l1Ctx.clearRect(0, 0, w, h);
-            const t = challengePool[currentL1Task];
-            if (!t) return;
+            
+            l1Ctx.fillStyle = '#01241a';
+            l1Ctx.fillRect(0, 0, w, h);
 
-            if (t.type === 'mirror_art') {
-                // Mirror layout visualizer
-                l1Ctx.strokeStyle = '#db2777';
-                l1Ctx.lineWidth = 3;
-                l1Ctx.beginPath(); l1Ctx.moveTo(w/2, 10); l1Ctx.lineTo(w/2, h-10); l1Ctx.stroke();
-                l1Ctx.fillStyle = '#60a5fa'; l1Ctx.font = 'bold 70px monospace';
-                l1Ctx.fillText("p", w/4 - 20, h/2 + 20);
-                l1Ctx.fillStyle = '#f472b6';
-                l1Ctx.fillText("q", (w*3/4) - 20, h/2 + 20);
-            } else if (t.type === 'skip_count') {
-                // Horizontal tracks
-                let items = [1, 5, 9, 13, 17, "?"];
-                let step = w / 7;
-                items.forEach((item, idx) => {
-                    l1Ctx.fillStyle = item === "?" ? "#db2777" : "#374151";
-                    l1Ctx.fillRect(idx*step + 10, h/2 - 25, step - 6, 50);
-                    l1Ctx.fillStyle = "#ffffff";
-                    l1Ctx.font = "bold 16px monospace";
-                    l1Ctx.fillText(item, idx*step + step/3, h/2 + 6);
-                });
-            } else if (t.type === 'number_tower') {
-                // Mini 3 block tower representation
-                let bw = 60, bh = 35;
-                let cx = w/2;
-                l1Ctx.fillStyle = '#eab308';
-                l1Ctx.fillRect(cx - bw/2, h/2 - bh, bw, bh); // Top
-                l1Ctx.fillRect(cx - bw - 2, h/2, bw, bh); // Left Base
-                l1Ctx.fillRect(cx + 2, h/2, bw, bh); // Right Base
-                l1Ctx.fillStyle = '#0f172a'; l1Ctx.font = 'bold 14px sans-serif';
-                l1Ctx.fillText("?", cx - 5, h/2 - bh/3);
-                l1Ctx.fillText("2", cx - bw/2 - 5, h/2 + bh*2/3);
-                l1Ctx.fillText("3", cx + bw/2 - 5, h/2 + bh*2/3);
+            const task = challengePool[currentL1Task];
+            if (!task) return;
+
+            if (task.type === 'tally_check') {
+                const rowH = (h - 40) / 3;
+                const labels = ["Lions", "Elephants", "Monkeys"];
+                l1Ctx.strokeStyle = '#047857';
+                l1Ctx.lineWidth = 2;
+                
+                for(let i=0; i<3; i++) {
+                    let cy = 20 + i*rowH;
+                    l1Ctx.fillStyle = '#01120d';
+                    l1Ctx.fillRect(15, cy, w-30, rowH - 8);
+                    l1Ctx.strokeRect(15, cy, w-30, rowH - 8);
+                    
+                    l1Ctx.fillStyle = '#a7f3d0';
+                    l1Ctx.font = 'bold 13px sans-serif';
+                    l1Ctx.fillText(labels[i], 30, cy + rowH/2 - 5);
+                    
+                    l1Ctx.strokeStyle = '#34d399';
+                    l1Ctx.lineWidth = 3;
+                    let count = task.data[i];
+                    let startX = 110;
+                    
+                    for(let t=0; t<count; t++) {
+                        if (t > 0 && t % 5 === 0) startX += 20;
+                        let tx = startX + (t % 5) * 8;
+                        if ((t+1) % 5 === 0) {
+                            l1Ctx.beginPath();
+                            l1Ctx.moveTo(tx - 32, cy + rowH/2 + 5);
+                            l1Ctx.lineTo(tx + 4, cy + rowH/2 - 18);
+                            l1Ctx.stroke();
+                        } else {
+                            l1Ctx.beginPath();
+                            l1Ctx.moveTo(tx, cy + rowH/2 - 18);
+                            l1Ctx.lineTo(tx, cy + rowH/2 + 5);
+                            l1Ctx.stroke();
+                        }
+                    }
+                }
             } else {
-                // Question text code splash
-                l1Ctx.fillStyle = "#111827"; l1Ctx.fillRect(20, 20, w-40, h-40);
-                l1Ctx.fillStyle = "#a7f3d0"; l1Ctx.font = "italic 15px sans-serif";
-                l1Ctx.fillText("Milk → White → Orange ?", 40, h/2);
+                const padL = 40, padB = 40, padT = 20, padR = 20;
+                const gw = w - padL - padR, gh = h - padT - padB;
+                
+                l1Ctx.strokeStyle = '#047857';
+                l1Ctx.lineWidth = 1;
+                for(let i=0; i<=10; i+=2) {
+                    let gy = padT + gh - (i / 10) * gh;
+                    l1Ctx.beginPath(); l1Ctx.moveTo(padL, gy); l1Ctx.lineTo(w - padR, gy); l1Ctx.stroke();
+                    l1Ctx.fillStyle = '#a7f3d0';
+                    l1Ctx.font = 'bold 10px monospace';
+                    l1Ctx.fillText(i, 15, gy + 4);
+                }
+
+                const labels = ["Lions", "Elephants", "Monkeys"];
+                const colors = ["#f87171", "#60a5fa", "#fbbf24"];
+                const colW = gw / 3;
+
+                task.data.forEach((val, idx) => {
+                    let barH = (val / 10) * gh;
+                    let bx = padL + idx * colW + colW * 0.15;
+                    let by = padT + gh - barH;
+                    let bw = colW * 0.7;
+
+                    l1Ctx.fillStyle = colors[idx];
+                    l1Ctx.fillRect(bx, by, bw, barH);
+
+                    l1Ctx.fillStyle = '#ffffff';
+                    l1Ctx.font = 'bold 11px sans-serif';
+                    l1Ctx.fillText(labels[idx], bx + bw/2 - 18, padT + gh + 18);
+                });
             }
 
             if (l1AnimationTimer > 0) {
                 l1Ctx.fillStyle = l1AnimationType === 'correct' ? 'rgba(52, 211, 153, 0.25)' : 'rgba(248, 113, 113, 0.25)';
-                l1Ctx.fillRect(0,0,w,h);
+                l1Ctx.fillRect(0, 0, w, h);
             }
         }
 
-        // ================= LEVEL 2 SANDBOX CODE ENGINE =================
-        function setSandboxTool(tool) {
-            activeSandboxTool = tool;
-            document.getElementById('tool-mirror').classList.toggle('active', tool === 'mirror');
-            document.getElementById('tool-rotate').classList.toggle('active', tool === 'rotate');
-            document.getElementById('tool-tessellate').classList.toggle('active', tool === 'tessellate');
-            
-            if (tool === 'rotate') {
-                rotationStep = (rotationStep + 90) % 360;
-                document.getElementById('lbl-sandbox-desc').innerText = `Rotating current stroke asset clockwise by 90°!`;
-            } else if (tool === 'mirror') {
-                document.getElementById('lbl-sandbox-desc').innerText = `Mirror Symmetry Active. Draw on left to auto-reflect perfectly across the fold plane!`;
-            } else {
-                document.getElementById('lbl-sandbox-desc').innerText = `Tessellation Engine active. Draws rows of tight interlocking blocks with zero gap overlays!`;
-            }
-        }
-
-        function setupSandboxInputListeners() {
-            function getMousePos(e) {
-                const rect = l2Canvas.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                return { x: clientX - rect.left, y: clientY - rect.top };
-            }
-
-            function engageDraw(e) {
+        // ================= LEVEL 2 TILES ENGINE =================
+        function initSandboxGraphClickHandlers() {
+            function processCanvasTap(clientX, clientY) {
                 if (activeLevel !== 2) return;
-                isDrawing = true;
-                const pos = getMousePos(e);
-                saveSandboxPoint(pos.x, pos.y);
+                const rect = l2Canvas.getBoundingClientRect();
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
+
+                const padL = 40, padB = 45, padT = 25, padR = 20;
+                const gw = l2Canvas.width - padL - padR;
+                const gh = l2Canvas.height - padT - padB;
+
+                if (x >= padL && x <= l2Canvas.width - padR && y >= padT && y <= l2Canvas.height - padB) {
+                    const colW = gw / barCategories.length;
+                    const colIdx = Math.floor((x - padL) / colW);
+                    
+                    if(colIdx >= 0 && colIdx < barCategories.length) {
+                        // Determine precisely which tile row unit was pressed (1 to 10)
+                        const clickPct = 1 - ((y - padT) / gh);
+                        const rowValue = Math.ceil(clickPct * maxBarValue);
+                        
+                        if(rowValue >= 1 && rowValue <= maxBarValue) {
+                            // If user clicks the exact top tile, toggle it off; otherwise build up to this tile row height
+                            if (activeBarData[colIdx] === rowValue) {
+                                activeBarData[colIdx] = rowValue - 1;
+                            } else {
+                                activeBarData[colIdx] = rowValue;
+                            }
+                            playNeutralClickSound();
+                        }
+                    }
+                }
             }
 
-            function moveDraw(e) {
-                if (!isDrawing || activeLevel !== 2) return;
-                const pos = getMousePos(e);
-                saveSandboxPoint(pos.x, pos.y);
-            }
+            l2Canvas.addEventListener('mousedown', (e) => {
+                processCanvasTap(e.clientX, e.clientY);
+            });
 
-            function releaseDraw() { isDrawing = false; }
-
-            l2Canvas.addEventListener('mousedown', engageDraw);
-            l2Canvas.addEventListener('mousemove', moveDraw);
-            window.addEventListener('mouseup', releaseDraw);
-
-            l2Canvas.addEventListener('touchstart', engageDraw, { passive: true });
-            l2Canvas.addEventListener('touchmove', moveDraw, { passive: true });
-            window.addEventListener('touchend', releaseDraw);
-        }
-
-        function saveSandboxPoint(x, y) {
-            sandboxPoints.push({ x: x, y: y, tool: activeSandboxTool, angle: rotationStep });
-            if (sandboxPoints.length > 800) sandboxPoints.shift();
+            l2Canvas.addEventListener('touchstart', (e) => {
+                if(e.touches && e.touches[0]) {
+                    processCanvasTap(e.touches[0].clientX, e.touches[0].clientY);
+                }
+            }, { passive: true });
         }
 
         function clearSandboxCanvas() {
-            sandboxPoints = [];
-            document.getElementById('lbl-sandbox-desc').innerText = "Canvas cleared. Design your brand new geometrical symmetry structures!";
+            activeBarData = [0, 0, 0, 0];
+            document.getElementById('lbl-l2-toast').innerText = "Graph tiles reset. Start again!";
+            document.getElementById('lbl-l2-toast').style.color = "#fbbf24";
+            playAssetSound('wrong'); 
         }
 
-        function calculateSandboxTower() {
-            // Evaluates addition/multiplication tower rules
-            const b1 = parseInt(document.getElementById('t-in1').value) || 0;
-            const b2 = parseInt(document.getElementById('t-in2').value) || 0;
-            const b3 = parseInt(document.getElementById('t-in3').value) || 0;
-
-            const m1 = b1 + b2;
-            const m2 = b2 + b3;
-            const top = m1 + m2;
-
-            document.getElementById('tw-m1').innerText = m1;
-            document.getElementById('tw-m2').innerText = m2;
-            document.getElementById('tw-top').innerText = top;
-        }
-
-        function triggerClassPresentation() {
-            playBeep(440, 880);
-            alert("✨ Class Presentation Simulator Active ✨\n\nYour original symmetry canvas artwork and computed Number Tower system have been simulated and successfully presented to the virtual classroom billboard projection!");
-        }
-
-        function renderL2Graphics() {
-            if (!l2Ctx || activeLevel !== 2) return;
-            const w = l2Canvas.width, h = l2Canvas.height;
-            l2Ctx.clearRect(0,0,w,h);
-
-            // Draw center folding mirror guide line
-            l2Ctx.strokeStyle = 'rgba(219, 39, 119, 0.4)';
-            l2Ctx.lineWidth = 2;
-            l2Ctx.setLineDash([6, 4]);
-            l2Ctx.beginPath(); l2Ctx.moveTo(w/2, 0); l2Ctx.lineTo(w/2, h); l2Ctx.stroke();
-            l2Ctx.setLineDash([]);
-
-            // Draw historical sandbox paths
-            sandboxPoints.forEach(pt => {
-                l2Ctx.fillStyle = pt.tool === 'mirror' ? '#38bdf8' : pt.tool === 'rotate' ? '#fbbf24' : '#a7f3d0';
-                
-                if (pt.tool === 'tessellate') {
-                    // Lock items grid layout tiling block pattern
-                    let tileX = Math.floor(pt.x / 25) * 25;
-                    let tileY = Math.floor(pt.y / 25) * 25;
-                    l2Ctx.fillRect(tileX, tileY, 23, 23);
-                } 
-                else if (pt.tool === 'rotate') {
-                    // Rotate rendering around path nodes
-                    l2Ctx.save();
-                    l2Ctx.translate(pt.x, pt.y);
-                    l2Ctx.rotate((pt.angle * Math.PI) / 180);
-                    l2Ctx.fillRect(-6, -6, 12, 12);
-                    l2Ctx.restore();
-                } 
-                else {
-                    // Standard mirror paint point + its mirror equivalent axis
-                    l2Ctx.fillRect(pt.x - 3, pt.y - 3, 6, 6);
-                    let mx = w - pt.x; 
-                    l2Ctx.fillStyle = '#db2777';
-                    l2Ctx.fillRect(mx - 3, pt.y - 3, 6, 6);
+        function verifyL2GraphSolution() {
+            let isCorrect = true;
+            for(let i=0; i<targetZooData.length; i++) {
+                if(activeBarData[i] !== targetZooData[i]) {
+                    isCorrect = false;
+                    break;
                 }
-            });
+            }
+
+            const toast = document.getElementById('lbl-l2-toast');
+            if(isCorrect) {
+                toast.innerText = "🎉 Magnificent! The tile structure matches the Zoo Registry perfectly!";
+                toast.style.color = "#34d399";
+                playAssetSound('success');
+            } else {
+                toast.innerText = "❌ Incorrect tile counts. Check the top notice board box and try again.";
+                toast.style.color = "#f87171";
+                playAssetSound('wrong'); 
+            }
         }
 
-        function playBeep(f1, f2) {
-            if (!audioCtx) return;
-            try {
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain); gain.connect(audioCtx.destination);
-                const now = audioCtx.currentTime;
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(f1, now);
-                if (f2) osc.frequency.setValueAtTime(f2, now + 0.1);
-                gain.gain.setValueAtTime(0.1, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
-                osc.start(now); osc.stop(now + 0.3);
-            } catch(e) {}
+        function renderL2BarGraph() {
+            if (!l2Ctx) return;
+            const w = l2Canvas.width, h = l2Canvas.height;
+            l2Ctx.clearRect(0, 0, w, h);
+
+            // Clean background fill matching solid image reference
+            l2Ctx.fillStyle = '#033c2a'; 
+            l2Ctx.fillRect(0, 0, w, h);
+
+            const padL = 40, padB = 45, padT = 25, padR = 20;
+            const gw = w - padL - padR, gh = h - padT - padB;
+
+            const colW = gw / barCategories.length;
+            const tileH = gh / maxBarValue;
+
+            // Color palettes for the mathematical item tiles
+            const themes = [
+                "#ef4444",  // Red
+                "#3b82f6",  // Blue
+                "#f59e0b",  // Yellow/Orange
+                "#8b5cf6"   // Purple
+            ];
+
+            // Render background slot placeholders for ALL tiles first
+            for (let c = 0; c < barCategories.length; c++) {
+                let bx = padL + c * colW + colW * 0.15;
+                let bw = colW * 0.7;
+
+                for (let r = 1; r <= maxBarValue; r++) {
+                    let by = padT + gh - (r * tileH);
+                    
+                    // Empty background slot border box tile placeholder
+                    l2Ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+                    l2Ctx.lineWidth = 1;
+                    l2Ctx.strokeRect(bx, by + 1, bw, tileH - 2);
+                    
+                    // Add subtle inner dot center for clear alignment placement
+                    l2Ctx.fillStyle = 'rgba(255, 255, 255, 0.08)';
+                    l2Ctx.fillRect(bx + bw/2 - 2, by + tileH/2 - 2, 4, 4);
+                }
+            }
+
+            // Draw Y-Axis label steps corresponding to horizontal rows
+            for (let i = 0; i <= maxBarValue; i++) {
+                let gy = padT + gh - (i * tileH);
+                l2Ctx.fillStyle = '#ffffff';
+                l2Ctx.font = 'bold 11px monospace';
+                l2Ctx.fillText(i, 15, i === 0 ? gy - 2 : gy + 5);
+            }
+
+            // Draw Active Stacked Color Tiles
+            for (let c = 0; c < barCategories.length; c++) {
+                let currentVal = activeBarData[c];
+                let bx = padL + c * colW + colW * 0.15;
+                let bw = colW * 0.7;
+
+                for (let r = 1; r <= currentVal; r++) {
+                    let by = padT + gh - (r * tileH);
+
+                    // Solid Tile Fill Block
+                    l2Ctx.fillStyle = themes[c];
+                    l2Ctx.fillRect(bx, by + 1, bw, tileH - 2);
+
+                    // 3D Highlight top cap overlay look
+                    l2Ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+                    l2Ctx.fillRect(bx, by + 1, bw, 3);
+
+                    // Drop Shadow base bottom cap accent line
+                    l2Ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                    l2Ctx.fillRect(bx, by + tileH - 2, bw, 2);
+
+                    // Bright Yellow/Gold selection outline wrapping each single unit cube
+                    l2Ctx.strokeStyle = '#fef08a';
+                    l2Ctx.lineWidth = 1.5;
+                    l2Ctx.strokeRect(bx, by + 1, bw, tileH - 2);
+                }
+
+                // Text Readout value badge above tile column
+                let textY = padT + gh - (currentVal * tileH) - 6;
+                if(currentVal > 0) {
+                    l2Ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                    l2Ctx.fillRect(bx + bw/2 - 10, textY - 11, 20, 14);
+                }
+                l2Ctx.fillStyle = '#ffffff';
+                l2Ctx.font = 'bold 12px monospace';
+                l2Ctx.fillText(currentVal, bx + bw/2 - 4, textY);
+
+                // Category Bottom Labels Ribbon Containers
+                l2Ctx.fillStyle = 'rgba(1, 36, 26, 0.85)';
+                l2Ctx.fillRect(bx - 4, padT + gh + 6, bw + 8, 18);
+
+                l2Ctx.fillStyle = '#ffffff';
+                l2Ctx.font = 'bold 11px sans-serif';
+                l2Ctx.fillText(barCategories[c], bx + bw/2 - 21, padT + gh + 19);
+            }
+
+            // Ground architectural deck platform rule line
+            l2Ctx.strokeStyle = '#78350f';
+            l2Ctx.lineWidth = 4;
+            l2Ctx.beginPath(); l2Ctx.moveTo(padL, padT + gh); l2Ctx.lineTo(w - padR, padT + gh); l2Ctx.stroke();
         }
     </script>
 </body>
