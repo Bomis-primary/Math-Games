@@ -334,16 +334,31 @@
     </div>
 
     <script>
-        // Audio Asset Engine Mapping Your Files
+        // Audio Asset Configurations - Swapping generic clicks away from wrong.mp3
         const audioAssets = {
-            click: new Audio('assets/wrong.mp3'), // Using short tap audio behaviors
             correct: new Audio('assets/correct.mp3'),
             wrong: new Audio('assets/wrong.mp3'),
-            success: new Audio('assets/freesound_community-claps-44774.mp3') // Your applause file
+            success: new Audio('assets/freesound_community-claps-44774.mp3')
         };
 
-        // Custom sound settings to lower volume on basic click elements
-        audioAssets.click.volume = 0.3;
+        // Synthesize a neutral, soft mechanical blip for routine taps/clicks so 'wrong.mp3' doesn't fire
+        function playNeutralClickSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.08);
+            } catch (e) {
+                console.log("Web Audio blip fell back");
+            }
+        }
 
         function playAssetSound(type) {
             try {
@@ -434,7 +449,7 @@
             document.getElementById('tab-l2').classList.toggle('active', lvl === 2);
             document.getElementById('panel-l1').classList.toggle('active', lvl === 1);
             document.getElementById('panel-l2').classList.toggle('active', lvl === 2);
-            playAssetSound('click');
+            playNeutralClickSound();
             
             setTimeout(() => {
                 recalculateCanvasResolutions();
@@ -527,9 +542,8 @@
                 }
             ];
 
-            // Shuffle algorithm to randomize query selections across app restarts
             let shuffled = masterQuestions.sort(() => 0.5 - Math.random());
-            challengePool = shuffled.slice(0, 4); // Select a fresh batch of 4 questions
+            challengePool = shuffled.slice(0, 4); 
         }
 
         function loadL1Task() {
@@ -560,7 +574,7 @@
             for (let i = 0; i < 3; i++) {
                 document.getElementById(`opt-${i}`).classList.toggle('selected', i === idx);
             }
-            playAssetSound('click');
+            playNeutralClickSound();
         }
 
         function verifyL1Answer() {
@@ -581,7 +595,7 @@
                 l1AnimationTimer = 35;
                 document.getElementById('lbl-status-toast').innerText = "❌ Incorrect analysis. Re-tally column configurations.";
                 document.getElementById('lbl-status-toast').style.color = "#f87171";
-                playAssetSound('wrong');
+                playAssetSound('wrong'); // Strictly firing asset when wrong
             }
         }
 
@@ -712,7 +726,7 @@
                         
                         if(calculatedVal >= 0 && calculatedVal <= maxBarValue) {
                             activeBarData[colIdx] = calculatedVal;
-                            playAssetSound('click');
+                            playNeutralClickSound();
                         }
                     }
                 }
@@ -733,7 +747,7 @@
             activeBarData = [0, 0, 0, 0];
             document.getElementById('lbl-l2-toast').innerText = "Graph values cleared. Start again!";
             document.getElementById('lbl-l2-toast').style.color = "#fbbf24";
-            playAssetSound('wrong');
+            playAssetSound('wrong'); // Intentional wrong sound layout feedback
         }
 
         function verifyL2GraphSolution() {
@@ -753,7 +767,7 @@
             } else {
                 toast.innerText = "❌ Incorrect counts. Check the top notice board box and readjust bars.";
                 toast.style.color = "#f87171";
-                playAssetSound('wrong');
+                playAssetSound('wrong'); // Fired strictly on mismatch metrics
             }
         }
 
