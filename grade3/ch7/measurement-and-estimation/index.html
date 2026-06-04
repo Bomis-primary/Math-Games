@@ -3,40 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Measurement & Estimation - Category Matching</title>
+<title>Measurement & Estimation Game</title>
 <style>
-  body { margin:0; font-family: Arial, sans-serif; background: #FFF8F0; display:flex; flex-direction:column; align-items:center; }
-  h2 { color:#8A2BE2; text-align:center; margin-top:20px; }
-  #game { display:flex; flex-wrap: wrap; justify-content:center; margin-top:30px; }
-  .card { width:100px; height:100px; border:2px solid #8A2BE2; margin:10px; display:flex; justify-content:center; align-items:center; cursor:pointer; background:white; border-radius:10px; }
-  .card img { max-width:80%; max-height:80%; }
-  .matched { border:3px solid #4CAF50; background:#C8E6C9; cursor:default; }
-  #feedback { margin-top:20px; font-size:18px; color:#8A2BE2; }
-  button { margin-top:20px; padding:10px 20px; font-size:16px; background:#8A2BE2; color:white; border:none; border-radius:10px; cursor:pointer; }
+body { margin:0; font-family: Arial, sans-serif; background: #FFF8F0; display:flex; flex-direction:column; align-items:center; }
+h2 { color:#8A2BE2; text-align:center; margin-top:20px; }
+#game, #estimationGame { display:flex; flex-wrap: wrap; justify-content:center; margin-top:30px; }
+.card { width:100px; height:100px; border:2px solid #8A2BE2; margin:10px; display:flex; justify-content:center; align-items:center; cursor:pointer; background:white; border-radius:10px; }
+.card img { max-width:80%; max-height:80%; }
+.matched { border:3px solid #4CAF50; background:#C8E6C9; cursor:default; }
+#feedback { margin-top:20px; font-size:18px; color:#8A2BE2; }
+button { margin-top:20px; padding:10px 20px; font-size:16px; background:#8A2BE2; color:white; border:none; border-radius:10px; cursor:pointer; }
+.option { margin:10px; padding:10px 20px; background:#FF9800; color:white; border-radius:8px; cursor:pointer; }
+.option:hover { background:#FFB74D; }
 </style>
 </head>
 <body>
 
-<h2>Measurement & Estimation Matching Game</h2>
-<p>Match each object to its measurement category!</p>
+<h2>Measurement & Estimation Game</h2>
+<p id="instruction">Match each object to its measurement category!</p>
+
+<!-- Part 1: Category Matching -->
 <div id="game"></div>
 <div id="feedback"></div>
-<button onclick="startGame()">Restart Game</button>
+<button id="nextButton" onclick="startEstimation()" style="display:none;">Next → Estimation</button>
+
+<!-- Part 2: Estimation -->
+<div id="estimationGame" style="display:none;"></div>
+<div id="estimationFeedback" style="font-size:18px; color:#8A2BE2; margin-top:10px;"></div>
+
+<button id="restartButton" onclick="restartGame()" style="display:none;">Restart Game</button>
 
 <script>
-let firstCard = null;
-let secondCard = null;
-let lock = false;
-let matchedCount = 0;
+let firstCard=null, secondCard=null, lock=false, matchedCount=0;
 
-// Categories with icon images
+// ----------- PART 1: Category Matching -------------
 const categories = [
   {name:'Length', img:'assets/length.png'},
   {name:'Weight', img:'assets/weight.png'},
   {name:'Capacity', img:'assets/capacity.png'}
 ];
 
-// Object cards
 const objects = [
   {img:'assets/ruler.png', category:'Length'},
   {img:'assets/tape.png', category:'Length'},
@@ -48,65 +54,53 @@ const objects = [
   {img:'assets/milk_carton.png', category:'Capacity'}
 ];
 
-function startGame() {
-  firstCard=null;
-  secondCard=null;
-  lock=false;
-  matchedCount=0;
+function startGame(){
+  firstCard=null; secondCard=null; lock=false; matchedCount=0;
   document.getElementById('feedback').textContent='';
-
-  // Combine objects and category cards for the grid
+  document.getElementById('nextButton').style.display='none';
+  document.getElementById('restartButton').style.display='none';
+  document.getElementById('instruction').textContent='Match each object to its measurement category!';
+  
   let cards=[];
   objects.forEach(o=>cards.push({...o, type:'object'}));
-  categories.forEach(c=>cards.push({...c, category:c.name, type:'category'}));
-
-  // Shuffle cards
-  for(let i=cards.length-1;i>0;i--){
-    const j=Math.floor(Math.random()*(i+1));
-    [cards[i],cards[j]]=[cards[j],cards[i]];
-  }
-
-  // Render grid
+  categories.forEach(c=>cards.push({...c, type:'category', category:c.name}));
+  
+  shuffle(cards);
+  
   const gameDiv=document.getElementById('game');
   gameDiv.innerHTML='';
-  cards.forEach((c,index)=>{
+  cards.forEach((c,i)=>{
     const cardDiv=document.createElement('div');
     cardDiv.className='card';
     cardDiv.dataset.category=c.category;
-    cardDiv.dataset.index=index;
-
-    const img=document.createElement('img');
-    img.src=c.img;
+    cardDiv.dataset.index=i;
+    const img=document.createElement('img'); img.src=c.img;
     cardDiv.appendChild(img);
-
     cardDiv.addEventListener('click',()=>flipCard(cardDiv));
     gameDiv.appendChild(cardDiv);
   });
+  document.getElementById('game').style.display='flex';
+  document.getElementById('estimationGame').style.display='none';
 }
+
+function shuffle(array){ for(let i=array.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [array[i],array[j]]=[array[j],array[i]]; } }
 
 function flipCard(card){
   if(lock || card.classList.contains('matched') || card===firstCard) return;
-
   card.style.border='3px solid #FF9800';
-
-  if(!firstCard){
-    firstCard=card;
-  } else {
-    secondCard=card;
-    checkMatch();
-  }
+  if(!firstCard){ firstCard=card; } else { secondCard=card; checkMatch(); }
 }
 
 function checkMatch(){
   lock=true;
   if(firstCard.dataset.category===secondCard.dataset.category){
-    firstCard.classList.add('matched');
-    secondCard.classList.add('matched');
+    firstCard.classList.add('matched'); secondCard.classList.add('matched');
     matchedCount+=2;
     document.getElementById('feedback').textContent='✅ Correct match!';
     resetTurn();
     if(matchedCount===objects.length + categories.length){
-      document.getElementById('feedback').textContent='🎉 All matched! Well done!';
+      document.getElementById('feedback').textContent='🎉 All matched! Click Next to continue.';
+      document.getElementById('nextButton').style.display='inline-block';
     }
   } else {
     document.getElementById('feedback').textContent='❌ Try again!';
@@ -118,13 +112,72 @@ function checkMatch(){
   }
 }
 
-function resetTurn(){
-  firstCard=null;
-  secondCard=null;
-  lock=false;
+function resetTurn(){ firstCard=null; secondCard=null; lock=false; }
+
+// ----------- PART 2: Estimation -------------
+const estimationQuestions=[
+  {img:'assets/tree.png', full:50, scale:0.5, unit:'m', options:[25,50,75], answer:25},
+  {img:'assets/plant.png', full:1, scale:0.5, unit:'m', options:[0.5,1,2], answer:0.5},
+  {img:'assets/flagpole.png', full:5, scale:0.5, unit:'m', options:[2,5,7], answer:2},
+  {img:'assets/pencil.png', full:15, scale:0.5, unit:'cm', options:[10,15,20], answer:10},
+  {img:'assets/apple.png', full:150, scale:0.5, unit:'g', options:[50,100,150], answer:75},
+  {img:'assets/bag_flour.png', full:1000, scale:0.5, unit:'g', options:[500,1000,2000], answer:500},
+  {img:'assets/bottle.png', full:500, scale:0.5, unit:'ml', options:[250,500,750], answer:250},
+  {img:'assets/milk_carton.png', full:1000, scale:0.5, unit:'ml', options:[500,1000,2000], answer:500},
+  {img:'assets/measuring_cup.png', full:250, scale:0.5, unit:'ml', options:[100,125,250], answer:125},
+  {img:'assets/toy_car.png', full:500, scale:0.5, unit:'g', options:[250,500,750], answer:250}
+];
+
+let estimationIndex=0;
+
+function startEstimation(){
+  document.getElementById('game').style.display='none';
+  document.getElementById('nextButton').style.display='none';
+  document.getElementById('instruction').textContent='Estimate the measurement of the object!';
+  estimationIndex=0;
+  showEstimationQuestion();
+  document.getElementById('estimationGame').style.display='flex';
 }
 
-// Initialize game
+function showEstimationQuestion(){
+  const q=estimationQuestions[estimationIndex];
+  const container=document.getElementById('estimationGame');
+  container.innerHTML='';
+  
+  const img=document.createElement('img'); img.src=q.img; img.style.width=(q.scale*200)+'px';
+  container.appendChild(img);
+  
+  q.options.forEach(opt=>{
+    const btn=document.createElement('button');
+    btn.className='option';
+    btn.textContent=opt + ' ' + q.unit;
+    btn.onclick=()=>checkEstimationAnswer(opt);
+    container.appendChild(btn);
+  });
+  
+  document.getElementById('estimationFeedback').textContent='';
+}
+
+function checkEstimationAnswer(opt){
+  const q=estimationQuestions[estimationIndex];
+  if(opt===q.answer){
+    document.getElementById('estimationFeedback').textContent='✅ Correct!';
+  } else {
+    document.getElementById('estimationFeedback').textContent=`❌ Incorrect! Correct answer: ${q.answer} ${q.unit}`;
+  }
+  estimationIndex++;
+  setTimeout(()=>{
+    if(estimationIndex<estimationQuestions.length){
+      showEstimationQuestion();
+    } else {
+      document.getElementById('estimationFeedback').textContent='🎉 Estimation game completed! Well done!';
+      document.getElementById('restartButton').style.display='inline-block';
+    }
+  },1500);
+}
+
+function restartGame(){ startGame(); document.getElementById('restartButton').style.display='none'; }
+
 startGame();
 </script>
 
