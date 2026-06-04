@@ -194,13 +194,18 @@
             background: #374151;
             border: 1px solid #4b5563;
             color: #f1f5f9;
-            padding: 12px 6px;
-            font-size: 0.85rem;
+            padding: 10px 4px;
+            font-size: 0.8rem;
             font-weight: 700;
             border-radius: 8px;
             cursor: pointer;
             text-align: center;
             transition: all 0.15s ease;
+        }
+        .tool-btn.active-mode {
+            background: #7c3aed;
+            border-color: #a78bfa;
+            color: #ffffff;
         }
 
         /* Footer Submit Triggers */
@@ -233,6 +238,7 @@
 </head>
 <body>
 
+    <!-- Minimal White Splash Screen -->
     <div id="hard-splash">
         <div class="splash-content-wrapper">
             <div class="splash-logo-container">
@@ -243,11 +249,13 @@
 
     <div id="viewport-root">
         
+        <!-- Mode Switcher Header Navigation -->
         <div class="level-switcher">
             <button class="mode-tab active" id="tab-l1" onclick="switchLevelMode(1)">Level 1: Verification Test</button>
             <button class="mode-tab" id="tab-l2" onclick="switchLevelMode(2)">Level 2: Creative Sandbox</button>
         </div>
 
+        <!-- ================= LEVEL 1 PANEL ================= -->
         <div id="panel-l1" class="panel active">
             <div class="lab-display">
                 <div class="control-panel">
@@ -267,11 +275,12 @@
             <button class="action-dispatch-btn" id="btn-submit-l1" onclick="verifyL1Answer()">Verify Pattern Code</button>
         </div>
 
+        <!-- ================= LEVEL 2 PANEL ================= -->
         <div id="panel-l2" class="panel">
             <div class="lab-display">
                 <div class="control-panel">
                     <div class="ticker-title">Symmetry Tile Grid</div>
-                    <div class="ticker-problem">Tap any tile on the left side of the screen. Watch it color and reflect across the center mirror line immediately!</div>
+                    <div class="ticker-problem">Select a axis matrix mode below, then tap any tile to watch the canvas reflect your creation instantly!</div>
                 </div>
             </div>
 
@@ -279,10 +288,15 @@
                 <canvas id="l2-canvas"></canvas>
             </div>
 
+            <!-- Simplified Grid Controllers -->
             <div class="sandbox-controls">
                 <div class="tool-row">
-                    <button class="tool-btn" style="background:#475569;" onclick="clearSandboxCanvas()">Clear All Tiles</button>
-                    <button class="tool-btn" style="background:#7c3aed; color:#ffffff;" onclick="triggerClassPresentation()">Present to Class</button>
+                    <button class="tool-btn active-mode" id="sym-vertical" onclick="setSymmetryAxis('vertical')">Vertical ↔</button>
+                    <button class="tool-btn" id="sym-horizontal" onclick="setSymmetryAxis('horizontal')">Horizontal ↕</button>
+                    <button class="tool-btn" id="sym-quad" onclick="setSymmetryAxis('quad')">4-Way ✛</button>
+                </div>
+                <div class="tool-row">
+                    <button class="tool-btn" style="background:#475569; border-color:#64748b;" onclick="clearSandboxCanvas()">Clear All Tiles</button>
                 </div>
             </div>
         </div>
@@ -302,11 +316,12 @@
         let l1AnimationTimer = 0;
         let l1AnimationType = 'none';
 
-        // Level 2 Parameters (Fixed Tile Grid Map Matrix)
+        // Level 2 Parameters
         let l2Canvas, l2Ctx;
-        const gridCols = 12; // 6 left, 6 right
+        const gridCols = 12; 
         const gridRows = 10;
-        let activeGridMap = []; // 2D array tracking color states
+        let activeGridMap = []; 
+        let symmetryAxisMode = 'vertical'; // 'vertical', 'horizontal', 'quad'
 
         // Standard 5-Second Splash Screen Clock Ticker
         let splashElapsed = 0;
@@ -338,7 +353,7 @@
             loadL1Task();
             initSandboxTileClickHandlers();
 
-            // Core Game Rendering Animation Frame loop
+            // Core Game Rendering Animation Loop
             function coreAppTick() {
                 renderL1Graphics();
                 renderL2TileGrid();
@@ -528,7 +543,16 @@
             }
         }
 
-        // ================= LEVEL 2 SYSTEM ENGINES (GRID TILE EDITION) =================
+        // ================= LEVEL 2 SYSTEM ENGINES =================
+        function setSymmetryAxis(mode) {
+            symmetryAxisMode = mode;
+            document.getElementById('sym-vertical').classList.toggle('active-mode', mode === 'vertical');
+            document.getElementById('sym-horizontal').classList.toggle('active-mode', mode === 'horizontal');
+            document.getElementById('sym-quad').classList.toggle('active-mode', mode === 'quad');
+            resetGridMapData(); // Clear slate when changing symmetry formulas
+            if (audioCtx) triggerToneOutput(587.33, 0);
+        }
+
         function initSandboxTileClickHandlers() {
             function processTileClick(clientX, clientY) {
                 if (activeLevel !== 2) return;
@@ -543,15 +567,27 @@
                 const row = Math.floor(y / tileH);
 
                 if (row >= 0 && row < gridRows && col >= 0 && col < gridCols) {
-                    // Toggle current tile state
-                    const nextState = !activeGridMap[row][col];
-                    activeGridMap[row][col] = nextState;
+                    const targetState = !activeGridMap[row][col];
                     
-                    // Auto calculate horizontal mirror match coordinate index
-                    const mirrorCol = (gridCols - 1) - col;
-                    activeGridMap[row][mirrorCol] = nextState;
+                    // Toggle targeted block
+                    activeGridMap[row][col] = targetState;
+
+                    // Compute complex reflections depending on requested math rules
+                    if (symmetryAxisMode === 'vertical' || symmetryAxisMode === 'quad') {
+                        const mirrorCol = (gridCols - 1) - col;
+                        activeGridMap[row][mirrorCol] = targetState;
+                    }
+                    if (symmetryAxisMode === 'horizontal' || symmetryAxisMode === 'quad') {
+                        const mirrorRow = (gridRows - 1) - row;
+                        activeGridMap[mirrorRow][col] = targetState;
+                    }
+                    if (symmetryAxisMode === 'quad') {
+                        const mirrorCol = (gridCols - 1) - col;
+                        const mirrorRow = (gridRows - 1) - row;
+                        activeGridMap[mirrorRow][mirrorCol] = targetState;
+                    }
                     
-                    triggerToneOutput(400 + (row * 30), 0);
+                    triggerToneOutput(400 + (row * 25), 0);
                 }
             }
 
@@ -568,11 +604,6 @@
             resetGridMapData();
         }
 
-        function triggerClassPresentation() {
-            triggerToneOutput(440, 880);
-            alert("✨ Classroom Presentation Live ✨\n\nYour grid pattern layout has been synchronized and sent directly to the primary group display screen!");
-        }
-
         function renderL2TileGrid() {
             if (!l2Ctx || activeLevel !== 2) return;
             const w = l2Canvas.width, h = l2Canvas.height;
@@ -585,8 +616,17 @@
             for (let r = 0; r < gridRows; r++) {
                 for (let c = 0; c < gridCols; c++) {
                     if (activeGridMap[r][c]) {
-                        // Left side gets active cyan color; right side gets active rose mirror color
-                        l2Ctx.fillStyle = (c < gridCols / 2) ? '#38bdf8' : '#e11d48';
+                        // Dynamically calculate cell fill themes depending on quad quadrant
+                        if (symmetryAxisMode === 'vertical') {
+                            l2Ctx.fillStyle = (c < gridCols / 2) ? '#38bdf8' : '#e11d48';
+                        } else if (symmetryAxisMode === 'horizontal') {
+                            l2Ctx.fillStyle = (r < gridRows / 2) ? '#38bdf8' : '#fbbf24';
+                        } else { // Quad 4-Way Colors
+                            if (c < gridCols / 2 && r < gridRows / 2) l2Ctx.fillStyle = '#38bdf8';
+                            else if (c >= gridCols / 2 && r < gridRows / 2) l2Ctx.fillStyle = '#e11d48';
+                            else if (c < gridCols / 2 && r >= gridRows / 2) l2Ctx.fillStyle = '#fbbf24';
+                            else l2Ctx.fillStyle = '#34d399';
+                        }
                     } else {
                         l2Ctx.fillStyle = '#1f2937';
                     }
@@ -600,13 +640,17 @@
                 }
             }
 
-            // Highlighting central reflection axis line divide
-            l2Ctx.strokeStyle = '#db2777';
-            l2Ctx.lineWidth = 4;
-            l2Ctx.beginPath(); 
-            l2Ctx.moveTo(w / 2, 0); 
-            l2Ctx.lineTo(w / 2, h); 
-            l2Ctx.stroke();
+            // Draw axis line dividers
+            if (symmetryAxisMode === 'vertical' || symmetryAxisMode === 'quad') {
+                l2Ctx.strokeStyle = '#db2777';
+                l2Ctx.lineWidth = 4;
+                l2Ctx.beginPath(); l2Ctx.moveTo(w / 2, 0); l2Ctx.lineTo(w / 2, h); l2Ctx.stroke();
+            }
+            if (symmetryAxisMode === 'horizontal' || symmetryAxisMode === 'quad') {
+                l2Ctx.strokeStyle = '#db2777';
+                l2Ctx.lineWidth = 4;
+                l2Ctx.beginPath(); l2Ctx.moveTo(0, h / 2); l2Ctx.lineTo(w, h / 2); l2Ctx.stroke();
+            }
         }
 
         function triggerToneOutput(f1, f2) {
