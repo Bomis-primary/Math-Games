@@ -17,6 +17,7 @@
         /* Custom Theme-Compliant Scrollbars */
         ::-webkit-scrollbar {
             width: 6px;
+            height: 6px;
         }
         ::-webkit-scrollbar-track {
             background: #011c16;
@@ -32,7 +33,6 @@
         body, html {
             width: 100%;
             height: 100%;
-            /* Solid deep forest green background */
             background-color: #033c2a; 
             color: #f1f5f9;
             overflow: hidden;
@@ -45,7 +45,7 @@
             width: 100%;
             max-width: 440px;
             height: 100%;
-            max-height: 740px;
+            max-height: 780px;
             display: flex;
             flex-direction: column;
             padding: 14px;
@@ -80,32 +80,38 @@
             object-fit: contain;
         }
 
-        /* Level Switcher tabs */
-        .level-switcher {
+        /* Level Switcher Container and Layout controls */
+        .level-switcher-container {
             display: flex;
+            flex-direction: column;
+            gap: 4px;
             background: #01241a;
             border: 2px solid #047857;
             border-radius: 12px;
             padding: 4px;
+        }
+        .level-switcher-row {
+            display: flex;
             gap: 4px;
         }
         .mode-tab {
             flex: 1;
             padding: 8px 4px;
             text-align: center;
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             font-weight: 700;
-            border-radius: 8px;
+            border-radius: 6px;
             cursor: pointer;
             background: transparent;
             color: #a7f3d0;
             border: none;
             transition: all 0.2s ease;
+            line-height: 1.2;
         }
         .mode-tab.active {
             background: #059669;
             color: #ffffff;
-            box-shadow: 0 2px 10px rgba(5, 150, 105, 0.6);
+            box-shadow: 0 2px 8px rgba(5, 150, 105, 0.6);
         }
 
         /* Panels layout elements */
@@ -141,7 +147,7 @@
             letter-spacing: 0.8px;
         }
         .ticker-problem {
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             font-weight: 600;
             color: #ffffff;
             margin-top: 2px;
@@ -150,7 +156,7 @@
 
         .simulation-frame {
             flex-grow: 1;
-            min-height: 240px;
+            min-height: 260px;
             background: #111827;
             border: 3px solid #78350f;
             border-radius: 14px;
@@ -167,7 +173,7 @@
         .sandbox-controls {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
             background: #01241a;
             padding: 10px;
             border-radius: 14px;
@@ -191,22 +197,8 @@
             text-align: center;
             transition: all 0.15s ease;
         }
-        .tool-btn.active {
-            background: #2563eb;
-            border-color: #60a5fa;
-            color: #ffffff;
-        }
-        .palette-btn {
-            flex: 1;
-            height: 28px;
-            border-radius: 6px;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: transform 0.1s;
-        }
-        .palette-btn.active {
-            border-color: #ffffff;
-            transform: scale(1.1);
+        .tool-btn:active {
+            transform: scale(0.98);
         }
 
         .status-banner {
@@ -215,6 +207,7 @@
             font-size: 0.8rem;
             min-height: 18px;
             text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            padding: 0 4px;
         }
     </style>
 </head>
@@ -223,17 +216,23 @@
     <div id="hard-splash">
         <div class="splash-content-wrapper">
             <div class="splash-logo-container">
-                <img src="assets/logo.png" class="splash-img" alt="Innovine Solutions">
+                <img src="assets/logo.png" class="splash-img" alt="Innovine Solutions" onerror="this.style.display='none'; document.getElementById('splash-fallback').style.display='block';">
+                <div id="splash-fallback" style="display:none; font-size:24px; font-weight:bold; color:#033c2a; text-align:center;">PATTERN LAB</div>
             </div>
         </div>
     </div>
 
     <div id="viewport-root">
         
-        <div class="level-switcher">
-            <button class="mode-tab active" id="tab-l1" onclick="switchLevelMode(1)">Level 1: Mirror Symmetry</button>
-            <button class="mode-tab" id="tab-l2" onclick="switchLevelMode(2)">Level 2: Sequence Patterns</button>
-            <button class="mode-tab" id="tab-l3" onclick="switchLevelMode(3)">Level 3: Creator Studio</button>
+        <div class="level-switcher-container">
+            <div class="level-switcher-row">
+                <button class="mode-tab active" id="tab-l1" onclick="switchLevelMode(1)">L1: Mirror Symmetrical</button>
+                <button class="mode-tab" id="tab-l2" onclick="switchLevelMode(2)">L2: Sequence Chain</button>
+            </div>
+            <div class="level-switcher-row">
+                <button class="mode-tab" id="tab-l3" onclick="switchLevelMode(3)">L3: Quad Rotation</button>
+                <button class="mode-tab" id="tab-l4" onclick="switchLevelMode(4)">L4: Matrix Transform</button>
+            </div>
         </div>
 
         <div id="panel-l1" class="panel active">
@@ -277,25 +276,37 @@
         <div id="panel-l3" class="panel">
             <div class="lab-display">
                 <div class="control-panel">
-                    <div class="ticker-title">Level 3 Sandbox Laboratory</div>
-                    <div class="ticker-problem" id="lbl-l3-desc">Symmetry Engine Active. Draw freely to auto-reflect your artwork across horizontal and vertical mirror folds!</div>
+                    <div class="ticker-title" id="lbl-l3-counter">Matrix 1 of 3</div>
+                    <div class="ticker-problem">Rotational Quad-Symmetry active! The top-left quadrant holds the master matrix seed. Rotate and fill the other three quadrants to establish equilibrium.</div>
                 </div>
             </div>
             <div class="simulation-frame">
                 <canvas id="l3-canvas"></canvas>
             </div>
-            <div class="status-banner" id="lbl-l3-toast" style="color: #67e8f9;">Select a generator tool and custom color block to design original geometry formulas!</div>
+            <div class="status-banner" id="lbl-l3-toast" style="color: #67e8f9;">Replicate the master seed symmetrically across all 4 sectors.</div>
             <div class="sandbox-controls">
-                <div class="ticker-title">Symmetry Engine Generator Controls</div>
                 <div class="tool-row">
-                    <button class="tool-btn active" id="tool-l3-mirror" onclick="setL3Mode('mirror')">Four-Fold Mirror</button>
-                    <button class="tool-btn" id="tool-l3-repeat" onclick="setL3Mode('repeat')">Tessellate Tiling</button>
+                    <button class="tool-btn" style="background:#475569;" onclick="resetL3Grid()">Clear Workspace</button>
+                    <button class="tool-btn" style="background:#059669; color:#fff;" onclick="verifyL3Rotation()">Verify Quad Assembly</button>
                 </div>
-                <div class="tool-row" style="margin-top: 2px; gap: 4px;" id="l3-palette-container">
-                    </div>
-                <div class="tool-row" style="margin-top: 2px;">
-                    <button class="tool-btn" style="background:#475569;" onclick="clearL3Canvas()">Clear Field</button>
-                    <button class="tool-btn" style="background:#7c3aed; color:#fff;" onclick="presentL3ToClass()">Present Art Studio</button>
+            </div>
+        </div>
+
+        <div id="panel-l4" class="panel">
+            <div class="lab-display">
+                <div class="control-panel">
+                    <div class="ticker-title" id="lbl-l4-counter">Operation 1 of 3</div>
+                    <div class="ticker-problem">Matrix shift active! Analyze the left input block and apply the operation rule on the right workspace canvas matrix.</div>
+                </div>
+            </div>
+            <div class="simulation-frame">
+                <canvas id="l4-canvas"></canvas>
+            </div>
+            <div class="status-banner" id="lbl-l4-toast" style="color: #c084fc;">Execute the target matrix inversion rule carefully.</div>
+            <div class="sandbox-controls">
+                <div class="tool-row">
+                    <button class="tool-btn" style="background:#475569;" onclick="resetL4Grid()">Clear Layout Matrix</button>
+                    <button class="tool-btn" style="background:#059669; color:#fff;" onclick="verifyL4Transform()">Verify Shift Vector</button>
                 </div>
             </div>
         </div>
@@ -316,13 +327,13 @@
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(500, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.06, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+                osc.frequency.setValueAtTime(540, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start();
-                osc.stop(audioCtx.currentTime + 0.08);
+                osc.stop(audioCtx.currentTime + 0.06);
             } catch (e) {
                 console.log("Audio fallback active");
             }
@@ -355,20 +366,33 @@
         let l2Round = 0;
         const totalL2Rounds = 3;
         const colorPalette = ["#ef4444", "#3b82f6", "#f59e0b", "#10b981"]; // Red, Blue, Yellow, Green
-        
         const l2Challenges = [
-            { pattern: [0, 1, 0, 1], itemsCount: 8, editableStart: 4 }, // ABAB...
-            { pattern: [2, 2, 3, 2, 2, 3], itemsCount: 9, editableStart: 6 }, // AABAAB...
-            { pattern: [0, 1, 2, 0, 1, 2], itemsCount: 9, editableStart: 5 }  // ABCABC...
+            { pattern: [0, 1, 0, 1], itemsCount: 8, editableStart: 4 }, 
+            { pattern: [2, 2, 3, 2, 2, 3], itemsCount: 9, editableStart: 6 }, 
+            { pattern: [0, 1, 2, 0, 1, 2], itemsCount: 9, editableStart: 5 }  
         ];
         let l2CurrentState = [];
 
         // Level 3 Parameters
         let l3Canvas, l3Ctx;
-        const l3GridDimension = 8; 
-        let l3GridMatrix = []; 
-        let l3ActiveMode = 'mirror'; // 'mirror' (4-fold) or 'repeat' (tessellate)
-        let l3SelectedColorIdx = 0;
+        const l3GridSize = 6; // Must be even
+        let l3Round = 0;
+        const totalL3Rounds = 3;
+        let l3MasterSeed = []; // Top-left quadrant data
+        let l3PlayerMatrix = []; // Interactive grid matrix full size
+
+        // Level 4 Parameters
+        let l4Canvas, l4Ctx;
+        const l4GridSize = 4;
+        let l4Round = 0;
+        const totalL4Rounds = 3;
+        let l4InputMatrix = [];
+        let l4PlayerMatrix = [];
+        const l4TransformRules = [
+            { desc: "Invert Matrix Colors: Turn empty slots active and active slots empty!", rule: "invert" },
+            { desc: "Shift Columns Right: Displace every column element one step to the right!", rule: "shift-right" },
+            { desc: "Horizontal Reflection flip: Flip the input matrix upside down!", rule: "flip-v" }
+        ];
 
         // 5-Second Splash Ticker 
         let splashElapsed = 0;
@@ -395,12 +419,14 @@
             l2Ctx = l2Canvas.getContext('2d');
             l3Canvas = document.getElementById('l3-canvas');
             l3Ctx = l3Canvas.getContext('2d');
+            l4Canvas = document.getElementById('l4-canvas');
+            l4Ctx = l4Canvas.getContext('2d');
 
             recalculateCanvasResolutions();
             generateL1SymmetryChallenge();
             generateL2SequenceChallenge();
-            clearL3Canvas();
-            buildL3ColorPaletteEngine();
+            generateL3RotationChallenge();
+            generateL4TransformChallenge();
             initInputEventHandlers();
 
             function coreAppTick() {
@@ -409,7 +435,9 @@
                 } else if (activeLevel === 2) {
                     renderL2SequenceWorkspace();
                 } else if (activeLevel === 3) {
-                    renderL3CreatorWorkspace();
+                    renderL3RotationWorkspace();
+                } else if (activeLevel === 4) {
+                    renderL4TransformWorkspace();
                 }
                 requestAnimationFrame(coreAppTick);
             }
@@ -417,26 +445,25 @@
         }
 
         function recalculateCanvasResolutions() {
-            [l1Canvas, l2Canvas, l3Canvas].forEach(c => {
+            [l1Canvas, l2Canvas, l3Canvas, l4Canvas].forEach(c => {
                 if (c && c.parentNode) {
                     const rect = c.parentNode.getBoundingClientRect();
                     c.width = rect.width || 400;
-                    c.height = rect.height || 280;
+                    c.height = rect.height || 260;
                 }
             });
         }
 
         function switchLevelMode(lvl) {
             activeLevel = lvl;
-            document.getElementById('tab-l1').classList.toggle('active', lvl === 1);
-            document.getElementById('tab-l2').classList.toggle('active', lvl === 2);
-            document.getElementById('tab-l3').classList.toggle('active', lvl === 3);
-            
-            document.getElementById('panel-l1').classList.toggle('active', lvl === 1);
-            document.getElementById('panel-l2').classList.toggle('active', lvl === 2);
-            document.getElementById('panel-l3').classList.toggle('active', lvl === 3);
+            for(let i=1; i<=4; i++) {
+                const tab = document.getElementById(`tab-l1`);
+                if(document.getElementById(`tab-l${i}`)) {
+                    document.getElementById(`tab-l${i}`).classList.toggle('active', lvl === i);
+                    document.getElementById(`panel-l${i}`).classList.toggle('active', lvl === i);
+                }
+            }
             playNeutralClickSound();
-            
             setTimeout(() => {
                 recalculateCanvasResolutions();
             }, 40);
@@ -523,7 +550,7 @@
             l1Ctx.fillStyle = '#033c2a';
             l1Ctx.fillRect(0, 0, w, h);
 
-            const gridPadding = 20;
+            const gridPadding = 16;
             const boardSize = Math.min(w, h) - (gridPadding * 2);
             const startX = (w - boardSize) / 2;
             const startY = (h - boardSize) / 2;
@@ -542,21 +569,21 @@
                     } else {
                         l1Ctx.fillStyle = l1TargetMatrix[r][c] ? "#ef4444" : "rgba(255, 255, 255, 0.15)";
                     }
-                    l1Ctx.fillRect(cx + 2, cy + 2, cellSize - 4, cellSize - 4);
+                    l1Ctx.fillRect(cx + 1.5, cy + 1.5, cellSize - 3, cellSize - 3);
 
                     if ((isPlayerSide && l1PlayerMatrix[r][c]) || (!isPlayerSide && l1TargetMatrix[r][c])) {
                         l1Ctx.strokeStyle = '#fef08a';
-                        l1Ctx.lineWidth = 1.5;
-                        l1Ctx.strokeRect(cx + 2, cy + 2, cellSize - 4, cellSize - 4);
+                        l1Ctx.lineWidth = 1;
+                        l1Ctx.strokeRect(cx + 1.5, cy + 1.5, cellSize - 3, cellSize - 3);
                     }
 
-                    l1Ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                    l1Ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
                     l1Ctx.lineWidth = 1;
                     l1Ctx.strokeRect(cx, cy, cellSize, cellSize);
 
                     if (isPlayerSide && !l1PlayerMatrix[r][c]) {
                         l1Ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
-                        l1Ctx.fillRect(cx + cellSize/2 - 2, cy + cellSize/2 - 2, 4, 4);
+                        l1Ctx.fillRect(cx + cellSize/2 - 1.5, cy + cellSize/2 - 1.5, 3, 3);
                     }
                 }
             }
@@ -649,9 +676,9 @@
             const maxPerRow = 5; 
             const rowsCount = Math.ceil(totalCells / maxPerRow);
             
-            const cellW = Math.min(60, (w - 50) / maxPerRow);
+            const cellW = Math.min(54, (w - 50) / maxPerRow);
             const cellH = cellW;
-            const gap = 12;
+            const gap = 10;
 
             const gridTotalW = (Math.min(totalCells, maxPerRow) * cellW) + ((Math.min(totalCells, maxPerRow) - 1) * gap);
             const startX = (w - gridTotalW) / 2;
@@ -671,126 +698,105 @@
                     l2Ctx.fillRect(cx, cy, cellW, cellH);
 
                     l2Ctx.strokeStyle = 'rgba(251, 191, 36, 0.5)';
-                    l2Ctx.lineWidth = 2;
+                    l2Ctx.lineWidth = 1.5;
                     l2Ctx.strokeRect(cx, cy, cellW, cellH);
 
                     l2Ctx.fillStyle = '#ffffff';
-                    l2Ctx.font = 'bold 18px monospace';
-                    l2Ctx.fillText("?", cx + cellW/2 - 5, cy + cellH/2 + 6);
+                    l2Ctx.font = 'bold 16px monospace';
+                    l2Ctx.fillText("?", cx + cellW/2 - 5, cy + cellH/2 + 5);
                 } else {
                     l2Ctx.fillStyle = colorPalette[val];
                     l2Ctx.fillRect(cx, cy, cellW, cellH);
 
-                    l2Ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
-                    l2Ctx.fillRect(cx, cy, cellW, 3);
+                    l2Ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                    l2Ctx.fillRect(cx, cy, cellW, 2.5);
                     l2Ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
-                    l2Ctx.fillRect(cx, cy + cellH - 3, cellW, 3);
+                    l2Ctx.fillRect(cx, cy + cellH - 2.5, cellW, 2.5);
 
                     l2Ctx.strokeStyle = isEditable ? '#fef08a' : 'rgba(0,0,0,0.3)';
-                    l2Ctx.lineWidth = isEditable ? 2.5 : 1;
+                    l2Ctx.lineWidth = isEditable ? 2 : 1;
                     l2Ctx.strokeRect(cx, cy, cellW, cellH);
                 }
 
                 l2Ctx.fillStyle = 'rgba(255,255,255,0.4)';
                 l2Ctx.font = '9px monospace';
-                l2Ctx.fillText(i + 1, cx + 4, cy + cellH - 5);
+                l2Ctx.fillText(i + 1, cx + 4, cy + cellH - 4);
             }
         }
 
-        // ================= LEVEL 3 ENGINES (NEW) =================
-        function buildL3ColorPaletteEngine() {
-            const container = document.getElementById('l3-palette-container');
-            container.innerHTML = '';
-            colorPalette.forEach((color, idx) => {
-                const btn = document.createElement('button');
-                btn.className = `palette-btn ${idx === l3SelectedColorIdx ? 'active' : ''}`;
-                btn.style.backgroundColor = color;
-                btn.id = `palette-l3-${idx}`;
-                btn.onclick = () => selectL3Color(idx);
-                container.appendChild(btn);
-            });
-            // Append eraser option block
-            const eraser = document.createElement('button');
-            eraser.className = 'palette-btn';
-            eraser.style.background = '#111827';
-            eraser.style.border = '2px dashed #94a3b8';
-            eraser.id = 'palette-l3-eraser';
-            eraser.innerHTML = '🗑️';
-            eraser.onclick = () => selectL3Color(-1);
-            container.appendChild(eraser);
-        }
-
-        function selectL3Color(idx) {
-            l3SelectedColorIdx = idx;
-            const buttons = document.querySelectorAll('.palette-btn');
-            buttons.forEach(btn => btn.classList.remove('active'));
-            if (idx === -1) {
-                document.getElementById('palette-l3-eraser').classList.add('active');
-            } else {
-                document.getElementById(`palette-l3-${idx}`).classList.add('active');
-            }
-            playNeutralClickSound();
-        }
-
-        function setL3Mode(mode) {
-            l3ActiveMode = mode;
-            document.getElementById('tool-l3-mirror').classList.toggle('active', mode === 'mirror');
-            document.getElementById('tool-l3-repeat').classList.toggle('active', mode === 'repeat');
+        // ================= LEVEL 3: ROTATIONAL QUAD-SYMMETRY =================
+        function generateL3RotationChallenge() {
+            document.getElementById('lbl-l3-counter').innerText = `Matrix ${l3Round + 1} of ${totalL3Rounds}`;
+            const quadSize = l3GridSize / 2;
             
-            const desc = document.getElementById('lbl-l3-desc');
-            if (mode === 'mirror') {
-                desc.innerText = "Four-Fold Symmetry Fold: Color tiles on one quadrant to mirror across horizontal and vertical axis planes automatically!";
-            } else {
-                desc.innerText = "Tessellate Tiling Loop: Colors assigned here repeat perfectly across alternative modular shifts to form a seamless grid layout pattern!";
-            }
-            playNeutralClickSound();
-        }
+            // Generate seed for Top-Left quadrant
+            l3MasterSeed = Array(quadSize).fill(0).map(() => Array(quadSize).fill(false));
+            l3PlayerMatrix = Array(l3GridSize).fill(0).map(() => Array(l3GridSize).fill(false));
 
-        function clearL3Canvas() {
-            l3GridMatrix = Array(l3GridDimension).fill(0).map(() => Array(l3GridDimension).fill(-1));
-            document.getElementById('lbl-l3-toast').innerText = "Studio grid initialized. Design structural pattern algorithms.";
+            for (let r = 0; r < quadSize; r++) {
+                for (let c = 0; c < quadSize; c++) {
+                    l3MasterSeed[r][c] = Math.random() < 0.5;
+                    // Copy seed into top-left player matrix segment automatically
+                    l3PlayerMatrix[r][c] = l3MasterSeed[r][c];
+                }
+            }
+            document.getElementById('lbl-l3-toast').innerText = "Rotate tiles into place to match the master seed quadrant.";
             document.getElementById('lbl-l3-toast').style.color = "#67e8f9";
         }
 
-        function processL3CellClick(row, col) {
-            if (row < 0 || row >= l3GridDimension || col < 0 || col >= l3GridDimension) return;
-            
-            const valueToApply = l3SelectedColorIdx;
-
-            if (l3ActiveMode === 'mirror') {
-                // Determine 4-fold mirror nodes
-                const rMirror = (l3GridDimension - 1) - row;
-                const cMirror = (l3GridDimension - 1) - col;
-
-                l3GridMatrix[row][col] = valueToApply;
-                l3GridMatrix[rMirror][col] = valueToApply;
-                l3GridMatrix[row][cMirror] = valueToApply;
-                l3GridMatrix[rMirror][cMirror] = valueToApply;
-            } else if (l3ActiveMode === 'repeat') {
-                // Quadrant tile block loop repetition pattern (4x4 stamp to 8x8)
-                const baseRow = row % 4;
-                const baseCol = col % 4;
-
-                for (let r = 0; r < l3GridDimension; r++) {
-                    for (let c = 0; c < l3GridDimension; c++) {
-                        if (r % 4 === baseRow && c % 4 === baseCol) {
-                            l3GridMatrix[r][c] = valueToApply;
-                        }
+        function resetL3Grid() {
+            const quadSize = l3GridSize / 2;
+            for (let r = 0; r < l3GridSize; r++) {
+                for (let c = 0; c < l3GridSize; c++) {
+                    // Keep the top-left master seed quadrant untouched
+                    if (!(r < quadSize && c < quadSize)) {
+                        l3PlayerMatrix[r][c] = false;
                     }
                 }
             }
-            playNeutralClickSound();
+            document.getElementById('lbl-l3-toast').innerText = "Interactive zones reset. Perform layout reflection.";
+            document.getElementById('lbl-l3-toast').style.color = "#67e8f9";
+            playAssetSound('wrong');
         }
 
-        function presentL3ToClass() {
-            playAssetSound('success');
+        function verifyL3Rotation() {
+            const quadSize = l3GridSize / 2;
+            let checkPass = true;
+
+            for (let r = 0; r < quadSize; r++) {
+                for (let c = 0; c < quadSize; c++) {
+                    let seedVal = l3MasterSeed[r][c];
+
+                    // Check Top-Right Quadrant (Reflected Horizontally)
+                    if (l3PlayerMatrix[r][l3GridSize - 1 - c] !== seedVal) checkPass = false;
+                    // Check Bottom-Left Quadrant (Reflected Vertically)
+                    if (l3PlayerMatrix[l3GridSize - 1 - r][c] !== seedVal) checkPass = false;
+                    // Check Bottom-Right Quadrant (Reflected on Both Axes)
+                    if (l3PlayerMatrix[l3GridSize - 1 - r][l3GridSize - 1 - c] !== seedVal) checkPass = false;
+                }
+            }
+
             const toast = document.getElementById('lbl-l3-toast');
-            toast.innerText = "✨ Creative design submitted successfully to the classroom projection billboard!";
-            toast.style.color = "#a7f3d0";
-            alert("🎨 Class Presentation Simulator Active 🎨\n\nYour customized original symmetry blueprint art structure has been processed and shared successfully with the digital virtual board!");
+            if (checkPass) {
+                l3Round++;
+                if (l3Round >= totalL3Rounds) {
+                    toast.innerText = "🎉 Unbelievable! Full radial quad-symmetry completely aligned!";
+                    toast.style.color = "#34d399";
+                    playAssetSound('success');
+                } else {
+                    toast.innerText = "✓ Quad match valid! Constructing next radial node structural array...";
+                    toast.style.color = "#34d399";
+                    playAssetSound('correct');
+                    setTimeout(() => generateL3RotationChallenge(), 1200);
+                }
+            } else {
+                toast.innerText = "❌ Axis rotational imbalance detected. Recheck reflection steps!";
+                toast.style.color = "#f87171";
+                playAssetSound('wrong');
+            }
         }
 
-        function renderL3CreatorWorkspace() {
+        function renderL3RotationWorkspace() {
             if (!l3Ctx) return;
             const w = l3Canvas.width, h = l3Canvas.height;
             l3Ctx.clearRect(0, 0, w, h);
@@ -798,68 +804,206 @@
             l3Ctx.fillStyle = '#033c2a';
             l3Ctx.fillRect(0, 0, w, h);
 
-            const gridPadding = 15;
+            const gridPadding = 16;
             const boardSize = Math.min(w, h) - (gridPadding * 2);
             const startX = (w - boardSize) / 2;
             const startY = (h - boardSize) / 2;
-            const cellSize = boardSize / l3GridDimension;
+            const cellSize = boardSize / l3GridSize;
+            const quadSize = l3GridSize / 2;
 
-            for (let r = 0; r < l3GridDimension; r++) {
-                for (let c = 0; c < l3GridDimension; c++) {
+            for (let r = 0; r < l3GridSize; r++) {
+                for (let c = 0; c < l3GridSize; c++) {
                     let cx = startX + (c * cellSize);
                     let cy = startY + (r * cellSize);
-                    let colorVal = l3GridMatrix[r][c];
+                    let isSeedZone = (r < quadSize && c < quadSize);
 
-                    if (colorVal === -1) {
-                        l3Ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
+                    if (isSeedZone) {
+                        l3Ctx.fillStyle = l3PlayerMatrix[r][c] ? "#ec4899" : "rgba(255, 255, 255, 0.18)";
                     } else {
-                        l3Ctx.fillStyle = colorPalette[colorVal];
+                        l3Ctx.fillStyle = l3PlayerMatrix[r][c] ? "#06b6d4" : "rgba(255, 255, 255, 0.04)";
                     }
-                    l3Ctx.fillRect(cx + 1, cy + 1, cellSize - 2, cellSize - 2);
+                    l3Ctx.fillRect(cx + 1.5, cy + 1.5, cellSize - 3, cellSize - 3);
 
-                    // Cell Outline Border bounds
-                    l3Ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-                    l3Ctx.lineWidth = 1;
+                    if (l3PlayerMatrix[r][c]) {
+                        l3Ctx.strokeStyle = '#fef08a';
+                        l3Ctx.lineWidth = 1;
+                        l3Ctx.strokeRect(cx + 1.5, cy + 1.5, cellSize - 3, cellSize - 3);
+                    }
+
+                    l3Ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
                     l3Ctx.strokeRect(cx, cy, cellSize, cellSize);
                 }
             }
 
-            // Draw alignment helper structures if mirror mode active
-            if (l3ActiveMode === 'mirror') {
-                l3Ctx.strokeStyle = 'rgba(251, 191, 36, 0.4)';
-                l3Ctx.lineWidth = 2;
-                l3Ctx.setLineDash([4, 4]);
-                
-                // Vertical Center Fold Line
-                let midX = startX + (boardSize / 2);
-                l3Ctx.beginPath(); l3Ctx.moveTo(midX, startY); l3Ctx.lineTo(midX, startY + boardSize); l3Ctx.stroke();
-                
-                // Horizontal Center Fold Line
-                let midY = startY + (boardSize / 2);
-                l3Ctx.beginPath(); l3Ctx.moveTo(startX, midY); l3Ctx.lineTo(startX + boardSize, midY); l3Ctx.stroke();
-                
-                l3Ctx.setLineDash([]);
-            } else {
-                // Tessellation guide bounds separator
-                l3Ctx.strokeStyle = 'rgba(34, 197, 94, 0.35)';
-                l3Ctx.lineWidth = 1.5;
-                let midX = startX + (boardSize / 2);
-                let midY = startY + (boardSize / 2);
-                l3Ctx.strokeRect(startX, startY, boardSize/2, boardSize/2);
-                l3Ctx.strokeRect(midX, midY, boardSize/2, boardSize/2);
+            // Draw axis lines crossing through center point
+            l3Ctx.strokeStyle = '#eab308';
+            l3Ctx.lineWidth = 3;
+            // Vertical split
+            l3Ctx.beginPath();
+            l3Ctx.moveTo(startX + (quadSize * cellSize), startY - 4);
+            l3Ctx.lineTo(startX + (quadSize * cellSize), startY + boardSize + 4);
+            l3Ctx.stroke();
+            // Horizontal split
+            l3Ctx.beginPath();
+            l3Ctx.moveTo(startX - 4, startY + (quadSize * cellSize));
+            l3Ctx.lineTo(startX + boardSize + 4, startY + (quadSize * cellSize));
+            l3Ctx.stroke();
+        }
+
+        // ================= LEVEL 4: MATRIX GRID TRANSFORMATIONS =================
+        function generateL4TransformChallenge() {
+            document.getElementById('lbl-l4-counter').innerText = `Operation ${l4Round + 1} of ${totalL4Rounds}`;
+            l4InputMatrix = Array(l4GridSize).fill(0).map(() => Array(l4GridSize).fill(false));
+            l4PlayerMatrix = Array(l4GridSize).fill(0).map(() => Array(l4GridSize).fill(false));
+
+            // Populate input array configuration dynamically
+            for (let r = 0; r < l4GridSize; r++) {
+                for (let c = 0; c < l4GridSize; c++) {
+                    l4InputMatrix[r][c] = Math.random() < 0.45;
+                }
             }
+
+            const currentRuleObj = l4TransformRules[l4Round % l4TransformRules.length];
+            document.getElementById('lbl-l4-toast').innerText = currentRuleObj.desc;
+            document.getElementById('lbl-l4-toast').style.color = "#c084fc";
+        }
+
+        function resetL4Grid() {
+            for (let r = 0; r < l4GridSize; r++) {
+                for (let c = 0; c < l4GridSize; c++) {
+                    l4PlayerMatrix[r][c] = false;
+                }
+            }
+            document.getElementById('lbl-l4-toast').innerText = "Workspace cleared. Implement operation logic.";
+            document.getElementById('lbl-l4-toast').style.color = "#c084fc";
+            playAssetSound('wrong');
+        }
+
+        function verifyL4Transform() {
+            const currentRule = l4TransformRules[l4Round % l4TransformRules.length].rule;
+            let rulePasses = true;
+
+            for (let r = 0; r < l4GridSize; r++) {
+                for (let c = 0; c < l4GridSize; c++) {
+                    let expectedState = false;
+
+                    if (currentRule === "invert") {
+                        expectedState = !l4InputMatrix[r][c];
+                    } else if (currentRule === "shift-right") {
+                        let prevCol = (c === 0) ? l4GridSize - 1 : c - 1;
+                        expectedState = l4InputMatrix[r][prevCol];
+                    } else if (currentRule === "flip-v") {
+                        expectedState = l4InputMatrix[l4GridSize - 1 - r][c];
+                    }
+
+                    if (l4PlayerMatrix[r][c] !== expectedState) {
+                        rulePasses = false;
+                        break;
+                    }
+                }
+            }
+
+            const toast = document.getElementById('lbl-l4-toast');
+            if (rulePasses) {
+                l4Round++;
+                if (l4Round >= totalL4Rounds) {
+                    toast.innerText = "🎉 Magnificent! Linear matrix transformation lab verified completely!";
+                    toast.style.color = "#34d399";
+                    playAssetSound('success');
+                } else {
+                    toast.innerText = "✓ Output array matched logic vector! Transforming next configuration...";
+                    toast.style.color = "#34d399";
+                    playAssetSound('correct');
+                    setTimeout(() => generateL4TransformChallenge(), 1500);
+                }
+            } else {
+                toast.innerText = "❌ Transform error. Output matrix logic deviates from rule vector!";
+                toast.style.color = "#f87171";
+                playAssetSound('wrong');
+            }
+        }
+
+        function renderL4TransformWorkspace() {
+            if (!l4Ctx) return;
+            const w = l4Canvas.width, h = l4Canvas.height;
+            l4Ctx.clearRect(0, 0, w, h);
+
+            l4Ctx.fillStyle = '#033c2a';
+            l4Ctx.fillRect(0, 0, w, h);
+
+            // Double board layout arrangement side by side
+            const pad = 12;
+            const availableW = (w - (pad * 3)) / 2;
+            const boardSize = Math.min(availableW, h - (pad * 2));
+
+            const startY = (h - boardSize) / 2;
+            const leftStartX = (w - (boardSize * 2 + pad * 2)) / 2;
+            const rightStartX = leftStartX + boardSize + (pad * 2);
+
+            const cellSize = boardSize / l4GridSize;
+
+            // Render Left Master Input Display Screen Matrix
+            for (let r = 0; r < l4GridSize; r++) {
+                for (let c = 0; c < l4GridSize; c++) {
+                    let cx = leftStartX + (c * cellSize);
+                    let cy = startY + (r * cellSize);
+
+                    l4Ctx.fillStyle = l4InputMatrix[r][c] ? "#a855f7" : "rgba(255, 255, 255, 0.1)";
+                    l4Ctx.fillRect(cx + 1, cy + 1, cellSize - 2, cellSize - 2);
+
+                    l4Ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                    l4Ctx.strokeRect(cx, cy, cellSize, cellSize);
+                }
+            }
+
+            // Render Right Workspace Player Canvas Matrix
+            for (let r = 0; r < l4GridSize; r++) {
+                for (let c = 0; c < l4GridSize; c++) {
+                    let cx = rightStartX + (c * cellSize);
+                    let cy = startY + (r * cellSize);
+
+                    l4Ctx.fillStyle = l4PlayerMatrix[r][c] ? "#22c55e" : "rgba(255, 255, 255, 0.04)";
+                    l4Ctx.fillRect(cx + 1, cy + 1, cellSize - 2, cellSize - 2);
+
+                    if (l4PlayerMatrix[r][c]) {
+                        l4Ctx.strokeStyle = '#fef08a';
+                        l4Ctx.lineWidth = 1;
+                        l4Ctx.strokeRect(cx + 1, cy + 1, cellSize - 2, cellSize - 2);
+                    }
+
+                    l4Ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                    l4Ctx.strokeRect(cx, cy, cellSize, cellSize);
+
+                    if (!l4PlayerMatrix[r][c]) {
+                        l4Ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                        l4Ctx.fillRect(cx + cellSize/2 - 1, cy + cellSize/2 - 1, 2, 2);
+                    }
+                }
+            }
+
+            // Optional indicator text overlays labels
+            l4Ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            l4Ctx.font = 'bold 9px sans-serif';
+            l4Ctx.fillText("INPUT ARRAY", leftStartX + 4, startY - 4);
+            l4Ctx.fillText("WORKSPACE OUTPUT", rightStartX + 4, startY - 4);
         }
 
         // ================= UNIFIED EVENT TAP DISPATCHERS =================
         function initInputEventHandlers() {
             function handleScreenInteraction(clientX, clientY) {
-                const currentCanvas = activeLevel === 1 ? l1Canvas : (activeLevel === 2 ? l2Canvas : l3Canvas);
-                const rect = currentCanvas.getBoundingClientRect();
+                let targetCanvas;
+                if (activeLevel === 1) targetCanvas = l1Canvas;
+                else if (activeLevel === 2) targetCanvas = l2Canvas;
+                else if (activeLevel === 3) targetCanvas = l3Canvas;
+                else if (activeLevel === 4) targetCanvas = l4Canvas;
+
+                if (!targetCanvas) return;
+                const rect = targetCanvas.getBoundingClientRect();
                 const x = clientX - rect.left;
                 const y = clientY - rect.top;
 
                 if (activeLevel === 1) {
-                    const gridPadding = 20;
+                    const gridPadding = 16;
                     const boardSize = Math.min(l1Canvas.width, l1Canvas.height) - (gridPadding * 2);
                     const startX = (l1Canvas.width - boardSize) / 2;
                     const startY = (l1Canvas.height - boardSize) / 2;
@@ -884,9 +1028,9 @@
                     const totalCells = challenge.itemsCount;
                     const maxPerRow = 5;
                     const rowsCount = Math.ceil(totalCells / maxPerRow);
-                    const cellW = Math.min(60, (l2Canvas.width - 50) / maxPerRow);
+                    const cellW = Math.min(54, (l2Canvas.width - 50) / maxPerRow);
                     const cellH = cellW;
-                    const gap = 12;
+                    const gap = 10;
 
                     const gridTotalW = (Math.min(totalCells, maxPerRow) * cellW) + ((Math.min(totalCells, maxPerRow) - 1) * gap);
                     const startX = (l2Canvas.width - gridTotalW) / 2;
@@ -907,34 +1051,56 @@
                         }
                     }
                 } else if (activeLevel === 3) {
-                    const gridPadding = 15;
+                    const gridPadding = 16;
                     const boardSize = Math.min(l3Canvas.width, l3Canvas.height) - (gridPadding * 2);
                     const startX = (l3Canvas.width - boardSize) / 2;
                     const startY = (l3Canvas.height - boardSize) / 2;
-                    const cellSize = boardSize / l3GridDimension;
+                    const cellSize = boardSize / l3GridSize;
+                    const quadSize = l3GridSize / 2;
 
                     if (x >= startX && x <= startX + boardSize && y >= startY && y <= startY + boardSize) {
                         const col = Math.floor((x - startX) / cellSize);
                         const row = Math.floor((y - startY) / cellSize);
-                        processL3CellClick(row, col);
+                        // Prevent editing the master seed top-left quadrant sector zone
+                        let isSeedZone = (row < quadSize && col < quadSize);
+                        
+                        if (!isSeedZone && row >= 0 && row < l3GridSize && col >= 0 && col < l3GridSize) {
+                            l3PlayerMatrix[row][col] = !l3PlayerMatrix[row][col];
+                            playNeutralClickSound();
+                        }
+                    }
+                } else if (activeLevel === 4) {
+                    const pad = 12;
+                    const availableW = (l4Canvas.width - (pad * 3)) / 2;
+                    const boardSize = Math.min(availableW, l4Canvas.height - (pad * 2));
+                    const startY = (l4Canvas.height - boardSize) / 2;
+                    const leftStartX = (l4Canvas.width - (boardSize * 2 + pad * 2)) / 2;
+                    const rightStartX = leftStartX + boardSize + (pad * 2);
+                    const cellSize = boardSize / l4GridSize;
+
+                    // Ensure mouse coordinates fall inside the interaction active right panel boundaries
+                    if (x >= rightStartX && x <= rightStartX + boardSize && y >= startY && y <= startY + boardSize) {
+                        const col = Math.floor((x - rightStartX) / cellSize);
+                        const row = Math.floor((y - startY) / cellSize);
+
+                        if (row >= 0 && row < l4GridSize && col >= 0 && col < l4GridSize) {
+                            l4PlayerMatrix[row][col] = !l4PlayerMatrix[row][col];
+                            playNeutralClickSound();
+                        }
                     }
                 }
             }
 
-            l1Canvas.addEventListener('mousedown', (e) => handleScreenInteraction(e.clientX, e.clientY));
-            l2Canvas.addEventListener('mousedown', (e) => handleScreenInteraction(e.clientX, e.clientY));
-            l3Canvas.addEventListener('mousedown', (e) => handleScreenInteraction(e.clientX, e.clientY));
-
-            l1Canvas.addEventListener('touchstart', (e) => {
-                if (e.touches && e.touches[0]) handleScreenInteraction(e.touches[0].clientX, e.touches[0].clientY);
-            }, { passive: true });
-            l2Canvas.addEventListener('touchstart', (e) => {
-                if (e.touches && e.touches[0]) handleScreenInteraction(e.touches[0].clientX, e.touches[0].clientY);
-            }, { passive: true });
-            l3Canvas.addEventListener('touchstart', (e) => {
-                if (e.touches && e.touches[0]) handleScreenInteraction(e.touches[0].clientX, e.touches[0].clientY);
-            }, { passive: true });
+            // Universal Attachments Listener hooks
+            [l1Canvas, l2Canvas, l3Canvas, l4Canvas].forEach((cvs) => {
+                cvs.addEventListener('mousedown', (e) => handleScreenInteraction(e.clientX, e.clientY));
+                cvs.addEventListener('touchstart', (e) => {
+                    if (e.touches && e.touches[0]) handleScreenInteraction(e.touches[0].clientX, e.touches[0].clientY);
+                }, { passive: true });
+            });
         }
+
+        window.addEventListener('resize', recalculateCanvasResolutions);
     </script>
 </body>
-</html>7
+</html>
