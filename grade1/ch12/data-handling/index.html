@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Milo's Toy Party</title>
 <style>
-  * { box-sizing: border-box; margin:0; padding:0; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: Arial, sans-serif; overflow: hidden; }
 
   .screen { display: none; height: 100vh; width: 100vw; justify-content: center; align-items: center; flex-direction: column; }
@@ -15,46 +15,55 @@
   #splash { background: #ffffff; }
   .logo { max-width: 250px; }
 
-  /* Start screen with background image */
-  #start { 
-    background: url('/mnt/data/1a0e5a8d-e751-4262-a323-cee05ae5d4cb.png') center/cover no-repeat;
-    width: 100%; 
+  /* Start screen with uploaded background */
+  #start {
+    background: url('/mnt/data/ac01eba0-2313-4c93-8e1c-7d42c3c30614.png') center/cover no-repeat;
+    width: 100%;
     height: 100%;
-    text-align: center;
     position: relative;
-    color: #fff;
+    text-align: center;
   }
-  #start h1 { font-size: 3em; margin-top: 50px; text-shadow: 2px 2px 4px #000; }
-  #start button { padding: 16px 36px; font-size: 22px; font-weight: bold; border-radius: 12px; border:none; background:#ffbf00; cursor:pointer; position:absolute; bottom:50px; left:50%; transform:translateX(-50%); }
+  #start h1 {
+    font-size: 3em;
+    margin-top: 50px;
+    color: #fff;
+    text-shadow: 2px 2px 4px #000;
+  }
+  #start button {
+    padding: 16px 36px;
+    font-size: 22px;
+    font-weight: bold;
+    border-radius: 12px;
+    border: none;
+    background: #ffbf00;
+    cursor: pointer;
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
 
   /* Game screen */
-  #game { position: relative; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100vh; background: #e0f7fa; }
-
-  /* Top HUD */
-  .topbar { width: 100%; display: flex; justify-content: space-around; margin-bottom: 10px; font-weight: bold; font-size: 20px; color: #000; }
-
-  /* Track */
-  .track-zone { position: relative; width: 90%; height: 120px; margin: 10px auto; }
-  .track { position: absolute; bottom: 10px; left: 0; width: 100%; height: 16px; background: repeating-linear-gradient(90deg, #555, #555 10px, #aaa 10px, #aaa 20px); border-top:4px solid #333; border-bottom:4px solid #333; border-radius: 4px; }
-  .train { position: absolute; bottom: 22px; left: 2%; font-size: 55px; transition: left 0.9s ease; }
-
-  /* Question Card */
-  .question-card { max-width: 850px; width: 95%; margin: 5px auto 20px auto; background: rgba(255,255,255,0.96); border-radius: 28px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.12); }
-  .question { font-size: 24px; font-weight: bold; margin: 10px 0; }
-  .options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 15px; }
-  .option { background: #fff; border: 3px solid #74b9ff; border-radius: 16px; padding: 15px; font-size: 22px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; }
-  .option:hover { background: #eaf6ff; }
-
+  #game {
+    display: none;
+    height: 100vh;
+    width: 100vw;
+    background: #e0f7fa;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    position: relative;
+  }
 </style>
 </head>
 <body>
 
-<!-- Splash screen with original logo -->
+<!-- Splash screen -->
 <section id="splash" class="screen active">
   <img src="assets/logo.png" class="logo" alt="Innovine Logo">
 </section>
 
-<!-- Start screen with merged background -->
+<!-- Start screen -->
 <section id="start" class="screen">
   <h1>Milo's Toy Party</h1>
   <button id="startBtn">Start Game 🟢</button>
@@ -62,81 +71,23 @@
 
 <!-- Game screen -->
 <section id="game" class="screen">
-  <div class="topbar">
-    <div>Score: <span id="score">0</span></div>
-    <div>Time: <span id="time">60</span>s</div>
-  </div>
-
-  <div class="track-zone">
-    <div class="track"></div>
-    <div id="train" class="train">🚂</div>
-  </div>
-
-  <div class="question-card">
-    <div id="question">Question will appear here</div>
-    <div id="options" class="options"></div>
-  </div>
+  <h2>Game Started!</h2>
 </section>
 
 <script>
-const questions = [
-  { q: "What number comes just after 7?", options: ["6","7","8","9"], answer: "8" },
-  { q: "What number comes just before 15?", options: ["14","15","16","13"], answer: "14" },
-  { q: "Fill the missing number: 23, 24, __, 26", options: ["25","27","24","28"], answer: "25" },
-  { q: "Which is the greatest number?", options: ["42","37","50","45"], answer: "50" },
-  { q: "Which is the smallest number?", options: ["17","23","19","15"], answer: "15" },
-  { q: "What number has 4 tens and 7 ones?", options: ["47","74","40","70"], answer: "47" },
-  { q: "What number has 0 tens and 9 ones?", options: ["9","90","19","99"], answer: "9" },
-  { q: "Arrange in ascending order: 12, 9, 15", options: ["9,12,15","15,12,9","12,15,9","9,15,12"], answer: "9,12,15" },
-  { q: "Arrange in descending order: 22, 18, 25", options: ["25,22,18","18,22,25","22,18,25","25,18,22"], answer: "25,22,18" },
-  { q: "Fill the missing number: 30, __, 32", options: ["31","33","30","32"], answer: "31" }
-];
-
-let current = 0, score = 0;
-
 window.onload = function() {
-  // Show splash screen for 5 seconds
-  setTimeout(()=>{
+  // Splash screen for 5 seconds
+  setTimeout(() => {
     document.getElementById("splash").classList.remove("active");
     document.getElementById("start").classList.add("active");
-  },5000);
+  }, 5000);
 
-  // Make start button functional
-  document.getElementById("startBtn").addEventListener("click", startGame);
-};
-
-function startGame() {
-  document.getElementById("start").classList.remove("active");
-  document.getElementById("game").classList.add("active");
-  score = 0;
-  current = 0;
-  document.getElementById("score").textContent = score;
-  loadQuestion();
-}
-
-function loadQuestion() {
-  const q = questions[current];
-  document.getElementById("question").textContent = q.q;
-
-  const optionsBox = document.getElementById("options");
-  optionsBox.innerHTML = "";
-  q.options.forEach(opt => {
-    const btn = document.createElement("div");
-    btn.className = "option";
-    btn.textContent = opt;
-    btn.onclick = () => checkAnswer(opt);
-    optionsBox.appendChild(btn);
+  // Start button functionality
+  document.getElementById("startBtn").addEventListener("click", function() {
+    document.getElementById("start").classList.remove("active");
+    document.getElementById("game").classList.add("active");
   });
-}
-
-function checkAnswer(selected) {
-  const q = questions[current];
-  if (selected === q.answer) score++;
-  current++;
-  document.getElementById("score").textContent = score;
-  if (current < questions.length) loadQuestion();
-  else alert("Game finished! Score: " + score + "/" + questions.length);
-}
+};
 </script>
 
 </body>
