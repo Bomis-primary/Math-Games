@@ -3,154 +3,68 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Milo's Toy Party - Optimized</title>
+<title>Milo's Toy Party</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
-body{overflow-x:hidden;background:#f4f4f4;}
-#game{width:100vw;min-height:100vh;background:url("assets/bg.png") center/cover no-repeat;position:relative;}
-.screen{display:none;min-height:100vh;padding:20px;}
-.active{display:flex;justify-content:center;align-items:center;flex-direction:column;}
-h1{font-size:clamp(2rem,5vw,4rem);color:#ff6b00;text-align:center;margin-bottom:15px;}
-h2{font-size:clamp(1.5rem,4vw,3rem);text-align:center;margin-bottom:15px;}
-button{padding:15px 30px;font-size:1.2rem;border:none;border-radius:12px;cursor:pointer;background:#ffd93d;font-weight:bold;margin-top:20px;}
-button:hover{transform:scale(1.05);}
-#scoreBoard{position:fixed;top:10px;right:10px;background:white;padding:10px 20px;border-radius:12px;font-size:1.2rem;font-weight:bold;z-index:999;}
-#toyBox{width:100%;min-height:220px;background:rgba(255,255,255,.9);border:4px dashed #555;border-radius:20px;display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:15px;padding:15px;}
-.toy{width:90px;height:90px;object-fit:contain;cursor:pointer;}
-.basketWrap{text-align:center;position:relative;flex:1;}
-.basketLabel{font-size:1.2rem;font-weight:bold;margin-bottom:8px;background:white;padding:5px 10px;border-radius:8px;display:inline-block;}
-.basket{width:min(220px,35vw);height:min(220px,35vw);background:url("assets/basket.png") center/contain no-repeat;}
-.dropZone{position:absolute;bottom:20px;left:50%;transform:translateX(-50%);width:75%;height:100px;}
-#countCards{display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin-top:20px;}
-.card{background:white;padding:20px;border-radius:20px;width:220px;text-align:center;}
-.card img{width:100px;height:100px;object-fit:contain;}
-.countValue{font-size:3rem;font-weight:bold;}
-#pictographBoard{width:min(900px,95%);background:white;padding:20px;border-radius:20px;margin-top:20px;}
-.graphRow{display:flex;align-items:center;flex-wrap:wrap;margin-bottom:20px;}
-.graphLabel{width:140px;font-weight:bold;font-size:1.2rem;}
-.graphIcons{display:flex;flex-wrap:wrap;gap:6px;}
-.graphIcons img{width:45px;height:45px;}
-.option{background:#d8f0ff;padding:15px;margin:10px auto;border-radius:10px;cursor:pointer;font-size:1.2rem;max-width:400px;text-align:center;}
-.option:hover{background:#bce7ff;}
-#celebrationScreen h1{margin-bottom:20px;}
-#confettiCanvas{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1000;}
-@media(max-width:768px){.toy{width:70px;height:70px;}.graphLabel{width:100%;margin-bottom:8px;}.option{font-size:1rem;}}
+  * { box-sizing: border-box; margin:0; padding:0; }
+  body { font-family: Arial, sans-serif; overflow: hidden; }
+  
+  /* General screen */
+  .screen { display: none; height: 100vh; width: 100vw; justify-content: center; align-items: center; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* Splash screen */
+  #splash { background: #ffffff; }
+  .logo { max-width: 250px; animation: pulse 2s infinite ease-in-out; }
+  @keyframes pulse { 0%,100%{ transform: scale(1); } 50%{ transform: scale(1.05); } }
+
+  /* Start screen */
+  #start { background: #ffffff; text-align: center; }
+  #start button { padding: 16px 36px; font-size: 22px; font-weight: bold; border-radius: 12px; border:none; background:#ffbf00; cursor:pointer; margin-top:20px; }
+
+  /* Game screen */
+  #game { position: relative; background: url('/mnt/data/1a0e5a8d-e751-4262-a323-cee05ae5d4cb.png') center/cover no-repeat; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100vh; }
+
+  /* Game HUD */
+  .topbar { width: 100%; display: flex; justify-content: space-around; margin-bottom: 10px; font-weight: bold; font-size: 20px; color: #fff; text-shadow: 1px 1px 2px #000; }
 </style>
 </head>
 <body>
 
-<div id="scoreBoard">⭐ <span id="score">0</span></div>
+<!-- Splash screen -->
+<section id="splash" class="screen active">
+  <img src="assets/logo.png" class="logo" alt="Innovine Logo">
+</section>
 
-<div id="game">
+<!-- Start screen -->
+<section id="start" class="screen">
+  <h1>Milo's Toy Party</h1>
+  <button onclick="startGame()">Start Game 🟢</button>
+</section>
 
-<!-- WELCOME -->
-<div id="welcomeScreen" class="screen active">
-<img src="assets/monkey.png" style="width:min(250px,60vw);margin-bottom:20px;">
-<h1>Milo's Toy Party</h1>
-<div style="max-width:700px;background:rgba(255,255,255,.9);padding:25px;border-radius:20px;text-align:center;font-size:1.2rem;line-height:1.6;">
-Milo is planning a toy party for his friends. The toys are all mixed up! Help Milo sort, count and organize the toys.
-</div>
-<button id="startBtn">Start Game</button>
-</div>
-
-<!-- SORTING -->
-<div id="sortingScreen" class="screen">
-<h2>Sort the Toys</h2>
-<div id="toyBox"></div>
-<div style="display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-top:30px;">
-  <div class="basketWrap"><div class="basketLabel">Bears</div><div class="basket"></div><div id="bearZone" class="dropZone"></div></div>
-  <div class="basketWrap"><div class="basketLabel">Cars</div><div class="basket"></div><div id="carZone" class="dropZone"></div></div>
-  <div class="basketWrap"><div class="basketLabel">Balls</div><div class="basket"></div><div id="ballZone" class="dropZone"></div></div>
-</div>
-</div>
-
-<!-- COUNT -->
-<div id="countScreen" class="screen" style="flex-direction:column;align-items:center;">
-<h1>Count the Toys</h1>
-<div id="countCards">
-<div class="card"><img src="assets/bear.png"><div id="bearCount" class="countValue">0</div></div>
-<div class="card"><img src="assets/car.png"><div id="carCount" class="countValue">0</div></div>
-<div class="card"><img src="assets/ball.png"><div id="ballCount" class="countValue">0</div></div>
-</div>
-<button id="countNextBtn">Next</button>
-</div>
-
-<!-- PICTOGRAPH -->
-<div id="pictographScreen" class="screen">
-<h1>Pictograph</h1>
-<div id="pictographBoard">
-<div class="graphRow"><div class="graphLabel">Bears</div><div id="bearGraph" class="graphIcons"></div></div>
-<div class="graphRow"><div class="graphLabel">Cars</div><div id="carGraph" class="graphIcons"></div></div>
-<div class="graphRow"><div class="graphLabel">Balls</div><div id="ballGraph" class="graphIcons"></div></div>
-</div>
-<button id="graphNextBtn">Next</button>
-</div>
-
-<!-- QUESTIONS -->
-<div id="questionScreen" class="screen" style="flex-direction:column;align-items:center;">
-<div id="questionBox">
-<div id="questionText" style="font-size:1.6rem;margin-bottom:20px;">Question</div>
-<div id="optionsContainer"></div>
-</div>
-</div>
-
-<!-- CHALLENGE -->
-<div id="challengeScreen" class="screen" style="flex-direction:column;align-items:center;">
-<div style="background:white;padding:25px;border-radius:20px;width:min(800px,95%);text-align:center;">
-<h1>Final Challenge</h1>
-<p id="challengeQuestion"></p>
-<div id="challengeOptions"></div>
-</div>
-</div>
-
-<!-- CELEBRATION -->
-<div id="celebrationScreen" class="screen center">
-<h1>Great Job!</h1>
-<canvas id="confettiCanvas"></canvas>
-<div style="font-size:2rem;font-weight:bold;color:#ff8800;margin-top:20px;" class="badge">Party Helper Award</div>
-<button onclick="location.reload()">Play Again</button>
-</div>
-
-</div>
-
-<audio id="audio-correct" src="assets/right.mp3"></audio>
-<audio id="audio-wrong" src="assets/wrong.mp3"></audio>
+<!-- Game screen -->
+<section id="game" class="screen">
+  <div class="topbar">
+    <div>Score: <span id="score">0</span></div>
+    <div>Time: <span id="time">60</span>s</div>
+  </div>
+  <!-- Toys and interactive elements will go here -->
+</section>
 
 <script>
-// --- GAME STATE ---
-let score=0, bearTotal=0, carTotal=0, ballTotal=0;
-let sortedBears=0, sortedCars=0, sortedBalls=0;
-let selectedToy=null, questions=[], currentQuestion=0;
+  // Show splash screen for 5 seconds
+  window.onload = function() {
+    setTimeout(() => {
+      document.getElementById('splash').classList.remove('active');
+      document.getElementById('start').classList.add('active');
+    }, 5000);
+  }
 
-// --- UTILITIES ---
-function showScreen(id){document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));document.getElementById(id).classList.add("active");}
-function updateScore(){document.getElementById("score").textContent=score;}
-function generateCounts(){do{bearTotal=Math.floor(Math.random()*8)+1;carTotal=Math.floor(Math.random()*8)+1;ballTotal=Math.floor(Math.random()*8)+1;}while(new Set([bearTotal,carTotal,ballTotal]).size<3);}
-function createToy(type){const toy=document.createElement("img");toy.classList.add("toy");toy.dataset.type=type;toy.src=`assets/${type}.png`;toy.draggable=true;attachToyEvents(toy);return toy;}
-function attachToyEvents(toy){toy.addEventListener("dragstart",e=>selectedToy=toy);toy.addEventListener("click",()=>{selectedToy=toy;highlightSelectedToy();});}
-function highlightSelectedToy(){document.querySelectorAll(".toy").forEach(t=>{t.style.outline="none";});if(selectedToy){selectedToy.style.outline="4px solid orange";selectedToy.style.borderRadius="10px";}}
-function handleDrop(toy,zoneId){const type=toy.dataset.type;let correct=false;if(type==="bear"&&zoneId==="bearZone"){correct=true;sortedBears++;}if(type==="car"&&zoneId==="carZone"){correct=true;sortedCars++;}if(type==="ball"&&zoneId==="ballZone"){correct=true;sortedBalls++;}if(correct){score++;updateScore();toy.remove();selectedToy=null;checkSortingComplete();}else{toy.style.transform="rotate(-8deg)";setTimeout(()=>toy.style.transform="rotate(0deg)",250);}}
-function checkSortingComplete(){if(sortedBears+sortedCars+sortedBalls===bearTotal+carTotal+ballTotal){setTimeout(showCountScreen,800);}}
-function loadToys(){const toyBox=document.getElementById("toyBox");toyBox.innerHTML="";["bear","car","ball"].forEach(type=>{const total=type==="bear"?bearTotal:type==="car"?carTotal:ballTotal;for(let i=0;i<total;i++){toyBox.appendChild(createToy(type));}};shuffleToys());}
-function shuffleToys(){const toyBox=document.getElementById("toyBox");Array.from(toyBox.children).sort(()=>Math.random()-0.5).forEach(t=>toyBox.appendChild(t));}
-function showCountScreen(){document.getElementById("bearCount").textContent=bearTotal;document.getElementById("carCount").textContent=carTotal;document.getElementById("ballCount").textContent=ballTotal;showScreen("countScreen");}
-function buildPictograph(){["bear","car","ball"].forEach(type=>{const graph=document.getElementById(type+"Graph");graph.innerHTML="";const total=type==="bear"?bearTotal:type==="car"?carTotal:ballTotal;for(let i=0;i<total;i++){const img=document.createElement("img");img.src=`assets/${type}.png`;graph.appendChild(img);}});generateQuestions();}
-function getMostToy(){return ["Bears","Cars","Balls"].map((n,i)=>({name:n,value:[bearTotal,carTotal,ballTotal][i]})).sort((a,b)=>b.value-a.value)[0].name;}
-function getLeastToy(){return ["Bears","Cars","Balls"].map((n,i)=>({name:n,value:[bearTotal,carTotal,ballTotal][i]})).sort((a,b)=>a.value-b.value)[0].name;}
-function generateQuestions(){questions=[{question:"How many Bears are there?",correct:String(bearTotal),options:[String(bearTotal),String(bearTotal+1),String(Math.max(0,bearTotal-1))]},{question:"How many Cars are there?",correct:String(carTotal),options:[String(carTotal),String(carTotal+1),String(Math.max(0,carTotal-1))]},{question:"How many Balls are there?",correct:String(ballTotal),options:[String(ballTotal),String(ballTotal+1),String(Math.max(0,ballTotal-1))]},{question:"Which toy has the MOST?",correct:getMostToy(),options:["Bears","Cars","Balls"]},{question:"Which toy has the LEAST?",correct:getLeastToy(),options:["Bears","Cars","Balls"]}];questions.sort(()=>Math.random()-0.5);}
-function showQuestion(){const q=questions[currentQuestion];document.getElementById("questionText").textContent=q.question;const container=document.getElementById("optionsContainer");container.innerHTML="";[...q.options].sort(()=>Math.random()-0.5).forEach(option=>{const div=document.createElement("div");div.className="option";div.textContent=option;div.addEventListener("click",()=>{checkAnswer(option);});container.appendChild(div);});}
-function checkAnswer(selectedAnswer){if(String(selectedAnswer)===String(questions[currentQuestion].correct)){score+=5;updateScore();}currentQuestion++;currentQuestion<questions.length?showQuestion():showChallenge();}
-function showChallenge(){showScreen("challengeScreen");const totalToys=bearTotal+carTotal+ballTotal;document.getElementById("challengeQuestion").textContent=`How many toys are there altogether?`;const container=document.getElementById("challengeOptions");container.innerHTML="";[totalToys,totalToys+1,totalToys+2].sort(()=>Math.random()-0.5).forEach(option=>{const btn=document.createElement("div");btn.className="option";btn.textContent=option;btn.addEventListener("click",()=>checkChallenge(option,totalToys));container.appendChild(btn);});}
-function checkChallenge(answer,correct){if(Number(answer)===Number(correct)){score+=10;updateScore();}showCelebration();}
-function showCelebration(){showScreen("celebrationScreen");const badge=document.querySelector(".badge");badge.textContent=score>=35?"Toy Party Champion!":score>=25?"Toy Party Helper!":"Toy Party Friend!";launchConfetti();}
-function launchConfetti(){const canvas=document.getElementById("confettiCanvas");canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight;const ctx=canvas.getContext("2d");const confetti=[];for(let i=0;i<100;i++){confetti.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,dx:Math.random()*2-1,dy:Math.random()*3+2,color:`hsl(${Math.random()*360},80%,60%)`});}function draw(){ctx.clearRect(0,0,canvas.width,canvas.height);confetti.forEach(c=>{ctx.fillStyle=c.color;ctx.fillRect(c.x,c.y,10,10);c.x+=c.dx;c.y+=c.dy;if(c.y>canvas.height){c.y=0;c.x=Math.random()*canvas.width;}});requestAnimationFrame(draw);}draw();}
-
-// --- INITIALIZATION ---
-generateCounts();
-updateScore();
-document.getElementById("startBtn").addEventListener("click",()=>{showScreen("sortingScreen");loadToys();});
-document.getElementById("countNextBtn").addEventListener("click",()=>{buildPictograph();showScreen("pictographScreen");});
-document.getElementById("graphNextBtn").addEventListener("click",()=>{currentQuestion=0;showQuestion();showScreen("questionScreen");});
+  function startGame() {
+    document.getElementById('start').classList.remove('active');
+    document.getElementById('game').classList.add('active');
+    // Initialize game logic here
+    alert('Game starts now!');
+  }
 </script>
 
 </body>
