@@ -26,12 +26,10 @@ body { display:flex; justify-content:center; align-items:center; background:#fff
 </head>
 <body>
 
-<!-- Innovine Logo Screen -->
 <div id="logoScreen">
   <img src="assets/innovine-logo.png" alt="Innovine Logo">
 </div>
 
-<!-- Game Screen -->
 <div id="gameScreen">
   <div id="question"></div>
   <img id="tree" src="" alt="Fruit Tree">
@@ -45,7 +43,6 @@ body { display:flex; justify-content:center; align-items:center; background:#fff
   </div>
 </div>
 
-<!-- End Screen -->
 <div id="endScreen">
   <div>🎉 Good Job! 🎉</div>
   <button id="playAgainBtn" class="btn">Play Again</button>
@@ -58,13 +55,13 @@ body { display:flex; justify-content:center; align-items:center; background:#fff
 <script>
 // Level data
 const levels = [
-  { tree:'assets/apple-tree.png', exampleBaskets:3, exampleFruitsPerBasket:2, correctOption:2, options:["2 groups of 3 apples","3 groups of 2 apples"], dragFruits:6, fruitImg:'assets/apple.png' },
-  { tree:'assets/mango-tree.png', exampleBaskets:5, exampleFruitsPerBasket:2, correctOption:1, options:["5 baskets of 2 mangoes","2 groups of 5 mangoes"], dragFruits:10, fruitImg:'assets/mango.png' },
-  { tree:'assets/orange-tree.png', exampleBaskets:4, exampleFruitsPerBasket:3, correctOption:1, options:["4 baskets of 3 oranges","3 groups of 4 oranges"], dragFruits:12, fruitImg:'assets/orange.png' }
+  { tree:'assets/apple-tree.png', exampleBaskets:3, exampleFruitsPerBasket:2, correctOption:2, options:["2 groups of 3 apples","3 groups of 2 apples"], dragFruits:6, fruitImg:'assets/apple.png', show10Apples:true },
+  { tree:'assets/mango-tree.png', exampleBaskets:5, exampleFruitsPerBasket:2, correctOption:1, options:["5 baskets of 2 mangoes","2 groups of 5 mangoes"], dragFruits:10, fruitImg:'assets/mango.png', show10Apples:false },
+  { tree:'assets/orange-tree.png', exampleBaskets:4, exampleFruitsPerBasket:3, correctOption:1, options:["4 baskets of 3 oranges","3 groups of 4 oranges"], dragFruits:12, fruitImg:'assets/orange.png', show10Apples:false }
 ];
 
 let currentLevel = 0;
-let taskPhase = "MC"; // "MC" = multiple choice, "Drag" = drag & drop
+let taskPhase = "MC";
 
 // DOM Elements
 const logoScreen = document.getElementById('logoScreen');
@@ -83,7 +80,7 @@ const correctSound = document.getElementById('correctSound');
 const wrongSound = document.getElementById('wrongSound');
 const clapSound = document.getElementById('clapSound');
 
-// Start game with logo
+// Start game
 function startGame(){
   logoScreen.style.display='flex';
   setTimeout(()=>{
@@ -93,7 +90,7 @@ function startGame(){
   },5000);
 }
 
-// Load current level
+// Load level
 function loadLevel(){
   const level = levels[currentLevel];
   taskPhase="MC";
@@ -108,7 +105,7 @@ function loadLevel(){
   option1.textContent = level.options[0];
   option2.textContent = level.options[1];
 
-  // Draw example baskets
+  // Example baskets
   for(let i=0;i<level.exampleBaskets;i++){
     let b = document.createElement('div');
     b.className="exampleBasket";
@@ -117,7 +114,7 @@ function loadLevel(){
   }
 }
 
-// Multiple choice click handlers
+// MC click
 option1.addEventListener('click', ()=>checkMC(1));
 option2.addEventListener('click', ()=>checkMC(2));
 
@@ -127,18 +124,23 @@ function checkMC(choice){
     correctSound.play();
     option1.style.display='none';
     option2.style.display='none';
-    prepareDragTask();
+    if(level.show10Apples){
+      prepareDragTaskApple();
+    } else {
+      prepareDragTask(level);
+    }
   } else {
     wrongSound.play();
   }
 }
 
-// Prepare Drag task
-function prepareDragTask(){
+// --- Apple Tree Drag & Drop ---
+let draggedFruitApple = null;
+let collectedAppleCount = 0;
+function prepareDragTaskApple(){
   const level = levels[currentLevel];
   taskPhase="Drag";
   questionDiv.textContent="Task: Collect the correct number of fruits in the basket";
-
   exampleBasketsDiv.innerHTML="";
   for(let i=0;i<level.exampleBaskets;i++){
     let b = document.createElement('div');
@@ -147,30 +149,73 @@ function prepareDragTask(){
     exampleBasketsDiv.appendChild(b);
   }
 
-  // Generate draggable fruits
+  fruitsDiv.innerHTML="";
+  const totalFruitsOnScreen = 10;
+  for(let i=0;i<totalFruitsOnScreen;i++){
+    let f = document.createElement('img');
+    f.src=level.fruitImg;
+    f.className='fruit';
+    f.draggable=true;
+    f.addEventListener('dragstart', dragStartApple);
+    fruitsDiv.appendChild(f);
+  }
+
+  basketDiv.innerHTML="";
+  basketDiv.addEventListener('dragover', dragOverApple);
+  basketDiv.addEventListener('drop', dropFruitApple);
+  nextBtn.style.display='none';
+}
+
+function dragStartApple(e){ draggedFruitApple=e.target; }
+function dragOverApple(e){ e.preventDefault(); }
+function dropFruitApple(e){
+  if(fruitsDiv.contains(draggedFruitApple)){
+    basketDiv.appendChild(draggedFruitApple);
+    collectedAppleCount++;
+  }
+  if(collectedAppleCount===6){
+    correctSound.play();
+    clapSound.play();
+    nextBtn.style.display='inline-block';
+  }
+}
+
+// Generic Drag Task (other trees)
+function prepareDragTask(level){
+  taskPhase="Drag";
+  questionDiv.textContent="Task: Collect the correct number of fruits in the basket";
+  exampleBasketsDiv.innerHTML="";
+  for(let i=0;i<level.exampleBaskets;i++){
+    let b = document.createElement('div');
+    b.className="exampleBasket";
+    b.textContent=level.exampleFruitsPerBasket;
+    exampleBasketsDiv.appendChild(b);
+  }
+
   fruitsDiv.innerHTML="";
   for(let i=0;i<level.dragFruits;i++){
     let f = document.createElement('img');
     f.src=level.fruitImg;
     f.className='fruit';
     f.draggable=true;
-    f.addEventListener('dragstart', dragStart);
+    f.addEventListener('dragstart', dragStartGeneric);
     fruitsDiv.appendChild(f);
   }
 
-  basketDiv.addEventListener('dragover', dragOver);
-  basketDiv.addEventListener('drop', dropFruit);
+  basketDiv.innerHTML="";
+  basketDiv.addEventListener('dragover', dragOverGeneric);
+  basketDiv.addEventListener('drop', dropFruitGeneric);
+  nextBtn.style.display='none';
 }
 
-// Drag & drop handlers
-let draggedFruit=null;
-function dragStart(e){ draggedFruit=e.target; }
-function dragOver(e){ e.preventDefault(); }
-function dropFruit(e){
-  const level = levels[currentLevel];
-  if(fruitsDiv.contains(draggedFruit)){
-    basketDiv.appendChild(draggedFruit);
+let draggedFruitGeneric=null;
+function dragStartGeneric(e){ draggedFruitGeneric=e.target; }
+function dragOverGeneric(e){ e.preventDefault(); }
+function dropFruitGeneric(e){
+  if(fruitsDiv.contains(draggedFruitGeneric)){
+    basketDiv.appendChild(draggedFruitGeneric);
   }
+  const level = levels[currentLevel];
   if(basketDiv.children.length===level.dragFruits){
     correctSound.play();
     clapSound.play();
@@ -180,6 +225,7 @@ function dropFruit(e){
 
 // Next button
 nextBtn.addEventListener('click', ()=>{
+  collectedAppleCount=0;
   currentLevel++;
   if(currentLevel>=levels.length){
     gameScreen.style.display='none';
