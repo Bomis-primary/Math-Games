@@ -7,21 +7,62 @@
 <style>
 html, body { margin:0; padding:0; height:100%; width:100%; font-family: Arial, sans-serif; overflow:hidden; }
 body { display:flex; justify-content:center; align-items:center; background:#fff; }
-#logoScreen, #gameScreen, #endScreen { width:100%; height:100%; position:absolute; top:0; left:0; display:flex; justify-content:center; align-items:center; flex-direction:column; }
+
+#logoScreen, #gameScreen, #endScreen {
+  width:100%; height:100%; position:absolute; top:0; left:0;
+  display:flex; justify-content:center; align-items:center; flex-direction:column;
+}
+
+#logoScreen img { width:200px; }
 #logoScreen { z-index:10; background:#fff; }
-#logoScreen img { width:200px; height:auto; }
-#gameScreen { display:none; flex-direction:column; align-items:center; z-index:1; background: url('assets/garden-bg.png') no-repeat center center; background-size: cover; }
-#tree { width:300px; margin-top:20px; }
-#exampleBaskets { display:flex; justify-content:center; margin:10px 0; gap:15px; }
-.exampleBasket { width:80px; height:60px; background: url('assets/basket.png') no-repeat center center; background-size: contain; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:16px; color:#fff; }
-#fruits { display:flex; flex-wrap: wrap; justify-content:center; margin:20px 0 80px 0; z-index:2; }
-.fruit { width:60px; margin:5px; cursor:grab; z-index:3; }
-#basket { width:200px; height:150px; background: url('assets/basket.png') no-repeat center center; background-size: contain; margin-bottom:20px; position:relative; z-index:4; }
-#buttons { display:flex; gap:20px; margin-top:10px; flex-wrap: wrap; justify-content:center; }
+
+#gameScreen {
+  display:none; background: url('assets/garden-bg.png') no-repeat center bottom;
+  background-size: cover; flex-direction:column; align-items:center; z-index:1; position:relative;
+}
+
+#tree {
+  width:300px;
+  position:absolute;
+  bottom:140px;
+}
+
+#exampleBaskets {
+  display:flex; justify-content:center; gap:15px;
+  position:absolute; bottom:220px;
+}
+
+.exampleBasket {
+  width:80px; height:60px; background: url('assets/basket.png') no-repeat center center;
+  background-size: contain; display:flex; align-items:center; justify-content:center;
+  font-weight:bold; font-size:16px; color:#fff;
+}
+
+#fruits {
+  display:flex; flex-wrap: wrap; justify-content:center;
+  margin-top:20px;
+  position:absolute; bottom:80px;
+  gap:10px;
+}
+
+.fruit { width:60px; cursor:grab; }
+
+#basket {
+  width:200px; height:150px; background: url('assets/basket.png') no-repeat center center;
+  background-size: contain; position:absolute; bottom:20px;
+}
+
+#buttons { display:flex; gap:20px; position:absolute; bottom:-10px; }
+
 .btn { padding:10px 20px; font-size:18px; border:none; border-radius:8px; background:#ff9999; color:#fff; cursor:pointer; }
 .btn:disabled { opacity:0.5; cursor:not-allowed; }
-#question { font-size:22px; color:#333; margin-bottom:10px; text-align:center; }
-#endScreen { display:none; background: url('assets/garden-bg.png') no-repeat center center; background-size: cover; flex-direction:column; justify-content:center; align-items:center; font-size:32px; color:#4CAF50; }
+
+#question { font-size:22px; color:#333; text-align:center; margin-bottom:10px; position:absolute; top:20px; }
+
+#endScreen {
+  display:none; background: url('assets/garden-bg.png') no-repeat center center;
+  background-size: cover; flex-direction:column; justify-content:center; align-items:center; font-size:32px; color:#4CAF50;
+}
 </style>
 </head>
 <body>
@@ -50,17 +91,24 @@ body { display:flex; justify-content:center; align-items:center; background:#fff
 
 <audio id="correctSound" src="assets/correct.mp3"></audio>
 <audio id="wrongSound" src="assets/wrong.mp3"></audio>
-<audio id="clapSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+<audio id="clapSound" src="assets/clap.mp3"></audio>
 
 <script>
 // Level data
 const levels = [
-  { tree:'assets/apple-tree.png', exampleBaskets:3, exampleFruitsPerBasket:2, correctOption:2, options:["2 groups of 3 apples","3 groups of 2 apples"], dragFruits:6, fruitImg:'assets/apple.png', basketFullImg:'assets/apples-basket.png' },
-  { tree:'assets/mango-tree.png', exampleBaskets:5, exampleFruitsPerBasket:2, correctOption:1, options:["5 baskets of 2 mangoes","2 groups of 5 mangoes"], dragFruits:6, fruitImg:'assets/mango.png', basketFullImg:'assets/mango-basket.png' },
-  { tree:'assets/orange-tree.png', exampleBaskets:4, exampleFruitsPerBasket:3, correctOption:1, options:["4 baskets of 3 oranges","3 groups of 4 oranges"], dragFruits:6, fruitImg:'assets/orange.png', basketFullImg:'assets/orange-basket.png' }
+  { tree:'assets/apple-tree.png', exampleBaskets:3, exampleFruitsPerBasket:2, correctOption:2,
+    options:["2 groups of 3 apples","3 groups of 2 apples"], dragFruits:6, fruitImg:'assets/apple.png',
+    show10Apples:true, basketFullImg:'assets/apples-basket.png' },
+  { tree:'assets/mango tree.png', exampleBaskets:5, exampleFruitsPerBasket:2, correctOption:1,
+    options:["5 baskets of 2 mangoes","2 groups of 5 mangoes"], dragFruits:6, fruitImg:'assets/mango.png',
+    show10Apples:false, basketFullImg:'assets/mango-basket.png' },
+  { tree:'assets/orange-tree.png', exampleBaskets:4, exampleFruitsPerBasket:3, correctOption:1,
+    options:["4 baskets of 3 oranges","3 groups of 4 oranges"], dragFruits:6, fruitImg:'assets/orange.png',
+    show10Apples:false, basketFullImg:'assets/orange-basket.png' }
 ];
 
 let currentLevel = 0;
+let taskPhase = "MC";
 let draggedFruit = null;
 let collectedCount = 0;
 
@@ -81,30 +129,28 @@ const correctSound = document.getElementById('correctSound');
 const wrongSound = document.getElementById('wrongSound');
 const clapSound = document.getElementById('clapSound');
 
-// Start game with Innovine logo
+// Start game
 function startGame(){
   logoScreen.style.display='flex';
   setTimeout(()=>{
     logoScreen.style.display='none';
     gameScreen.style.display='flex';
     loadLevel();
-  },5000); // 5 seconds logo
+  },5000);
 }
 
 // Load level
 function loadLevel(){
   const level = levels[currentLevel];
-  collectedCount = 0;
-  draggedFruit = null;
-
+  taskPhase="MC";
   treeImg.src = level.tree;
   exampleBasketsDiv.innerHTML="";
   fruitsDiv.innerHTML="";
   basketDiv.innerHTML="";
   basketDiv.style.backgroundImage = "url('assets/basket.png')";
   questionDiv.textContent="Which set matches the correct group configuration?";
-  nextBtn.disabled = true;
   nextBtn.style.display='inline-block';
+  nextBtn.disabled = true;
   option1.style.display='inline-block';
   option2.style.display='inline-block';
   option1.textContent = level.options[0];
@@ -121,7 +167,6 @@ function loadLevel(){
 // MC click
 option1.addEventListener('click', ()=>checkMC(1));
 option2.addEventListener('click', ()=>checkMC(2));
-
 function checkMC(choice){
   const level = levels[currentLevel];
   if(choice===level.correctOption){
@@ -129,17 +174,14 @@ function checkMC(choice){
     option1.style.display='none';
     option2.style.display='none';
     prepareDragTask(level);
-  } else {
-    wrongSound.play();
-  }
+  } else { wrongSound.play(); }
 }
 
-// Drag & Drop Task
+// Drag task
 function prepareDragTask(level){
+  taskPhase="Drag";
   questionDiv.textContent="Task: Collect the correct number of fruits in the basket";
-  collectedCount=0;
   exampleBasketsDiv.innerHTML="";
-  fruitsDiv.innerHTML="";
   for(let i=0;i<level.exampleBaskets;i++){
     let b = document.createElement('div');
     b.className="exampleBasket";
@@ -147,16 +189,18 @@ function prepareDragTask(level){
     exampleBasketsDiv.appendChild(b);
   }
 
-  const totalFruits = 10;
-  for(let i=0;i<totalFruits;i++){
+  fruitsDiv.innerHTML="";
+  collectedCount=0;
+  for(let i=0;i<level.dragFruits;i++){
     let f = document.createElement('img');
-    f.src = level.fruitImg;
+    f.src=level.fruitImg;
     f.className='fruit';
     f.draggable=true;
-    f.addEventListener('dragstart', e=>draggedFruit=e.target);
+    f.addEventListener('dragstart', e=>{ draggedFruit=e.target; });
     fruitsDiv.appendChild(f);
   }
 
+  basketDiv.innerHTML="";
   basketDiv.style.backgroundImage = "url('assets/basket.png')";
   basketDiv.addEventListener('dragover', e=>e.preventDefault());
   basketDiv.addEventListener('drop', ()=>{
@@ -165,13 +209,9 @@ function prepareDragTask(level){
       collectedCount++;
       draggedFruit=null;
     }
-
     if(collectedCount > level.dragFruits){
       questionDiv.textContent="Hint: 2 + 2 + 2";
-      nextBtn.disabled=true;
-      return;
     }
-
     if(collectedCount === level.dragFruits){
       basketDiv.style.backgroundImage = `url('${level.basketFullImg}')`;
       questionDiv.textContent="Task complete! Click Next to continue.";
@@ -180,14 +220,12 @@ function prepareDragTask(level){
       nextBtn.disabled=false;
     }
   });
-
-  nextBtn.disabled=true;
+  nextBtn.disabled = true;
 }
 
 // Next button
 nextBtn.addEventListener('click', ()=>{
-  collectedCount=0;
-  nextBtn.disabled=true;
+  collectedCount=0; nextBtn.disabled=true;
   currentLevel++;
   if(currentLevel>=levels.length){
     gameScreen.style.display='none';
