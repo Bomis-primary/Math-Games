@@ -12,39 +12,32 @@ body, html {
   display:flex; justify-content:center; align-items:center;
   background:#FDF6EC;
 }
-
 #logoScreen, #clockScreen, #cardScreen, #endScreen {
   width:100%; height:100%;
   position:absolute; top:0; left:0;
   display:flex; flex-direction:column;
   justify-content:center; align-items:center;
 }
-
 #logoScreen { background:#fff; z-index:5; }
 #logoScreen img { width:200px; }
 
 #clockScreen, #cardScreen { display:none; z-index:1; position:relative; }
-
 #bgImg { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:-1; }
 
-/* Question box left side */
 #question {
   font-size:22px; color:#fff; text-align:left;
   background: rgba(0,0,0,0.6);
   padding: 15px 20px; border-radius:10px;
-  position:absolute;
-  top:10%; left:3%; max-width:40%;
+  position:absolute; top:10%; left:3%; max-width:40%;
   z-index:5;
 }
 
-/* Buttons for clock screen */
 .button-container {
   position:absolute;
   top:40%; left:3%;
   display:flex; flex-direction:column; gap:20px;
   z-index:5;
 }
-
 button.option-btn {
   padding:20px 30px;
   font-size:24px;
@@ -55,11 +48,9 @@ button.option-btn {
   box-shadow: 2px 4px 6px rgba(0,0,0,0.4);
   border: 2px solid #fff;
 }
-
 button.option-btn.wrong { background:red; }
 button.option-btn.correct { background:green; }
 
-/* Card container for next screen */
 .card-container {
   position:absolute;
   top:30%; left:3%;
@@ -89,14 +80,12 @@ button.option-btn.correct { background:green; }
   position:absolute; top:70%; left:3%; max-width:40%;
   z-index:5; text-align:center;
 }
-
 #nextBtn, #playAgainBtn {
   margin-top:20px; font-size:20px; padding:10px 20px;
   background:#FF69B4; color:#fff; border:none; border-radius:5px;
   cursor:pointer; display:none; position:absolute; top:80%; left:3%;
   z-index:5;
 }
-
 #confetti {
   position:absolute; top:0; left:0; width:100%; height:100%;
   pointer-events:none; display:none;
@@ -122,7 +111,7 @@ button.option-btn.correct { background:green; }
   <button id="nextBtn" onclick="goToCardScreen()">Next</button>
 </div>
 
-<!-- Card Screen (What does Riya do next?) -->
+<!-- Card Screen (What Next) -->
 <div id="cardScreen">
   <img id="bgImg" src="assets/bedroom-bg.jpg" alt="Background">
   <div id="question">What does Riya do next after waking up?</div>
@@ -143,7 +132,8 @@ button.option-btn.correct { background:green; }
 </div>
 
 <script>
-let attempts=0;
+let attemptsClock=0;
+let attemptsCard=0;
 
 // Show logo for 3 seconds
 setTimeout(()=>{
@@ -153,13 +143,13 @@ setTimeout(()=>{
 
 // Clock screen logic
 function checkClock(button,isCorrect){
-  attempts++;
-  const feedback = document.getElementById('feedback');
+  attemptsClock++;
+  const feedback=document.getElementById('feedback');
   if(isCorrect){
     button.classList.add('correct');
-    feedback.textContent = "Good Job!";
+    feedback.textContent="Good Job!";
     playSound('correct');
-    document.getElementById('nextBtn').style.display='inline-block';
+    document.querySelector('#clockScreen #nextBtn').style.display='inline-block';
     disableClockButtons();
   } else {
     button.classList.add('wrong');
@@ -167,41 +157,39 @@ function checkClock(button,isCorrect){
     playSound('wrong');
     button.classList.add('shake');
     setTimeout(()=>button.classList.remove('shake'),300);
-    if(attempts>=2){
+    if(attemptsClock>=2){
       feedback.textContent="Correct answer is 7:00 AM";
       disableClockButtons();
-      document.getElementById('nextBtn').style.display='inline-block';
+      document.querySelector('#clockScreen #nextBtn').style.display='inline-block';
     }
   }
 }
-
 function disableClockButtons(){
-  const buttons = document.querySelectorAll('#clockScreen .option-btn');
+  const buttons=document.querySelectorAll('#clockScreen .option-btn');
   buttons.forEach(b=>b.disabled=true);
 }
-
 function goToCardScreen(){
   document.getElementById('clockScreen').style.display='none';
   document.getElementById('cardScreen').style.display='flex';
-  attempts=0;
+  attemptsCard=0;
   document.getElementById('feedback').textContent='';
-  const buttons = document.querySelectorAll('#cardScreen .card');
-  buttons.forEach(c=>{
+  const cards=document.querySelectorAll('#cardScreen .card');
+  cards.forEach(c=>{
     c.style.border='3px solid transparent';
     c.style.pointerEvents='auto';
   });
-  document.getElementById('nextBtn').style.display='none';
+  document.querySelector('#cardScreen #nextBtn').style.display='none';
 }
 
 // Card screen logic
 function checkCard(card,isCorrect){
-  attempts++;
-  const feedback = document.getElementById('feedback');
+  attemptsCard++;
+  const feedback=document.getElementById('feedback');
   if(isCorrect){
     card.style.border="3px solid green";
     feedback.textContent="Good Job!";
     playSound('correct');
-    document.getElementById('nextBtn').style.display='inline-block';
+    document.querySelector('#cardScreen #nextBtn').style.display='inline-block';
     disableCards();
   } else {
     card.style.border="3px solid red";
@@ -209,16 +197,15 @@ function checkCard(card,isCorrect){
     playSound('wrong');
     card.classList.add('shake');
     setTimeout(()=>card.classList.remove('shake'),300);
-    if(attempts>=2){
+    if(attemptsCard>=2){
       feedback.textContent="Correct answer is brushing teeth!";
       disableCards();
-      document.getElementById('nextBtn').style.display='inline-block';
+      document.querySelector('#cardScreen #nextBtn').style.display='inline-block';
     }
   }
 }
-
 function disableCards(){
-  const cards = document.querySelectorAll('#cardScreen .card');
+  const cards=document.querySelectorAll('#cardScreen .card');
   cards.forEach(c=>c.style.pointerEvents='none');
 }
 
@@ -229,17 +216,18 @@ function nextTask(){
   showConfetti();
 }
 
+// Restart game
 function restartGame(){
   document.getElementById('endScreen').style.display='none';
   document.getElementById('clockScreen').style.display='flex';
-  attempts=0;
-  const feedback = document.getElementById('feedback');
+  attemptsClock=0; attemptsCard=0;
+  const feedback=document.getElementById('feedback');
   feedback.textContent='';
-  const buttons = document.querySelectorAll('#clockScreen .option-btn');
+  const buttons=document.querySelectorAll('#clockScreen .option-btn');
   buttons.forEach(b=>{ b.disabled=false; b.classList.remove('wrong','correct'); });
-  const cards = document.querySelectorAll('#cardScreen .card');
+  const cards=document.querySelectorAll('#cardScreen .card');
   cards.forEach(c=>{ c.style.border='3px solid transparent'; c.style.pointerEvents='auto'; });
-  document.getElementById('nextBtn').style.display='none';
+  document.querySelectorAll('#clockScreen #nextBtn, #cardScreen #nextBtn').forEach(b=>b.style.display='none');
 }
 
 // Confetti
@@ -249,7 +237,8 @@ function showConfetti(){
   for(let i=0;i<100;i++){
     let dot=document.createElement('div');
     dot.style.position='absolute';
-    dot.style.width='10px'; dot.style.height='10px';
+    dot.style.width='10px';
+    dot.style.height='10px';
     dot.style.background=['#FF69B4','#FFD700','#8E44AD','#00CED1'][Math.floor(Math.random()*4)];
     dot.style.left=Math.random()*100+'%';
     dot.style.top=Math.random()*100+'%';
@@ -259,7 +248,7 @@ function showConfetti(){
 }
 
 function playSound(type){
-  const audio = new Audio(type==='correct'?'assets/correct.mp3':'assets/wrong.mp3');
+  const audio=new Audio(type==='correct'?'assets/correct.mp3':'assets/wrong.mp3');
   audio.play();
 }
 </script>
