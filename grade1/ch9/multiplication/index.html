@@ -5,14 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fruit Garden Adventure</title>
 <style>
-html, body {
-  margin:0; padding:0; width:100%; height:100%; font-family: Arial, sans-serif; overflow:hidden;
-}
+html, body { margin:0; padding:0; width:100%; height:100%; font-family: Arial, sans-serif; overflow:hidden; }
+body { display:flex; justify-content:center; align-items:center; background:#fff; }
 
 /* Logo screen */
-#logoScreen {
-  width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:#fff; z-index:10;
-}
+#logoScreen { width:100%; height:100%; display:flex; justify-content:center; align-items:center; background:#fff; z-index:10; }
 #logoScreen img { width:200px; }
 
 /* Game screen */
@@ -34,9 +31,9 @@ html, body {
   margin-left:50px; /* spacing from left */
 }
 
-/* Tree */
+/* Tree enlarged */
 #tree {
-  width:200px;
+  width:350px; /* increased from 200px */
   object-fit:contain;
 }
 
@@ -58,12 +55,10 @@ html, body {
 
 /* Fruits container */
 #fruits { display:flex; flex-wrap: wrap; justify-content:center; margin:20px 0 80px 0; }
-
-/* Fruit images */
 .fruit { width:60px; margin:5px; cursor:grab; }
 
 /* Question text */
-#question { font-size:22px; color:#333; text-align:center; margin-bottom:10px; }
+#question { font-size:22px; color:#333; text-align:center; margin-bottom:10px; max-width:90%; }
 
 /* Next button */
 #nextBtn {
@@ -71,6 +66,7 @@ html, body {
   padding:12px 24px; font-size:18px; border:none; border-radius:8px;
   background:#ff9999; color:#fff; cursor:pointer;
 }
+#nextBtn:disabled { opacity:0.5; cursor:not-allowed; }
 
 /* End screen */
 #endScreen {
@@ -79,7 +75,6 @@ html, body {
   font-size:32px; color:#4CAF50;
 }
 #endScreen button { padding:12px 24px; font-size:18px; border:none; border-radius:8px; background:#ff9999; color:#fff; cursor:pointer; }
-
 </style>
 </head>
 <body>
@@ -121,10 +116,7 @@ const levels = [
   { tree:'assets/orange-tree.png', exampleBaskets:4, exampleFruitsPerBasket:3, correctOption:1, options:["4 baskets of 3 oranges","3 groups of 4 oranges"], dragFruits:12, fruitImg:'assets/orange.png', basketFullImg:'assets/basket-full.png' }
 ];
 
-let currentLevel=0;
-let taskPhase="MC";
-let draggedFruit=null;
-let collectedFruitCount=0;
+let currentLevel=0, taskPhase="MC", draggedFruit=null, collectedFruitCount=0;
 
 // DOM Elements
 const logoScreen=document.getElementById('logoScreen');
@@ -141,7 +133,7 @@ const correctSound=document.getElementById('correctSound');
 const wrongSound=document.getElementById('wrongSound');
 const clapSound=document.getElementById('clapSound');
 
-// Start game
+// Start
 function startGame(){
   logoScreen.style.display='flex';
   setTimeout(()=>{
@@ -183,19 +175,19 @@ function loadLevel(){
 
   // Setup basket drop
   basketDiv.addEventListener('dragover', e=>e.preventDefault());
-  basketDiv.addEventListener('drop', dropFruit);
+  basketDiv.addEventListener('drop', e=>dropFruit(level));
 }
 
 // Drop fruit
-function dropFruit(e){
+function dropFruit(level){
   if(draggedFruit){
     draggedFruit.remove();
     collectedFruitCount++;
     draggedFruit=null;
   }
-  const level=levels[currentLevel];
   if(collectedFruitCount===level.dragFruits){
     basketDiv.style.backgroundImage=`url('${level.basketFullImg}')`;
+    questionDiv.textContent="Task complete! Click Next to continue.";
     correctSound.play();
     clapSound.play();
     nextBtn.disabled=false;
