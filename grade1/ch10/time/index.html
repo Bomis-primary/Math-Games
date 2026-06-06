@@ -45,26 +45,41 @@ body, html {
   z-index:5;
 }
 
-/* Larger buttons for easier tap */
+/* Larger buttons with shadow and border for visibility */
 button.option-btn {
-  padding:20px 30px;   /* increased padding */
-  font-size:24px;      /* increased font size */
+  padding:20px 30px;      /* bigger size */
+  font-size:24px;         /* bigger font */
   border:none;
   border-radius:10px;
   cursor:pointer;
-  background:#8E44AD;
+  background:#9b59b6;     /* lighter purple for contrast */
   color:white;
-  width:100%;          /* full width of container */
+  width:100%;
+  box-shadow: 2px 4px 6px rgba(0,0,0,0.4); /* drop shadow */
+  border: 2px solid #fff; /* white border for contrast */
 }
 
 button.option-btn.wrong { background:red; }
 button.option-btn.correct { background:green; }
 
+/* Feedback text */
 #feedback {
-  font-size:22px; margin-top:15px; color:green;
+  font-size:26px;           /* larger */
+  font-weight:bold;
+  color:red;                /* red for wrong feedback */
   position:absolute; top:70%; left:3%; max-width:40%;
   z-index:5;
 }
+
+/* Shake animation for wrong button */
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+}
+button.option-btn.shake { animation: shake 0.3s; }
 
 #nextBtn, #playAgainBtn {
   margin-top:20px; font-size:20px; padding:10px 20px;
@@ -121,12 +136,15 @@ function checkAnswer(button, isCorrect) {
   if(isCorrect) {
     button.classList.add('correct');
     feedback.textContent = 'Good Job!';
+    feedback.style.color = 'green';
     playSound('correct');
     document.getElementById('nextBtn').style.display = 'inline-block';
     disableOptions();
   } else {
-    button.classList.add('wrong');
+    button.classList.add('wrong','shake');
+    setTimeout(()=> button.classList.remove('shake'), 300);
     playSound('wrong');
+    feedback.style.color = 'red';
     if(attempts < 2){
       feedback.textContent = 'Try again!';
     } else {
