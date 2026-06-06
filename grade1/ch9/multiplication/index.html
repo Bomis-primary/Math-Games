@@ -11,129 +11,205 @@
   #logoScreen img { width:200px; }
   #gameScreen { display:none; background: url('assets/garden-background.png') no-repeat center center; background-size: cover; flex-direction:column; align-items:center; }
   #tree { width:300px; margin-top:20px; }
+  #exampleBaskets { display:flex; justify-content:center; margin:10px 0; gap:15px; }
+  .exampleBasket { width:80px; height:60px; background: url('assets/basket.png') no-repeat center center; background-size: contain; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:16px; color:#fff; }
   #fruits { display:flex; flex-wrap: wrap; justify-content:center; margin:20px 0; }
   .fruit { width:60px; margin:5px; cursor:grab; }
   #basket { width:200px; height:150px; background: url('assets/basket.png') no-repeat center center; background-size: contain; margin-bottom:20px; position:relative; }
   #buttons { display:flex; gap:20px; margin-top:10px; }
   .btn { padding:10px 20px; font-size:18px; border:none; border-radius:8px; background:#ff9999; color:#fff; cursor:pointer; }
   .btn:disabled { opacity:0.5; cursor:not-allowed; }
+  #question { font-size:22px; color:#333; margin-bottom:10px; text-align:center; }
   #endScreen { display:none; background:#fff; flex-direction:column; justify-content:center; align-items:center; font-size:32px; color:#4CAF50; }
 </style>
 </head>
 <body>
 
+<!-- Innovine Logo Screen -->
 <div id="logoScreen">
   <img src="assets/innovine-logo.png" alt="Innovine Logo">
 </div>
 
+<!-- Game Screen -->
 <div id="gameScreen">
+  <div id="question"></div>
   <img id="tree" src="" alt="Fruit Tree">
+  <div id="exampleBaskets"></div>
   <div id="fruits"></div>
   <div id="basket"></div>
   <div id="buttons">
-    <button id="retryBtn" class="btn">Retry</button>
+    <button id="option1" class="btn"></button>
+    <button id="option2" class="btn"></button>
     <button id="nextBtn" class="btn">Next</button>
   </div>
 </div>
 
+<!-- End Screen -->
 <div id="endScreen">
   <div>🎉 Good Job! 🎉</div>
   <button id="playAgainBtn" class="btn">Play Again</button>
 </div>
 
+<!-- Audio -->
 <audio id="correctSound" src="assets/correct.mp3"></audio>
 <audio id="wrongSound" src="assets/wrong.mp3"></audio>
 <audio id="clapSound" src="assets/clap.mp3"></audio>
 
 <script>
-const tasks = [
-  {tree:'assets/apple-tree.png', fruit:'assets/apple.png', perGroup:2, groups:2},
-  {tree:'assets/mango-tree.png', fruit:'assets/mango.png', perGroup:5, groups:2},
-  {tree:'assets/orange-tree.png', fruit:'assets/orange.png', perGroup:10, groups:1},
-  {tree:'assets/apple-tree.png', fruit:'assets/apple.png', perGroup:2, groups:5},
-  {tree:'assets/mango-tree.png', fruit:'assets/mango.png', perGroup:5, groups:3},
-  {tree:'assets/orange-tree.png', fruit:'assets/orange.png', perGroup:10, groups:2},
-  {tree:'assets/apple-tree.png', fruit:'assets/apple.png', perGroup:2, groups:4},
-  {tree:'assets/mango-tree.png', fruit:'assets/mango.png', perGroup:5, groups:5},
-  {tree:'assets/orange-tree.png', fruit:'assets/orange.png', perGroup:10, groups:3},
-  {tree:'assets/apple-tree.png', fruit:'assets/apple.png', perGroup:2, groups:1, mixed:[{fruit:'assets/mango.png', perGroup:5},{fruit:'assets/orange.png', perGroup:10}]}
+const levels = [
+  { // Level 1: Apple Tree
+    tree:'assets/apple-tree.png',
+    exampleBaskets:3,
+    exampleFruitsPerBasket:2,
+    correctOption:2, // "3 groups of 2 apples"
+    options:["2 groups of 3 apples","3 groups of 2 apples"],
+    dragFruits:6
+  },
+  { // Level 2: Mango Tree
+    tree:'assets/mango-tree.png',
+    exampleBaskets:5,
+    exampleFruitsPerBasket:2,
+    correctOption:2, // "5 baskets of 2 apples"
+    options:["5 baskets of 2 apples","2 groups of 5 apples"],
+    dragFruits:10
+  },
+  { // Level 3: Orange Tree
+    tree:'assets/orange-tree.png',
+    exampleBaskets:4,
+    exampleFruitsPerBasket:3,
+    correctOption:1, // "4 baskets of 3 oranges"
+    options:["4 baskets of 3 oranges","3 groups of 4 oranges"],
+    dragFruits:12
+  }
 ];
 
-let currentTask = 0;
+let currentLevel = 0;
+let taskPhase = "MC"; // "MC" = multiple choice, "Drag" = drag & drop
 
 const logoScreen = document.getElementById('logoScreen');
 const gameScreen = document.getElementById('gameScreen');
 const endScreen = document.getElementById('endScreen');
 const treeImg = document.getElementById('tree');
+const exampleBasketsDiv = document.getElementById('exampleBaskets');
 const fruitsDiv = document.getElementById('fruits');
 const basketDiv = document.getElementById('basket');
 const nextBtn = document.getElementById('nextBtn');
-const retryBtn = document.getElementById('retryBtn');
+const option1 = document.getElementById('option1');
+const option2 = document.getElementById('option2');
+const questionDiv = document.getElementById('question');
 const playAgainBtn = document.getElementById('playAgainBtn');
 const correctSound = document.getElementById('correctSound');
 const wrongSound = document.getElementById('wrongSound');
 const clapSound = document.getElementById('clapSound');
 
-function startGame() {
+function startGame(){
+  logoScreen.style.zIndex=10;
   logoScreen.style.display='flex';
   setTimeout(()=>{
     logoScreen.style.display='none';
     gameScreen.style.display='flex';
-    loadTask();
+    loadLevel();
   },5000);
 }
 
-function loadTask(){
-  nextBtn.disabled = true;
-  retryBtn.disabled = false;
-  const task = tasks[currentTask];
-  treeImg.src = task.tree;
-  fruitsDiv.innerHTML='';
-  basketDiv.innerHTML='';
-  let totalFruits = task.perGroup * task.groups;
-  for(let i=0;i<totalFruits;i++){
+function loadLevel(){
+  const level = levels[currentLevel];
+  taskPhase="MC";
+  treeImg.src = level.tree;
+  exampleBasketsDiv.innerHTML="";
+  fruitsDiv.innerHTML="";
+  basketDiv.innerHTML="";
+  questionDiv.textContent="Which set matches the correct group configuration?";
+  nextBtn.style.display='none';
+  option1.style.display='inline-block';
+  option2.style.display='inline-block';
+  option1.textContent = level.options[0];
+  option2.textContent = level.options[1];
+
+  // Draw example baskets
+  for(let i=0;i<level.exampleBaskets;i++){
+    let b = document.createElement('div');
+    b.className="exampleBasket";
+    b.textContent=level.exampleFruitsPerBasket;
+    exampleBasketsDiv.appendChild(b);
+  }
+}
+
+// Handle multiple choice selection
+option1.addEventListener('click', ()=>checkMC(1));
+option2.addEventListener('click', ()=>checkMC(2));
+
+function checkMC(choice){
+  const level = levels[currentLevel];
+  if(choice===level.correctOption){
+    correctSound.play();
+    taskPhase="Drag";
+    prepareDragTask();
+  } else {
+    wrongSound.play();
+  }
+}
+
+function prepareDragTask(){
+  const level = levels[currentLevel];
+  // Hide MC buttons
+  option1.style.display='none';
+  option2.style.display='none';
+  nextBtn.style.display='none';
+  questionDiv.textContent="Task: Collect the correct number of fruits in the basket";
+
+  // Show example baskets at top
+  exampleBasketsDiv.innerHTML="";
+  for(let i=0;i<level.exampleBaskets;i++){
+    let b = document.createElement('div');
+    b.className="exampleBasket";
+    b.textContent=level.exampleFruitsPerBasket;
+    exampleBasketsDiv.appendChild(b);
+  }
+
+  // Generate draggable fruits
+  fruitsDiv.innerHTML="";
+  for(let i=0;i<level.dragFruits;i++){
     let f = document.createElement('img');
-    f.src = task.fruit;
+    f.src='assets/apple.png'; // can adjust per level if needed
     f.className='fruit';
     f.draggable=true;
     f.addEventListener('dragstart', dragStart);
     fruitsDiv.appendChild(f);
   }
+
   basketDiv.addEventListener('dragover', dragOver);
   basketDiv.addEventListener('drop', dropFruit);
 }
 
-let draggedFruit = null;
+let draggedFruit=null;
 function dragStart(e){ draggedFruit=e.target; }
 function dragOver(e){ e.preventDefault(); }
 function dropFruit(e){
-  const task = tasks[currentTask];
-  const totalFruits = task.perGroup * task.groups;
+  const level = levels[currentLevel];
   if(fruitsDiv.contains(draggedFruit)){
     basketDiv.appendChild(draggedFruit);
   }
-  if(basketDiv.children.length === totalFruits){
+  if(basketDiv.children.length===level.dragFruits){
     correctSound.play();
-    nextBtn.disabled=false;
-    retryBtn.disabled=true;
     clapSound.play();
+    nextBtn.style.display='inline-block';
   }
 }
 
 nextBtn.addEventListener('click', ()=>{
-  currentTask++;
-  if(currentTask>=tasks.length){
+  currentLevel++;
+  if(currentLevel>=levels.length){
     gameScreen.style.display='none';
     endScreen.style.display='flex';
-  } else loadTask();
+  } else loadLevel();
 });
 
-retryBtn.addEventListener('click', ()=>loadTask());
 playAgainBtn.addEventListener('click', ()=>{
-  currentTask=0;
+  currentLevel=0;
   endScreen.style.display='none';
   gameScreen.style.display='flex';
-  loadTask();
+  loadLevel();
 });
 
 startGame();
