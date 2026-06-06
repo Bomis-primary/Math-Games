@@ -57,13 +57,13 @@ body { display:flex; justify-content:center; align-items:center; background:#fff
 const levels = [
   { tree:'assets/apple-tree.png', exampleBaskets:3, exampleFruitsPerBasket:2, correctOption:2, options:["2 groups of 3 apples","3 groups of 2 apples"], dragFruits:6, fruitImg:'assets/apple.png', show10Apples:true, basketFullImg:'assets/apples-basket.png' },
   { tree:'assets/mango-tree.png', exampleBaskets:5, exampleFruitsPerBasket:2, correctOption:1, options:["5 baskets of 2 mangoes","2 groups of 5 mangoes"], dragFruits:10, fruitImg:'assets/mango.png', show10Apples:false, basketFullImg:'assets/mango-basket.png' },
-  { tree:'assets/orange-tree.png', exampleBaskets:4, exampleFruitsPerBasket:3, correctOption:1, options:["4 baskets of 3 oranges","3 groups of 4 oranges"], dragFruits:12, fruitImg:'assets/orange.png', show10Apples:false, basketFullImg:'assets/orange-basket.png' }
+  { tree:'assets/orange-tree.png', exampleBaskets:4, exampleFruitsPerBasket:3, correctOption:1, options:["4 baskets of 3 oranges","3 groups of 4 oranges"], dragFruits:12, fruitImg:'assets/orange.png', show10Apples:false, basketFullImg:'assets/oranges-basket.png' }
 ];
 
 let currentLevel = 0;
 let taskPhase = "MC";
-let draggedFruit = null;
-let collectedCount = 0;
+let draggedFruitApple = null;
+let collectedAppleCount = 0;
 
 // DOM Elements
 const logoScreen = document.getElementById('logoScreen');
@@ -101,6 +101,7 @@ function loadLevel(){
   fruitsDiv.innerHTML="";
   basketDiv.innerHTML="";
   basketDiv.style.backgroundImage = "url('assets/basket.png')";
+  basketDiv.style.backgroundColor = "";
   questionDiv.textContent="Which set matches the correct group configuration?";
   nextBtn.style.display='inline-block';
   nextBtn.disabled = true;
@@ -126,13 +127,72 @@ function checkMC(choice){
     correctSound.play();
     option1.style.display='none';
     option2.style.display='none';
-    prepareDragTask(level);
+    if(level.show10Apples){
+      prepareDragTaskApple();
+    } else {
+      prepareDragTask(level);
+    }
   } else {
     wrongSound.play();
   }
 }
 
-// --- Drag & Drop ---
+// --- Apple Tree Drag & Drop ---
+function prepareDragTaskApple(){
+  const level = levels[currentLevel];
+  taskPhase="Drag";
+  questionDiv.textContent="Task: Collect the correct number of fruits in the basket";
+
+  exampleBasketsDiv.innerHTML="";
+  for(let i=0;i<level.exampleBaskets;i++){
+    let b = document.createElement('div');
+    b.className="exampleBasket";
+    b.textContent=level.exampleFruitsPerBasket;
+    exampleBasketsDiv.appendChild(b);
+  }
+
+  fruitsDiv.innerHTML="";
+  collectedAppleCount=0;
+  const totalApplesOnScreen = 10;
+  for(let i=0;i<totalApplesOnScreen;i++){
+    let f = document.createElement('img');
+    f.src=level.fruitImg;
+    f.className='fruit';
+    f.draggable=true;
+    f.addEventListener('dragstart', e=>{ draggedFruitApple=e.target; });
+    fruitsDiv.appendChild(f);
+  }
+
+  basketDiv.innerHTML="";
+  basketDiv.style.backgroundImage = "url('assets/basket.png')";
+  basketDiv.addEventListener('dragover', e=>e.preventDefault());
+  basketDiv.addEventListener('drop', dropFruitApple);
+  nextBtn.disabled = true;
+}
+
+function dropFruitApple(e){
+  const level = levels[currentLevel];
+  if(draggedFruitApple){
+    draggedFruitApple.remove(); // remove apple
+    collectedAppleCount++;
+    draggedFruitApple = null;
+  }
+
+  if(collectedAppleCount > level.dragFruits){
+    questionDiv.textContent = "Hint: 2 + 2 + 2";
+    nextBtn.disabled = true;
+  }
+
+  if(collectedAppleCount === level.dragFruits){
+    basketDiv.style.backgroundImage = `url('${level.basketFullImg}')`;
+    questionDiv.textContent="Task complete! Click Next to continue.";
+    correctSound.play();
+    clapSound.play();
+    nextBtn.disabled = false;
+  }
+}
+
+// Generic Drag Task
 function prepareDragTask(level){
   taskPhase="Drag";
   questionDiv.textContent="Task: Collect the correct number of fruits in the basket";
@@ -145,50 +205,44 @@ function prepareDragTask(level){
   }
 
   fruitsDiv.innerHTML="";
-  collectedCount=0;
-  const totalFruits = level.show10Apples ? 10 : level.dragFruits;
-  for(let i=0;i<totalFruits;i++){
+  for(let i=0;i<level.dragFruits;i++){
     let f = document.createElement('img');
     f.src=level.fruitImg;
     f.className='fruit';
     f.draggable=true;
-    f.addEventListener('dragstart', e=>{ draggedFruit=e.target; });
+    f.addEventListener('dragstart', dragStartGeneric);
     fruitsDiv.appendChild(f);
   }
 
   basketDiv.innerHTML="";
   basketDiv.style.backgroundImage = "url('assets/basket.png')";
-  basketDiv.addEventListener('dragover', e=>e.preventDefault());
-  basketDiv.addEventListener('drop', dropFruit);
+  basketDiv.addEventListener('dragover', dragOverGeneric);
+  basketDiv.addEventListener('drop', dropFruitGeneric);
   nextBtn.disabled = true;
 }
 
-function dropFruit(e){
-  if(draggedFruit){
-    draggedFruit.remove(); // fruit disappears on drop
-    collectedCount++;
-    draggedFruit = null;
+let draggedFruitGeneric=null;
+function dragStartGeneric(e){ draggedFruitGeneric=e.target; }
+function dragOverGeneric(e){ e.preventDefault(); }
+function dropFruitGeneric(e){
+  const level = levels[currentLevel];
+  if(fruitsDiv.contains(draggedFruitGeneric)){
+    draggedFruitGeneric.remove(); // remove fruit from screen
+    draggedFruitGeneric = null;
   }
 
-  const level = levels[currentLevel];
-
-  if(collectedCount > level.dragFruits){
-    questionDiv.textContent = "Hint: count fruits in each basket and sum them";
-    nextBtn.disabled = true;
-  } else if(collectedCount === level.dragFruits){
-    basketDiv.style.backgroundImage = `url('${level.basketFullImg}')`; // Correct basket image per level
+  if(basketDiv.children.length === level.dragFruits){
+    basketDiv.style.backgroundImage = `url('${level.basketFullImg}')`;
     questionDiv.textContent="Task complete! Click Next to continue.";
     correctSound.play();
     clapSound.play();
-    nextBtn.disabled=false;
-  } else {
-    nextBtn.disabled=true;
+    nextBtn.disabled = false;
   }
 }
 
 // Next button
 nextBtn.addEventListener('click', ()=>{
-  collectedCount=0;
+  collectedAppleCount=0;
   nextBtn.disabled = true;
   currentLevel++;
   if(currentLevel>=levels.length){
