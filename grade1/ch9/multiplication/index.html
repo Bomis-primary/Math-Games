@@ -3,236 +3,148 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>G1 Multiplication Magic</title>
+<title>Fruit Garden Adventure</title>
 <style>
-  body {
-    margin: 0;
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #e0f7ff, #fff1cc);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-  }
-  #game-container {
-    width: 100%;
-    max-width: 600px;
-    text-align: center;
-    position: relative;
-  }
-  #logo-slide, #end-slide {
-    display: none;
-  }
-  #question-slide {
-    display: none;
-  }
-  .option {
-    background-color: #fff;
-    border: 2px solid #cfa;
-    border-radius: 10px;
-    padding: 15px 25px;
-    margin: 10px;
-    display: inline-block;
-    cursor: pointer;
-    font-size: 1.2em;
-    transition: transform 0.2s;
-  }
-  .option:hover {
-    transform: scale(1.05);
-  }
-  .correct {
-    border-color: green;
-    background-color: #cfc;
-  }
-  .wrong {
-    border-color: red;
-    background-color: #fcc;
-    animation: jiggle 0.3s;
-  }
-  @keyframes jiggle {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    50% { transform: translateX(5px); }
-    75% { transform: translateX(-5px); }
-    100% { transform: translateX(0); }
-  }
-  #confetti-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-  }
-  #instruction {
-    background-color: #ffd;
-    padding: 10px;
-    border-radius: 8px;
-    font-weight: bold;
-    margin-bottom: 15px;
-  }
-  #play-again-btn {
-    padding: 12px 25px;
-    font-size: 1.2em;
-    border-radius: 12px;
-    border: none;
-    background-color: #ffcc66;
-    cursor: pointer;
-    margin-top: 20px;
-  }
+  html, body { margin:0; padding:0; height:100%; width:100%; font-family: Arial, sans-serif; overflow:hidden; }
+  body { display:flex; justify-content:center; align-items:center; background:#fff; }
+  #logoScreen, #gameScreen, #endScreen { width:100%; height:100%; position:absolute; top:0; left:0; display:flex; justify-content:center; align-items:center; flex-direction:column; }
+  #logoScreen img { width:200px; }
+  #gameScreen { display:none; background: url('garden-background.png') no-repeat center center; background-size: cover; flex-direction:column; align-items:center; }
+  #tree { width:300px; margin-top:20px; }
+  #fruits { display:flex; flex-wrap: wrap; justify-content:center; margin:20px 0; }
+  .fruit { width:60px; margin:5px; cursor:grab; }
+  #basket { width:200px; height:150px; background: url('basket.png') no-repeat center center; background-size: contain; margin-bottom:20px; position:relative; }
+  #basket .fruit-in { width:50px; position:absolute; bottom:10px; left:50%; transform:translateX(-50%); }
+  #buttons { display:flex; gap:20px; margin-top:10px; }
+  .btn { padding:10px 20px; font-size:18px; border:none; border-radius:8px; background:#ff9999; color:#fff; cursor:pointer; }
+  .btn:disabled { opacity:0.5; cursor:not-allowed; }
+  #endScreen { display:none; background:#fff; flex-direction:column; justify-content:center; align-items:center; font-size:32px; color:#4CAF50; }
 </style>
 </head>
 <body>
-<div id="game-container">
 
-  <!-- Slide 1: Logo -->
-  <div id="logo-slide">
-    <img src="logo.png" alt="Innovine Logo" style="width:200px;">
-  </div>
-
-  <!-- Question Slide -->
-  <div id="question-slide">
-    <div id="instruction"></div>
-    <div id="options-container"></div>
-  </div>
-
-  <!-- End Slide -->
-  <div id="end-slide">
-    <h2>🎉 Well Done! 🎉</h2>
-    <button id="play-again-btn">Play Again</button>
-  </div>
-
+<div id="logoScreen">
+  <img src="innovine-logo.png" alt="Innovine Logo">
 </div>
 
-<audio id="correct-sound" src="correct.mp3"></audio>
-<audio id="wrong-sound" src="wrong.mp3"></audio>
-<audio id="applause-sound" src="freesound_community-claps-44774.mp3"></audio>
+<div id="gameScreen">
+  <img id="tree" src="" alt="Fruit Tree">
+  <div id="fruits"></div>
+  <div id="basket"></div>
+  <div id="buttons">
+    <button id="retryBtn" class="btn">Retry</button>
+    <button id="nextBtn" class="btn">Next</button>
+  </div>
+</div>
 
-<canvas id="confetti-canvas"></canvas>
+<div id="endScreen">
+  <div>🎉 Good Job! 🎉</div>
+  <button id="playAgainBtn" class="btn">Play Again</button>
+</div>
+
+<audio id="correctSound" src="correct.mp3"></audio>
+<audio id="wrongSound" src="wrong.mp3"></audio>
+<audio id="clapSound" src="clap.mp3"></audio>
 
 <script>
-// --- Game Data ---
-const rounds = [
-  { instruction: "Count the total stars: 3 groups of 2 stars each.", options: ["5", "6", "7"], answer: 1 },
-  { instruction: "2 × 3 = ?", options: ["5", "6", "8"], answer: 1 },
-  { instruction: "1 × 5 = ?", options: ["5", "6", "10"], answer: 0 },
-  { instruction: "5 × 2 = ?", options: ["7", "10", "12"], answer: 1 },
-  { instruction: "Story: 3 baskets have 2 apples each. How many apples in total?", options: ["5", "6", "7"], answer: 1 },
-  { instruction: "Story: 5 boxes, each with 10 pencils. How many pencils in total?", options: ["40", "50", "60"], answer: 1 }
+const tasks = [
+  {tree:'fruit-tree-1.png', fruit:'apple.png', perGroup:2, groups:2},
+  {tree:'fruit-tree-2.png', fruit:'mango.png', perGroup:5, groups:2},
+  {tree:'fruit-tree-3.png', fruit:'orange.png', perGroup:10, groups:1},
+  {tree:'fruit-tree-1.png', fruit:'apple.png', perGroup:2, groups:5},
+  {tree:'fruit-tree-2.png', fruit:'mango.png', perGroup:5, groups:3},
+  {tree:'fruit-tree-3.png', fruit:'orange.png', perGroup:10, groups:2},
+  {tree:'fruit-tree-1.png', fruit:'apple.png', perGroup:2, groups:4},
+  {tree:'fruit-tree-2.png', fruit:'mango.png', perGroup:5, groups:5},
+  {tree:'fruit-tree-3.png', fruit:'orange.png', perGroup:10, groups:3},
+  {tree:'fruit-tree-1.png', fruit:'apple.png', perGroup:2, groups:1, mixed:[{fruit:'mango.png', perGroup:5},{fruit:'orange.png', perGroup:10}]}
 ];
 
-let currentRound = -1;
-let attempt = 0;
+let currentTask = 0;
+let attempts = 0;
 
-// --- Elements ---
-const logoSlide = document.getElementById("logo-slide");
-const questionSlide = document.getElementById("question-slide");
-const endSlide = document.getElementById("end-slide");
-const instructionEl = document.getElementById("instruction");
-const optionsContainer = document.getElementById("options-container");
-const correctSound = document.getElementById("correct-sound");
-const wrongSound = document.getElementById("wrong-sound");
-const applauseSound = document.getElementById("applause-sound");
-const playAgainBtn = document.getElementById("play-again-btn");
-const confettiCanvas = document.getElementById("confetti-canvas");
+const logoScreen = document.getElementById('logoScreen');
+const gameScreen = document.getElementById('gameScreen');
+const endScreen = document.getElementById('endScreen');
+const treeImg = document.getElementById('tree');
+const fruitsDiv = document.getElementById('fruits');
+const basketDiv = document.getElementById('basket');
+const nextBtn = document.getElementById('nextBtn');
+const retryBtn = document.getElementById('retryBtn');
+const playAgainBtn = document.getElementById('playAgainBtn');
+const correctSound = document.getElementById('correctSound');
+const wrongSound = document.getElementById('wrongSound');
+const clapSound = document.getElementById('clapSound');
 
-// --- Game Flow ---
 function startGame() {
-  logoSlide.style.display = "block";
-  questionSlide.style.display = "none";
-  endSlide.style.display = "none";
-  currentRound = -1;
-  attempt = 0;
-  setTimeout(nextRound, 3000);
+  logoScreen.style.display = 'flex';
+  setTimeout(() => {
+    logoScreen.style.display = 'none';
+    gameScreen.style.display = 'flex';
+    loadTask();
+  }, 5000);
 }
 
-function nextRound() {
-  currentRound++;
-  attempt = 0;
-  if(currentRound >= rounds.length) {
-    showEndSlide();
-    return;
+function loadTask() {
+  attempts = 0;
+  nextBtn.disabled = true;
+  retryBtn.disabled = false;
+  const task = tasks[currentTask];
+  treeImg.src = task.tree;
+  fruitsDiv.innerHTML = '';
+  basketDiv.innerHTML = '';
+  let totalFruits = task.perGroup * task.groups;
+  for(let i=0;i<totalFruits;i++){
+    let f = document.createElement('img');
+    f.src = task.fruit;
+    f.className = 'fruit';
+    f.draggable = true;
+    f.addEventListener('dragstart', dragStart);
+    fruitsDiv.appendChild(f);
   }
-  showQuestion(rounds[currentRound]);
+  basketDiv.addEventListener('dragover', dragOver);
+  basketDiv.addEventListener('drop', dropFruit);
 }
 
-function showQuestion(round) {
-  logoSlide.style.display = "none";
-  questionSlide.style.display = "block";
-  endSlide.style.display = "none";
-  instructionEl.textContent = round.instruction;
-  optionsContainer.innerHTML = "";
-  round.options.forEach((opt, idx) => {
-    const btn = document.createElement("div");
-    btn.classList.add("option");
-    btn.textContent = opt;
-    btn.addEventListener("click", () => handleAnswer(idx));
-    optionsContainer.appendChild(btn);
-  });
-}
-
-function handleAnswer(selectedIdx) {
-  const round = rounds[currentRound];
-  const buttons = optionsContainer.children;
-  if(selectedIdx === round.answer) {
-    buttons[selectedIdx].classList.add("correct");
+let draggedFruit = null;
+function dragStart(e){ draggedFruit = e.target; }
+function dragOver(e){ e.preventDefault(); }
+function dropFruit(e){
+  const task = tasks[currentTask];
+  const totalFruits = task.perGroup * task.groups;
+  if(fruitsDiv.contains(draggedFruit)){
+    basketDiv.appendChild(draggedFruit);
+  }
+  if(basketDiv.children.length === totalFruits){
     correctSound.play();
-    setTimeout(nextRound, 1000);
-  } else {
-    buttons[selectedIdx].classList.add("wrong");
-    wrongSound.play();
-    attempt++;
-    if(attempt >= 2) {
-      buttons[round.answer].classList.add("correct");
-      setTimeout(nextRound, 1500);
-    }
+    nextBtn.disabled = false;
+    retryBtn.disabled = true;
+    clapSound.play();
   }
 }
 
-function showEndSlide() {
-  questionSlide.style.display = "none";
-  endSlide.style.display = "block";
-  applauseSound.play();
-  launchConfetti();
-}
-
-// --- Play Again ---
-playAgainBtn.addEventListener("click", () => {
-  clearConfetti();
-  startGame();
+nextBtn.addEventListener('click', ()=>{
+  currentTask++;
+  if(currentTask >= tasks.length){
+    gameScreen.style.display='none';
+    endScreen.style.display='flex';
+  } else {
+    loadTask();
+  }
 });
 
-// --- Confetti ---
-let confettiCtx = confettiCanvas.getContext('2d');
-confettiCanvas.width = window.innerWidth;
-confettiCanvas.height = window.innerHeight;
-let confettiPieces = [];
-function launchConfetti() {
-  confettiPieces = [];
-  for(let i=0;i<150;i++){
-    confettiPieces.push({x:Math.random()*confettiCanvas.width, y:Math.random()*confettiCanvas.height, r:Math.random()*6+2, d:Math.random()*20, color:`hsl(${Math.random()*360},100%,50%)`, tilt:Math.random()*10-10});
-  }
-  requestAnimationFrame(drawConfetti);
-}
-function drawConfetti() {
-  confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
-  confettiPieces.forEach(p=>{
-    confettiCtx.beginPath();
-    confettiCtx.lineWidth = p.r/2;
-    confettiCtx.strokeStyle = p.color;
-    confettiCtx.moveTo(p.x+p.tilt+ p.r/4, p.y);
-    confettiCtx.lineTo(p.x+p.tilt, p.y+p.r);
-    confettiCtx.stroke();
-    p.y += Math.cos(0.1+p.d)*2+1;
-    p.x += Math.sin(0.05)*2;
-    if(p.y > confettiCanvas.height){p.y=0;p.x=Math.random()*confettiCanvas.width;}
-  });
-  if(endSlide.style.display==="block") requestAnimationFrame(drawConfetti);
-}
-function clearConfetti() {
-  confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
-}
+retryBtn.addEventListener('click', ()=>{
+  loadTask();
+});
 
-window.onload = startGame;
+playAgainBtn.addEventListener('click', ()=>{
+  currentTask=0;
+  endScreen.style.display='none';
+  gameScreen.style.display='flex';
+  loadTask();
+});
+
+startGame();
 </script>
 </body>
 </html>
