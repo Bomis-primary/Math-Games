@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grade 1 Time Game - Wake Up</title>
+<title>Grade 1 Time Game</title>
 <style>
 body, html {
   margin:0; padding:0;
@@ -13,47 +13,44 @@ body, html {
   background:#FDF6EC;
 }
 
-#logoScreen, #gameScreen, #endScreen {
+#logoScreen, #clockScreen, #cardScreen, #endScreen {
   width:100%; height:100%;
   position:absolute; top:0; left:0;
   display:flex; flex-direction:column;
   justify-content:center; align-items:center;
 }
 
-#logoScreen { background:#fff; z-index:2; }
+#logoScreen { background:#fff; z-index:5; }
 #logoScreen img { width:200px; }
 
-#gameScreen { display:none; z-index:1; position:relative; }
+#clockScreen, #cardScreen { display:none; z-index:1; position:relative; }
 
 #bgImg { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:-1; }
 
-/* Question box on left side */
+/* Question box left side */
 #question {
   font-size:22px; color:#fff; text-align:left;
   background: rgba(0,0,0,0.6);
-  padding: 20px 25px; border-radius:12px;
+  padding: 15px 20px; border-radius:10px;
   position:absolute;
-  top:25%; left:3%; max-width:40%;
+  top:10%; left:3%; max-width:40%;
   z-index:5;
 }
 
-/* Buttons stacked vertically below question */
+/* Buttons for clock screen */
 .button-container {
   position:absolute;
-  top:50%; left:3%;
+  top:40%; left:3%;
   display:flex; flex-direction:column; gap:20px;
   z-index:5;
 }
 
-/* Larger buttons with shadow and border */
 button.option-btn {
   padding:20px 30px;
   font-size:24px;
-  border:none;
-  border-radius:10px;
+  border:none; border-radius:10px;
   cursor:pointer;
-  background:#9b59b6;
-  color:white;
+  background:#9b59b6; color:white;
   width:100%;
   box-shadow: 2px 4px 6px rgba(0,0,0,0.4);
   border: 2px solid #fff;
@@ -62,20 +59,21 @@ button.option-btn {
 button.option-btn.wrong { background:red; }
 button.option-btn.correct { background:green; }
 
-/* Feedback: white text on navy blue */
-#feedback {
-  font-size:26px;
-  font-weight:bold;
-  color:#fff;
-  background-color:#001f4d; /* navy blue */
-  padding:10px 15px;
-  border-radius:8px;
-  position:absolute; top:60%; left:3%; max-width:40%;
+/* Card container for next screen */
+.card-container {
+  position:absolute;
+  top:30%; left:3%;
+  display:flex; gap:20px;
   z-index:5;
-  text-align:center;
 }
-
-/* Shake animation for wrong button */
+.card {
+  width:150px; height:150px;
+  border:3px solid transparent; border-radius:10px;
+  cursor:pointer;
+  transition: transform 0.2s, border 0.2s;
+}
+.card:hover { transform: scale(1.05); }
+.card.shake { animation: shake 0.3s; }
 @keyframes shake {
   0% { transform: translateX(0); }
   25% { transform: translateX(-5px); }
@@ -83,7 +81,14 @@ button.option-btn.correct { background:green; }
   75% { transform: translateX(-5px); }
   100% { transform: translateX(0); }
 }
-button.option-btn.shake { animation: shake 0.3s; }
+
+#feedback {
+  font-size:26px; font-weight:bold;
+  color:#fff; background-color:#001f4d;
+  padding:10px 15px; border-radius:8px;
+  position:absolute; top:70%; left:3%; max-width:40%;
+  z-index:5; text-align:center;
+}
 
 #nextBtn, #playAgainBtn {
   margin-top:20px; font-size:20px; padding:10px 20px;
@@ -105,13 +110,26 @@ button.option-btn.shake { animation: shake 0.3s; }
   <img src="assets/logo.png" alt="Logo">
 </div>
 
-<!-- Game Screen -->
-<div id="gameScreen">
+<!-- Clock Screen (Wake Up) -->
+<div id="clockScreen">
   <img id="bgImg" src="assets/bedroom-bg.jpg" alt="Bedroom Background">
   <div id="question">Click the correct time as shown on the clock.</div>
   <div class="button-container">
-    <button class="option-btn" onclick="checkAnswer(this, true)">7:00 AM</button>
-    <button class="option-btn" onclick="checkAnswer(this, false)">6:00 AM</button>
+    <button class="option-btn" onclick="checkClock(this,true)">7:00 AM</button>
+    <button class="option-btn" onclick="checkClock(this,false)">6:00 AM</button>
+  </div>
+  <div id="feedback"></div>
+  <button id="nextBtn" onclick="goToCardScreen()">Next</button>
+</div>
+
+<!-- Card Screen (What does Riya do next?) -->
+<div id="cardScreen">
+  <img id="bgImg" src="assets/bedroom-bg.jpg" alt="Background">
+  <div id="question">What does Riya do next after waking up?</div>
+  <div class="card-container">
+    <img src="assets/brushing.png" class="card" onclick="checkCard(this,true)">
+    <img src="assets/breakfast.jpg" class="card" onclick="checkCard(this,false)">
+    <img src="assets/ready.png" class="card" onclick="checkCard(this,false)">
   </div>
   <div id="feedback"></div>
   <button id="nextBtn" onclick="nextTask()">Next</button>
@@ -125,68 +143,111 @@ button.option-btn.shake { animation: shake 0.3s; }
 </div>
 
 <script>
-let attempts = 0;
+let attempts=0;
 
 // Show logo for 3 seconds
-setTimeout(() => {
-  document.getElementById('logoScreen').style.display = 'none';
-  document.getElementById('gameScreen').style.display = 'flex';
-}, 3000);
+setTimeout(()=>{
+  document.getElementById('logoScreen').style.display='none';
+  document.getElementById('clockScreen').style.display='flex';
+},3000);
 
-// Check answer
-function checkAnswer(button, isCorrect) {
+// Clock screen logic
+function checkClock(button,isCorrect){
   attempts++;
   const feedback = document.getElementById('feedback');
-  if(isCorrect) {
+  if(isCorrect){
     button.classList.add('correct');
-    feedback.textContent = 'Good Job!';
+    feedback.textContent = "Good Job!";
     playSound('correct');
-    document.getElementById('nextBtn').style.display = 'inline-block';
-    disableOptions();
+    document.getElementById('nextBtn').style.display='inline-block';
+    disableClockButtons();
   } else {
-    button.classList.add('wrong','shake');
-    setTimeout(()=> button.classList.remove('shake'), 300);
+    button.classList.add('wrong');
+    feedback.textContent="Try again!";
     playSound('wrong');
-    if(attempts < 2){
-      feedback.textContent = 'Try again!';
-    } else {
-      feedback.textContent = 'Correct answer is 7:00 AM';
-      document.getElementById('nextBtn').style.display = 'inline-block';
-      disableOptions();
+    button.classList.add('shake');
+    setTimeout(()=>button.classList.remove('shake'),300);
+    if(attempts>=2){
+      feedback.textContent="Correct answer is 7:00 AM";
+      disableClockButtons();
+      document.getElementById('nextBtn').style.display='inline-block';
     }
   }
 }
 
-// Disable buttons after correct / second attempt
-function disableOptions(){
-  const buttons = document.querySelectorAll('.option-btn');
-  buttons.forEach(btn => btn.disabled = true);
+function disableClockButtons(){
+  const buttons = document.querySelectorAll('#clockScreen .option-btn');
+  buttons.forEach(b=>b.disabled=true);
 }
 
-// Next task (currently only one task)
+function goToCardScreen(){
+  document.getElementById('clockScreen').style.display='none';
+  document.getElementById('cardScreen').style.display='flex';
+  attempts=0;
+  document.getElementById('feedback').textContent='';
+  const buttons = document.querySelectorAll('#cardScreen .card');
+  buttons.forEach(c=>{
+    c.style.border='3px solid transparent';
+    c.style.pointerEvents='auto';
+  });
+  document.getElementById('nextBtn').style.display='none';
+}
+
+// Card screen logic
+function checkCard(card,isCorrect){
+  attempts++;
+  const feedback = document.getElementById('feedback');
+  if(isCorrect){
+    card.style.border="3px solid green";
+    feedback.textContent="Good Job!";
+    playSound('correct');
+    document.getElementById('nextBtn').style.display='inline-block';
+    disableCards();
+  } else {
+    card.style.border="3px solid red";
+    feedback.textContent="Try again!";
+    playSound('wrong');
+    card.classList.add('shake');
+    setTimeout(()=>card.classList.remove('shake'),300);
+    if(attempts>=2){
+      feedback.textContent="Correct answer is brushing teeth!";
+      disableCards();
+      document.getElementById('nextBtn').style.display='inline-block';
+    }
+  }
+}
+
+function disableCards(){
+  const cards = document.querySelectorAll('#cardScreen .card');
+  cards.forEach(c=>c.style.pointerEvents='none');
+}
+
+// End screen
 function nextTask(){
-  document.getElementById('gameScreen').style.display="none";
-  document.getElementById('endScreen').style.display="flex";
+  document.getElementById('cardScreen').style.display='none';
+  document.getElementById('endScreen').style.display='flex';
   showConfetti();
 }
 
-// Restart game
 function restartGame(){
-  document.getElementById('endScreen').style.display = 'none';
-  document.getElementById('gameScreen').style.display = 'flex';
-  attempts = 0;
-  document.getElementById('feedback').textContent = '';
-  const buttons = document.querySelectorAll('.option-btn');
-  buttons.forEach(btn => { btn.disabled = false; btn.classList.remove('wrong','correct'); });
-  document.getElementById('nextBtn').style.display = 'none';
+  document.getElementById('endScreen').style.display='none';
+  document.getElementById('clockScreen').style.display='flex';
+  attempts=0;
+  const feedback = document.getElementById('feedback');
+  feedback.textContent='';
+  const buttons = document.querySelectorAll('#clockScreen .option-btn');
+  buttons.forEach(b=>{ b.disabled=false; b.classList.remove('wrong','correct'); });
+  const cards = document.querySelectorAll('#cardScreen .card');
+  cards.forEach(c=>{ c.style.border='3px solid transparent'; c.style.pointerEvents='auto'; });
+  document.getElementById('nextBtn').style.display='none';
 }
 
-// Confetti animation
+// Confetti
 function showConfetti(){
-  const conf = document.getElementById("confetti");
+  const conf=document.getElementById("confetti");
   conf.style.display='block';
   for(let i=0;i<100;i++){
-    let dot = document.createElement('div');
+    let dot=document.createElement('div');
     dot.style.position='absolute';
     dot.style.width='10px'; dot.style.height='10px';
     dot.style.background=['#FF69B4','#FFD700','#8E44AD','#00CED1'][Math.floor(Math.random()*4)];
@@ -197,7 +258,6 @@ function showConfetti(){
   }
 }
 
-// Play sound
 function playSound(type){
   const audio = new Audio(type==='correct'?'assets/correct.mp3':'assets/wrong.mp3');
   audio.play();
