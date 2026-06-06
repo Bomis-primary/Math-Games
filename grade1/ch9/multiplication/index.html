@@ -99,7 +99,8 @@ function loadLevel(){
   fruitsDiv.innerHTML="";
   basketDiv.innerHTML="";
   questionDiv.textContent="Which set matches the correct group configuration?";
-  nextBtn.style.display='none';
+  nextBtn.style.display='inline-block';
+  nextBtn.disabled = true; // Next button always visible but disabled initially
   option1.style.display='inline-block';
   option2.style.display='inline-block';
   option1.textContent = level.options[0];
@@ -141,6 +142,7 @@ function prepareDragTaskApple(){
   const level = levels[currentLevel];
   taskPhase="Drag";
   questionDiv.textContent="Task: Collect the correct number of fruits in the basket";
+
   exampleBasketsDiv.innerHTML="";
   for(let i=0;i<level.exampleBaskets;i++){
     let b = document.createElement('div');
@@ -150,7 +152,7 @@ function prepareDragTaskApple(){
   }
 
   fruitsDiv.innerHTML="";
-  const totalFruitsOnScreen = 10;
+  const totalFruitsOnScreen = 10; // show 10 apples
   for(let i=0;i<totalFruitsOnScreen;i++){
     let f = document.createElement('img');
     f.src=level.fruitImg;
@@ -163,7 +165,6 @@ function prepareDragTaskApple(){
   basketDiv.innerHTML="";
   basketDiv.addEventListener('dragover', dragOverApple);
   basketDiv.addEventListener('drop', dropFruitApple);
-  nextBtn.style.display='none';
 }
 
 function dragStartApple(e){ draggedFruitApple=e.target; }
@@ -173,10 +174,16 @@ function dropFruitApple(e){
     basketDiv.appendChild(draggedFruitApple);
     collectedAppleCount++;
   }
-  if(collectedAppleCount===6){
+
+  if(collectedAppleCount === 6){
     correctSound.play();
     clapSound.play();
-    nextBtn.style.display='inline-block';
+    nextBtn.disabled = false;
+    questionDiv.textContent="Task complete! Click Next to continue.";
+  }
+
+  if(collectedAppleCount > 6){
+    questionDiv.textContent="Hint: 2 + 2 + 2";
   }
 }
 
@@ -205,7 +212,7 @@ function prepareDragTask(level){
   basketDiv.innerHTML="";
   basketDiv.addEventListener('dragover', dragOverGeneric);
   basketDiv.addEventListener('drop', dropFruitGeneric);
-  nextBtn.style.display='none';
+  nextBtn.disabled = true;
 }
 
 let draggedFruitGeneric=null;
@@ -219,13 +226,14 @@ function dropFruitGeneric(e){
   if(basketDiv.children.length===level.dragFruits){
     correctSound.play();
     clapSound.play();
-    nextBtn.style.display='inline-block';
+    nextBtn.disabled = false;
   }
 }
 
 // Next button
 nextBtn.addEventListener('click', ()=>{
   collectedAppleCount=0;
+  nextBtn.disabled = true;
   currentLevel++;
   if(currentLevel>=levels.length){
     gameScreen.style.display='none';
