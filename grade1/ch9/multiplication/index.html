@@ -6,148 +6,235 @@
 <title>Fruit Garden Adventure</title>
 <style>
 html, body {
-  margin:0; padding:0; width:100%; height:100%; font-family: Arial, sans-serif; overflow:hidden;
+    margin:0; padding:0;
+    width:100%; height:100%;
+    font-family: Arial, sans-serif;
+    overflow:hidden;
 }
-body { background:#b3e0ff; }
-
-/* Logo splash */
+body {
+    background:#fff;
+}
+#logoScreen, #gameScreen, #endScreen {
+    width:100%; height:100%;
+    position:absolute; top:0; left:0;
+    display:flex; justify-content:center; align-items:center;
+    flex-direction:column;
+}
 #logoScreen {
-  width:100%; height:100%; display:flex; justify-content:center; align-items:center;
-  background:#fff; position:absolute; top:0; left:0; z-index:10;
+    z-index:10; background:#fff;
 }
 #logoScreen img { width:200px; }
-
-/* Game Screen */
 #gameScreen {
-  width:100%; height:100%; position:relative; display:none;
-  background: url('assets/garden-bg.png') no-repeat center bottom;
-  background-size:cover;
+    display:none;
+    background:url('assets/garden-bg.png') no-repeat center center;
+    background-size: cover;
+    flex-direction:column;
 }
-
-/* Question */
-#question { position:absolute; top:10px; width:100%; text-align:center; font-size:22px; color:#000; }
-
-/* Tree left and grounded */
-#treeContainer { position:absolute; left:20px; bottom:20px; }
-#tree { width:300px; }
-
-/* Example baskets horizontal at tree base */
-#exampleBaskets { position:absolute; bottom:20px; left:340px; display:flex; gap:10px; }
-.exampleBasket { width:60px; height:60px; background:url('assets/basket.png') no-repeat center center; background-size:contain; display:flex; justify-content:center; align-items:center; font-weight:bold; color:#fff; }
-
-/* Main basket bottom-right */
-#mainBasket { position:absolute; bottom:80px; right:10%; width:120px; height:120px; background:url('assets/basket.png') no-repeat center center; background-size:contain; }
-
-/* Fruits row bottom-center */
-#fruitsRow { position:absolute; bottom:10%; left:50%; transform:translateX(-50%); display:flex; gap:10px; flex-wrap:wrap; }
-.fruit { width:60px; cursor:grab; }
-
-/* Buttons row */
-#buttonsRow { position:absolute; bottom:2%; left:50%; transform:translateX(-50%); display:flex; gap:15px; }
-.btn { padding:12px 20px; border:none; border-radius:8px; font-size:16px; background:#ff9999; color:#fff; cursor:pointer; }
+#question { 
+    font-size:22px; color:#333; text-align:center; margin-top:20px; 
+}
+#treeContainer {
+    position: relative; width: 100%; flex:0;
+}
+#tree {
+    position:absolute; left:50px; bottom:0;
+    width:300px;
+    z-index:5;
+}
+#exampleBaskets {
+    position:absolute; bottom:40px; left:370px; display:flex; gap:15px;
+    z-index:6;
+}
+.exampleBasket {
+    width:60px; height:60px;
+    background: url('assets/basket.png') no-repeat center center;
+    background-size: contain;
+    display:flex; justify-content:center; align-items:center;
+    font-weight:bold; color:#fff; font-size:16px;
+}
+#basket {
+    position:absolute; right:50px; bottom:20px;
+    width:120px; height:120px;
+    background:url('assets/basket.png') no-repeat center center;
+    background-size: contain;
+    z-index:6;
+}
+#fruits {
+    position:absolute; bottom:160px; left:50%; transform:translateX(-50%);
+    display:flex; flex-wrap: wrap; justify-content:center; gap:8px;
+    width:90%;
+    z-index:7;
+}
+.fruit {
+    width:60px; cursor:grab;
+}
+#buttons {
+    position:absolute; bottom:10px; left:50%; transform:translateX(-50%);
+    display:flex; gap:20px;
+}
+.btn {
+    padding:10px 20px; font-size:18px;
+    border:none; border-radius:8px;
+    background:#ff9999; color:#fff;
+    cursor:pointer;
+}
 .btn:disabled { opacity:0.5; cursor:not-allowed; }
-
-/* Feedback */
-#feedback { position:absolute; bottom:12%; left:50%; transform:translateX(-50%); font-size:22px; font-weight:bold; }
-
-/* End screen */
-#endScreen { display:none; width:100%; height:100%; background:url('assets/garden-bg.png') no-repeat center bottom; background-size:cover; flex-direction:column; justify-content:center; align-items:center; font-size:32px; color:#4CAF50; }
-#endScreen button { padding:12px 24px; font-size:18px; border:none; border-radius:8px; background:#ff9999; color:#fff; cursor:pointer; }
+#endScreen {
+    display:none; flex-direction:column;
+    justify-content:center; align-items:center;
+    font-size:32px; color:#4CAF50; background:#fff;
+}
 </style>
 </head>
 <body>
 
 <div id="logoScreen">
-  <img src="assets/logo.png" alt="Innovine Logo">
+    <img src="assets/logo.png" alt="Innovine Logo">
 </div>
 
 <div id="gameScreen">
-  <div id="question">There are 3 baskets with 2 apples in each. Which button matches this statement correctly?</div>
-
-  <!-- Tree -->
-  <div id="treeContainer">
-    <img src="assets/apple-tree.png" id="tree" alt="Tree">
-  </div>
-
-  <!-- Example baskets -->
-  <div id="exampleBaskets">
-    <div class="exampleBasket">2</div>
-    <div class="exampleBasket">2</div>
-    <div class="exampleBasket">2</div>
-  </div>
-
-  <!-- Main basket -->
-  <div id="mainBasket"></div>
-
-  <!-- Fruits -->
-  <div id="fruitsRow">
-    <img src="assets/apple.png" class="fruit" draggable="true">
-    <img src="assets/apple.png" class="fruit" draggable="true">
-    <img src="assets/apple.png" class="fruit" draggable="true">
-    <img src="assets/apple.png" class="fruit" draggable="true">
-    <img src="assets/apple.png" class="fruit" draggable="true">
-    <img src="assets/apple.png" class="fruit" draggable="true">
-  </div>
-
-  <!-- Buttons -->
-  <div id="buttonsRow">
-    <button id="option1" class="btn">2 groups of 3 apples</button>
-    <button id="option2" class="btn">3 groups of 2 apples</button>
-    <button id="nextBtn" class="btn" disabled>Next</button>
-  </div>
-
-  <div id="feedback"></div>
+    <div id="question"></div>
+    <div id="treeContainer">
+        <img id="tree" src="" alt="Fruit Tree">
+        <div id="exampleBaskets"></div>
+        <div id="basket"></div>
+    </div>
+    <div id="fruits"></div>
+    <div id="buttons">
+        <button id="option1" class="btn"></button>
+        <button id="option2" class="btn"></button>
+        <button id="nextBtn" class="btn">Next</button>
+    </div>
 </div>
 
 <div id="endScreen">
-  <div>🎉 Good Job! 🎉</div>
-  <button id="playAgainBtn">Play Again</button>
+    <div>🎉 Good Job! 🎉</div>
+    <button id="playAgainBtn" class="btn">Play Again</button>
 </div>
 
+<audio id="correctSound" src="assets/correct.mp3"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+<audio id="clapSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+
 <script>
-const logoScreen = document.getElementById("logoScreen");
-const gameScreen = document.getElementById("gameScreen");
-const endScreen = document.getElementById("endScreen");
-const option1 = document.getElementById("option1");
-const option2 = document.getElementById("option2");
-const nextBtn = document.getElementById("nextBtn");
-const feedback = document.getElementById("feedback");
-const playAgainBtn = document.getElementById("playAgainBtn");
+// Level data
+const levels = [
+    { tree:'assets/apple-tree.png', exampleBaskets:3, exampleFruitsPerBasket:2, correctOption:2, options:["2 groups of 3 apples","3 groups of 2 apples"], dragFruits:6, fruitImg:'assets/apple.png', basketFullImg:'assets/apples-basket.png' },
+    { tree:'assets/mango-tree.png', exampleBaskets:5, exampleFruitsPerBasket:2, correctOption:1, options:["5 baskets of 2 mangoes","2 groups of 5 mangoes"], dragFruits:10, fruitImg:'assets/mango.png', basketFullImg:'assets/mango-basket.png' },
+    { tree:'assets/orange-tree.png', exampleBaskets:4, exampleFruitsPerBasket:3, correctOption:1, options:["4 baskets of 3 oranges","3 groups of 4 oranges"], dragFruits:12, fruitImg:'assets/orange.png', basketFullImg:'assets/orange-basket.png' }
+];
+let currentLevel = 0;
+let taskPhase = "MC";
+let draggedFruit = null;
+let collectedFruitCount = 0;
 
-// Show splash for 5 seconds
-logoScreen.style.display='flex';
-gameScreen.style.display='none';
-setTimeout(()=>{
-  logoScreen.style.display='none';
-  gameScreen.style.display='flex';
-},5000);
+// DOM elements
+const logoScreen = document.getElementById('logoScreen');
+const gameScreen = document.getElementById('gameScreen');
+const endScreen = document.getElementById('endScreen');
+const treeImg = document.getElementById('tree');
+const exampleBasketsDiv = document.getElementById('exampleBaskets');
+const fruitsDiv = document.getElementById('fruits');
+const basketDiv = document.getElementById('basket');
+const nextBtn = document.getElementById('nextBtn');
+const option1 = document.getElementById('option1');
+const option2 = document.getElementById('option2');
+const questionDiv = document.getElementById('question');
+const playAgainBtn = document.getElementById('playAgainBtn');
+const correctSound = document.getElementById('correctSound');
+const wrongSound = document.getElementById('wrongSound');
+const clapSound = document.getElementById('clapSound');
 
-// Button click logic
-option1.addEventListener('click', ()=>{
-  feedback.textContent = "❌ Wrong! Try again.";
-  feedback.style.color = "red";
-  option1.disabled = true;
-  option2.disabled = false;
-});
+// Start game
+function startGame(){
+    logoScreen.style.display='flex';
+    setTimeout(()=>{
+        logoScreen.style.display='none';
+        gameScreen.style.display='flex';
+        loadLevel();
+    },2000);
+}
 
-option2.addEventListener('click', ()=>{
-  feedback.textContent = "✅ Correct!";
-  feedback.style.color = "green";
-  option2.disabled = true;
-  option1.disabled = true;
-  nextBtn.disabled = false;
-});
+// Load level
+function loadLevel(){
+    const level = levels[currentLevel];
+    taskPhase="MC";
+    treeImg.src = level.tree;
+    exampleBasketsDiv.innerHTML="";
+    fruitsDiv.innerHTML="";
+    basketDiv.style.backgroundImage = "url('assets/basket.png')";
+    questionDiv.textContent="There are "+level.exampleBaskets+" baskets with "+level.exampleFruitsPerBasket+" fruits in each. Which button matches this statement correctly?";
+    nextBtn.style.display='inline-block'; nextBtn.disabled = true;
+    option1.style.display='inline-block'; option2.style.display='inline-block';
+    option1.textContent = level.options[0]; option2.textContent = level.options[1];
+    for(let i=0;i<level.exampleBaskets;i++){
+        let b = document.createElement('div');
+        b.className="exampleBasket";
+        b.textContent=level.exampleFruitsPerBasket;
+        exampleBasketsDiv.appendChild(b);
+    }
+}
+
+// MC click
+option1.addEventListener('click', ()=>checkMC(1));
+option2.addEventListener('click', ()=>checkMC(2));
+
+function checkMC(choice){
+    const level = levels[currentLevel];
+    if(choice===level.correctOption){
+        correctSound.play();
+        option1.style.display='none'; option2.style.display='none';
+        prepareDragTask(level);
+    } else { wrongSound.play(); }
+}
+
+// Drag task
+function prepareDragTask(level){
+    taskPhase="Drag"; fruitsDiv.innerHTML=""; collectedFruitCount=0;
+    questionDiv.textContent="Task: Collect the correct number of fruits in the main basket";
+    for(let i=0;i<level.dragFruits;i++){
+        let f = document.createElement('img');
+        f.src=level.fruitImg;
+        f.className='fruit';
+        f.draggable=true;
+        f.addEventListener('dragstart', e=>{ draggedFruit=e.target; });
+        fruitsDiv.appendChild(f);
+    }
+    basketDiv.innerHTML=""; basketDiv.style.backgroundImage = "url('assets/basket.png')";
+    basketDiv.addEventListener('dragover', e=>e.preventDefault());
+    basketDiv.addEventListener('drop', dropFruit);
+    nextBtn.disabled = true;
+}
+
+function dropFruit(e){
+    if(draggedFruit){ draggedFruit.remove(); collectedFruitCount++; draggedFruit=null; }
+    const level = levels[currentLevel];
+    if(collectedFruitCount===level.dragFruits){
+        basketDiv.style.backgroundImage = `url('${level.basketFullImg}')`;
+        questionDiv.textContent="Task complete! Click Next to continue.";
+        correctSound.play(); clapSound.play();
+        nextBtn.disabled=false;
+    }
+}
 
 // Next button
 nextBtn.addEventListener('click', ()=>{
-  alert("Move to next screen or next level here.");
-  nextBtn.disabled = true;
+    collectedFruitCount=0; nextBtn.disabled=true;
+    currentLevel++;
+    if(currentLevel>=levels.length){
+        gameScreen.style.display='none'; endScreen.style.display='flex';
+    } else loadLevel();
 });
 
-// Play again reloads
+// Play Again
 playAgainBtn.addEventListener('click', ()=>{
-  location.reload();
+    currentLevel=0;
+    endScreen.style.display='none';
+    gameScreen.style.display='flex';
+    loadLevel();
 });
+
+startGame();
 </script>
 </body>
 </html>
