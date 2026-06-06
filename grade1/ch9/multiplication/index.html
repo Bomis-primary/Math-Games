@@ -8,7 +8,7 @@
 html, body { margin:0; padding:0; height:100%; width:100%; font-family: Arial, sans-serif; overflow:hidden; }
 body { display:flex; justify-content:center; align-items:center; background:#fff; }
 #logoScreen, #gameScreen, #endScreen { width:100%; height:100%; position:absolute; top:0; left:0; display:flex; justify-content:center; align-items:center; flex-direction:column; }
-#logoScreen img { width:200px; display:block; }
+#logoScreen img { width:200px; }
 #logoScreen { z-index:10; background:#fff; }
 #gameScreen { display:none; background: url('assets/garden-background.png') no-repeat center center; background-size: cover; flex-direction:column; align-items:center; z-index:1; }
 #tree { width:300px; margin-top:20px; }
@@ -56,8 +56,8 @@ body { display:flex; justify-content:center; align-items:center; background:#fff
 // Level data
 const levels = [
   { tree:'assets/apple-tree.png', exampleBaskets:3, exampleFruitsPerBasket:2, correctOption:2, options:["2 groups of 3 apples","3 groups of 2 apples"], dragFruits:6, fruitImg:'assets/apple.png', show10Apples:true, basketFullImg:'assets/apples-basket.png' },
-  { tree:'assets/mango-tree.png', exampleBaskets:5, exampleFruitsPerBasket:2, correctOption:1, options:["5 baskets of 2 mangoes","2 groups of 5 mangoes"], dragFruits:10, fruitImg:'assets/mango.png', show10Apples:true, basketFullImg:'assets/mango-basket.png' },
-  { tree:'assets/orange-tree.png', exampleBaskets:4, exampleFruitsPerBasket:3, correctOption:1, options:["4 baskets of 3 oranges","3 groups of 4 oranges"], dragFruits:12, fruitImg:'assets/orange.png', show10Apples:false, basketFullImg:'assets/oranges-basket.png' }
+  { tree:'assets/mango-tree.png', exampleBaskets:5, exampleFruitsPerBasket:2, correctOption:1, options:["5 baskets of 2 mangoes","2 groups of 5 mangoes"], dragFruits:10, fruitImg:'assets/mango.png', show10Apples:false, basketFullImg:'assets/mango-basket.png' },
+  { tree:'assets/orange-tree.png', exampleBaskets:4, exampleFruitsPerBasket:3, correctOption:1, options:["4 baskets of 3 oranges","3 groups of 4 oranges"], dragFruits:12, fruitImg:'assets/orange.png', show10Apples:false, basketFullImg:'assets/orange-basket.png' }
 ];
 
 let currentLevel = 0;
@@ -85,7 +85,6 @@ const clapSound = document.getElementById('clapSound');
 // Start game
 function startGame(){
   logoScreen.style.display='flex';
-  logoScreen.style.opacity = '1';
   setTimeout(()=>{
     logoScreen.style.display='none';
     gameScreen.style.display='flex';
@@ -133,10 +132,9 @@ function checkMC(choice){
   }
 }
 
-// Generic Drag Task for all trees
+// --- Drag & Drop ---
 function prepareDragTask(level){
   taskPhase="Drag";
-  collectedCount = 0;
   questionDiv.textContent="Task: Collect the correct number of fruits in the basket";
   exampleBasketsDiv.innerHTML="";
   for(let i=0;i<level.exampleBaskets;i++){
@@ -147,6 +145,7 @@ function prepareDragTask(level){
   }
 
   fruitsDiv.innerHTML="";
+  collectedCount=0;
   const totalFruits = level.show10Apples ? 10 : level.dragFruits;
   for(let i=0;i<totalFruits;i++){
     let f = document.createElement('img');
@@ -160,26 +159,31 @@ function prepareDragTask(level){
   basketDiv.innerHTML="";
   basketDiv.style.backgroundImage = "url('assets/basket.png')";
   basketDiv.addEventListener('dragover', e=>e.preventDefault());
-  basketDiv.addEventListener('drop', e=>{
-    if(draggedFruit){
-      draggedFruit.remove();
-      collectedCount++;
-      draggedFruit=null;
-    }
-    if(collectedCount > level.dragFruits){
-      questionDiv.textContent = "Hint: count fruits in each basket and sum them";
-      nextBtn.disabled=true;
-    } else if(collectedCount === level.dragFruits){
-      basketDiv.style.backgroundImage = `url('${level.basketFullImg}')`;
-      questionDiv.textContent="Task complete! Click Next to continue.";
-      correctSound.play();
-      clapSound.play();
-      nextBtn.disabled=false;
-    } else {
-      nextBtn.disabled=true;
-    }
-  });
+  basketDiv.addEventListener('drop', dropFruit);
   nextBtn.disabled = true;
+}
+
+function dropFruit(e){
+  if(draggedFruit){
+    draggedFruit.remove(); // fruit disappears on drop
+    collectedCount++;
+    draggedFruit = null;
+  }
+
+  const level = levels[currentLevel];
+
+  if(collectedCount > level.dragFruits){
+    questionDiv.textContent = "Hint: count fruits in each basket and sum them";
+    nextBtn.disabled = true;
+  } else if(collectedCount === level.dragFruits){
+    basketDiv.style.backgroundImage = `url('${level.basketFullImg}')`; // Correct basket image per level
+    questionDiv.textContent="Task complete! Click Next to continue.";
+    correctSound.play();
+    clapSound.play();
+    nextBtn.disabled=false;
+  } else {
+    nextBtn.disabled=true;
+  }
 }
 
 // Next button
