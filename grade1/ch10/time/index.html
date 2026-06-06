@@ -3,52 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grade 1 Time Game</title>
+<title>Grade 1 Time Game - Wake Up</title>
 <style>
-  body, html { margin:0; padding:0; font-family: 'Arial', sans-serif; height:100%; width:100%; display:flex; justify-content:center; align-items:center; background: #FDF6EC; }
-  #logoScreen, #gameScreen, #endScreen { width:100%; height:100%; position:absolute; top:0; left:0; display:flex; flex-direction:column; justify-content:center; align-items:center; }
-  #logoScreen { background:#fff; z-index:2; }
-  #logoScreen img { width:200px; }
-  #gameScreen { display:none; z-index:1; text-align:center; }
-  #clock { width:200px; height:200px; border:5px solid #8E44AD; border-radius:50%; position:relative; margin:20px; background:#fff; }
-  .hand { position:absolute; left:50%; top:50%; transform-origin:bottom center; transform:rotate(0deg); }
-  #hourHand { width:6px; height:60px; background:#8E44AD; border-radius:3px; margin-left:-3px; margin-top:-60px; z-index:2; }
-  #minuteHand { width:4px; height:90px; background:#FF6347; border-radius:2px; margin-left:-2px; margin-top:-90px; z-index:1; }
-  #controls button { margin:5px; font-size:18px; padding:10px 15px; border:none; border-radius:5px; background:#8E44AD; color:#fff; cursor:pointer; }
-  #question { font-size:20px; color:#333; margin:10px; }
-  #feedback { font-size:22px; margin:10px; color:green; }
-  #nextBtn, #playAgainBtn { margin-top:20px; font-size:20px; padding:10px 20px; background:#FF69B4; color:#fff; border:none; border-radius:5px; cursor:pointer; display:none; }
-  .wrong { color:red; }
-  #confetti { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; display:none; }
+body, html { margin:0; padding:0; font-family: 'Arial', sans-serif; height:100%; width:100%; display:flex; justify-content:center; align-items:center; background:#FDF6EC; }
+#logoScreen, #gameScreen, #endScreen { width:100%; height:100%; position:absolute; top:0; left:0; display:flex; flex-direction:column; justify-content:center; align-items:center; }
+#logoScreen { background:#fff; z-index:2; }
+#logoScreen img { width:200px; }
+#gameScreen { display:none; z-index:1; text-align:center; position:relative; }
+#bgImg { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:-1; }
+#question { font-size:22px; margin-top:20px; color:#333; text-align:center; }
+.button-container { margin-top:20px; display:flex; gap:20px; }
+button.option-btn { padding:15px 25px; font-size:20px; border:none; border-radius:8px; cursor:pointer; background:#8E44AD; color:white; }
+button.option-btn.wrong { background:red; }
+button.option-btn.correct { background:green; }
+#feedback { font-size:22px; margin-top:15px; color:green; }
+#nextBtn, #playAgainBtn { margin-top:20px; font-size:20px; padding:10px 20px; background:#FF69B4; color:#fff; border:none; border-radius:5px; cursor:pointer; display:none; }
+#confetti { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; display:none; }
 </style>
 </head>
 <body>
 
 <!-- Logo Screen -->
 <div id="logoScreen">
-  <img src="assets/innovine-logo.png" alt="Innovine Logo">
+  <img src="assets/logo.png" alt="Logo">
 </div>
 
 <!-- Game Screen -->
 <div id="gameScreen">
-  <div id="question">Set the clock for Breakfast time</div>
-  <div id="clock">
-    <div id="hourHand" class="hand"></div>
-    <div id="minuteHand" class="hand"></div>
-  </div>
-  <div id="controls">
-    <div>
-      <button onclick="changeHour(-1)">Hour -</button>
-      <button onclick="changeHour(1)">Hour +</button>
-    </div>
-    <div>
-      <button onclick="changeMinute(-1)">Minute -</button>
-      <button onclick="changeMinute(1)">Minute +</button>
-    </div>
-    <button onclick="checkAnswer()">Check</button>
+  <img id="bgImg" src="assets/bedroom-bg.jpg" alt="Bedroom Background">
+  <div id="question">Click the correct time as shown on the clock.</div>
+  <div class="button-container">
+    <button class="option-btn" onclick="checkAnswer(this, true)">7:00 AM</button>
+    <button class="option-btn" onclick="checkAnswer(this, false)">6:00 AM</button>
   </div>
   <div id="feedback"></div>
-  <button id="nextBtn" onclick="nextQuestion()">Next</button>
+  <button id="nextBtn" onclick="nextTask()">Next</button>
 </div>
 
 <!-- End Screen -->
@@ -59,94 +48,64 @@
 </div>
 
 <script>
-// Questions for routines
-const questions = [
-  { activity: "Wake up", hour:7, minute:0 },
-  { activity: "Breakfast", hour:8, minute:0 },
-  { activity: "Go to School", hour:8, minute:30 },
-  { activity: "Lunch", hour:13, minute:0 },
-  { activity: "Playtime", hour:16, minute:0 },
-  { activity: "Dinner", hour:19, minute:30 },
-  { activity: "Bedtime", hour:21, minute:0 }
-];
+let attempts = 0;
 
-let currentQ = 0;
-let attempt = 0;
-let hour = 0;
-let minute = 0;
-
-// Show logo for 3 seconds then start game
-setTimeout(()=>{
-  document.getElementById("logoScreen").style.display = "none";
-  document.getElementById("gameScreen").style.display = "flex";
-  loadQuestion();
+// Show logo for 3 seconds
+setTimeout(() => {
+  document.getElementById('logoScreen').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'flex';
 }, 3000);
 
-// Functions to update hands
-function updateClock() {
-  document.getElementById("hourHand").style.transform = `rotate(${(hour%12)*30 + minute*0.5}deg)`;
-  document.getElementById("minuteHand").style.transform = `rotate(${minute*6}deg)`;
-}
-
-function changeHour(val) { hour = (hour + val + 24)%24; updateClock(); }
-function changeMinute(val) { minute = (minute + val + 60)%60; updateClock(); }
-
-// Load current question
-function loadQuestion() {
-  attempt = 0;
-  const q = questions[currentQ];
-  hour = 0; minute = 0;
-  updateClock();
-  document.getElementById("question").innerText = `Set the clock for ${q.activity}`;
-  document.getElementById("feedback").innerText = '';
-  document.getElementById("nextBtn").style.display = 'none';
-}
-
 // Check answer
-function checkAnswer() {
-  const q = questions[currentQ];
-  if(hour===q.hour && minute===q.minute){
-    document.getElementById("feedback").innerText = "Good Job!";
-    document.getElementById("feedback").classList.remove('wrong');
-    document.getElementById("nextBtn").style.display = 'inline-block';
+function checkAnswer(button, isCorrect) {
+  attempts++;
+  const feedback = document.getElementById('feedback');
+  if(isCorrect) {
+    button.classList.add('correct');
+    feedback.textContent = 'Good Job!';
     playSound('correct');
+    document.getElementById('nextBtn').style.display = 'inline-block';
+    disableOptions();
   } else {
-    attempt++;
-    if(attempt<2){
-      document.getElementById("feedback").innerText = "Try again!";
-      document.getElementById("feedback").classList.add('wrong');
-      playSound('wrong');
+    button.classList.add('wrong');
+    playSound('wrong');
+    if(attempts < 2){
+      feedback.textContent = 'Try again!';
     } else {
-      document.getElementById("feedback").innerText = `Time is ${q.hour}:${q.minute.toString().padStart(2,'0')}`;
-      document.getElementById("feedback").classList.remove('wrong');
-      document.getElementById("nextBtn").style.display = 'inline-block';
+      feedback.textContent = 'Correct answer is 7:00 AM';
+      document.getElementById('nextBtn').style.display = 'inline-block';
+      disableOptions();
     }
   }
 }
 
-// Next question
-function nextQuestion(){
-  currentQ++;
-  if(currentQ<questions.length){
-    loadQuestion();
-  } else {
-    document.getElementById("gameScreen").style.display="none";
-    document.getElementById("endScreen").style.display="flex";
-    showConfetti();
-  }
+// Disable buttons after correct / second attempt
+function disableOptions(){
+  const buttons = document.querySelectorAll('.option-btn');
+  buttons.forEach(btn => btn.disabled = true);
 }
 
-// Restart
+// Next task (currently only one task, placeholder for more)
+function nextTask(){
+  document.getElementById('gameScreen').style.display = 'none';
+  document.getElementById('endScreen').style.display = 'flex';
+  showConfetti();
+}
+
+// Restart game
 function restartGame(){
-  currentQ=0;
-  document.getElementById("endScreen").style.display="none";
-  document.getElementById("gameScreen").style.display="flex";
-  loadQuestion();
+  document.getElementById('endScreen').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'flex';
+  attempts = 0;
+  document.getElementById('feedback').textContent = '';
+  const buttons = document.querySelectorAll('.option-btn');
+  buttons.forEach(btn => { btn.disabled = false; btn.classList.remove('wrong','correct'); });
+  document.getElementById('nextBtn').style.display = 'none';
 }
 
-// Confetti (simple dots)
+// Confetti animation
 function showConfetti(){
-  const conf = document.getElementById("confetti");
+  const conf = document.getElementById('confetti');
   conf.style.display='block';
   for(let i=0;i<100;i++){
     let dot = document.createElement('div');
@@ -160,7 +119,7 @@ function showConfetti(){
   }
 }
 
-// Sounds
+// Play sound
 function playSound(type){
   const audio = new Audio(type==='correct'?'assets/correct.mp3':'assets/wrong.mp3');
   audio.play();
