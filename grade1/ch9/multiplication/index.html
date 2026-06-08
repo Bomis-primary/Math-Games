@@ -11,18 +11,14 @@ html, body {
     font-family: Arial, sans-serif;
     overflow:hidden;
 }
-body {
-    background:#fff;
-}
+body { background:#fff; }
 #logoScreen, #gameScreen, #endScreen {
     width:100%; height:100%;
     position:absolute; top:0; left:0;
     display:flex; justify-content:center; align-items:center;
     flex-direction:column;
 }
-#logoScreen {
-    z-index:10; background:#fff;
-}
+#logoScreen { z-index:10; background:#fff; }
 #logoScreen img { width:200px; }
 #gameScreen {
     display:none;
@@ -30,26 +26,18 @@ body {
     background-size: cover;
     flex-direction:column;
 }
-#question { 
-    font-size:22px; color:#333; text-align:center; margin-top:10px;
-    z-index:10;
-}
-#treeContainer {
-    position: relative; width: 100%; flex:0;
-}
+#question { font-size:22px; color:#333; text-align:center; margin-top:10px; z-index:10; }
+#treeContainer { position:relative; width:100%; flex:0; height:400px; }
 #tree {
-    position:absolute; left:5%; bottom:20px;
-    width:220px; /* adjusted size */
-    z-index:5;
-    background: transparent;
+    position:absolute; left:5%; bottom:0;
+    width:220px; z-index:5; background: transparent;
 }
 #exampleBaskets {
-    position:absolute; bottom:60px; left:35%; display:flex; gap:15px;
-    z-index:6;
+    position:absolute; bottom:70px; left:35%; display:flex; gap:15px; z-index:6;
 }
 .exampleBasket {
     width:60px; height:60px;
-    background: url('assets/basket.png') no-repeat center center;
+    background:url('assets/basket.png') no-repeat center center;
     background-size: contain;
     display:flex; justify-content:center; align-items:center;
     font-weight:bold; color:#fff; font-size:16px;
@@ -64,13 +52,9 @@ body {
 #fruits {
     position:absolute; bottom:180px; left:50%; transform:translateX(-50%);
     display:flex; flex-wrap: wrap; justify-content:center; gap:10px;
-    width:90%;
-    z-index:7;
+    width:90%; z-index:7;
 }
-.fruit {
-    width:50px;
-    cursor:grab;
-}
+.fruit { width:50px; cursor:grab; }
 #buttons {
     position:absolute; bottom:5%; left:50%; transform:translateX(-50%);
     display:flex; gap:20px;
@@ -78,13 +62,11 @@ body {
 .btn {
     padding:10px 20px; font-size:18px;
     border:none; border-radius:8px;
-    background:#ff9999; color:#fff;
-    cursor:pointer;
+    background:#ff9999; color:#fff; cursor:pointer;
 }
 .btn:disabled { opacity:0.5; cursor:not-allowed; }
 #endScreen {
-    display:none; flex-direction:column;
-    justify-content:center; align-items:center;
+    display:none; flex-direction:column; justify-content:center; align-items:center;
     font-size:32px; color:#4CAF50; background:#fff;
 }
 </style>
@@ -120,36 +102,30 @@ body {
 <audio id="clapSound" src="assets/freesound_community-claps-44774.mp3"></audio>
 
 <script>
-// Level data - transparent PNGs for trees
+// Levels with transparent trees
 const levels = [
-    { tree:'assets/apple-tree-transparent.png', exampleBaskets:3, exampleFruitsPerBasket:2, correctOption:2, options:["2 groups of 3 apples","3 groups of 2 apples"], dragFruits:6, fruitImg:'assets/apple.png', basketFullImg:'assets/apples-basket.png' },
-    { tree:'assets/mango-tree-transparent.png', exampleBaskets:5, exampleFruitsPerBasket:2, correctOption:1, options:["5 baskets of 2 mangoes","2 groups of 5 mangoes"], dragFruits:10, fruitImg:'assets/mango.png', basketFullImg:'assets/mango-basket.png' },
-    { tree:'assets/orange-tree-transparent.png', exampleBaskets:4, exampleFruitsPerBasket:3, correctOption:1, options:["4 baskets of 3 oranges","3 groups of 4 oranges"], dragFruits:12, fruitImg:'assets/orange.png', basketFullImg:'assets/orange-basket.png' }
+    { tree:'assets/apple-tree.png', exampleBaskets:3, exampleFruitsPerBasket:2, correctOption:2, options:["2 groups of 3 apples","3 groups of 2 apples"], dragFruits:6, fruitImg:'assets/apple.png', basketFullImg:'assets/apples-basket.png' },
+    { tree:'assets/mango-tree.png', exampleBaskets:5, exampleFruitsPerBasket:2, correctOption:1, options:["5 baskets of 2 mangoes","2 groups of 5 mangoes"], dragFruits:10, fruitImg:'assets/mango.png', basketFullImg:'assets/mango-basket.png' },
+    { tree:'assets/orange-tree.png', exampleBaskets:4, exampleFruitsPerBasket:3, correctOption:1, options:["4 baskets of 3 oranges","3 groups of 4 oranges"], dragFruits:12, fruitImg:'assets/orange.png', basketFullImg:'assets/orange-basket.png' }
 ];
+let currentLevel=0, taskPhase="MC", draggedFruit=null, collectedFruitCount=0;
 
-let currentLevel = 0;
-let taskPhase = "MC";
-let draggedFruit = null;
-let collectedFruitCount = 0;
+const logoScreen=document.getElementById('logoScreen');
+const gameScreen=document.getElementById('gameScreen');
+const endScreen=document.getElementById('endScreen');
+const treeImg=document.getElementById('tree');
+const exampleBasketsDiv=document.getElementById('exampleBaskets');
+const fruitsDiv=document.getElementById('fruits');
+const basketDiv=document.getElementById('basket');
+const nextBtn=document.getElementById('nextBtn');
+const option1=document.getElementById('option1');
+const option2=document.getElementById('option2');
+const questionDiv=document.getElementById('question');
+const playAgainBtn=document.getElementById('playAgainBtn');
+const correctSound=document.getElementById('correctSound');
+const wrongSound=document.getElementById('wrongSound');
+const clapSound=document.getElementById('clapSound');
 
-// DOM elements
-const logoScreen = document.getElementById('logoScreen');
-const gameScreen = document.getElementById('gameScreen');
-const endScreen = document.getElementById('endScreen');
-const treeImg = document.getElementById('tree');
-const exampleBasketsDiv = document.getElementById('exampleBaskets');
-const fruitsDiv = document.getElementById('fruits');
-const basketDiv = document.getElementById('basket');
-const nextBtn = document.getElementById('nextBtn');
-const option1 = document.getElementById('option1');
-const option2 = document.getElementById('option2');
-const questionDiv = document.getElementById('question');
-const playAgainBtn = document.getElementById('playAgainBtn');
-const correctSound = document.getElementById('correctSound');
-const wrongSound = document.getElementById('wrongSound');
-const clapSound = document.getElementById('clapSound');
-
-// Start game
 function startGame(){
     logoScreen.style.display='flex';
     setTimeout(()=>{
@@ -159,32 +135,29 @@ function startGame(){
     },2000);
 }
 
-// Load level
 function loadLevel(){
-    const level = levels[currentLevel];
+    const level=levels[currentLevel];
     taskPhase="MC";
-    treeImg.src = level.tree;
-    exampleBasketsDiv.innerHTML="";
-    fruitsDiv.innerHTML="";
-    basketDiv.style.backgroundImage = "url('assets/basket.png')";
-    questionDiv.textContent="There are "+level.exampleBaskets+" baskets with "+level.exampleFruitsPerBasket+" fruits in each. Which button matches this statement correctly?";
-    nextBtn.style.display='inline-block'; nextBtn.disabled = true;
+    treeImg.src=level.tree;
+    exampleBasketsDiv.innerHTML=""; fruitsDiv.innerHTML="";
+    basketDiv.style.backgroundImage="url('assets/basket.png')";
+    questionDiv.textContent=`There are ${level.exampleBaskets} baskets with ${level.exampleFruitsPerBasket} fruits in each. Which button matches this statement correctly?`;
+    nextBtn.disabled=true; nextBtn.style.display='inline-block';
     option1.style.display='inline-block'; option2.style.display='inline-block';
-    option1.textContent = level.options[0]; option2.textContent = level.options[1];
+    option1.textContent=level.options[0]; option2.textContent=level.options[1];
     for(let i=0;i<level.exampleBaskets;i++){
-        let b = document.createElement('div');
+        const b=document.createElement('div');
         b.className="exampleBasket";
         b.textContent=level.exampleFruitsPerBasket;
         exampleBasketsDiv.appendChild(b);
     }
 }
 
-// MC click
 option1.addEventListener('click', ()=>checkMC(1));
 option2.addEventListener('click', ()=>checkMC(2));
 
 function checkMC(choice){
-    const level = levels[currentLevel];
+    const level=levels[currentLevel];
     if(choice===level.correctOption){
         correctSound.play();
         option1.style.display='none'; option2.style.display='none';
@@ -192,36 +165,32 @@ function checkMC(choice){
     } else { wrongSound.play(); }
 }
 
-// Drag task
 function prepareDragTask(level){
     taskPhase="Drag"; fruitsDiv.innerHTML=""; collectedFruitCount=0;
     questionDiv.textContent="Task: Collect the correct number of fruits in the main basket";
     for(let i=0;i<level.dragFruits;i++){
-        let f = document.createElement('img');
-        f.src=level.fruitImg;
-        f.className='fruit';
-        f.draggable=true;
-        f.addEventListener('dragstart', e=>{ draggedFruit=e.target; });
+        const f=document.createElement('img');
+        f.src=level.fruitImg; f.className='fruit'; f.draggable=true;
+        f.addEventListener('dragstart', e=>draggedFruit=e.target);
         fruitsDiv.appendChild(f);
     }
-    basketDiv.innerHTML=""; basketDiv.style.backgroundImage = "url('assets/basket.png')";
+    basketDiv.innerHTML=""; basketDiv.style.backgroundImage="url('assets/basket.png')";
     basketDiv.addEventListener('dragover', e=>e.preventDefault());
     basketDiv.addEventListener('drop', dropFruit);
-    nextBtn.disabled = true;
+    nextBtn.disabled=true;
 }
 
 function dropFruit(e){
     if(draggedFruit){ draggedFruit.remove(); collectedFruitCount++; draggedFruit=null; }
-    const level = levels[currentLevel];
+    const level=levels[currentLevel];
     if(collectedFruitCount===level.dragFruits){
-        basketDiv.style.backgroundImage = `url('${level.basketFullImg}')`;
+        basketDiv.style.backgroundImage=`url('${level.basketFullImg}')`;
         questionDiv.textContent="Task complete! Click Next to continue.";
         correctSound.play(); clapSound.play();
         nextBtn.disabled=false;
     }
 }
 
-// Next button
 nextBtn.addEventListener('click', ()=>{
     collectedFruitCount=0; nextBtn.disabled=true;
     currentLevel++;
@@ -230,12 +199,9 @@ nextBtn.addEventListener('click', ()=>{
     } else loadLevel();
 });
 
-// Play Again
 playAgainBtn.addEventListener('click', ()=>{
-    currentLevel=0;
-    endScreen.style.display='none';
-    gameScreen.style.display='flex';
-    loadLevel();
+    currentLevel=0; endScreen.style.display='none';
+    gameScreen.style.display='flex'; loadLevel();
 });
 
 startGame();
