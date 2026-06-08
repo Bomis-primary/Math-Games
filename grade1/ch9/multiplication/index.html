@@ -3,61 +3,98 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fruit Basket Game</title>
+<title>Fruit Garden Adventure</title>
 <style>
 html, body { margin:0; padding:0; width:100%; height:100%; font-family: Arial, sans-serif; overflow:hidden; }
-#gameScreen { width:100%; height:100%; position:relative; display:flex; justify-content:center; align-items:center; flex-direction:column; 
-  background: url('assets/orchard-bg.jpg') no-repeat center bottom;
-  background-size: cover;
-}
-#question { font-size:22px; color:#fff; text-align:center; margin-bottom:20px; }
-#basketContainer { position:relative; width:100%; display:flex; justify-content:center; align-items:center; gap:20px; margin-bottom:20px; }
-.basket-img { width:202px; height:202px; user-select:none; pointer-events:none; position:relative; }
-.basket-label { position:absolute; top:10px; left:50%; transform:translateX(-50%); font-size:32px; color:#fff; font-weight:bold; pointer-events:none; }
-#basket-img { position:absolute; right:35%; bottom:40px; width:202px; height:202px; }
-#fruits { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-bottom:20px; }
-.fruit { width:60px; cursor:grab; }
-#buttons { display:flex; gap:20px; }
+#splash, #gameScreen, #endScreen { width:100%; height:100%; position:absolute; top:0; left:0; display:flex; justify-content:center; align-items:center; flex-direction:column; }
+#splash { background:#fff; z-index:10; }
+#splash img { width:200px; }
+#gameScreen { display:none; flex-direction:column; width:100%; height:100%; }
+.screen { width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:flex-start; position:relative; }
+#buttons { display:flex; gap:20px; margin-top:10px; }
 .btn { padding:14px 28px; font-size:25px; border:none; border-radius:8px; background:#ff9999; color:#fff; cursor:pointer; }
 .btn:disabled { opacity:0.5; cursor:not-allowed; }
-#endScreen { display:none; flex-direction:column; justify-content:center; align-items:center; font-size:32px; color:#fff; background:#4CAF50; height:100%; width:100%; position:absolute; top:0; left:0; }
+.basket-img { width:202px; height:202px; position:relative; }
+.basket-label { position:absolute; top:10px; left:50%; transform:translateX(-50%); font-size:32px; color:#fff; font-weight:bold; pointer-events:none; }
+#fruits { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin-top:20px; }
+.fruit { width:60px; cursor:grab; }
+#endScreen { display:none; flex-direction:column; justify-content:center; align-items:center; font-size:32px; color:#fff; background:#4CAF50; height:100%; width:100%; }
 </style>
 </head>
 <body>
 
+<!-- Splash screen -->
+<div id="splash">
+    <img src="assets/logo.png" alt="Innovine Logo">
+</div>
+
+<!-- Game container -->
 <div id="gameScreen">
-    <div id="question">There are 3 baskets with 2 fruits in each. Which button matches this statement correctly?</div>
-    <div id="basketContainer">
-        <div style="position:relative;">
-            <img class="basket-img" src="assets/basket.png" alt="Basket 1">
-            <div class="basket-label">2</div>
-        </div>
-        <div style="position:relative;">
-            <img class="basket-img" src="assets/basket.png" alt="Basket 2">
-            <div class="basket-label">2</div>
-        </div>
-        <div style="position:relative;">
-            <img class="basket-img" src="assets/basket.png" alt="Basket 3">
-            <div class="basket-label">2</div>
+
+    <!-- Screen 2: Orchard 3 baskets -->
+    <div class="screen" id="screen2" style="background:url('assets/orchard-bg.jpg') no-repeat center bottom; background-size:cover;">
+        <div style="display:flex; gap:20px; margin-top:150px;">
+            <div style="position:relative;"><img class="basket-img" src="assets/basket.png"><div class="basket-label">2</div></div>
+            <div style="position:relative;"><img class="basket-img" src="assets/basket.png"><div class="basket-label">2</div></div>
+            <div style="position:relative;"><img class="basket-img" src="assets/basket.png"><div class="basket-label">2</div></div>
         </div>
     </div>
 
-    <img id="basket-img" src="assets/basket.png" alt="Main Basket">
-
-    <div id="fruits">
-        <img class="fruit" src="assets/mango.png" draggable="true">
-        <img class="fruit" src="assets/mango.png" draggable="true">
-        <img class="fruit" src="assets/mango.png" draggable="true">
-        <img class="fruit" src="assets/mango.png" draggable="true">
-        <img class="fruit" src="assets/mango.png" draggable="true">
-        <img class="fruit" src="assets/mango.png" draggable="true">
+    <!-- Screen 3: Apples drag & drop -->
+    <div class="screen" id="screen3" style="background:url('assets/orchard-bg.jpg') no-repeat center bottom; background-size:cover;">
+        <div id="fruits-screen3"></div>
+        <img class="basket-img" id="basket3" src="assets/basket.png" style="position:absolute; bottom:40px; left:50%; transform:translateX(-50%);">
+        <div id="buttons3" style="margin-top:20px;">
+            <button class="btn" id="next3" disabled>Next</button>
+        </div>
     </div>
 
-    <div id="buttons">
-        <button class="btn" id="option1">3 baskets of 2 mangoes</button>
-        <button class="btn" id="option2">2 groups of 3 mangoes</button>
-        <button class="btn" id="nextBtn" disabled>Next</button>
+    <!-- Screen 4: 5 baskets button question -->
+    <div class="screen" id="screen4" style="background:#4CAF50;">
+        <div style="display:flex; gap:20px; margin-top:150px;">
+            <div style="position:relative;"><img class="basket-img" src="assets/basket.png"><div class="basket-label">2</div></div>
+            <div style="position:relative;"><img class="basket-img" src="assets/basket.png"><div class="basket-label">2</div></div>
+            <div style="position:relative;"><img class="basket-img" src="assets/basket.png"><div class="basket-label">2</div></div>
+            <div style="position:relative;"><img class="basket-img" src="assets/basket.png"><div class="basket-label">2</div></div>
+            <div style="position:relative;"><img class="basket-img" src="assets/basket.png"><div class="basket-label">2</div></div>
+        </div>
+        <div id="buttons4" style="margin-top:20px;">
+            <button class="btn" id="option41">5 baskets of 2 apples</button>
+            <button class="btn" id="option42">2 groups of 5 apples</button>
+        </div>
     </div>
+
+    <!-- Screen 5: 10 mangoes drag & drop -->
+    <div class="screen" id="screen5" style="background:url('assets/orchard-bg.jpg') no-repeat center bottom; background-size:cover;">
+        <div id="fruits-screen5"></div>
+        <img class="basket-img" id="basket5" src="assets/basket.png" style="position:absolute; bottom:40px; left:50%; transform:translateX(-50%);">
+        <div id="buttons5" style="margin-top:20px;">
+            <button class="btn" id="next5" disabled>Next</button>
+        </div>
+    </div>
+
+    <!-- Screen 6: 3 baskets with 3 -->
+    <div class="screen" id="screen6" style="background:#4CAF50;">
+        <div style="display:flex; gap:20px; margin-top:150px;">
+            <div style="position:relative;"><img class="basket-img" src="assets/basket.png"><div class="basket-label">3</div></div>
+            <div style="position:relative;"><img class="basket-img" src="assets/basket.png"><div class="basket-label">3</div></div>
+            <div style="position:relative;"><img class="basket-img" src="assets/basket.png"><div class="basket-label">3</div></div>
+        </div>
+        <div id="buttons6" style="margin-top:20px;">
+            <button class="btn" id="option61">3 baskets of 3 oranges</button>
+            <button class="btn" id="option62">2 groups of 4 oranges</button>
+        </div>
+    </div>
+
+    <!-- Screen 7: 9 oranges drag & drop -->
+    <div class="screen" id="screen7" style="background:url('assets/orchard-bg.jpg') no-repeat center bottom; background-size:cover;">
+        <div id="fruits-screen7"></div>
+        <img class="basket-img" id="basket7" src="assets/basket.png" style="position:absolute; bottom:40px; left:50%; transform:translateX(-50%);">
+        <div id="buttons7" style="margin-top:20px;">
+            <button class="btn" id="next7" disabled>Next</button>
+        </div>
+    </div>
+
 </div>
 
 <div id="endScreen">
@@ -66,29 +103,71 @@ html, body { margin:0; padding:0; width:100%; height:100%; font-family: Arial, s
 </div>
 
 <script>
-const option1 = document.getElementById('option1');
-const option2 = document.getElementById('option2');
-const nextBtn = document.getElementById('nextBtn');
-const playAgainBtn = document.getElementById('playAgainBtn');
-const endScreen = document.getElementById('endScreen');
+// Splash
+const splash = document.getElementById('splash');
+const gameScreen = document.getElementById('gameScreen');
+setTimeout(()=>{ splash.style.display='none'; gameScreen.style.display='flex'; document.getElementById('screen2').style.display='flex'; },2000);
 
-option1.addEventListener('click', () => {
-    alert("Correct!");
-    nextBtn.disabled = false;
-});
-option2.addEventListener('click', () => {
-    alert("Wrong! Try again.");
-});
+// Screen helper
+function showScreen(screenId){ 
+    const screens = document.querySelectorAll('.screen'); 
+    screens.forEach(s=>s.style.display='none'); 
+    document.getElementById(screenId).style.display='flex'; 
+}
 
-nextBtn.addEventListener('click', () => {
-    document.getElementById('gameScreen').style.display = 'none';
-    endScreen.style.display = 'flex';
-});
+// Drag & Drop logic for screens 3,5,7
+function setupDrag(fruitContainerId, basketId, dragCount, nextBtnId){
+    const container = document.getElementById(fruitContainerId);
+    const basket = document.getElementById(basketId);
+    const nextBtn = document.getElementById(nextBtnId);
+    let dragged=null, count=0;
 
-playAgainBtn.addEventListener('click', () => {
-    endScreen.style.display = 'none';
-    document.getElementById('gameScreen').style.display = 'flex';
-    nextBtn.disabled = true;
+    container.querySelectorAll('.fruit').forEach(f=>{
+        f.addEventListener('dragstart', e=>{ dragged=e.target; });
+    });
+
+    basket.addEventListener('dragover', e=>e.preventDefault());
+    basket.addEventListener('drop', e=>{
+        if(dragged){ dragged.remove(); count++; dragged=null; }
+        if(count>=dragCount) nextBtn.disabled=false;
+    });
+
+    nextBtn.addEventListener('click', ()=>{
+        const next = parseInt(nextBtnId.replace('next',''));
+        showScreen('screen'+(next+1));
+    });
+}
+
+// Setup apples screen3
+for(let i=0;i<10;i++){
+    const img = document.createElement('img'); img.src='assets/apple.png'; img.className='fruit'; img.draggable=true;
+    document.getElementById('fruits-screen3').appendChild(img);
+}
+setupDrag('fruits-screen3','basket3',6,'next3');
+
+// Setup mangoes screen5
+for(let i=0;i<10;i++){
+    const img = document.createElement('img'); img.src='assets/mango.png'; img.className='fruit'; img.draggable=true;
+    document.getElementById('fruits-screen5').appendChild(img);
+}
+setupDrag('fruits-screen5','basket5',10,'next5');
+
+// Setup oranges screen7 (corrected to 9 oranges)
+for(let i=0;i<9;i++){
+    const img = document.createElement('img'); img.src='assets/orange.png'; img.className='fruit'; img.draggable=true;
+    document.getElementById('fruits-screen7').appendChild(img);
+}
+setupDrag('fruits-screen7','basket7',9,'next7');
+
+// Buttons screens 4 & 6
+document.getElementById('option41').addEventListener('click', ()=>{ alert('Correct!'); showScreen('screen5'); });
+document.getElementById('option42').addEventListener('click', ()=>{ alert('Wrong! Try again'); });
+document.getElementById('option61').addEventListener('click', ()=>{ alert('Correct!'); showScreen('screen7'); });
+document.getElementById('option62').addEventListener('click', ()=>{ alert('Wrong! Try again'); });
+
+// Play again
+document.getElementById('playAgainBtn').addEventListener('click', ()=>{
+    location.reload();
 });
 </script>
 </body>
