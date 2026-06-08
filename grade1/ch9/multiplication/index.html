@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Great Orchard Sorting Mission</title>
+    <title>Grade 1 Multiplication Game</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         * {
@@ -18,9 +18,32 @@
             height: 100%;
             overflow: hidden;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
         }
 
-        /* Fixed Background Container Layer using your asset folder path */
+        /* Mandatory Blank Screen Logo Splash Screen */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .logo-img {
+            max-width: 280px;
+            max-height: 120px;
+            object-fit: contain;
+            animation: logoFadeIn 1s ease-out forwards;
+        }
+
+        /* Fixed Background Container Layer */
         .game-container {
             position: relative;
             width: 100vw;
@@ -35,10 +58,10 @@
             padding: 20px;
         }
 
-        /* Top HUD Styling */
+        /* Top High-Contrast HUD Card */
         header {
             background: rgba(255, 255, 255, 0.9);
-            padding: 12px 24px;
+            padding: 15px 25px;
             border-radius: 15px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.15);
             text-align: center;
@@ -47,123 +70,128 @@
         }
 
         h1 {
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             color: #2c3e50;
-            margin: 0 0 8px 0;
+            margin: 0 0 10px 0;
+            line-height: 1.4;
         }
 
         .status-bar {
             display: flex;
             justify-content: space-around;
-            gap: 20px;
+            gap: 30px;
             font-weight: bold;
             color: #34495e;
         }
 
-        /* Main Stage Workspace Area */
+        /* Main Stage Area */
         .stage {
             position: relative;
             width: 100%;
             flex-grow: 1;
             display: flex;
-            justify-content: space-around;
-            align-items: flex-end;
-            padding-bottom: 40px;
+            justify-content: center;
+            align-items: center;
+            padding-bottom: 20px;
         }
 
-        /* Fixed Tree Wrapper Scaling */
-        .tree-wrapper {
-            position: relative;
-            width: 340px;
-            height: 340px;
+        .display-area {
             display: flex;
             justify-content: center;
-            align-items: flex-end;
+            align-items: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 20px;
+            backdrop-filter: blur(4px);
         }
 
-        /* 🛠️ BLEND MODE WORKAROUND FOR CONVERTED JPG ASSETS: */
-        .tree-img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
-            /* Digitally removes the solid black backgrounds on your converted .jpg files */
-            mix-blend-mode: screen; 
-        }
-
-        /* Floating Math Value Label Container centered on the tree canopy */
-        .fruit-label {
-            position: absolute;
-            top: 35%;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 8px 18px;
-            border-radius: 24px;
-            font-weight: 900;
-            font-size: 1.5rem;
-            color: #d35400;
-            border: 3px solid #e67e22;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-            z-index: 5;
-        }
-
-        /* Interactive Target Basket Zone */
-        .baskets-zone {
-            display: flex;
-            gap: 30px;
-            align-items: flex-end;
-        }
-
-        .basket-item {
-            cursor: pointer;
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        /* Basket & Fruit Structures */
+        .basket-wrapper {
+            position: relative;
             display: flex;
             flex-direction: column;
             align-items: center;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 12px 20px;
-            border-radius: 18px;
-            border: 3px solid #8e44ad;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
-        }
-
-        .basket-item:hover {
-            transform: scale(1.08);
+            width: 130px;
         }
 
         .basket-img {
-            width: 70px;
-            height: 60px;
-            object-fit: contain;
-            margin-bottom: 8px;
+            width: 120px;
+            height: auto;
+            z-index: 2;
+            filter: drop-shadow(0px 6px 6px rgba(0,0,0,0.15));
         }
 
-        .basket-title {
-            font-size: 1.1rem;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-
-        /* Controls Panel toolbar */
-        .controls {
-            z-index: 10;
-            width: 100%;
+        .fruit-grid {
+            position: absolute;
+            top: -15px;
             display: flex;
             justify-content: center;
+            align-items: center;
+            gap: 5px;
+            flex-wrap: wrap;
+            width: 90px;
+            z-index: 3;
+        }
+
+        .fruit-img {
+            width: 25px;
+            height: 25px;
+            object-fit: contain;
+            animation: popIn 0.3s ease-out forwards;
+        }
+
+        /* Options Panel Toolbar */
+        .footer-controls {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            z-index: 10;
             padding-bottom: 10px;
+        }
+
+        .options-zone {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .option-btn {
+            background: #ff6b81;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 6px 12px rgba(255, 107, 129, 0.3);
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        .option-btn:hover {
+            background: #ff4757;
+            transform: scale(1.05);
         }
 
         .volume-control {
             background: rgba(255, 255, 255, 0.9);
-            padding: 8px 16px;
+            padding: 6px 16px;
             border-radius: 20px;
             display: flex;
             align-items: center;
             gap: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            font-size: 0.9rem;
             font-weight: bold;
             color: #2c3e50;
         }
 
-        /* Screen Overlay Layouts */
+        /* Screen Overlays */
         .overlay {
             position: fixed;
             top: 0;
@@ -182,24 +210,24 @@
         }
 
         .overlay h2 {
-            font-size: 2.4rem;
+            font-size: 2.2rem;
             margin-bottom: 15px;
             color: #f1c40f;
         }
 
         .overlay p {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             margin-bottom: 30px;
-            max-width: 550px;
+            max-width: 500px;
             line-height: 1.6;
         }
 
-        .btn {
+        .btn-primary {
             background: #2ecc71;
             color: white;
             border: none;
-            padding: 15px 45px;
-            font-size: 1.3rem;
+            padding: 15px 40px;
+            font-size: 1.2rem;
             font-weight: bold;
             border-radius: 30px;
             cursor: pointer;
@@ -207,7 +235,7 @@
             transition: background 0.2s, transform 0.2s;
         }
 
-        .btn:hover {
+        .btn-primary:hover {
             background: #27ae60;
             transform: scale(1.05);
         }
@@ -216,176 +244,214 @@
             display: none !important;
         }
 
-        /* Responsive Breakpoints for mobile screens */
+        @keyframes logoFadeIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Responsive Breakpoints */
         @media (max-width: 768px) {
-            .stage {
+            .options-zone {
                 flex-direction: column;
                 align-items: center;
-                justify-content: center;
-                gap: 25px;
+                gap: 10px;
             }
-            .tree-wrapper {
-                width: 250px;
-                height: 250px;
+            .option-btn {
+                width: 85%;
+                font-size: 1rem;
+                padding: 12px;
             }
             h1 { font-size: 1.1rem; }
-            .overlay h2 { font-size: 1.8rem; }
+            .display-area { gap: 20px; padding: 10px; }
+            .basket-wrapper { width: 95px; }
+            .basket-img { width: 90px; }
         }
     </style>
 </head>
 <body>
 
+    <div id="splash-screen">
+        <img src="assets/logo.png" alt="Innovine Logo" class="logo-img">
+    </div>
+
     <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
-    <div id="start-screen" class="overlay">
-        <h2>🌳 The Great Orchard Sorting Mission!</h2>
-        <p>Welcome, Assistant Botanist! The magical orchard trees are growing numbered fruits up to 500! To harvest them safely, your mission is to sort each tree value into the correct ODD or EVEN collection baskets. Complete all 3 fruit levels to win!</p>
-        <button class="btn" onclick="startGame()">Start Harvesting Mission</button>
+    <div id="start-screen" class="overlay hidden">
+        <h2>🧺 The Great Basket Sorting Challenge!</h2>
+        <p>Hi there! Look closely at the baskets and count the sets of fruits on the grass lawn. Can you match the objects to the correct multiplication description statement? Answer all 10 questions to complete the harvest mission!</p>
+        <button class="btn-primary" onclick="startGame()">Start Counting Game</button>
     </div>
 
     <div class="game-container">
         <header>
-            <h1 id="prompt-text">Initializing harvest pathways...</h1>
+            <h1 id="question-text">Loading multiplication structures...</h1>
             <div class="status-bar">
-                <div>Level: <span id="lbl-level">1/3</span></div>
-                <div>Progress: <span id="lbl-progress">0/4</span></div>
+                <div>Question: <span id="lbl-question">1/10</span></div>
                 <div>Score: <span id="lbl-score">0</span></div>
             </div>
         </header>
 
         <div class="stage">
-            <div class="tree-wrapper">
-                <img id="game-tree" src="assets/apple-tree.jpg" alt="Game Tree" class="tree-img">
-                <div id="tree-value" class="fruit-label">---</div>
-            </div>
-
-            <div class="baskets-zone">
-                <div class="basket-item" onclick="submitAnswer('odd')">
-                    <img src="assets/basket.png" alt="Basket" class="basket-img">
-                    <span class="basket-title">🧺 ODD BASKET</span>
-                </div>
-                <div class="basket-item" onclick="submitAnswer('even')">
-                    <img src="assets/basket-full.png" alt="Basket Full" class="basket-img">
-                    <span class="basket-title">🧺 EVEN BASKET</span>
-                </div>
-            </div>
+            <div id="display-area" class="display-area"></div>
         </div>
 
-        <div class="controls">
-            <div class="volume-control">
-                <label for="volume">🔊 Volume:</label>
-                <input type="range" id="volume" min="0" max="1" step="0.1" value="0.6">
+        <div class="footer-controls">
+            <div id="options-zone" class="options-zone"></div>
+            <div class="controls">
+                <div class="volume-control">
+                    <label for="volume">🔊 Volume:</label>
+                    <input type="range" id="volume" min="0" max="1" step="0.1" value="0.6">
+                </div>
             </div>
         </div>
     </div>
 
     <div id="end-screen" class="overlay hidden">
-        <h2>🎉 Mission Accomplished!</h2>
-        <p>Outstanding job, Master Botanist! You successfully classified the number structures up to 500 across all orchard fields and completed your sorting logs perfectly.</p>
-        <button class="btn" onclick="restartGame()">Play Again</button>
+        <h2>🎉 Outstanding Counting!</h2>
+        <p>Fantastic job! You matched all the groups perfectly and successfully loaded the harvest wagons. You are officially a Master of Groups!</p>
+        <button class="btn-primary" onclick="restartGame()">Play Again</button>
     </div>
 
     <script>
-        // Core Game Logic Configs
-        let currentLevel = 1;
-        let roundCount = 0;
+        let currentQuestionIndex = 0;
         let score = 0;
-        let currentTargetNumber = 0;
-        const totalRoundsPerLevel = 4;
+        const totalQuestions = 10;
+        
+        let currentGroupsCount = 0;
+        let currentItemsCount = 0;
+        let currentFruitType = '';
 
-        // Level parameters managing complexity ranges cleanly up to 500
-        // Updated targets precisely matching your converted .jpg extensions
-        const levelsConfig = {
-            1: { min: 1, max: 150, tree: 'assets/apple-tree.jpg', title: "Sort the Apple Values!" },
-            2: { min: 151, max: 350, tree: 'assets/mango-tree.jpg', title: "Sort the Mango Values!" },
-            3: { min: 351, max: 500, tree: 'assets/orange-tree.png', title: "Ultimate Challenge: Orange Values!" }
-        };
+        const fruitTypes = [
+            { name: 'apples', file: 'assets/apple.png' },
+            { name: 'mangoes', file: 'assets/mango.png' },
+            { name: 'oranges', file: 'assets/orange.png' }
+        ];
 
-        // Trigger Audio Assets using volume input settings dynamically
+        // Handles the mandatory initial loading timed sequence
+        window.addEventListener('DOMContentLoaded', () => {
+            // 🛠️ CHANGED FROM 2500 TO 5000 (EXACTLY 5 SECONDS)
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.classList.add('hidden');
+                    document.getElementById('start-screen').classList.remove('hidden');
+                }, 500); // Smooth fade animation buffer
+            }, 5000); 
+        });
+
         function playAudio(soundId) {
             const soundElement = document.getElementById(soundId);
             const volumeSetting = parseFloat(document.getElementById('volume').value);
             if (soundElement) {
                 soundElement.volume = volumeSetting;
                 soundElement.currentTime = 0; 
-                soundElement.play().catch(e => console.log("Audio waiting on interaction:", e));
+                soundElement.play().catch(e => console.log("Audio layout trace error:", e));
             }
         }
 
         function startGame() {
             document.getElementById('start-screen').classList.add('hidden');
-            currentLevel = 1;
-            roundCount = 0;
+            currentQuestionIndex = 0;
             score = 0;
-            setupLevel();
+            generateQuestion();
         }
 
-        function setupLevel() {
-            const config = levelsConfig[currentLevel];
-            document.getElementById('game-tree').src = config.tree;
-            document.getElementById('lbl-level').innerText = `${currentLevel}/3`;
-            nextRound();
-        }
-
-        function nextRound() {
-            if (roundCount >= totalRoundsPerLevel) {
-                if (currentLevel < 3) {
-                    currentLevel++;
-                    roundCount = 0;
-                    setupLevel();
-                    return;
-                } else {
-                    endGame();
-                    return;
-                }
+        function generateQuestion() {
+            if (currentQuestionIndex >= totalQuestions) {
+                endGame();
+                return;
             }
 
-            // Generate numbers accurately fitting the objective limits dynamically up to 500
-            const config = levelsConfig[currentLevel];
-            currentTargetNumber = Math.floor(Math.random() * (config.max - config.min + 1)) + config.min;
+            // Grade 1 friendly numbers
+            currentGroupsCount = Math.floor(Math.random() * 4) + 2; 
+            currentItemsCount = Math.floor(Math.random() * 4) + 1; 
             
-            document.getElementById('tree-value').innerText = currentTargetNumber;
-            document.getElementById('prompt-text').innerText = `${levelsConfig[currentLevel].title} Is this number Odd or Even?`;
-            document.getElementById('lbl-progress').innerText = `${roundCount}/${totalRoundsPerLevel}`;
+            const chosenFruitConfig = fruitTypes[Math.floor(Math.random() * fruitTypes.length)];
+            currentFruitType = chosenFruitConfig.name;
+
+            document.getElementById('question-text').innerText = `There are ${currentGroupsCount} baskets with ${currentItemsCount} ${currentFruitType} in each. Which button matches this statement correctly?`;
+            document.getElementById('lbl-question').innerText = `${currentQuestionIndex + 1}/${totalQuestions}`;
             document.getElementById('lbl-score').innerText = score;
+
+            const fieldArea = document.getElementById('display-area');
+            fieldArea.innerHTML = '';
+
+            for (let i = 0; i < currentGroupsCount; i++) {
+                const basketWrapper = document.createElement('div');
+                basketWrapper.className = 'basket-wrapper';
+
+                const basketImg = document.createElement('img');
+                basketImg.src = 'assets/basket.png';
+                basketImg.alt = 'Basket';
+                basketImg.className = 'basket-img';
+
+                const fruitGrid = document.createElement('div');
+                fruitGrid.className = 'fruit-grid';
+
+                for (let j = 0; j < currentItemsCount; j++) {
+                    const fruitImg = document.createElement('img');
+                    fruitImg.src = chosenFruitConfig.file;
+                    fruitImg.alt = currentFruitType;
+                    fruitImg.className = 'fruit-img';
+                    fruitGrid.appendChild(fruitImg);
+                }
+
+                basketWrapper.appendChild(fruitGrid);
+                basketWrapper.appendChild(basketImg);
+                fieldArea.appendChild(basketWrapper);
+            }
+
+            const optionsZone = document.getElementById('options-zone');
+            optionsZone.innerHTML = '';
+
+            const correctAnswerString = `${currentGroupsCount} groups of ${currentItemsCount} ${currentFruitType}`;
+            const distractorAnswerString = `${currentItemsCount} groups of ${currentGroupsCount} ${currentFruitType}`;
+
+            const choicesArray = [correctAnswerString];
+            if (correctAnswerString !== distractorAnswerString) {
+                choicesArray.push(distractorAnswerString);
+            } else {
+                choicesArray.push(`${currentGroupsCount + 1} groups of ${currentItemsCount} ${currentFruitType}`);
+            }
+
+            choicesArray.sort(() => Math.random() - 0.5);
+
+            choicesArray.forEach(labelText => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = labelText;
+                btn.onclick = () => checkAnswer(labelText, correctAnswerString);
+                optionsZone.appendChild(btn);
+            });
         }
 
-        function submitAnswer(chosenCategory) {
-            const isEven = currentTargetNumber % 2 === 0;
-            const correctCategory = isEven ? 'even' : 'odd';
-
-            if (chosenCategory === correctCategory) {
-                playAudio('audio-correct'); // Play correct.mp3
+        function checkAnswer(selectedString, correctString) {
+            if (selectedString === correctString) {
+                playAudio('audio-correct');
                 score += 10;
-                roundCount++;
-                
-                // Trigger micro celebratory burst feedback
-                confetti({
-                    particleCount: 40,
-                    spread: 45,
-                    origin: { y: 0.7 }
-                });
+                confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
             } else {
-                playAudio('audio-wrong'); // Play wrong.mp3
-                alert(`Oops! ${currentTargetNumber} is an ${correctCategory.toUpperCase()} number.`);
-                roundCount++; 
+                playAudio('audio-wrong');
+                alert(`Oops! Remember, the number of baskets comes first! That was ${correctString}.`);
             }
-            
-            setTimeout(nextRound, 450); 
+
+            currentQuestionIndex++;
+            setTimeout(generateQuestion, 500);
         }
 
         function endGame() {
             document.getElementById('end-screen').classList.remove('hidden');
-            
-            // Loop full celebration cascade array on final structural game end
-            let duration = 3 * 1000;
-            let end = Date.now() + duration;
-
+            let end = Date.now() + (3 * 1000);
             (function frame() {
-                confetti({ particleCount: 4, angle: 60, spread: 55, origin: { x: 0 } });
-                confetti({ particleCount: 4, angle: 120, spread: 55, origin: { x: 1 } });
-
+                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 } });
+                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 } });
                 if (Date.now() < end) {
                     requestAnimationFrame(frame);
                 }
