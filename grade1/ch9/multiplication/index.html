@@ -1,467 +1,175 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grade 1 Multiplication Game</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-        }
-
-        body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f8f9fa;
-        }
-
-        /* Mandatory Blank Screen Logo Splash Screen */
-        #splash-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 200;
-            transition: opacity 0.5s ease-out;
-        }
-
-        .logo-img {
-            max-width: 280px;
-            max-height: 120px;
-            object-fit: contain;
-            animation: logoFadeIn 1s ease-out forwards;
-        }
-
-        /* Fixed Background Container Layer */
-        .game-container {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            background-image: url('assets/garden-bg.png'); 
-            background-size: cover;
-            background-position: center bottom;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px;
-        }
-
-        /* Top High-Contrast HUD Card */
-        header {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 15px 25px;
-            border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
-            text-align: center;
-            max-width: 90%;
-            z-index: 10;
-        }
-
-        h1 {
-            font-size: 1.3rem;
-            color: #2c3e50;
-            margin: 0 0 10px 0;
-            line-height: 1.4;
-        }
-
-        .status-bar {
-            display: flex;
-            justify-content: space-around;
-            gap: 30px;
-            font-weight: bold;
-            color: #34495e;
-        }
-
-        /* Main Stage Area */
-        .stage {
-            position: relative;
-            width: 100%;
-            flex-grow: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding-bottom: 20px;
-        }
-
-        .display-area {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 40px;
-            flex-wrap: wrap;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 20px;
-            border-radius: 20px;
-            backdrop-filter: blur(4px);
-        }
-
-        /* Basket & Fruit Structures */
-        .basket-wrapper {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 130px;
-        }
-
-        .basket-img {
-            width: 120px;
-            height: auto;
-            z-index: 2;
-            filter: drop-shadow(0px 6px 6px rgba(0,0,0,0.15));
-        }
-
-        .fruit-grid {
-            position: absolute;
-            top: -15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 5px;
-            flex-wrap: wrap;
-            width: 90px;
-            z-index: 3;
-        }
-
-        .fruit-img {
-            width: 25px;
-            height: 25px;
-            object-fit: contain;
-            animation: popIn 0.3s ease-out forwards;
-        }
-
-        /* Options Panel Toolbar */
-        .footer-controls {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            z-index: 10;
-            padding-bottom: 10px;
-        }
-
-        .options-zone {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            width: 100%;
-        }
-
-        .option-btn {
-            background: #ff6b81;
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border-radius: 25px;
-            cursor: pointer;
-            box-shadow: 0 6px 12px rgba(255, 107, 129, 0.3);
-            transition: background 0.2s, transform 0.2s;
-        }
-
-        .option-btn:hover {
-            background: #ff4757;
-            transform: scale(1.05);
-        }
-
-        .volume-control {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 6px 16px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            font-size: 0.9rem;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-
-        /* Screen Overlays */
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(44, 62, 80, 0.96);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-            color: #fff;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .overlay h2 {
-            font-size: 2.2rem;
-            margin-bottom: 15px;
-            color: #f1c40f;
-        }
-
-        .overlay p {
-            font-size: 1.1rem;
-            margin-bottom: 30px;
-            max-width: 500px;
-            line-height: 1.6;
-        }
-
-        .btn-primary {
-            background: #2ecc71;
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            font-size: 1.2rem;
-            font-weight: bold;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
-            transition: background 0.2s, transform 0.2s;
-        }
-
-        .btn-primary:hover {
-            background: #27ae60;
-            transform: scale(1.05);
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        @keyframes logoFadeIn {
-            0% { transform: scale(0.9); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        @keyframes popIn {
-            0% { transform: scale(0); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        /* Responsive Breakpoints */
-        @media (max-width: 768px) {
-            .options-zone {
-                flex-direction: column;
-                align-items: center;
-                gap: 10px;
-            }
-            .option-btn {
-                width: 85%;
-                font-size: 1rem;
-                padding: 12px;
-            }
-            h1 { font-size: 1.1rem; }
-            .display-area { gap: 20px; padding: 10px; }
-            .basket-wrapper { width: 95px; }
-            .basket-img { width: 90px; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fruit Garden Adventure</title>
+<style>
+html, body { margin:0; padding:0; width:100%; height:100%; font-family: Arial, sans-serif; overflow:hidden; }
+body { background:#fff; }
+#logoScreen, #gameScreen, #endScreen {
+    width:100%; height:100%; position:absolute; top:0; left:0;
+    display:flex; justify-content:center; align-items:center; flex-direction:column;
+}
+#logoScreen { z-index:10; background:#fff; }
+#logoScreen img { width:200px; }
+#gameScreen {
+    display:none; background:url('assets/garden-bg.png') no-repeat center center; background-size:cover;
+    flex-direction:column;
+}
+#question { font-size:22px; color:#333; text-align:center; margin-top:10px; z-index:10; }
+#treeContainer { position:relative; width:100%; height:400px; }
+#tree { position:absolute; left:5%; bottom:0; z-index:5; background:transparent; }
+#exampleBaskets { position:absolute; bottom:70px; left:35%; display:flex; gap:15px; z-index:6; }
+.exampleBasket { width:60px; height:60px; background:url('assets/basket.png') no-repeat center center; background-size:contain; display:flex; justify-content:center; align-items:center; font-weight:bold; color:#fff; font-size:16px; }
+#basket { position:absolute; right:5%; bottom:40px; width:120px; height:120px; background:url('assets/basket.png') no-repeat center center; background-size:contain; z-index:6; }
+#fruits { position:absolute; bottom:180px; left:50%; transform:translateX(-50%); display:flex; flex-wrap: wrap; justify-content:center; gap:10px; width:90%; z-index:7; }
+.fruit { width:50px; cursor:grab; }
+#buttons { position:absolute; bottom:5%; left:50%; transform:translateX(-50%); display:flex; gap:20px; }
+.btn { padding:10px 20px; font-size:18px; border:none; border-radius:8px; background:#ff9999; color:#fff; cursor:pointer; }
+.btn:disabled { opacity:0.5; cursor:not-allowed; }
+#endScreen { display:none; flex-direction:column; justify-content:center; align-items:center; font-size:32px; color:#4CAF50; background:#fff; }
+</style>
 </head>
 <body>
 
-    <div id="splash-screen">
-        <img src="assets/logo.png" alt="Innovine Logo" class="logo-img">
+<div id="logoScreen"><img src="assets/logo.png" alt="Innovine Logo"></div>
+
+<div id="gameScreen">
+    <div id="question"></div>
+    <div id="treeContainer">
+        <img id="tree" src="" alt="Fruit Tree">
+        <div id="exampleBaskets"></div>
+        <div id="basket"></div>
     </div>
-
-    <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
-    <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
-
-    <div id="start-screen" class="overlay hidden">
-        <h2>🧺 The Great Basket Sorting Challenge!</h2>
-        <p>Hi there! Look closely at the baskets and count the sets of fruits on the grass lawn. Can you match the objects to the correct multiplication description statement? Answer all 10 questions to complete the harvest mission!</p>
-        <button class="btn-primary" onclick="startGame()">Start Counting Game</button>
+    <div id="fruits"></div>
+    <div id="buttons">
+        <button id="option1" class="btn"></button>
+        <button id="option2" class="btn"></button>
+        <button id="nextBtn" class="btn">Next</button>
     </div>
+</div>
 
-    <div class="game-container">
-        <header>
-            <h1 id="question-text">Loading multiplication structures...</h1>
-            <div class="status-bar">
-                <div>Question: <span id="lbl-question">1/10</span></div>
-                <div>Score: <span id="lbl-score">0</span></div>
-            </div>
-        </header>
+<div id="endScreen">
+    <div>🎉 Good Job! 🎉</div>
+    <button id="playAgainBtn" class="btn">Play Again</button>
+</div>
 
-        <div class="stage">
-            <div id="display-area" class="display-area"></div>
-        </div>
+<audio id="correctSound" src="assets/correct.mp3"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+<audio id="clapSound" src="assets/freesound_community-claps-44774.mp3"></audio>
 
-        <div class="footer-controls">
-            <div id="options-zone" class="options-zone"></div>
-            <div class="controls">
-                <div class="volume-control">
-                    <label for="volume">🔊 Volume:</label>
-                    <input type="range" id="volume" min="0" max="1" step="0.1" value="0.6">
-                </div>
-            </div>
-        </div>
-    </div>
+<script>
+// Levels with transparent tree assets
+const levels = [
+    { tree:'assets/apple-tree.png', width:220, exampleBaskets:3, exampleFruitsPerBasket:2, correctOption:2, options:["2 groups of 3 apples","3 groups of 2 apples"], dragFruits:6, fruitImg:'assets/apple.png', basketFullImg:'assets/apples-basket.png' },
+    { tree:'assets/mango-tree.png', width:250, exampleBaskets:5, exampleFruitsPerBasket:2, correctOption:1, options:["5 baskets of 2 mangoes","2 groups of 5 mangoes"], dragFruits:10, fruitImg:'assets/mango.png', basketFullImg:'assets/mango-basket.png' },
+    { tree:'assets/orange-tree.png', width:240, exampleBaskets:4, exampleFruitsPerBasket:3, correctOption:1, options:["4 baskets of 3 oranges","3 groups of 4 oranges"], dragFruits:12, fruitImg:'assets/orange.png', basketFullImg:'assets/orange-basket.png' }
+];
 
-    <div id="end-screen" class="overlay hidden">
-        <h2>🎉 Outstanding Counting!</h2>
-        <p>Fantastic job! You matched all the groups perfectly and successfully loaded the harvest wagons. You are officially a Master of Groups!</p>
-        <button class="btn-primary" onclick="restartGame()">Play Again</button>
-    </div>
+let currentLevel=0, taskPhase="MC", draggedFruit=null, collectedFruitCount=0;
 
-    <script>
-        let currentQuestionIndex = 0;
-        let score = 0;
-        const totalQuestions = 10;
-        
-        let currentGroupsCount = 0;
-        let currentItemsCount = 0;
-        let currentFruitType = '';
+// DOM elements
+const logoScreen=document.getElementById('logoScreen');
+const gameScreen=document.getElementById('gameScreen');
+const endScreen=document.getElementById('endScreen');
+const treeImg=document.getElementById('tree');
+const exampleBasketsDiv=document.getElementById('exampleBaskets');
+const fruitsDiv=document.getElementById('fruits');
+const basketDiv=document.getElementById('basket');
+const nextBtn=document.getElementById('nextBtn');
+const option1=document.getElementById('option1');
+const option2=document.getElementById('option2');
+const questionDiv=document.getElementById('question');
+const playAgainBtn=document.getElementById('playAgainBtn');
+const correctSound=document.getElementById('correctSound');
+const wrongSound=document.getElementById('wrongSound');
+const clapSound=document.getElementById('clapSound');
 
-        const fruitTypes = [
-            { name: 'apples', file: 'assets/apple.png' },
-            { name: 'mangoes', file: 'assets/mango.png' },
-            { name: 'oranges', file: 'assets/orange.png' }
-        ];
+// Start game
+function startGame(){
+    logoScreen.style.display='flex';
+    setTimeout(()=>{
+        logoScreen.style.display='none';
+        gameScreen.style.display='flex';
+        loadLevel();
+    },2000);
+}
 
-        // Handles the mandatory initial loading timed sequence
-        window.addEventListener('DOMContentLoaded', () => {
-            // 🛠️ CHANGED FROM 2500 TO 5000 (EXACTLY 5 SECONDS)
-            setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                splash.style.opacity = '0';
-                setTimeout(() => {
-                    splash.classList.add('hidden');
-                    document.getElementById('start-screen').classList.remove('hidden');
-                }, 500); // Smooth fade animation buffer
-            }, 5000); 
-        });
+// Load level
+function loadLevel(){
+    const level=levels[currentLevel];
+    taskPhase="MC";
+    treeImg.src=level.tree;
+    treeImg.style.width=level.width+'px';
+    exampleBasketsDiv.innerHTML=""; fruitsDiv.innerHTML="";
+    basketDiv.style.backgroundImage="url('assets/basket.png')";
+    questionDiv.textContent=`There are ${level.exampleBaskets} baskets with ${level.exampleFruitsPerBasket} fruits in each. Which button matches this statement correctly?`;
+    nextBtn.disabled=true; nextBtn.style.display='inline-block';
+    option1.style.display='inline-block'; option2.style.display='inline-block';
+    option1.textContent=level.options[0]; option2.textContent=level.options[1];
+    for(let i=0;i<level.exampleBaskets;i++){
+        const b=document.createElement('div');
+        b.className="exampleBasket";
+        b.textContent=level.exampleFruitsPerBasket;
+        exampleBasketsDiv.appendChild(b);
+    }
+}
 
-        function playAudio(soundId) {
-            const soundElement = document.getElementById(soundId);
-            const volumeSetting = parseFloat(document.getElementById('volume').value);
-            if (soundElement) {
-                soundElement.volume = volumeSetting;
-                soundElement.currentTime = 0; 
-                soundElement.play().catch(e => console.log("Audio layout trace error:", e));
-            }
-        }
+// MC click
+option1.addEventListener('click', ()=>checkMC(1));
+option2.addEventListener('click', ()=>checkMC(2));
 
-        function startGame() {
-            document.getElementById('start-screen').classList.add('hidden');
-            currentQuestionIndex = 0;
-            score = 0;
-            generateQuestion();
-        }
+function checkMC(choice){
+    const level=levels[currentLevel];
+    if(choice===level.correctOption){
+        correctSound.play();
+        option1.style.display='none'; option2.style.display='none';
+        prepareDragTask(level);
+    } else { wrongSound.play(); }
+}
 
-        function generateQuestion() {
-            if (currentQuestionIndex >= totalQuestions) {
-                endGame();
-                return;
-            }
+// Drag task
+function prepareDragTask(level){
+    taskPhase="Drag"; fruitsDiv.innerHTML=""; collectedFruitCount=0;
+    questionDiv.textContent="Task: Collect the correct number of fruits in the main basket";
+    for(let i=0;i<level.dragFruits;i++){
+        const f=document.createElement('img');
+        f.src=level.fruitImg; f.className='fruit'; f.draggable=true;
+        f.addEventListener('dragstart', e=>draggedFruit=e.target);
+        fruitsDiv.appendChild(f);
+    }
+    basketDiv.innerHTML=""; basketDiv.style.backgroundImage="url('assets/basket.png')";
+    basketDiv.addEventListener('dragover', e=>e.preventDefault());
+    basketDiv.addEventListener('drop', dropFruit);
+    nextBtn.disabled=true;
+}
 
-            // Grade 1 friendly numbers
-            currentGroupsCount = Math.floor(Math.random() * 4) + 2; 
-            currentItemsCount = Math.floor(Math.random() * 4) + 1; 
-            
-            const chosenFruitConfig = fruitTypes[Math.floor(Math.random() * fruitTypes.length)];
-            currentFruitType = chosenFruitConfig.name;
+function dropFruit(e){
+    if(draggedFruit){ draggedFruit.remove(); collectedFruitCount++; draggedFruit=null; }
+    const level=levels[currentLevel];
+    if(collectedFruitCount===level.dragFruits){
+        basketDiv.style.backgroundImage=`url('${level.basketFullImg}')`;
+        questionDiv.textContent="Task complete! Click Next to continue.";
+        correctSound.play(); clapSound.play();
+        nextBtn.disabled=false;
+    }
+}
 
-            document.getElementById('question-text').innerText = `There are ${currentGroupsCount} baskets with ${currentItemsCount} ${currentFruitType} in each. Which button matches this statement correctly?`;
-            document.getElementById('lbl-question').innerText = `${currentQuestionIndex + 1}/${totalQuestions}`;
-            document.getElementById('lbl-score').innerText = score;
+nextBtn.addEventListener('click', ()=>{
+    collectedFruitCount=0; nextBtn.disabled=true;
+    currentLevel++;
+    if(currentLevel>=levels.length){
+        gameScreen.style.display='none'; endScreen.style.display='flex';
+    } else loadLevel();
+});
 
-            const fieldArea = document.getElementById('display-area');
-            fieldArea.innerHTML = '';
+playAgainBtn.addEventListener('click', ()=>{
+    currentLevel=0; endScreen.style.display='none';
+    gameScreen.style.display='flex'; loadLevel();
+});
 
-            for (let i = 0; i < currentGroupsCount; i++) {
-                const basketWrapper = document.createElement('div');
-                basketWrapper.className = 'basket-wrapper';
-
-                const basketImg = document.createElement('img');
-                basketImg.src = 'assets/basket.png';
-                basketImg.alt = 'Basket';
-                basketImg.className = 'basket-img';
-
-                const fruitGrid = document.createElement('div');
-                fruitGrid.className = 'fruit-grid';
-
-                for (let j = 0; j < currentItemsCount; j++) {
-                    const fruitImg = document.createElement('img');
-                    fruitImg.src = chosenFruitConfig.file;
-                    fruitImg.alt = currentFruitType;
-                    fruitImg.className = 'fruit-img';
-                    fruitGrid.appendChild(fruitImg);
-                }
-
-                basketWrapper.appendChild(fruitGrid);
-                basketWrapper.appendChild(basketImg);
-                fieldArea.appendChild(basketWrapper);
-            }
-
-            const optionsZone = document.getElementById('options-zone');
-            optionsZone.innerHTML = '';
-
-            const correctAnswerString = `${currentGroupsCount} groups of ${currentItemsCount} ${currentFruitType}`;
-            const distractorAnswerString = `${currentItemsCount} groups of ${currentGroupsCount} ${currentFruitType}`;
-
-            const choicesArray = [correctAnswerString];
-            if (correctAnswerString !== distractorAnswerString) {
-                choicesArray.push(distractorAnswerString);
-            } else {
-                choicesArray.push(`${currentGroupsCount + 1} groups of ${currentItemsCount} ${currentFruitType}`);
-            }
-
-            choicesArray.sort(() => Math.random() - 0.5);
-
-            choicesArray.forEach(labelText => {
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.innerText = labelText;
-                btn.onclick = () => checkAnswer(labelText, correctAnswerString);
-                optionsZone.appendChild(btn);
-            });
-        }
-
-        function checkAnswer(selectedString, correctString) {
-            if (selectedString === correctString) {
-                playAudio('audio-correct');
-                score += 10;
-                confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
-            } else {
-                playAudio('audio-wrong');
-                alert(`Oops! Remember, the number of baskets comes first! That was ${correctString}.`);
-            }
-
-            currentQuestionIndex++;
-            setTimeout(generateQuestion, 500);
-        }
-
-        function endGame() {
-            document.getElementById('end-screen').classList.remove('hidden');
-            let end = Date.now() + (3 * 1000);
-            (function frame() {
-                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 } });
-                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 } });
-                if (Date.now() < end) {
-                    requestAnimationFrame(frame);
-                }
-            }());
-        }
-
-        function restartGame() {
-            document.getElementById('end-screen').classList.add('hidden');
-            startGame();
-        }
-    </script>
+startGame();
+</script>
 </body>
 </html>
