@@ -107,9 +107,32 @@
       border: 4px solid #81c784;
     }
 
-    /* SEAMLESS DINO HTML IMAGE ENGINE
-       Swapped to an img element to guarantee proper rendering and transparent backgrounds.
-    */
+    /* Harvest Shelf container for Grid Layout */
+    .harvest-shelf {
+      position: absolute;
+      right: 15px;
+      top: 15px;
+      width: 480px;
+      height: 140px;
+      background: rgba(255, 255, 255, 0.85);
+      border: 3px dashed #ff9800;
+      border-radius: 12px;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .harvest-shelf-title {
+      position: absolute;
+      top: -12px;
+      left: 15px;
+      background: #ff9800;
+      color: white;
+      padding: 2px 10px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      border-radius: 20px;
+    }
+
+    /* Dino Image Positioning Styles */
     .dino-img-render {
       position: absolute;
       bottom: -5px;
@@ -135,21 +158,20 @@
       75% { transform: translateX(8px) rotate(4deg); }
     }
 
-    /* CRITICAL FIX: PHYSICAL DRAGGABLE APPLE ENGINE 
-       Forced block rendering with explicit dimensions to bypass CSS blank-collapsing bugs.
-    */
+    /* Draggable Apple Items */
     .apple-draggable-img {
       display: block !important;
-      width: 52px !important;
-      height: 52px !important;
+      width: 50px !important;
+      height: 50px !important;
       position: absolute;
       cursor: grab;
       z-index: 10;
       touch-action: none;
       object-fit: contain;
-      filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.25));
+      filter: drop-shadow(0px 4px 5px rgba(0,0,0,0.25));
+      transition: transform 0.1s ease;
     }
-    .apple-draggable-img:active { cursor: grabbing; transform: scale(1.18); }
+    .apple-draggable-img:active { cursor: grabbing; transform: scale(1.2); z-index: 100; }
 
     /* Interactive Subtraction Container */
     .equation-container {
@@ -318,8 +340,7 @@
     const dinoList = ['blue-dino.png', 'pink-dino.png', 'red-dino.png', 'yellow-dino.png'];
     
     const dynamicStories = [
-      "Look closely at the minus number! Feed the dinosaur that exact amount of apples.",
-      "Help the dino crunch the correct number of fruits from the equation statement!",
+      "Feed the dinosaur the correct amount of apples from the equation statement!",
       "Orchard puzzle alert! Drag the apples being subtracted right into the dino's mouth.",
       "Can you match the math sentence? Feed the dino the right number of sweet treats!",
       "Look at the equation box below. How many apples does our friendly dinosaur need to eat?"
@@ -330,10 +351,10 @@
         const sound = document.getElementById(elementId);
         if (sound) {
           sound.currentTime = 0;
-          sound.play().catch(e => console.log("Audio native skipped."));
+          sound.play().catch(e => console.log("Audio skipped."));
         }
       } catch (err) {
-        console.log("Audio block error bypassed.");
+        console.log("Audio block error handled.");
       }
     }
 
@@ -356,16 +377,27 @@
     function assembleLevelQuestions() {
       stageQuestions = [];
       for(let i=0; i<TOTAL_TURNS; i++) {
-        let totalApples = Math.floor(Math.random() * 6) + 10; // Spawns between 10 to 15 apples
-        let eatenApples = Math.floor(Math.random() * 6) + 3;   // Subtracts 3 to 8 apples
-        let correctVal = totalApples - eatenApples;
+        let totalApples, eatenApples;
+
+        // Variety Twist: 20% chance to generate a number minus itself scenario (result 0)
+        if (i > 0 && Math.random() < 0.20) {
+          totalApples = Math.floor(Math.random() * 6) + 8; // 8 to 13 apples total
+          eatenApples = totalApples; // Subtract same number
+        } else {
+          totalApples = Math.floor(Math.random() * 6) + 10; // 10 to 15 apples total
+          eatenApples = Math.floor(Math.random() * 5) + 3;   // Subtract 3 to 7 apples
+        }
         
+        let correctVal = totalApples - eatenApples;
         let randomDino = dinoList[Math.floor(Math.random() * dinoList.length)];
 
-        let decoys = new Set([correctVal + 1, correctVal - 1]);
-        if (correctVal - 1 < 0) { decoys.add(correctVal + 2); decoys.delete(correctVal - 1); }
-        while(decoys.size < 2) { decoys.add(Math.floor(Math.random() * 8) + 1); }
-        let opts = [correctVal, ...decoys];
+        let decoys = new Set([correctVal + 1, correctVal + 2]);
+        if (correctVal - 1 >= 0) { decoys.add(correctVal - 1); }
+        if (correctVal - 2 >= 0) { decoys.add(correctVal - 2); }
+        
+        // Trim down decoys set securely to exactly two entries
+        let decoyArr = Array.from(decoys).sort(() => Math.random() - 0.5);
+        let opts = [correctVal, decoyArr[0], decoyArr[1]];
 
         stageQuestions.push({
           total: totalApples,
@@ -411,32 +443,39 @@
       const canvas = document.getElementById('stage-canvas');
       canvas.innerHTML = '';
 
-      // FIXED SEAMLESS RENDERING ELEMENT: Swapped container out for direct image placement
+      // Append clean visual backdrop box separating background art from counting pieces
+      let shelf = document.createElement('div');
+      shelf.className = 'harvest-shelf';
+      shelf.innerHTML = '<span class="harvest-shelf-title">Apples To Count 🍏</span>';
+      canvas.appendChild(shelf);
+
+      // Render Dino directly on stage
       let dinoImg = document.createElement('img');
       dinoImg.className = 'dino-img-render';
       dinoImg.id = 'active-dino';
       dinoImg.src = `./assets/${currentQ.dino}`;
-      dinoImg.alt = "Friendly Dinosaur";
       canvas.appendChild(dinoImg);
 
-      // Algorithmic Spawning System Bounds 
-      const startX = 250; 
-      const endX = canvas.clientWidth - 70;
-      const startY = 40;
-      const endY = canvas.clientHeight - 80;
+      // Grid Placement Dimensions
+      const shelfLeftStart = canvas.clientWidth - 475; 
+      const shelfTopStart = 35;
+      const spaceHorizontal = 56;
+      const spaceVertical = 55;
+      const columnsMax = 8;
 
-      // FIXED PHYSICAL IMAGE NODE GENERATION ENGINE
       for (let i = 0; i < currentQ.total; i++) {
         let appleImg = document.createElement('img');
         appleImg.className = 'apple-draggable-img';
         appleImg.src = './assets/apple.png';
-        appleImg.alt = 'Orchard Apple';
         
-        let randX = Math.floor(Math.random() * (endX - startX)) + startX;
-        let randY = Math.floor(Math.random() * (endY - startY)) + startY;
+        let row = Math.floor(i / columnsMax);
+        let col = i % columnsMax;
         
-        appleImg.style.left = randX + 'px';
-        appleImg.style.top = randY + 'px';
+        let gridX = shelfLeftStart + (col * spaceHorizontal);
+        let gridY = shelfTopStart + (row * spaceVertical);
+        
+        appleImg.style.left = gridX + 'px';
+        appleImg.style.top = gridY + 'px';
         
         setupDraggingEngine(appleImg, dinoImg);
         canvas.appendChild(appleImg);
@@ -492,10 +531,9 @@
         let appleRect = element.getBoundingClientRect();
         let dinoRect = targetDino.getBoundingClientRect();
 
-        // High precision custom geometry intersection algorithm
-        let hit = !(appleRect.right < (dinoRect.left + 20) || 
-                    appleRect.left > (dinoRect.right - 20) || 
-                    appleRect.bottom < (dinoRect.top + 20) || 
+        let hit = !(appleRect.right < (dinoRect.left + 15) || 
+                    appleRect.left > (dinoRect.right - 15) || 
+                    appleRect.bottom < (dinoRect.top + 15) || 
                     appleRect.top > (dinoRect.bottom - 10));
 
         if (hit) {
@@ -503,9 +541,9 @@
             targetDino.classList.add('refusing');
             playAudio('snd-wrong');
             document.getElementById('feedback-box').style.color = '#c62828';
-            document.getElementById('feedback-box').innerText = "Oops! Look closely at the statement below. Dino shouldn't eat more!";
+            document.getElementById('feedback-box').innerText = "Oops! Dino shouldn't eat more! Look at the minus number.";
             
-            element.style.left = (document.getElementById('stage-canvas').clientWidth - 80) + 'px';
+            element.style.left = (document.getElementById('stage-canvas').clientWidth - 85) + 'px';
             setTimeout(() => targetDino.classList.remove('refusing'), 450);
             return;
           }
@@ -527,7 +565,7 @@
     function triggerChoiceAnswerPhase() {
       let feedBox = document.getElementById('feedback-box');
       feedBox.style.color = '#2e7d32';
-      feedBox.innerText = "Yum! Dino is full. Now count the apples left on the ground to solve the problem!";
+      feedBox.innerText = "Yum! Dino is full. Count the remaining apples in the box to find the answer!";
       
       let currentQ = stageQuestions[turnIndex];
       const optionsBox = document.getElementById('options-box');
@@ -558,7 +596,7 @@
         document.getElementById('math-blank').style.color = "#4caf50";
         
         feedBox.style.color = '#2e7d32';
-        feedBox.innerText = "Brilliant! You completed the subtraction sentence! 🎉🍏";
+        feedBox.innerText = "Great job! Subtraction sentence complete! 🎉";
         
         playAudio('snd-correct');
         popConfetti();
@@ -568,7 +606,7 @@
       } else {
         clickedElement.classList.add('wrong');
         feedBox.style.color = '#c62828';
-        feedBox.innerText = "Count the remaining orchard apples carefully! Try again!";
+        feedBox.innerText = "Count the apples left on the shelf carefully! Try again!";
         
         playAudio('snd-wrong');
         setTimeout(() => clickedElement.classList.remove('wrong'), 600);
@@ -596,7 +634,7 @@
       try {
         assembleLevelQuestions();
       } catch(e) {
-        console.error("Initialization exception safely handled.");
+        console.error(e);
       }
 
       setTimeout(() => {
