@@ -39,7 +39,7 @@
       min-height: 600px;
     }
 
-    /* 5-Second Brand Loader Splash Screen */
+    /* 5-Second Brand Loader Splash Screen with smooth fade out */
     #screen-splash {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -48,6 +48,7 @@
       justify-content: center;
       align-items: center;
       z-index: 100;
+      transition: opacity 0.5s ease;
     }
     #screen-splash img {
       max-width: 70%;
@@ -181,7 +182,7 @@
       vertical-align: middle;
     }
 
-    /* Options Button Grid (Strict anti-cheat tracking mechanics) */
+    /* Options Button Grid */
     .options-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -264,7 +265,7 @@
   <div class="game-container">
     
     <div id="screen-splash">
-      <img src="assets/logo.png" alt="Logo" />
+      <img src="assets/logo.png" alt="Logo" onerror="console.log('Splash logo missing, proceeding anyway.')" />
     </div>
 
     <div class="game-header">
@@ -328,3 +329,295 @@
       "Orchard puzzle alert! Drag the apples being subtracted right into the dino's mouth.",
       "Can you match the math sentence? Feed the dino the right number of sweet treats!",
       "Look at the equation box below. How many apples does our friendly dinosaur need to eat?"
+    ];
+
+    function playAudio(elementId) {
+      try {
+        const sound = document.getElementById(elementId);
+        if (sound) {
+          sound.currentTime = 0;
+          sound.play().catch(e => console.log("Audio play blocked or file missing. No problem!"));
+        }
+      } catch (err) {
+        console.log("Audio handler skipped safely.");
+      }
+    }
+
+    function popConfetti() {
+      const container = document.querySelector('.game-container');
+      const rect = container.getBoundingClientRect();
+      for (let i = 0; i < 40; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = Math.random() * rect.width + 'px'; 
+        p.style.top = Math.random() * (rect.height * 0.6) + 'px';
+        p.style.background = ['#4caf50','#81c784','#ffeb3b','#ff9800','#ff5722'][Math.floor(Math.random()*5)];
+        p.style.setProperty('--dx', (Math.random() - 0.5) * 250 + 'px'); 
+        p.style.setProperty('--dy', (Math.random() - 0.5) * 250 - 50 + 'px');
+        container.appendChild(p);
+        setTimeout(() => p.remove(), 800);
+      }
+    }
+
+    function assembleLevelQuestions() {
+      stageQuestions = [];
+      for(let i=0; i<TOTAL_TURNS; i++) {
+        let totalApples = Math.floor(Math.random() * 6) + 10; // 10 to 15 apples
+        let eatenApples = Math.floor(Math.random() * 6) + 3;   // Subtract 3 to 8 apples
+        let correctVal = totalApples - eatenApples;
+        
+        let randomDino = dinoList[Math.floor(Math.random() * dinoList.length)];
+
+        let decoys = new Set([correctVal + 1, correctVal - 1]);
+        if (correctVal - 1 < 0) { decoys.add(correctVal + 2); decoys.delete(correctVal - 1); }
+        while(decoys.size < 2) { decoys.add(Math.floor(Math.random() * 8) + 1); }
+        let opts = [correctVal, ...decoys];
+
+        stageQuestions.push({
+          total: totalApples,
+          eaten: eatenApples,
+          dino: randomDino,
+          answer: correctVal,
+          options: opts.sort(() => Math.random() - 0.5)
+        });
+      }
+    }
+
+    function startGame() {
+      document.getElementById('screen-intro').classList.remove('active');
+      document.getElementById('screen-play').classList.add('active');
+      renderActiveTurn();
+    }
+
+    function renderActiveTurn() {
+      if (turnIndex >= TOTAL_TURNS) {
+        showEndGameSummary();
+        return;
+      }
+
+      acceptInput = false; 
+      currentApplesEaten = 0;
+      document.getElementById('feedback-box').innerText = "";
+      document.getElementById('options-box').innerHTML = "";
+      document.getElementById('math-blank').innerText = "?";
+      document.getElementById('math-blank').style.color = "#ff9800";
+
+      let currentQ = stageQuestions[turnIndex];
+      targetToEat = currentQ.eaten;
+
+      document.getElementById('progress-val').innerText = `${turnIndex + 1} / ${TOTAL_TURNS}`;
+      document.getElementById('progress-fill').style.width = `${(turnIndex / TOTAL_TURNS) * 100}%`;
+      document.getElementById('score-val').innerText = runningScore;
+
+      document.getElementById('math-total').innerText = currentQ.total;
+      document.getElementById('math-minus').innerText = currentQ.eaten;
+
+      document.getElementById('story-text').innerHTML = `<strong>Puzzle Quest:</strong> ${dynamicStories[turnIndex % dynamicStories.length]}`;
+
+      const canvas = document.getElementById('stage-canvas');
+      canvas.innerHTML = '';
+
+      // Initialize Protected Dino Container layout wrapper
+      let dinoBox = document.createElement('div');
+      dinoBox.className = 'dino-container-box';
+      
+      let dinoElement = document.createElement('div');
+      dinoElement.className = 'dino-zone';
+      dinoElement.id = 'active-dino';
+      dinoElement.style.backgroundImage = `url('assets/${currentQ.dino}')`;
+      
+      dinoBox.appendChild(dinoElement);
+      canvas.appendChild(dinoBox);
+
+      // Clean spawning fields to prevent overlapping errors
+      const padding = 35;
+      const startX = 260; 
+      const endX = canvas.clientWidth - padding - 45;
+      const startY = padding + 20;
+      const endY = canvas.clientHeight - padding - 50;
+
+      for (let i = 0; i < currentQ.total; i++) {
+        let apple = document.createElement('div');
+        apple.className = 'apple-draggable';
+        
+        let randX = Math.floor(Math.random() * (endX - startX)) + startX;
+        let randY = Math.floor(Math.random() * (endY - startY)) + startY;
+        
+        apple.style.left = randX + 'px';
+        apple.style.top = randY + 'px';
+        
+        setupDraggingEngine(apple, dinoElement);
+        canvas.appendChild(apple);
+      }
+    }
+
+    function setupDraggingEngine(element, targetDino) {
+      let activeDrag = false;
+      let startX, startY, initialLeft, initialTop;
+
+      element.addEventListener('mousedown', dragStart);
+      element.addEventListener('touchstart', dragStart, { passive: false });
+
+      function dragStart(e) {
+        activeDrag = true;
+        let clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+        let clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+        
+        startX = clientX;
+        startY = clientY;
+        initialLeft = parseInt(element.style.left) || 0;
+        initialTop = parseInt(element.style.top) || 0;
+
+        document.addEventListener('mousemove', dragMove);
+        document.addEventListener('touchmove', dragMove, { passive: false });
+        document.addEventListener('mouseup', dragEnd);
+        document.addEventListener('touchend', dragEnd);
+        if (e.cancelable) e.preventDefault();
+      }
+
+      function dragMove(e) {
+        if (!activeDrag) return;
+        let clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+        let clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+        
+        let dx = clientX - startX;
+        let dy = clientY - startY;
+
+        element.style.left = (initialLeft + dx) + 'px';
+        element.style.top = (initialTop + dy) + 'px';
+        if (e.cancelable) e.preventDefault();
+      }
+
+      function dragEnd() {
+        if (!activeDrag) return;
+        activeDrag = false;
+
+        document.removeEventListener('mousemove', dragMove);
+        document.removeEventListener('touchmove', dragMove);
+        document.removeEventListener('mouseup', dragEnd);
+        document.removeEventListener('touchend', dragEnd);
+
+        let appleRect = element.getBoundingClientRect();
+        let dinoRect = targetDino.getBoundingClientRect();
+
+        let hit = !(appleRect.right < dinoRect.left || 
+                    appleRect.left > dinoRect.right || 
+                    appleRect.bottom < dinoRect.top || 
+                    appleRect.top > dinoRect.bottom);
+
+        if (hit) {
+          if (currentApplesEaten >= targetToEat) {
+            targetDino.classList.add('refusing');
+            playAudio('snd-wrong');
+            document.getElementById('feedback-box').style.color = '#c62828';
+            document.getElementById('feedback-box').innerText = "Oops! Look closely at the statement below. Dino shouldn't eat more!";
+            
+            element.style.left = (document.getElementById('stage-canvas').clientWidth - 80) + 'px';
+            setTimeout(() => targetDino.classList.remove('refusing'), 450);
+            return;
+          }
+
+          element.remove();
+          currentApplesEaten++;
+          
+          targetDino.classList.add('chewing');
+          playAudio('snd-wrong'); 
+          setTimeout(() => targetDino.classList.remove('chewing'), 300);
+
+          if (currentApplesEaten === targetToEat) {
+            triggerChoiceAnswerPhase();
+          }
+        }
+      }
+    }
+
+    function triggerChoiceAnswerPhase() {
+      let feedBox = document.getElementById('feedback-box');
+      feedBox.style.color = '#2e7d32';
+      feedBox.innerText = "Yum! Dino is full. Now count the apples left on the ground to solve the problem!";
+      
+      let currentQ = stageQuestions[turnIndex];
+      const optionsBox = document.getElementById('options-box');
+      optionsBox.innerHTML = "";
+      
+      currentQ.options.forEach(opt => {
+        let btn = document.createElement('button');
+        btn.className = "game-btn";
+        btn.innerText = opt;
+        btn.onclick = function() { processFinalMathSelection(btn, opt); };
+        optionsBox.appendChild(btn);
+      });
+      
+      acceptInput = true;
+    }
+
+    function processFinalMathSelection(clickedElement, pickedValue) {
+      if (!acceptInput) return;
+      let currentQ = stageQuestions[turnIndex];
+      let feedBox = document.getElementById('feedback-box');
+
+      if (pickedValue === currentQ.answer) {
+        acceptInput = false;
+        runningScore += 10;
+        
+        clickedElement.classList.add('correct');
+        document.getElementById('math-blank').innerText = currentQ.answer;
+        document.getElementById('math-blank').style.color = "#4caf50";
+        
+        feedBox.style.color = '#2e7d32';
+        feedBox.innerText = "Brilliant! You completed the subtraction sentence! 🎉🍏";
+        
+        playAudio('snd-correct');
+        popConfetti();
+        
+        turnIndex++;
+        setTimeout(renderActiveTurn, 1600);
+      } else {
+        clickedElement.classList.add('wrong');
+        feedBox.style.color = '#c62828';
+        feedBox.innerText = "Count the remaining orchard apples carefully! Try again!";
+        
+        playAudio('snd-wrong');
+        setTimeout(() => clickedElement.classList.remove('wrong'), 600);
+      }
+      document.getElementById('score-val').innerText = runningScore;
+    }
+
+    function showEndGameSummary() {
+      document.getElementById('progress-fill').style.width = "100%";
+      document.getElementById('screen-play').classList.remove('active');
+      document.getElementById('screen-end').classList.add('active');
+    }
+
+    function resetWholeGame() {
+      turnIndex = 0;
+      runningScore = 0;
+      document.getElementById('screen-end').classList.remove('active');
+      document.getElementById('screen-intro').classList.add('active');
+      document.getElementById('progress-val').innerText = `1 / ${TOTAL_TURNS}`;
+      document.getElementById('score-val').innerText = "0";
+      assembleLevelQuestions();
+    }
+
+    // Completely fail-proof initial onboarding timeline anchor loops
+    window.onload = function() {
+      try {
+        assembleLevelQuestions();
+      } catch(e) {
+        console.error("Setup error caught, bypassing safely", e);
+      }
+
+      // Hard timeout guarantees screen hides after 4 seconds regardless of network asset states
+      setTimeout(() => {
+        const splash = document.getElementById('screen-splash');
+        if (splash) {
+          splash.style.opacity = '0';
+          setTimeout(() => {
+            splash.style.display = 'none';
+          }, 500);
+        }
+      }, 4000);
+    };
+  </script>
+</body>
+</html>
