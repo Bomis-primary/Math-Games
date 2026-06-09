@@ -270,15 +270,14 @@ const winMusic = document.getElementById("winMusic");
 const correctSound = document.getElementById("correctSound");
 const wrongSound = document.getElementById("wrongSound");
 
-// Global Unified State Architecture
-let currentLevel = 1; // 1: Sequence Engine, 2: Expanded Reactor Engine, 3: Crocodile Compare Engine
+// Global State
+let currentLevel = 1; // 1: Sequence, 2: Expanded Reactor, 3: Comparisons
 let currentRound = 0; 
 const totalRoundsPerLevel = 3;
 
 let correctAnswerText = "";
 let winInterval = null;
 
-// The Configuration Matrix defining visual assets and level paradigms
 const levelThemes = {
     1: {
         bgStyle: "linear-gradient(to bottom, #ffeb3b 0%, #fffde7 40%, #4fc3f7 40%, #0288d1 100%)",
@@ -287,7 +286,6 @@ const levelThemes = {
         titleColor: "#1a237e", instructionColor: "#b71c1c"
     },
     2: {
-        /* Level 2: Vibrant Green Lime Jungle / Laboratory Theme */
         bgStyle: "linear-gradient(to bottom, #d4fc79 0%, #96e6a1 30%, #1b5e20 70%, #0c3311 100%)",
         boardColor: "#114d16", boardBorder: "#39ff14", badgeColor: "#00e676",
         title: "Expanded Form Reactor 🧪", instruction: "Break down the target number into Hundreds, Tens, and Ones!",
@@ -344,7 +342,6 @@ function loadRoundEngine() {
     const cfg = levelThemes[currentLevel];
     updateLayoutTheme(cfg);
     
-    // Set informative badge string headers
     document.getElementById("levelBadge").innerText = `LEVEL ${currentLevel} - ROUND ${currentRound + 1}/${totalRoundsPerLevel}`;
 
     const board = document.getElementById("masterBoard");
@@ -352,7 +349,6 @@ function loadRoundEngine() {
     board.innerHTML = "";
     optionsContainer.innerHTML = "";
 
-    // BRANCH: Execute specialized Level Builder Engine depending on active index
     if (currentLevel === 1) {
         buildSequenceRound(board, optionsContainer);
     } else if (currentLevel === 2) {
@@ -416,7 +412,7 @@ function buildSequenceRound(board, optionsContainer) {
    LEVEL 2 GENERATOR ENGINE: EXPANDED FORM (LIME LAB)
    ========================================== */
 function buildExpansionRound(board, optionsContainer) {
-    let targetNum = Math.floor(Math.random() * 99) + 101; // Range: 101-200
+    let targetNum = Math.floor(Math.random() * 99) + 101; 
     
     let hundreds = Math.floor(targetNum / 100) * 100;
     let tens = Math.floor((targetNum % 100) / 10) * 10;
@@ -424,7 +420,6 @@ function buildExpansionRound(board, optionsContainer) {
     
     correctAnswerText = `${hundreds} + ${tens} + ${ones}`;
 
-    // Target visual reactor layout
     const targetNode = document.createElement("div");
     targetNode.className = "number-node";
     targetNode.style.maxWidth = "160px";
@@ -450,7 +445,6 @@ function buildExpansionRound(board, optionsContainer) {
     slotNode.innerText = "? + ? + ?";
     board.appendChild(slotNode);
 
-    // Build unique option selections matching theme architecture
     let choices = [correctAnswerText];
     while (choices.length < 3) {
         let fakeNum = Math.floor(Math.random() * 99) + 101;
@@ -534,7 +528,7 @@ function buildComparisonRound(board, optionsContainer) {
 
 /* ==========================================
    VALIDATION & STATE STEPPING MANAGEMENT
-   ========================================== */
+   ========================================= */
 function verifyPlayerInput(selectedCard, alternativeValue, updateUIDelegate) {
     if (alternativeValue === correctAnswerText) {
         correctSound.currentTime = 0;
@@ -559,7 +553,6 @@ function verifyPlayerInput(selectedCard, alternativeValue, updateUIDelegate) {
         setTimeout(() => {
             selectedCard.classList.remove("shake-wrong");
             selectedCard.style.backgroundColor = "#ffffff";
-            // Return to default active text coloring relative to level type
             selectedCard.style.color = currentLevel === 2 ? "#1b5e20" : "#2e7d32";
         }, 500);
     }
@@ -570,11 +563,12 @@ function advanceNextRound() {
     if (currentRound < totalRoundsPerLevel) {
         loadRoundEngine();
     } else {
+        // FIXED: Explicitly increment the level and reset the round tracker
         if (currentLevel < 3) {
             currentLevel++;
             currentRound = 0;
             
-            // Core Level Transition screen flash celebration burst
+            // Pop transition flash particles
             burstParticles(window.innerWidth / 2, window.innerHeight / 3, 50);
             loadRoundEngine();
         } else {
@@ -599,7 +593,7 @@ function handleOverlayReset() {
     initGame();
 }
 
-/* High-Performance Canvas Confetti Particle Pipeline */
+/* Particle Pipeline Engine */
 const canvas = document.getElementById("fireworks");
 const ctx = canvas.getContext("2d");
 let particles = [];
@@ -608,7 +602,6 @@ resize();
 window.addEventListener("resize", resize);
 
 function burstParticles(x, y, count) {
-    // Inject extra bright greens if level 2 is playing to emphasize theme assets
     const hues = currentLevel === 2 ? [95, 120, 145, 60, 45, 135] : [15, 45, 135, 195, 275, 335]; 
     for(let i = 0; i < count; i++){
         let angle = Math.random() * 2 * Math.PI;
