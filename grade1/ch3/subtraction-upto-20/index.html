@@ -39,7 +39,7 @@
       min-height: 600px;
     }
 
-    /* 4-Second Brand Loader Splash Screen */
+    /* 4-Second Splash Screen */
     #screen-splash {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -56,7 +56,7 @@
       object-fit: contain;
     }
 
-    /* Top HUD Progress Bar Area */
+    /* HUD Progress Area */
     .game-header {
       background: #2e7d32;
       color: white;
@@ -80,11 +80,10 @@
       transition: width 0.4s ease;
     }
 
-    /* Screens Layout Configuration */
+    /* Layout Screens */
     .screen { display: none; padding: 20px; text-align: center; position: relative; }
     .screen.active { display: block; }
 
-    /* Dialog Story Container */
     .story-bubble {
       background: #f1f8e9;
       border: 3px dashed #81c784;
@@ -95,10 +94,10 @@
       line-height: 1.5;
     }
 
-    /* Scenery Canvas Field Map */
+    /* Orchard Map Field Canvas */
     .scenery-canvas {
       height: 340px;
-      background-image: url('assets/apples-orchard.png');
+      background-image: url('./assets/apples-orchard.png');
       background-size: cover;
       background-position: center;
       border-radius: 16px;
@@ -108,24 +107,23 @@
       border: 4px solid #81c784;
     }
 
-    /* FIXED DINO SEAMLESS BLENDING LAYER 
-       Removed the box outline container entirely. The Dino now stands directly on the grass scenery background.
+    /* SEAMLESS DINO HTML IMAGE ENGINE
+       Swapped to an img element to guarantee proper rendering and transparent backgrounds.
     */
-    .dino-zone {
+    .dino-img-render {
       position: absolute;
-      bottom: -10px;
+      bottom: -5px;
       left: 10px;
       width: 190px;
       height: 190px;
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: bottom left;
+      object-fit: contain;
       z-index: 5;
+      pointer-events: auto;
       transition: transform 0.2s ease;
     }
     
-    .dino-zone.chewing { animation: chomp 0.25s ease 2; }
-    .dino-zone.refusing { animation: headShake 0.4s ease; }
+    .dino-img-render.chewing { animation: chomp 0.25s ease 2; }
+    .dino-img-render.refusing { animation: headShake 0.4s ease; }
 
     @keyframes chomp {
       0%, 100% { transform: scale(1); }
@@ -137,25 +135,23 @@
       75% { transform: translateX(8px) rotate(4deg); }
     }
 
-    /* FIXED INDIVIDUAL DRAGGABLE APPLE LAYER
-       Changed path targeting to individual 'apple.png' matching your exact file directory structure!
+    /* CRITICAL FIX: PHYSICAL DRAGGABLE APPLE ENGINE 
+       Forced block rendering with explicit dimensions to bypass CSS blank-collapsing bugs.
     */
-    .apple-draggable {
-      width: 48px;
-      height: 48px;
-      background-image: url('assets/apple.png');
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
+    .apple-draggable-img {
+      display: block !important;
+      width: 52px !important;
+      height: 52px !important;
       position: absolute;
       cursor: grab;
       z-index: 10;
       touch-action: none;
-      filter: drop-shadow(0px 3px 5px rgba(0,0,0,0.2));
+      object-fit: contain;
+      filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.25));
     }
-    .apple-draggable:active { cursor: grabbing; transform: scale(1.15); }
+    .apple-draggable-img:active { cursor: grabbing; transform: scale(1.18); }
 
-    /* Interactive Subtraction Statement Layout */
+    /* Interactive Subtraction Container */
     .equation-container {
       font-size: 2.6rem;
       font-weight: bold;
@@ -180,7 +176,7 @@
       vertical-align: middle;
     }
 
-    /* Options Button Grid */
+    /* Options UI Grid */
     .options-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -240,7 +236,7 @@
       box-shadow: 0 2px 0 #e65100;
     }
 
-    /* Confetti Particle Engine */
+    /* Confetti Particles */
     .particle {
       position: absolute;
       width: 10px; height: 10px;
@@ -257,19 +253,19 @@
 </head>
 <body>
 
-  <audio id="snd-correct" src="assets/correct.mp3" preload="auto"></audio>
-  <audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+  <audio id="snd-correct" src="./assets/correct.mp3" preload="auto"></audio>
+  <audio id="snd-wrong" src="./assets/wrong.mp3" preload="auto"></audio>
 
   <div class="game-container">
     
     <div id="screen-splash">
-      <img src="assets/logo.png" alt="Logo" onerror="console.log('Splash logo skipped safely.')" />
+      <img src="./assets/logo.png" alt="Logo" onerror="console.log('Splash logo skipped safely.')" />
     </div>
 
     <div class="game-header">
       <div class="hud-stats">
         <span>⭐ Score: <span id="score-val">0</span></span>
-        <span>🍏 Puzzle: <span id="progress-val">1/10</span></span>
+        <span>🍏 Task: <span id="progress-val">1/10</span></span>
       </div>
     </div>
     <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
@@ -334,10 +330,10 @@
         const sound = document.getElementById(elementId);
         if (sound) {
           sound.currentTime = 0;
-          sound.play().catch(e => console.log("Audio skipped safely."));
+          sound.play().catch(e => console.log("Audio native skipped."));
         }
       } catch (err) {
-        console.log("Audio skipped.");
+        console.log("Audio block error bypassed.");
       }
     }
 
@@ -360,8 +356,8 @@
     function assembleLevelQuestions() {
       stageQuestions = [];
       for(let i=0; i<TOTAL_TURNS; i++) {
-        let totalApples = Math.floor(Math.random() * 6) + 10; // 10 to 15 apples
-        let eatenApples = Math.floor(Math.random() * 6) + 3;   // Subtract 3 to 8 apples
+        let totalApples = Math.floor(Math.random() * 6) + 10; // Spawns between 10 to 15 apples
+        let eatenApples = Math.floor(Math.random() * 6) + 3;   // Subtracts 3 to 8 apples
         let correctVal = totalApples - eatenApples;
         
         let randomDino = dinoList[Math.floor(Math.random() * dinoList.length)];
@@ -415,32 +411,35 @@
       const canvas = document.getElementById('stage-canvas');
       canvas.innerHTML = '';
 
-      // FIXED DINO RENDERING: Now handles blending layers perfectly with the orchard map
-      let dinoElement = document.createElement('div');
-      dinoElement.className = 'dino-zone';
-      dinoElement.id = 'active-dino';
-      dinoElement.style.backgroundImage = `url('assets/${currentQ.dino}')`;
-      canvas.appendChild(dinoElement);
+      // FIXED SEAMLESS RENDERING ELEMENT: Swapped container out for direct image placement
+      let dinoImg = document.createElement('img');
+      dinoImg.className = 'dino-img-render';
+      dinoImg.id = 'active-dino';
+      dinoImg.src = `./assets/${currentQ.dino}`;
+      dinoImg.alt = "Friendly Dinosaur";
+      canvas.appendChild(dinoImg);
 
-      // Controlled Spawning Layout Bounds (Prevents overlapping assets)
-      const padding = 35;
-      const startX = 260; 
-      const endX = canvas.clientWidth - padding - 45;
-      const startY = padding + 20;
-      const endY = canvas.clientHeight - padding - 60;
+      // Algorithmic Spawning System Bounds 
+      const startX = 250; 
+      const endX = canvas.clientWidth - 70;
+      const startY = 40;
+      const endY = canvas.clientHeight - 80;
 
+      // FIXED PHYSICAL IMAGE NODE GENERATION ENGINE
       for (let i = 0; i < currentQ.total; i++) {
-        let apple = document.createElement('div');
-        apple.className = 'apple-draggable';
+        let appleImg = document.createElement('img');
+        appleImg.className = 'apple-draggable-img';
+        appleImg.src = './assets/apple.png';
+        appleImg.alt = 'Orchard Apple';
         
         let randX = Math.floor(Math.random() * (endX - startX)) + startX;
         let randY = Math.floor(Math.random() * (endY - startY)) + startY;
         
-        apple.style.left = randX + 'px';
-        apple.style.top = randY + 'px';
+        appleImg.style.left = randX + 'px';
+        appleImg.style.top = randY + 'px';
         
-        setupDraggingEngine(apple, dinoElement);
-        canvas.appendChild(apple);
+        setupDraggingEngine(appleImg, dinoImg);
+        canvas.appendChild(appleImg);
       }
     }
 
@@ -448,7 +447,7 @@
       let activeDrag = false;
       let startX, startY, initialLeft, initialTop;
 
-      element.addEventListener('mousedown', dragStart);
+      element.addEventListener('mousedown', dragStart, { passive: false });
       element.addEventListener('touchstart', dragStart, { passive: false });
 
       function dragStart(e) {
@@ -461,7 +460,7 @@
         initialLeft = parseInt(element.style.left) || 0;
         initialTop = parseInt(element.style.top) || 0;
 
-        document.addEventListener('mousemove', dragMove);
+        document.addEventListener('mousemove', dragMove, { passive: false });
         document.addEventListener('touchmove', dragMove, { passive: false });
         document.addEventListener('mouseup', dragEnd);
         document.addEventListener('touchend', dragEnd);
@@ -493,10 +492,11 @@
         let appleRect = element.getBoundingClientRect();
         let dinoRect = targetDino.getBoundingClientRect();
 
-        let hit = !(appleRect.right < dinoRect.left || 
-                    appleRect.left > dinoRect.right || 
-                    appleRect.bottom < dinoRect.top || 
-                    appleRect.top > dinoRect.bottom);
+        // High precision custom geometry intersection algorithm
+        let hit = !(appleRect.right < (dinoRect.left + 20) || 
+                    appleRect.left > (dinoRect.right - 20) || 
+                    appleRect.bottom < (dinoRect.top + 20) || 
+                    appleRect.top > (dinoRect.bottom - 10));
 
         if (hit) {
           if (currentApplesEaten >= targetToEat) {
@@ -587,7 +587,7 @@
       runningScore = 0;
       document.getElementById('screen-end').classList.remove('active');
       document.getElementById('screen-intro').classList.add('active');
-      document.getElementById('progress-val').innerText = `1 / ${TOTAL_TURNS}`;
+      document.getElementById('progress-val').innerText = `1 / 10`;
       document.getElementById('score-val').innerText = "0";
       assembleLevelQuestions();
     }
@@ -596,7 +596,7 @@
       try {
         assembleLevelQuestions();
       } catch(e) {
-        console.error("Setup handled cleanly.", e);
+        console.error("Initialization exception safely handled.");
       }
 
       setTimeout(() => {
