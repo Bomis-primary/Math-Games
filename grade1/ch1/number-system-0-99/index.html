@@ -1,272 +1,627 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Train Number Journey</title>
-<style>
-* { box-sizing: border-box; }
-body { margin: 0; font-family: 'Comic Sans MS', Arial, sans-serif; background: #bdeeff; color: #222; overflow-x: hidden; }
-.screen { display: none; min-height: 100vh; padding: 20px; text-align: center; justify-content: center; align-items: center; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Raju's Train Journey - The Number Express</title>
+  <style>
+    :root {
+      --bg-sky: linear-gradient(to bottom, #90caf9, #e3f2fd);
+      --track-grey: #757575;
+      --wood-brown: #8d6e63;
+      --train-red: #ef5350;
+      --train-blue: #42a5f5;
+      --text-dark: #263238;
+    }
 
-/* FIX: Changed .game-area to display none by default, but allow .active to override it */
-.game-area { position: relative; min-height: 100vh; background: linear-gradient(to bottom, #bdeeff 0%, #e0f7fa 70%, #81c784 100%); padding: 15px; overflow: hidden; display: none; flex-direction: column; justify-content: space-between; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* Unified active state handler for both standard screens and the game area */
-.screen.active, .game-area.active { display: flex; flex-direction: column; }
+    body {
+      font-family: 'Trebuchet MS', 'Comic Sans MS', sans-serif;
+      background: #cfd8dc;
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+      overflow-x: hidden;
+    }
 
-.card { background: rgba(255,255,255,0.95); border-radius: 32px; padding: 30px; max-width: 700px; width: 95%; box-shadow: 0 12px 30px rgba(0,0,0,0.15); border: 6px solid #174ea6; animation: popIn 0.5s ease-out;}
-@keyframes popIn {0% {transform: scale(0.9); opacity:0;} 100% {transform: scale(1); opacity:1;}}
+    .game-container {
+      width: 100%;
+      max-width: 800px;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      min-height: 500px;
+    }
 
-.innovine-logo { max-width: 220px; width: 100%; height: auto; margin-bottom: 20px; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.1)); animation: pulseLogo 2s infinite ease-in-out; }
-@keyframes pulseLogo {0%,100%{transform: scale(1);}50%{transform: scale(1.05);} }
+    /* 5-Second Splash Screen */
+    #screen-splash {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    #screen-splash img {
+      max-width: 70%;
+      max-height: 70%;
+      object-fit: contain;
+    }
 
-h1{color:#174ea6;font-size:clamp(28px,5vw,44px); margin:10px 0;}
-h2{color:#0b8043;font-size:clamp(20px,4vw,30px); margin-top:5px;}
-p{font-size:18px; line-height:1.5; color:#444;}
+    /* Header & Progress HUD */
+    .game-header {
+      background: #37474f;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
 
-button{ border: 0; border-radius: 20px; padding: 16px 36px; font-size: 22px; font-weight: bold; cursor: pointer; background: #ffbf00; color: #4a2b00; box-shadow: 0 6px 0 #c58b00; margin: 15px 8px; transition: all 0.1s ease;}
-button:hover { background: #ffcc33; }
-button:active { transform: translateY(4px); box-shadow: 0 2px 0 #c58b00; }
+    .title-area h1 { font-size: 1.4rem; color: #ffca28; }
+    .hud-stats { display: flex; gap: 15px; font-weight: bold; font-size: 1.1rem; }
+    
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: #263238;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(to right, #ffb300, #ff6f00);
+      transition: width 0.4s ease;
+    }
 
-.cloud { position: absolute; background: #fff; border-radius: 100px; opacity: 0.85; pointer-events: none; }
-.cloud::before, .cloud::after { content: ''; position: absolute; background: #fff; border-radius: 50%; }
-.cloud.one { width: 120px; height: 40px; top: 40px; left: -150px; animation: floatCloud 22s linear infinite; }
-.cloud.one::before { width: 50px; height: 50px; top: -25px; left: 15px; }
-.cloud.one::after { width: 60px; height: 60px; top: -30px; left: 45px; }
-.cloud.two { width: 160px; height: 50px; top: 110px; left: -200px; animation: floatCloud 38s linear infinite; }
-.cloud.two::before { width: 65px; height: 65px; top: -30px; left: 20px; }
-.cloud.two::after { width: 80px; height: 80px; top: -40px; left: 60px; }
-@keyframes floatCloud {0% {transform: translateX(0);} 100% {transform: translateX(calc(100vw + 250px));}}
+    /* Screen Areas */
+    .screen { display: none; padding: 25px; text-align: center; }
+    .screen.active { display: block; }
 
-.topbar { display: flex; justify-content: space-around; width: 100%; max-width: 850px; margin: 0 auto; background: rgba(255,255,255,0.9); padding: 12px 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.08); font-size: clamp(16px, 3.5vw, 22px); font-weight: bold; z-index: 10; border: 3px solid #74b9ff; }
-.timer { color: #d93025; } .score { color: #fbbc04; } .attempts { color: #0b8043; }
+    /* Dialog Box Setup */
+    .story-bubble {
+      background: #fff9c4;
+      border: 3px dashed #fbc02d;
+      border-radius: 16px;
+      padding: 15px;
+      margin-bottom: 25px;
+      font-size: 1.1rem;
+      line-height: 1.5;
+    }
 
-.track-zone { position: relative; max-width: 850px; width: 100%; height: 120px; margin: 15px auto; z-index: 5; }
-.track { position: absolute; bottom: 10px; left: 0; width: 100%; height: 16px; background: repeating-linear-gradient(90deg, #555, #555 10px, #aaa 10px, #aaa 20px); border-top:4px solid #333; border-bottom:4px solid #333; border-radius: 4px; }
-.train { position: absolute; bottom: 22px; left: 5%; font-size: 55px; line-height:1; transition:left 1s ease-in-out; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.15)); }
+    /* Scenery Canvas Area */
+    .scenery-canvas {
+      height: 180px;
+      background: var(--bg-sky);
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 25px;
+      border: 4px solid #b0bec5;
+    }
 
-.question-card { max-width: 850px; width: 100%; margin: 5px auto 20px auto; background: rgba(255,255,255,0.96); border-radius: 28px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.12); border: 5px solid #ffbf00; z-index: 10; }
-.question { font-size: clamp(20px, 4.5vw, 30px); font-weight: bold; margin: 12px 0; color: #174ea6; }
-.options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 15px; }
-@media(max-width: 500px) { .options { grid-template-columns: 1fr; } }
-.option { background: #fff; border: 4px solid #74b9ff; border-radius: 20px; padding: 15px; font-size: 26px; font-weight: bold; cursor: pointer; min-height: 65px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 0 #74b9ff; transition: all 0.1s ease; }
-.option:hover { background: #eaf6ff; transform: translateY(-2px); } 
-.option:active { transform: translateY(2px); box-shadow: 0 1px 0 #74b9ff; }
-.option.disabled { pointer-events: none; opacity: 0.6; }
-.feedback { min-height: 40px; font-size: 22px; font-weight: bold; margin-top: 12px; }
-.wrongAnim { animation: shake 0.4s ease-in-out; border-color:#d93025 !important; box-shadow:0 4px 0 #d93025 !important; background:#fce8e6 !important; color:#d93025; }
-.correctAnim { border-color:#188038 !important; box-shadow:0 4px 0 #188038 !important; background:#e6f4ea !important; color:#188038; }
-@keyframes shake {0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-8px);}40%,80%{transform:translateX(8px);} }
+    /* Pure CSS Train Tracks */
+    .tracks {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      width: 100%;
+      height: 8px;
+      background: var(--track-grey);
+    }
+    .tracks::before {
+      content: '';
+      position: absolute;
+      top: 6px; left: 0; width: 100%; height: 6px;
+      background: repeating-linear-gradient(90deg, var(--wood-brown), var(--wood-brown) 10px, transparent 10px, transparent 30px);
+    }
 
-/* FIX: Added properties so the child element #progress actually scales and renders color */
-.progress-wrap { width: 100%; max-width: 850px; background: #e0e0e0; height: 12px; border-radius: 6px; margin: 10px auto; border: 2px solid #bbb; overflow: hidden; }
-.progress { height: 100%; background: #0b8043; width: 0%; transition: width 0.4s ease; }
+    /* CSS Train Visuals */
+    .train-engine {
+      position: absolute;
+      bottom: 28px;
+      left: 20px;
+      width: 70px;
+      height: 50px;
+      background: var(--train-red);
+      border-radius: 8px 15px 4px 4px;
+      z-index: 5;
+    }
+    .train-engine::after {
+      content: '🚂';
+      font-size: 38px;
+      position: absolute;
+      top: -3px; left: 4px;
+    }
 
-#confetti-container { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:9999; }
-.confetti { position:absolute; width:10px; height:10px; border-radius:50%; opacity:0.9; animation:fall linear forwards; }
-@keyframes fall { 0% { transform: translateY(0) rotate(0deg); opacity:1; } 100% { transform: translateY(100vh) rotate(720deg); opacity:0; } }
-</style>
+    .train-car {
+      position: absolute;
+      bottom: 28px;
+      width: 60px;
+      height: 40px;
+      background: var(--train-blue);
+      border-radius: 6px;
+      border: 2px solid #1e88e5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: 900;
+      color: white;
+      font-size: 1.3rem;
+      z-index: 4;
+      box-shadow: inset 0 -5px 0 rgba(0,0,0,0.15);
+    }
+
+    /* Question & Input Controls */
+    .question-prompt {
+      font-size: 1.4rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #1a237e;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 15px;
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    .game-btn {
+      background: linear-gradient(to bottom, #ffca28, #ffb300);
+      border: none;
+      padding: 16px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #5d4037;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #ff8f00;
+      transition: transform 0.1s, box-shadow 0.1s;
+      outline: none;
+    }
+    .game-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #ff8f00;
+    }
+
+    /* Feedback Animations */
+    .game-btn.correct { background: #66bb6a !important; box-shadow: 0 4px 0 #388e3c !important; color: white; }
+    .game-btn.wrong { background: #ef5350 !important; box-shadow: 0 4px 0 #d32f2f !important; color: white; animation: shake 0.3s ease; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    .feedback-banner {
+      height: 30px;
+      margin-top: 15px;
+      font-size: 1.3rem;
+      font-weight: bold;
+    }
+
+    .action-btn {
+      background: #00bcd4;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #0097a7;
+      margin-top: 15px;
+    }
+    .action-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 #0097a7;
+    }
+
+    /* Confetti Particle FX Elements */
+    .particle {
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 999;
+      animation: blow-up 0.8s ease-out forwards;
+    }
+    @keyframes blow-up {
+      0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+      100% { transform: translate(var(--dx), var(--dy)) scale(0.5) rotate(360deg); opacity: 0; }
+    }
+
+    /* Abacus Layout Configuration */
+    .abacus-frame {
+      display: inline-flex;
+      gap: 30px;
+      background: #efebe9;
+      border: 6px solid #5d4037;
+      border-radius: 10px;
+      padding: 20px 40px;
+      margin: 15px auto;
+    }
+    .abacus-rod {
+      width: 8px;
+      height: 120px;
+      background: #bdbdbd;
+      position: relative;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+      padding-bottom: 5px;
+    }
+    .abacus-rod::after {
+      content: attr(data-label);
+      position: absolute;
+      bottom: -25px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      width: 60px;
+    }
+    .bead {
+      width: 26px;
+      height: 10px;
+      background: #e91e63;
+      border-radius: 4px;
+      border: 1px solid #ad1457;
+      margin-top: 2px;
+    }
+    .abacus-rod:nth-child(2) .bead { background: #009688; border-color: #00695c; }
+
+    @media(max-width: 500px) {
+      .options-grid { grid-template-columns: repeat(2, 1fr); }
+      .scenery-canvas { height: 140px; }
+      .train-engine { scale: 0.8; bottom: 18px; }
+      .train-car { scale: 0.8; bottom: 18px; }
+    }
+  </style>
 </head>
 <body>
 
-<section id="splash" class="screen active">
-  <div class="card splash-container" style="border:none; box-shadow:none;">
-    <img src="assets/logo.png" class="innovine-logo" alt="Innovine Logo">
+  <audio id="snd-correct" src="correct.mp3" preload="auto"></audio>
+  <audio id="snd-wrong" src="wrong.mp3" preload="auto"></audio>
+
+  <div class="game-container">
+    
+    <div id="screen-splash">
+      <img src="logo.png" alt="Game Logo" />
+    </div>
+
+    <div class="game-header">
+      <div class="title-area">
+        <h1 id="stage-title">Level 1: The Missing Car</h1>
+      </div>
+      <div class="hud-stats">
+        <span>⭐ Score: <span id="score-val">0</span></span>
+        <span>📋 Task: <span id="progress-val">1/9</span></span>
+      </div>
+    </div>
+    <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+
+    <div id="screen-intro" class="screen active">
+      <div class="story-bubble">
+        <p><strong>Raju the Station Master says:</strong> "Welcome aboard! The Alphabet Express is scheduled to depart soon, but our number tracks are all mixed up. Can you help me fix the missing links, load the fuel cargo, and sort our passenger cars?"</p>
+      </div>
+      <div class="scenery-canvas">
+        <div class="tracks"></div>
+        <div class="train-engine" style="left: 45%;"></div>
+      </div>
+      <button class="action-btn" onclick="startLevel(1)">Start Journey 🟢</button>
+    </div>
+
+    <div id="screen-play" class="screen">
+      <div class="story-bubble">
+        <p id="story-text">Raju needs to couple the cars in sequential order!</p>
+      </div>
+
+      <div class="scenery-canvas" id="stage-canvas"></div>
+
+      <div class="question-prompt" id="question-text">What number fits inside the sequence?</div>
+      <div class="options-grid" id="options-box"></div>
+      <div class="feedback-banner" id="feedback-box"></div>
+    </div>
+
+    <div id="screen-end" class="screen">
+      <div class="story-bubble">
+        <p><strong>🎉 Trans-Continental Journey Complete!</strong></p>
+        <p>Thanks to your magnificent knowledge of numbers, Raju's train left exactly on time, delivering all passengers safely across the grid!</p>
+      </div>
+      <h2 style="font-size: 2.5rem; color: #2e7d32; margin-bottom: 20px;">Perfect Score Match!</h2>
+      <button class="action-btn" style="background: #9c27b0; box-shadow: 0 5px 0 #7b1fa2;" onclick="resetWholeGame()">Play Journey Again 🔄</button>
+    </div>
   </div>
-</section>
 
-<section id="start" class="screen">
-  <div class="card">
-    <h1>🚂 Train Number Journey</h1>
-    <h2>Grade 1 Maths — Number System 0–99</h2>
-    <p>Help our colorful number train complete its journey through Math Town!</p>
-    <button onclick="startGame()">Start Journey 🟢</button>
-  </div>
-</section>
-
-<section id="game" class="game-area">
-  <div class="cloud one"></div>
-  <div class="cloud two"></div>
-
-  <div class="topbar">
-    <div class="timer">⏱ Time: <span id="time">60</span>s</div>
-    <div class="score">⭐ Score: <span id="score">0</span></div>
-    <div class="attempts">🔁 Fuel Attempts: <span id="attempts">2</span></div>
-  </div>
-
-  <div class="progress-wrap"><div id="progress" class="progress"></div></div>
-  <div class="track-zone"><div class="track"></div><div id="train" class="train">🚂</div></div>
-
-  <div class="question-card">
-    <div id="question" class="question"></div>
-    <div id="options" class="options"></div>
-    <div id="feedback" class="feedback"></div>
-  </div>
-</section>
-
-<section id="result" class="screen">
-  <div id="confetti-container"></div>
-  <div class="card">
-    <h1>🏁 Journey Complete!</h1>
-    <div id="resultStars">⭐⭐⭐</div>
-    <h2 id="finalScore"></h2>
-    <p id="resultMsg"></p>
-    <button onclick="restartGame()">Play Again 🔄</button>
-  </div>
-</section>
-
-<script>
-const questions = [
-  { q: "What number comes just after 7?", options: ["6","7","8","9"], answer: "8" },
-  { q: "What number comes just before 15?", options: ["14","15","16","13"], answer: "14" },
-  { q: "Fill the missing number: 23, 24, __, 26", options: ["25","27","24","28"], answer: "25" },
-  { q: "Which is the greatest number?", options: ["42","37","50","45"], answer: "50" },
-  { q: "Which is the smallest number?", options: ["17","23","19","15"], answer: "15" },
-  { q: "What number has 4 tens and 7 ones?", options: ["47","74","40","70"], answer: "47" },
-  { q: "What number has 0 tens and 9 ones?", options: ["9","90","19","99"], answer: "9" },
-  { q: "Arrange in ascending order: 12, 9, 15", options: ["9,12,15","15,12,9","12,15,9","9,15,12"], answer: "9,12,15" },
-  { q: "Arrange in descending order: 22, 18, 25", options: ["25,22,18","18,22,25","22,18,25","25,18,22"], answer: "25,22,18" },
-  { q: "Fill the missing number: 30, __, 32", options: ["31","33","30","32"], answer: "31" }
-];
-
-let current=0, score=0, attempts=2, timer, timeLeft=60;
-
-window.onload = function(){
-  setTimeout(()=>{
-    document.getElementById("splash").classList.remove("active");
-    document.getElementById("start").classList.add("active");
-  },5000);
-};
-
-function startGame(){
-  document.getElementById("start").classList.remove("active");
-  document.getElementById("game").classList.add("active");
-  current=0; score=0; attempts=2;
-  document.getElementById("score").textContent=score;
-  document.getElementById("attempts").textContent=attempts;
-  document.getElementById("progress").style.width="0%";
-  startTimer();
-  loadQuestion();
-}
-
-function startTimer(){
-  timeLeft=60;
-  document.getElementById("time").textContent=timeLeft;
-  clearInterval(timer);
-  timer=setInterval(()=>{
-    timeLeft--;
-    document.getElementById("time").textContent=timeLeft;
-    if(timeLeft<=0){ clearInterval(timer); showResult(); }
-  },1000);
-}
-
-function loadQuestion(){
-  const q=questions[current];
-  document.getElementById("question").textContent=q.q;
-  const optionsBox=document.getElementById("options");
-  optionsBox.innerHTML="";
-  q.options.forEach(opt=>{
-    const div=document.createElement("div");
-    div.className="option";
-    div.textContent=opt;
-    div.onclick=()=> checkAnswer(opt,div);
-    optionsBox.appendChild(div);
-  });
-  updateTrain();
-}
-
-function updateTrain(){
-  const train=document.getElementById("train");
-  const progressPercent=(current / questions.length)*90;
-  train.style.left=`calc(5% + ${progressPercent}%)`;
-  document.getElementById("progress").style.width=`${(current / questions.length)*100}%`;
-}
-
-function checkAnswer(selected, element){
-  const optionsBox=document.getElementById("options");
-  Array.from(optionsBox.children).forEach(opt=>opt.classList.add("disabled"));
-  const feedback=document.getElementById("feedback");
-  if(selected===questions[current].answer){
-    element.classList.add("correctAnim");
-    feedback.textContent="✅ Good Job!";
-    score++; document.getElementById("score").textContent=score;
-    setTimeout(()=>{
-      element.classList.remove("correctAnim");
-      feedback.textContent="";
-      current++;
-      attempts=2;
-      updateTrain();
-      if(current<questions.length) loadQuestion(); else showResult();
-    },800);
-  } else {
-    element.classList.add("wrongAnim");
-    feedback.textContent="❌ Try Again!";
-    attempts--; document.getElementById("attempts").textContent=attempts;
-    setTimeout(()=>{
-      element.classList.remove("wrongAnim");
-      feedback.textContent="";
-      Array.from(optionsBox.children).forEach(opt=>opt.classList.remove("disabled"));
-      if(attempts<=0){
-        const correctOpt=Array.from(optionsBox.children).find(opt=>opt.textContent===questions[current].answer);
-        correctOpt.classList.add("correctAnim");
-        setTimeout(()=>{
-          correctOpt.classList.remove("correctAnim");
-          current++; attempts=2;
-          updateTrain();
-          if(current<questions.length) loadQuestion(); else showResult();
-        },1200);
+  <script>
+    // Audio Playback Triggers 
+    function playAudio(elementId) {
+      const sound = document.getElementById(elementId);
+      if (sound) {
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log("Audio play blocked until user gesture: ", e));
       }
-    },400);
-  }
-}
+    }
 
-function launchConfetti(){
-  const container=document.getElementById("confetti-container");
-  container.innerHTML="";
-  const colors=["#ffbf00","#0b8043","#d93025","#174ea6","#fbbc04"];
-  const numPieces=80;
-  for(let i=0;i<numPieces;i++){
-    const conf=document.createElement("div");
-    conf.className="confetti";
-    conf.style.backgroundColor=colors[Math.floor(Math.random()*colors.length)];
-    conf.style.left=Math.random()*100+"vw";
-    conf.style.top="-20px";
-    conf.style.width=conf.style.height=(Math.random()*8+6)+"px";
-    conf.style.animationDuration=(Math.random()*2+3)+"s";
-    conf.style.animationDelay=Math.random()+"s";
-    container.appendChild(conf);
-  }
-  setTimeout(()=>{ container.innerHTML=""; },5000);
-}
+    // Dynamic Procedural Confetti Burst Engine
+    function popConfetti() {
+      const container = document.querySelector('.game-container');
+      const rect = container.getBoundingClientRect();
+      
+      // Fire 40 multi-colored confetti shards from random positions across the container canvas
+      for (let i = 0; i < 40; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        
+        // Spawn randomly across the playing container widths
+        const startX = Math.random() * rect.width;
+        const startY = Math.random() * (rect.height * 0.6);
+        
+        p.style.left = startX + 'px'; 
+        p.style.top = startY + 'px';
+        p.style.background = ['#ffeb3b','#ff5722','#4caf50','#00bcd4','#e91e63','#9c27b0'][Math.floor(Math.random()*6)];
+        
+        // Explode outward multi-directionally
+        const dx = (Math.random() - 0.5) * 250 + 'px';
+        const dy = (Math.random() - 0.5) * 250 - 50 + 'px';
+        p.style.setProperty('--dx', dx); 
+        p.style.setProperty('--dy', dy);
+        
+        container.appendChild(p);
+        setTimeout(() => p.remove(), 800);
+      }
+    }
 
-function showResult(){
-  clearInterval(timer);
-  document.getElementById("game").classList.remove("active");
-  document.getElementById("result").classList.add("active");
-  document.getElementById("finalScore").textContent=`Your Score: ${score} / ${questions.length}`;
-  
-  // Dynamic ending message and custom score feedback
-  const msgEl = document.getElementById("resultMsg");
-  const starsEl = document.getElementById("resultStars");
-  if(score >= 8) {
-    starsEl.textContent = "⭐⭐⭐";
-    msgEl.textContent = "Amazing! You're a true math conductor!";
-  } else if (score >= 5) {
-    starsEl.textContent = "⭐⭐";
-    msgEl.textContent = "Great journey! Keep practicing your numbers.";
-  } else {
-    starsEl.textContent = "⭐";
-    msgEl.textContent = "Nice try! Let's ride the train again to learn more.";
-  }
-  
-  launchConfetti();
-}
+    // State Configuration Settings
+    let activeLevel = 1;
+    let turnIndex = 0;
+    let runningScore = 0;
+    let acceptInput = true;
+    let stageQuestions = [];
+    const TOTAL_TOTAL_TURNS = 9;
 
-function restartGame(){
-  document.getElementById("result").classList.remove("active");
-  document.getElementById("start").classList.add("active");
-}
-</script>
+    // Data Assembler matching Book Learning Objectives
+    function assembleLevelQuestions() {
+      stageQuestions = [];
+      
+      // LEVEL 1: Evaluate numerical sequences by identifying missing numbers
+      for(let i=0; i<3; i++) {
+        let start = Math.floor(Math.random() * 80) + 5;
+        let missingOffset = Math.floor(Math.random() * 3);
+        let seq = [start, start+1, start+2];
+        let correctVal = seq[missingOffset];
+        seq[missingOffset] = '__';
+        
+        let decoys = new Set([correctVal + 1, correctVal - 1, correctVal + 10]);
+        decoys.delete(correctVal);
+        while(decoys.size < 3) { decoys.add(Math.floor(Math.random() * 95)); }
+        let opts = [correctVal, ...decoys];
+
+        stageQuestions.push({
+          level: 1,
+          story: "Raju needs to find the correct number code to link this train car back into line!",
+          prompt: `What missing number completes this track? Sequence: ${seq.join(', ')}`,
+          displayData: { type: 'sequence', values: seq },
+          answer: correctVal,
+          options: opts.sort(() => Math.random() - 0.5)
+        });
+      }
+
+      // LEVEL 2: Differentiate between ones and tens places (Abacus Layouts)
+      for(let i=0; i<3; i++) {
+        let t = Math.floor(Math.random() * 8) + 1;
+        let o = Math.floor(Math.random() * 9);
+        let targetNum = (t * 10) + o;
+
+        let decoys = new Set([t*10 + (o+1)%10, ((t+1)%9)*10 + o, targetNum + 5]);
+        decoys.delete(targetNum);
+        while(decoys.size < 3) { decoys.add(Math.floor(Math.random()*90)+9); }
+        let opts = [targetNum, ...decoys];
+
+        stageQuestions.push({
+          level: 2,
+          story: "Raju is counting cargo loading blocks on the engine's steam counting abacus!",
+          prompt: "How many total structural cargo loads are placed on this abacus frame?",
+          displayData: { type: 'abacus', tens: t, ones: o },
+          answer: targetNum,
+          options: opts.sort(() => Math.random() - 0.5)
+        });
+      }
+
+      // LEVEL 3: Compare numerical values to determine greatest and smallest numbers
+      const comparisonTasks = [
+        { mode: 'greatest', text: 'Which heavy coal freight car holds the GREATEST numerical structural value?' },
+        { mode: 'smallest', text: 'Which small supply container wagon holds the SMALLEST numerical value?' },
+        { mode: 'greatest', text: 'Identify the GREATEST layout code to switch the rail tracks correctly!' }
+      ];
+      
+      comparisonTasks.forEach(task => {
+        let num1 = Math.floor(Math.random() * 95) + 2;
+        let num2 = Math.floor(Math.random() * 95) + 2;
+        while(num2 === num1) { num2 = Math.floor(Math.random() * 95) + 2; }
+        let num3 = Math.floor(Math.random() * 95) + 2;
+        while(num3 === num1 || num3 === num2) { num3 = Math.floor(Math.random() * 95) + 2; }
+
+        let arr = [num1, num2, num3];
+        let correctVal = task.mode === 'greatest' ? Math.max(...arr) : Math.min(...arr);
+
+        stageQuestions.push({
+          level: 3,
+          story: "Raju is routing freight cars based on weight size metrics at the sorting yard junction.",
+          prompt: task.text,
+          displayData: { type: 'compare', list: arr },
+          answer: correctVal,
+          options: [...arr].sort(() => Math.random() - 0.5)
+        });
+      });
+    }
+
+    function startLevel(lvl) {
+      activeLevel = lvl;
+      document.getElementById('screen-intro').classList.remove('active');
+      document.getElementById('screen-play').classList.add('active');
+      renderActiveTurn();
+    }
+
+    function renderActiveTurn() {
+      if (turnIndex >= TOTAL_TOTAL_TURNS) {
+        showEndGameSummary();
+        return;
+      }
+
+      acceptInput = true;
+      document.getElementById('feedback-box').innerText = "";
+      
+      let currentQ = stageQuestions[turnIndex];
+      activeLevel = currentQ.level;
+
+      document.getElementById('stage-title').innerText = `Level ${activeLevel}: ` + 
+        (activeLevel === 1 ? "The Missing Car Sequence" : activeLevel === 2 ? "Abacus Cargo Counter" : "Track Junction Switcher");
+      document.getElementById('progress-val').innerText = `${turnIndex + 1} / ${TOTAL_TOTAL_TURNS}`;
+      document.getElementById('progress-fill').style.width = `${(turnIndex / TOTAL_TOTAL_TURNS) * 100}%`;
+      document.getElementById('score-val').innerText = runningScore;
+
+      document.getElementById('story-text').innerHTML = `<strong>Raju says:</strong> "${currentQ.story}"`;
+      document.getElementById('question-text').innerText = currentQ.prompt;
+
+      const canvas = document.getElementById('stage-canvas');
+      canvas.innerHTML = '<div class="tracks"></div>';
+
+      if (currentQ.displayData.type === 'sequence') {
+        let startLeft = 110;
+        currentQ.displayData.values.forEach((val, idx) => {
+          let car = document.createElement('div');
+          car.className = "train-car";
+          car.style.left = (startLeft + (idx * 75)) + "px";
+          car.innerText = val;
+          if(val === '__') {
+            car.style.background = 'transparent';
+            car.style.borderStyle = 'dashed';
+            car.style.borderColor = '#e65100';
+            car.style.color = '#e65100';
+          }
+          canvas.appendChild(car);
+        });
+        let engine = document.createElement('div');
+        engine.className = "train-engine";
+        engine.style.left = (startLeft + (currentQ.displayData.values.length * 75)) + "px";
+        canvas.appendChild(engine);
+
+      } else if (currentQ.displayData.type === 'abacus') {
+        let frame = document.createElement('div');
+        frame.className = "abacus-frame";
+        
+        let rodT = document.createElement('div');
+        rodT.className = "abacus-rod";
+        rodT.setAttribute('data-label', 'Tens (T)');
+        for(let i=0; i<currentQ.displayData.tens; i++) { rodT.appendChild(document.createElement('div')).className = "bead"; }
+
+        let rodO = document.createElement('div');
+        rodO.className = "abacus-rod";
+        rodO.setAttribute('data-label', 'Ones (O)');
+        for(let i=0; i<currentQ.displayData.ones; i++) { rodO.appendChild(document.createElement('div')).className = "bead"; }
+
+        frame.appendChild(rodT);
+        frame.appendChild(rodO);
+        canvas.appendChild(frame);
+
+      } else if (currentQ.displayData.type === 'compare') {
+        currentQ.displayData.list.forEach((val, idx) => {
+          let car = document.createElement('div');
+          car.className = "train-car";
+          car.style.left = (120 + (idx * 90)) + "px";
+          car.style.background = '#0097a7';
+          car.innerText = val;
+          canvas.appendChild(car);
+        });
+      }
+
+      const optionsBox = document.getElementById('options-box');
+      optionsBox.innerHTML = "";
+      currentQ.options.forEach(opt => {
+        let btn = document.createElement('button');
+        btn.className = "game-btn";
+        btn.innerText = opt;
+        btn.onclick = function() { processSelection(btn, opt); };
+        optionsBox.appendChild(btn);
+      });
+    }
+
+    function processSelection(clickedElement, pickedValue) {
+      if (!acceptInput) return;
+      acceptInput = false;
+
+      let currentQ = stageQuestions[turnIndex];
+      let feedBox = document.getElementById('feedback-box');
+
+      if (pickedValue === currentQ.answer) {
+        runningScore += 10;
+        clickedElement.classList.add('correct');
+        feedBox.style.color = '#2e7d32';
+        feedBox.innerText = "Fantastic Job! The rails match up cleanly! 🎉";
+        
+        // Execute Audio & Confetti Specifications
+        playAudio('snd-correct');
+        popConfetti();
+        
+        turnIndex++;
+        setTimeout(renderActiveTurn, 1400);
+      } else {
+        clickedElement.classList.add('wrong');
+        feedBox.style.color = '#c62828';
+        feedBox.innerText = "Oh! That mismatch jammed the gearbox. Try again!";
+        
+        // Execute Failure Specification
+        playAudio('snd-wrong');
+        
+        setTimeout(() => {
+          clickedElement.classList.remove('wrong');
+          acceptInput = true;
+        }, 500);
+      }
+      document.getElementById('score-val').innerText = runningScore;
+    }
+
+    function showEndGameSummary() {
+      document.getElementById('progress-fill').style.width = "100%";
+      document.getElementById('screen-play').classList.remove('active');
+      document.getElementById('screen-end').classList.add('active');
+    }
+
+    function resetWholeGame() {
+      turnIndex = 0;
+      runningScore = 0;
+      document.getElementById('screen-end').classList.remove('active');
+      document.getElementById('screen-intro').classList.add('active');
+      document.getElementById('stage-title').innerText = "Level 1: The Missing Car";
+      document.getElementById('progress-val').innerText = `1 / ${TOTAL_TOTAL_TURNS}`;
+      document.getElementById('score-val').innerText = "0";
+      assembleLevelQuestions();
+    }
+
+    // Initialize Engine & Handle Brand Splashing Phase Delay
+    window.onload = function() {
+      assembleLevelQuestions();
+      
+      // Keep completely blank screen showing ONLY logo.png for exactly 5000 milliseconds
+      setTimeout(() => {
+        const splash = document.getElementById('screen-splash');
+        if (splash) splash.style.display = 'none';
+      }, 5000);
+    };
+  </script>
 </body>
 </html>
