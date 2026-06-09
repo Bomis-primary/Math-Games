@@ -72,6 +72,7 @@ h1 {
     font-size: clamp(28px, 6vw, 42px);
     color: #1a237e;
     text-shadow: 0px 2px 4px rgba(255,255,255,0.8);
+    transition: color 0.4s;
 }
 
 .instruction {
@@ -81,6 +82,7 @@ h1 {
     font-weight: bold;
     max-width: 90%;
     text-shadow: 0 1px 2px rgba(255,255,255,0.6);
+    transition: color 0.4s;
 }
 
 /* Master Core Display Boards */
@@ -117,7 +119,7 @@ h1 {
     color: #1565c0;
     box-shadow: 0 6px 12px rgba(0,0,0,0.15);
     position: relative;
-    transition: transform 0.2s, background-color 0.3s, border-color 0.3s;
+    transition: transform 0.2s, background-color 0.3s, border-color 0.3s, color 0.3s, border-style 0.1s;
 }
 
 .number-node.missing-target {
@@ -132,6 +134,7 @@ h1 {
     color: #fff;
     font-weight: bold;
     text-shadow: 0 3px 6px rgba(0,0,0,0.4);
+    transition: color 0.4s;
 }
 
 .symbol-slot {
@@ -174,7 +177,7 @@ h1 {
     color: #2e7d32;
     cursor: pointer;
     box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    transition: transform 0.2s, background-color 0.2s, color 0.2s;
+    transition: transform 0.2s, background-color 0.2s, color 0.2s, border-color 0.2s;
 }
 .option-card:hover { transform: scale(1.06); }
 
@@ -210,7 +213,7 @@ h1 {
     background: #ff5722;
     color: white;
     box-shadow: 0 6px 14px rgba(255, 87, 34, 0.4);
-    transition: transform 0.1s;
+    transition: transform 0.1s, background-color 0.3s;
 }
 .btn:active { transform: scale(0.95); }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
@@ -280,17 +283,21 @@ const levelThemes = {
     1: {
         bgStyle: "linear-gradient(to bottom, #ffeb3b 0%, #fffde7 40%, #4fc3f7 40%, #0288d1 100%)",
         boardColor: "#283593", boardBorder: "#1a237e", badgeColor: "#e91e63",
-        title: "Number Sequence Machine", instruction: "Find the missing sequence number!"
+        title: "Number Sequence Machine", instruction: "Find the missing sequence number!",
+        titleColor: "#1a237e", instructionColor: "#b71c1c"
     },
     2: {
-        bgStyle: "linear-gradient(to bottom, #a8ff78 0%, #78ffd6 40%, #11998e 40%, #38ef7d 100%)",
-        boardColor: "#1b5e20", boardBorder: "#0d5316", badgeColor: "#ff9800",
-        title: "Expanded Form Reactor", instruction: "Match the correct Expanded Form parts!"
+        /* Level 2: Vibrant Green Lime Jungle / Laboratory Theme */
+        bgStyle: "linear-gradient(to bottom, #d4fc79 0%, #96e6a1 30%, #1b5e20 70%, #0c3311 100%)",
+        boardColor: "#114d16", boardBorder: "#39ff14", badgeColor: "#00e676",
+        title: "Expanded Form Reactor 🧪", instruction: "Break down the target number into Hundreds, Tens, and Ones!",
+        titleColor: "#ccff00", instructionColor: "#ffffff"
     },
     3: {
         bgStyle: "linear-gradient(to bottom, #ff9966 0%, #ff5e62 40%, #8e2de2 40%, #4a00e0 100%)",
         boardColor: "#4a148c", boardBorder: "#310c61", badgeColor: "#9c27b0",
-        title: "Number Comparison Arena", instruction: "Choose the correct sign to match the values!"
+        title: "Number Comparison Arena", instruction: "Choose the correct sign to match the values!",
+        titleColor: "#1a237e", instructionColor: "#b71c1c"
     }
 };
 
@@ -315,8 +322,14 @@ function initGame() {
 
 function updateLayoutTheme(cfg) {
     document.body.style.background = cfg.bgStyle;
-    document.getElementById("gameTitle").innerText = cfg.title;
-    document.getElementById("gameInstruction").innerText = cfg.instruction;
+    
+    const gameTitle = document.getElementById("gameTitle");
+    gameTitle.innerText = cfg.title;
+    gameTitle.style.color = cfg.titleColor || "#1a237e";
+
+    const gameInstruction = document.getElementById("gameInstruction");
+    gameInstruction.innerText = cfg.instruction;
+    gameInstruction.style.color = cfg.instructionColor || "#b71c1c";
     
     const board = document.getElementById("masterBoard");
     board.style.backgroundColor = cfg.boardColor;
@@ -356,7 +369,6 @@ function buildSequenceRound(board, optionsContainer) {
     let startNum = Math.floor(Math.random() * 90) + 101; 
     let sequence = [startNum, startNum + 1, startNum + 2];
     
-    // Rotate index choices dynamically between rounds (After, Before, Between)
     let missingIndex = currentRound === 0 ? 2 : (currentRound === 1 ? 0 : 1);
     let correctValue = sequence[missingIndex];
     correctAnswerText = correctValue.toString();
@@ -401,7 +413,7 @@ function buildSequenceRound(board, optionsContainer) {
 }
 
 /* ==========================================
-   LEVEL 2 GENERATOR ENGINE: EXPANDED FORM
+   LEVEL 2 GENERATOR ENGINE: EXPANDED FORM (LIME LAB)
    ========================================== */
 function buildExpansionRound(board, optionsContainer) {
     let targetNum = Math.floor(Math.random() * 99) + 101; // Range: 101-200
@@ -412,28 +424,33 @@ function buildExpansionRound(board, optionsContainer) {
     
     correctAnswerText = `${hundreds} + ${tens} + ${ones}`;
 
-    // Render target node display 
+    // Target visual reactor layout
     const targetNode = document.createElement("div");
     targetNode.className = "number-node";
     targetNode.style.maxWidth = "160px";
+    targetNode.style.borderColor = "#39ff14";
+    targetNode.style.backgroundColor = "#0d3c11";
+    targetNode.style.color = "#fff";
     targetNode.innerText = targetNum;
     board.appendChild(targetNode);
 
     const equalSign = document.createElement("div");
     equalSign.className = "expansion-node";
+    equalSign.style.color = "#39ff14";
     equalSign.innerText = "=";
     board.appendChild(equalSign);
 
     const slotNode = document.createElement("div");
     slotNode.className = "number-node missing-target";
     slotNode.id = "targetSlot";
-    slotNode.style.maxWidth = "260px";
+    slotNode.style.maxWidth = "280px";
     slotNode.style.aspectRatio = "auto";
     slotNode.style.padding = "10px 25px";
+    slotNode.style.borderColor = "#39ff14";
     slotNode.innerText = "? + ? + ?";
     board.appendChild(slotNode);
 
-    // Distractor logic matrix generating parallel false expansion combinations
+    // Build unique option selections matching theme architecture
     let choices = [correctAnswerText];
     while (choices.length < 3) {
         let fakeNum = Math.floor(Math.random() * 99) + 101;
@@ -450,14 +467,16 @@ function buildExpansionRound(board, optionsContainer) {
     choices.forEach(formula => {
         const card = document.createElement("div");
         card.className = "option-card";
-        card.style.maxWidth = "220px";
+        card.style.maxWidth = "240px";
+        card.style.borderColor = "#1b5e20";
+        card.style.color = "#1b5e20";
         card.innerText = formula;
         card.onclick = () => verifyPlayerInput(card, formula, () => {
             const target = document.getElementById("targetSlot");
             target.innerText = correctAnswerText;
-            target.style.background = "#81c784";
-            target.style.color = "#fff";
-            target.style.borderColor = "#2e7d32";
+            target.style.background = "#39ff14";
+            target.style.color = "#000";
+            target.style.borderColor = "#fff";
             target.style.fontSize = "clamp(18px, 3.5vw, 26px)";
             target.style.borderStyle = "solid";
             target.classList.add("pop-correct");
@@ -523,7 +542,6 @@ function verifyPlayerInput(selectedCard, alternativeValue, updateUIDelegate) {
         
         updateUIDelegate();
         
-        // Target localized flash pop particles directly above target block positioning
         const target = document.getElementById("targetSlot");
         const rect = target.getBoundingClientRect();
         burstParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 28);
@@ -541,7 +559,8 @@ function verifyPlayerInput(selectedCard, alternativeValue, updateUIDelegate) {
         setTimeout(() => {
             selectedCard.classList.remove("shake-wrong");
             selectedCard.style.backgroundColor = "#ffffff";
-            selectedCard.style.color = "#2e7d32";
+            // Return to default active text coloring relative to level type
+            selectedCard.style.color = currentLevel === 2 ? "#1b5e20" : "#2e7d32";
         }, 500);
     }
 }
@@ -589,7 +608,8 @@ resize();
 window.addEventListener("resize", resize);
 
 function burstParticles(x, y, count) {
-    const hues = [15, 45, 135, 195, 275, 335]; 
+    // Inject extra bright greens if level 2 is playing to emphasize theme assets
+    const hues = currentLevel === 2 ? [95, 120, 145, 60, 45, 135] : [15, 45, 135, 195, 275, 335]; 
     for(let i = 0; i < count; i++){
         let angle = Math.random() * 2 * Math.PI;
         let speed = Math.random() * 6 + 2.5;
