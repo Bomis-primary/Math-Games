@@ -150,15 +150,14 @@ h1 {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center; /* Center items inside since bucket images are removed */
     padding: 20px 15px;
     box-sizing: border-box;
     min-height: 250px;
     box-shadow: 0 10px 20px rgba(0,0,0,0.12);
 }
 .sort-bin.drag-over { background-color: rgba(129, 199, 132, 0.9); border-color: #2e7d32; }
-.sort-bin .bin-title { font-size: clamp(22px, 4.5vw, 28px); font-weight: bold; color: #0d47a1; text-shadow: 0 1px 1px white; margin-bottom: 10px; }
-.sort-bin img.bin-icon { width: 95%; max-height: 140px; object-fit: contain; pointer-events: none; }
+.sort-bin .bin-title { font-size: clamp(22px, 4.5vw, 28px); font-weight: bold; color: #0d47a1; text-shadow: 0 1px 1px white; margin-bottom: 20px; }
 
 #orderingArena {
     display: none;
@@ -241,3 +240,436 @@ h1 {
     display: none;
     flex-direction: column;
     justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+#winScreen h1 { font-size: clamp(40px, 9vw, 64px); color: #ffd166; margin: 0 0 15px 0; }
+</style>
+</head>
+<body>
+
+<div id="splashScreen">
+    <img src="assets/logo.png" alt="Logo">
+</div>
+
+<div id="gameContainer">
+    <div id="levelBadge" class="level-badge">LEVEL 1</div>
+    <h1 id="gameTitle">Measurement Sorting Zone</h1>
+    <p id="gameInstruction" class="instruction">Loading setup...</p>
+
+    <div id="sortingArena">
+        <div class="item-pair-board">
+            <div class="items-scaffold" id="itemsScaffold"></div>
+        </div>
+        
+        <div class="bins-container">
+            <div class="sort-bin" data-side="left">
+                <div id="leftBinTitle" class="bin-title">Heavy</div>
+            </div>
+            <div class="sort-bin" data-side="right">
+                <div id="rightBinTitle" class="bin-title">Light</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="orderingArena">
+        <div id="scrambledRow" class="scrambled-row"></div>
+        <div class="slots-row">
+            <div class="pedestal-slot"><div id="p1" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"></div><div id="l1" class="pedestal-label">1st</div></div>
+            <div class="pedestal-slot"><div id="p2" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"></div><div id="l2" class="pedestal-label">2nd</div></div>
+            <div class="pedestal-slot"><div id="p3" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"></div><div id="l3" class="pedestal-label">3rd</div></div>
+        </div>
+    </div>
+
+    <button id="actionControl" class="btn" onclick="advanceNextSequence()" disabled>Next ➡️</button>
+</div>
+
+<canvas id="fireworks"></canvas>
+
+<div id="winScreen">
+    <h1 id="winHeader">LEVEL CLEAR! 🎉</h1>
+    <p id="winMessage" style="font-size:24px; color:#e0f2f1; margin:0 0 30px 0;">Awesome sorting skills!</p>
+    <button class="btn" style="background:#e91e63; box-shadow:0 6px 14px rgba(233,30,99,0.4);" onclick="handleOverlayReset()">Next Level ➡️</button>
+</div>
+
+<audio id="winMusic" preload="auto" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_d0b6b6b5c3.mp3?filename=success-fanfare-trumpets-6185.mp3"></audio>
+<audio id="correctSound" preload="auto" src="assets/correct.mp3"></audio>
+<audio id="wrongSound" preload="auto" src="assets/wrong.mp3"></audio>
+
+<script>
+const winMusic = document.getElementById("winMusic");
+const correctSound = document.getElementById("correctSound");
+const wrongSound = document.getElementById("wrongSound");
+
+let currentLevel = 1;
+let currentRound = 0;
+let winInterval = null;
+let roundSortedCount = 0;
+
+const sortingRounds = [
+    {
+        instruction: "Round 1: Which item is Heavy and which is Light?",
+        leftLabel: "Heavy", rightLabel: "Light",
+        items: [
+            { img: "assets/pink-dino.png", targetSide: "left", scale: "1.0" },
+            { img: "assets/frog.png", targetSide: "right", scale: "0.6" }
+        ]
+    },
+    {
+        instruction: "Round 2: Which item is Heavy and which is Light?",
+        leftLabel: "Heavy", rightLabel: "Light",
+        items: [
+            { img: "assets/watermelon.png", targetSide: "left", scale: "1.0" },
+            { img: "assets/apple.png", targetSide: "right", scale: "0.55" }
+        ]
+    },
+    {
+        instruction: "Round 3: Which item is Heavy and which is Light?",
+        leftLabel: "Heavy", rightLabel: "Light",
+        items: [
+            { img: "assets/bag_flour.png", targetSide: "left", scale: "1.0" },
+            { img: "assets/feather.png", targetSide: "right", scale: "0.7" }
+        ]
+    },
+    {
+        instruction: "Round 4: Which item is Long and which is Short?",
+        leftLabel: "Long", rightLabel: "Short",
+        items: [
+            { img: "assets/ladder.png", targetSide: "left", scale: "1.0" },
+            { img: "assets/ribbon.png", targetSide: "right", scale: "0.65" }
+        ]
+    },
+    {
+        instruction: "Round 5: Which item holds More and which holds Less?",
+        leftLabel: "Holds More", rightLabel: "Holds Less",
+        items: [
+            { img: "assets/milk-carton.png", targetSide: "left", scale: "1.0" },
+            { img: "assets/cup.png", targetSide: "right", scale: "0.6" }
+        ]
+    }
+];
+
+const orderingRounds = [
+    {
+        instruction: "Arrange from Shortest to Longest!",
+        labels: ["Shortest", "Medium", "Longest"],
+        pool: [
+            { rank: 1, img: "assets/pencil.png", scale: "0.5" },
+            { rank: 2, img: "assets/ribbon.png", scale: "0.75" },
+            { rank: 3, img: "assets/ladder.png", scale: "1.1" }
+        ]
+    },
+    {
+        instruction: "Arrange from Heaviest to Lightest!",
+        labels: ["Heaviest", "Medium", "Lightest"],
+        pool: [
+            { rank: 1, img: "assets/bag_flour.png", scale: "1.1" },
+            { rank: 2, img: "assets/apple.png", scale: "0.75" },
+            { rank: 3, img: "assets/turtle.png", scale: "0.5" }
+        ]
+    },
+    {
+        instruction: "Arrange from Smallest to Biggest!",
+        labels: ["Smallest", "Medium", "Biggest"],
+        pool: [
+            { rank: 1, img: "assets/frog.png", scale: "0.5" },
+            { rank: 2, img: "assets/turtle.png", scale: "0.75" },
+            { rank: 3, img: "assets/pink-dino.png", scale: "1.1" }
+        ]
+    }
+];
+
+let level2RoundIndex = 0;
+let level2PlacementIndex = 1;
+
+window.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => {
+        const splash = document.getElementById("splashScreen");
+        const container = document.getElementById("gameContainer");
+        splash.style.opacity = "0";
+        setTimeout(() => {
+            splash.style.display = "none";
+            container.style.display = "flex";
+            startLevel1();
+        }, 300);
+    }, 1000); 
+});
+
+function startLevel1() {
+    currentLevel = 1;
+    currentRound = 0;
+    document.getElementById("levelBadge").innerText = "LEVEL 1";
+    document.getElementById("gameTitle").innerText = "Measurement Sorting Zone";
+    document.getElementById("sortingArena").style.display = "flex";
+    document.getElementById("orderingArena").style.display = "none";
+    loadSortingRound(currentRound);
+}
+
+function loadSortingRound(roundIndex) {
+    document.getElementById("actionControl").disabled = true;
+    roundSortedCount = 0;
+    
+    const roundData = sortingRounds[roundIndex];
+    document.getElementById("gameInstruction").innerText = roundData.instruction;
+    document.getElementById("leftBinTitle").innerText = roundData.leftLabel;
+    document.getElementById("rightBinTitle").innerText = roundData.rightLabel;
+    
+    document.querySelectorAll('.sort-bin .draggable-wrapper').forEach(el => el.remove());
+    
+    let scrambledPair = [...roundData.items];
+    for (let i = scrambledPair.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [scrambledPair[i], scrambledPair[j]] = [scrambledPair[j], scrambledPair[i]];
+    }
+    
+    const scaffold = document.getElementById("itemsScaffold");
+    scaffold.innerHTML = "";
+    
+    scrambledPair.forEach((item, index) => {
+        const frame = document.createElement("div");
+        frame.className = "draggable-wrapper";
+        frame.id = "drag-item-" + index;
+        frame.dataset.targetSide = item.targetSide;
+        frame.innerHTML = `<img src="${item.img}" style="transform: scale(${item.scale});">`;
+        makeElementMobileDraggable(frame);
+        scaffold.appendChild(frame);
+    });
+}
+
+function makeElementMobileDraggable(el) {
+    let startX = 0, startY = 0;
+    let isDragging = false;
+
+    el.addEventListener('mousedown', dragStart);
+    el.addEventListener('touchstart', dragStart, { passive: false });
+
+    function dragStart(e) {
+        isDragging = true;
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        
+        startX = clientX;
+        startY = clientY;
+        
+        el.style.transition = "none";
+        el.style.zIndex = "1000";
+
+        document.addEventListener('mousemove', dragMove);
+        document.addEventListener('touchmove', dragMove, { passive: false });
+        document.addEventListener('mouseup', dragEnd);
+        document.addEventListener('touchend', dragEnd);
+    }
+
+    function dragMove(e) {
+        if (!isDragging) return;
+        if(e.cancelable) e.preventDefault();
+        
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+        
+        let deltaX = clientX - startX;
+        let deltaY = clientY - startY;
+
+        el.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(1.05)`;
+
+        const hoveredBin = getHoveredBin(clientX, clientY);
+        document.querySelectorAll('.sort-bin').forEach(bin => bin.classList.remove('drag-over'));
+        if (hoveredBin) {
+            hoveredBin.classList.add('drag-over');
+        }
+    }
+
+    function dragEnd(e) {
+        if (!isDragging) return;
+        isDragging = false;
+
+        document.removeEventListener('mousemove', dragMove);
+        document.removeEventListener('touchmove', dragMove);
+        document.removeEventListener('mouseup', dragEnd);
+        document.removeEventListener('touchend', dragEnd);
+
+        const finalX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+        const finalY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+        
+        const targetBin = getHoveredBin(finalX, finalY);
+        document.querySelectorAll('.sort-bin').forEach(bin => bin.classList.remove('drag-over'));
+
+        if (targetBin && targetBin.dataset.side === el.dataset.targetSide) {
+            correctSound.currentTime = 0;
+            correctSound.play().catch(err => {});
+            
+            el.style.transition = "none";
+            el.style.transform = "none";
+            el.style.position = "relative";
+            el.style.left = "0px";
+            el.style.top = "0px";
+            el.style.zIndex = "1";
+            el.style.width = "90px";  
+            el.style.height = "90px";
+            el.style.margin = "10px auto";
+            
+            targetBin.appendChild(el);
+            
+            roundSortedCount++;
+            if (roundSortedCount >= 2) {
+                document.getElementById("actionControl").disabled = false;
+            }
+        } else {
+            wrongSound.currentTime = 0;
+            wrongSound.play().catch(err => {});
+            el.style.transition = "transform 0.3s ease";
+            el.style.transform = "translate(0px, 0px)";
+            el.style.zIndex = "10";
+        }
+    }
+
+    function getHoveredBin(x, y) {
+        const bins = document.querySelectorAll('.sort-bin');
+        for (let i = 0; i < bins.length; i++) {
+            const r = bins[i].getBoundingClientRect();
+            if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
+                return bins[i];
+            }
+        }
+        return null;
+    }
+}
+
+function startLevel2() {
+    currentLevel = 2;
+    level2RoundIndex = 0;
+    document.getElementById("levelBadge").innerText = "LEVEL 2";
+    document.getElementById("gameTitle").innerText = "The Ordering Machine";
+    document.getElementById("sortingArena").style.display = "none";
+    document.getElementById("orderingArena").style.display = "flex";
+    loadLevel2Round(level2RoundIndex);
+}
+
+function loadLevel2Round(index) {
+    document.getElementById("actionControl").disabled = true;
+    level2PlacementIndex = 1;
+    
+    const roundData = orderingRounds[index];
+    document.getElementById("gameInstruction").innerText = roundData.instruction;
+    
+    document.getElementById("l1").innerText = roundData.labels[0];
+    document.getElementById("l2").innerText = roundData.labels[1];
+    document.getElementById("l3").innerText = roundData.labels[2];
+    
+    document.getElementById("p1").innerHTML = "";
+    document.getElementById("p2").innerHTML = "";
+    document.getElementById("p3").innerHTML = "";
+
+    let itemsToScramble = [...roundData.pool];
+    for (let i = itemsToScramble.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [itemsToScramble[i], itemsToScramble[j]] = [itemsToScramble[j], itemsToScramble[i]];
+    }
+
+    const row = document.getElementById("scrambledRow");
+    row.innerHTML = "";
+    itemsToScramble.forEach(item => {
+        const card = document.createElement("div");
+        card.className = "order-card";
+        card.innerHTML = `<img src="${item.img}" style="transform: scale(${item.scale});">`;
+        card.onclick = () => evaluateOrderClick(card, item);
+        row.appendChild(card);
+    });
+}
+
+function evaluateOrderClick(cardElement, itemData) {
+    if (itemData.rank === level2PlacementIndex) {
+        correctSound.currentTime = 0;
+        correctSound.play().catch(e => {});
+        
+        document.getElementById(`p${level2PlacementIndex}`).innerHTML = `<img src="${itemData.img}" style="width:100%; height:100%; object-fit:contain; transform: scale(${itemData.scale});">`;
+        
+        cardElement.style.display = "none";
+        
+        level2PlacementIndex++;
+        if (level2PlacementIndex > 3) {
+            document.getElementById("actionControl").disabled = false;
+        }
+    } else {
+        wrongSound.currentTime = 0;
+        wrongSound.play().catch(e => {});
+        cardElement.style.backgroundColor = "#ffcdd2";
+        setTimeout(() => cardElement.style.backgroundColor = "#ffffff", 500);
+    }
+}
+
+function advanceNextSequence() {
+    if (currentLevel === 1) {
+        currentRound++;
+        if (currentRound < sortingRounds.length) {
+            loadSortingRound(currentRound);
+        } else {
+            triggerCelebrationOverlay("LEVEL 1 MET! 🏆", "Splendid sorting! Ready for the sequencing machine?", "Next Level ➡️");
+        }
+    } else {
+        level2RoundIndex++;
+        if (level2RoundIndex < orderingRounds.length) {
+            loadLevel2Round(level2RoundIndex);
+        } else {
+            triggerCelebrationOverlay("CHAPTER COMPLETE! 👑", "Outstanding! You have mastered all Chapter 8 measurement criteria!", "Play Again 🔄");
+        }
+    }
+}
+
+function triggerCelebrationOverlay(head, msg, btnTxt) {
+    document.getElementById("winHeader").innerText = head;
+    document.getElementById("winMessage").innerText = msg;
+    const overlayBtn = document.querySelector("#winScreen .btn");
+    overlayBtn.innerText = btnTxt;
+    
+    document.getElementById("winScreen").style.display = "flex";
+    winMusic.currentTime = 0;
+    winMusic.play().catch(e => {});
+    
+    burst();
+    winInterval = setInterval(burst, 700);
+}
+
+function handleOverlayReset() {
+    document.getElementById("winScreen").style.display = "none";
+    if (winInterval) clearInterval(winInterval);
+    particles = [];
+
+    if (currentLevel === 1) {
+        startLevel2();
+    } else if (level2RoundIndex >= orderingRounds.length) {
+        startLevel1();
+    }
+}
+
+const canvas = document.getElementById("fireworks");
+const ctx = canvas.getContext("2d");
+let particles = [];
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize();
+window.addEventListener("resize", resize);
+
+function burst() {
+    const ox = Math.random() * canvas.width;
+    const oy = Math.random() * (canvas.height * 0.6) + (canvas.height * 0.1);
+    const hue = Math.floor(Math.random() * 360);
+    for(let i=0; i<35; i++){
+        let a = Math.random() * 2 * Math.PI;
+        let s = Math.random() * 4 + 1.5;
+        particles.push({ x: ox, y: oy, vx: Math.cos(a)*s, vy: Math.sin(a)*s, radius: Math.random()*2+1, alpha: 1, color: `hsla(${hue}, 100%, 60%, `, gravity: 0.04 });
+    }
+}
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.alpha -= 0.015; });
+    particles = particles.filter(p => p.alpha > 0);
+    particles.forEach(p => {
+        ctx.fillStyle = `${p.color}${p.alpha})`;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill();
+    });
+    requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>
