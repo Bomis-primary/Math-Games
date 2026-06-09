@@ -42,10 +42,9 @@ button:active { transform: translateY(4px); box-shadow: 0 2px 0 #c58b00; }
 
 .track-zone { position: relative; max-width: 850px; width: 100%; height: 120px; margin: 15px auto; z-index: 5; }
 .track { position: absolute; bottom: 10px; left: 0; width: 100%; height: 16px; background: repeating-linear-gradient(90deg, #555, #555 10px, #aaa 10px, #aaa 20px); border-top:4px solid #333; border-bottom:4px solid #333; border-radius: 4px; }
-.train { position: absolute; bottom: 22px; left: 2%; font-size: 55px; line-height:1; transition:left 0.8s ease; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.15)); }
+.train { position: absolute; bottom: 22px; left: 5%; font-size: 55px; line-height:1; transition:left 1s ease-in-out; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.15)); }
 
 .question-card { max-width: 850px; width: 100%; margin: 5px auto 20px auto; background: rgba(255,255,255,0.96); border-radius: 28px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.12); border: 5px solid #ffbf00; z-index: 10; }
-.qno { font-size: 16px; color: #666; font-weight: bold; }
 .question { font-size: clamp(20px, 4.5vw, 30px); font-weight: bold; margin: 12px 0; color: #174ea6; }
 .options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 15px; }
 @media(max-width: 500px) { .options { grid-template-columns: 1fr; } }
@@ -59,12 +58,11 @@ button:active { transform: translateY(4px); box-shadow: 0 2px 0 #c58b00; }
 @keyframes shake {0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-8px);}40%,80%{transform:translateX(8px);} }
 
 .progress-wrap { width: 100%; max-width: 850px; background: #e0e0e0; height: 12px; border-radius: 6px; margin: 10px auto; border: 2px solid #bbb; overflow: hidden; }
-.progress { height: 100%; width: 0%; background: linear-gradient(to right, #ffbf00, #0b8043); transition: width 0.5s ease; }
 
-/* Confetti */
 #confetti-container { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:9999; }
 .confetti { position:absolute; width:10px; height:10px; border-radius:50%; opacity:0.9; animation:fall linear forwards; }
 @keyframes fall { 0% { transform: translateY(0) rotate(0deg); opacity:1; } 100% { transform: translateY(100vh) rotate(720deg); opacity:0; } }
+
 </style>
 </head>
 <body>
@@ -101,7 +99,6 @@ button:active { transform: translateY(4px); box-shadow: 0 2px 0 #c58b00; }
   <div class="track-zone"><div class="track"></div><div id="train" class="train">🚂</div></div>
 
   <div class="question-card">
-    <div id="qnum" class="qno">Q1 / 10</div>
     <div id="question" class="question"></div>
     <div id="options" class="options"></div>
     <div id="feedback" class="feedback"></div>
@@ -166,7 +163,6 @@ function startTimer(){
 }
 
 function loadQuestion(){
-  document.getElementById("qnum").textContent=`Q${current+1} / ${questions.length}`;
   const q=questions[current];
   document.getElementById("question").textContent=q.q;
   const optionsBox=document.getElementById("options");
@@ -183,9 +179,9 @@ function loadQuestion(){
 
 function updateTrain(){
   const train=document.getElementById("train");
-  const progressPercent=(current / questions.length)*100;
-  train.style.left=`calc(2% + ${progressPercent}%)`;
-  document.getElementById("progress").style.width=`${progressPercent}%`;
+  const progressPercent=(current / questions.length)*90;
+  train.style.left=`calc(5% + ${progressPercent}%)`;
+  document.getElementById("progress").style.width=`${(current / questions.length)*100}%`;
 }
 
 function checkAnswer(selected, element){
@@ -201,6 +197,7 @@ function checkAnswer(selected, element){
       feedback.textContent="";
       current++;
       attempts=2;
+      updateTrain();
       if(current<questions.length) loadQuestion(); else showResult();
     },800);
   } else {
@@ -217,6 +214,7 @@ function checkAnswer(selected, element){
         setTimeout(()=>{
           correctOpt.classList.remove("correctAnim");
           current++; attempts=2;
+          updateTrain();
           if(current<questions.length) loadQuestion(); else showResult();
         },1200);
       }
