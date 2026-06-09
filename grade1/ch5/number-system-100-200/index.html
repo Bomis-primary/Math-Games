@@ -9,6 +9,7 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     text-align: center;
+    /* Level 1 Default Background Theme */
     background: linear-gradient(to bottom, #ffeb3b 0%, #fffde7 40%, #4fc3f7 40%, #0288d1 100%);
     color: #333;
     margin: 0;
@@ -22,6 +23,7 @@ body {
     overflow-x: hidden;
     user-select: none;
     position: relative;
+    transition: background 0.5s ease;
 }
 
 body::before {
@@ -63,6 +65,7 @@ body::before {
     letter-spacing: 1px;
     margin-top: 15px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    transition: background-color 0.3s;
 }
 
 h1 {
@@ -95,6 +98,7 @@ h1 {
     width: 92vw;
     max-width: 600px;
     box-sizing: border-box;
+    transition: background-color 0.3s, border-color 0.3s;
 }
 
 .number-node {
@@ -215,7 +219,7 @@ h1 {
 </div>
 
 <div id="gameContainer">
-    <div id="levelBadge" class="level-badge">LEVEL 1: WHAT COMES AFTER?</div>
+    <div id="levelBadge" class="level-badge">LEVEL 1</div>
     <h1 id="gameTitle">Number Sequence Machine</h1>
     <p id="gameInstruction" class="instruction">Find the missing sequence value!</p>
 
@@ -245,12 +249,35 @@ const winMusic = document.getElementById("winMusic");
 const correctSound = document.getElementById("correctSound");
 const wrongSound = document.getElementById("wrongSound");
 
-let currentLevel = 1; // 1: After, 2: Before, 3: Between
-let currentRound = 0;
+// Unified Game State Matrix
+let currentLevel = 1; // Level 1 (100-130), Level 2 (131-170), Level 3 (171-200)
+let currentRound = 0; // 0, 1, 2 rounds per level configuration
 const totalRoundsPerLevel = 3;
 
 let correctAnswer = 0;
 let winInterval = null;
+
+// Level Dynamic Configuration Sets (Visual themes and math boundaries)
+const levelConfigs = {
+    1: {
+        minRange: 100, maxRange: 128,
+        bgStyle: "linear-gradient(to bottom, #ffeb3b 0%, #fffde7 40%, #4fc3f7 40%, #0288d1 100%)",
+        boardColor: "#283593", boardBorder: "#1a237e", badgeColor: "#e91e63",
+        modeName: "WHAT COMES AFTER?", missingIndex: 2
+    },
+    2: {
+        minRange: 131, maxRange: 168,
+        bgStyle: "linear-gradient(to bottom, #a8ff78 0%, #78ffd6 40%, #11998e 40%, #38ef7d 100%)",
+        boardColor: "#1b5e20", boardBorder: "#0d5316", badgeColor: "#ff9800",
+        modeName: "WHAT COMES BEFORE?", missingIndex: 0
+    },
+    3: {
+        minRange: 171, maxRange: 197,
+        bgStyle: "linear-gradient(to bottom, #ff9966 0%, #ff5e62 40%, #8e2de2 40%, #4a00e0 100%)",
+        boardColor: "#4a148c", boardBorder: "#310c61", badgeColor: "#9c27b0",
+        modeName: "WHAT COMES BETWEEN?", missingIndex: 1
+    }
+};
 
 window.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => {
@@ -271,21 +298,32 @@ function initGame() {
     loadRound();
 }
 
-function loadRound() {
-    document.getElementById("actionControl").disabled = true;
+function updateVisualTheme(cfg) {
+    document.body.style.background = cfg.bgStyle;
+    
+    const board = document.getElementById("sequenceBoard");
+    board.style.backgroundColor = cfg.boardColor;
+    board.style.borderColor = cfg.boardBorder;
     
     const badge = document.getElementById("levelBadge");
-    if (currentLevel === 1) badge.innerText = `LEVEL 1: WHAT COMES AFTER? (${currentRound + 1}/${totalRoundsPerLevel})`;
-    if (currentLevel === 2) badge.innerText = `LEVEL 2: WHAT COMES BEFORE? (${currentRound + 1}/${totalRoundsPerLevel})`;
-    if (currentLevel === 3) badge.innerText = `LEVEL 3: WHAT COMES BETWEEN? (${currentRound + 1}/${totalRoundsPerLevel})`;
+    badge.style.backgroundColor = cfg.badgeColor;
+}
 
-    let startNum = Math.floor(Math.random() * 95) + 101; 
+function loadRound() {
+    document.getElementById("actionControl").disabled = true;
+    const cfg = levelConfigs[currentLevel];
+    
+    // Update structural layout styling per level configuration
+    updateVisualTheme(cfg);
+    
+    // Update Badge descriptive text
+    document.getElementById("levelBadge").innerText = `LEVEL ${currentLevel}: ${cfg.modeName} (${currentRound + 1}/${totalRoundsPerLevel})`;
+
+    // Generate strict boundaries based on calculation parameters
+    let startNum = Math.floor(Math.random() * (cfg.maxRange - cfg.minRange)) + cfg.minRange; 
     let sequence = [startNum, startNum + 1, startNum + 2];
     
-    let missingIndex = 2; 
-    if (currentLevel === 2) missingIndex = 0; 
-    if (currentLevel === 3) missingIndex = 1; 
-    
+    let missingIndex = cfg.missingIndex;
     correctAnswer = sequence[missingIndex];
 
     const board = document.getElementById("sequenceBoard");
@@ -337,7 +375,6 @@ function handleChoiceSelection(selectedCard, chosenValue) {
         target.style.borderStyle = "solid";
         target.classList.add("pop-correct");
         
-        // CELEBRATION: Trigger star burst right over the target box area
         const rect = target.getBoundingClientRect();
         burstParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 25);
         
@@ -347,10 +384,9 @@ function handleChoiceSelection(selectedCard, chosenValue) {
         wrongSound.currentTime = 0;
         wrongSound.play().catch(e => {});
         
-        // Add visual shaking and feedback penalty colors
-        selectedCard.classList.add("shake-wrong");
         selectedCard.style.backgroundColor = "#ffcdd2";
         selectedCard.style.color = "#c62828";
+        selectedCard.classList.add("shake-wrong");
         
         setTimeout(() => {
             selectedCard.classList.remove("shake-wrong");
@@ -368,8 +404,8 @@ function advanceNextRound() {
         if (currentLevel < 3) {
             currentLevel++;
             currentRound = 0;
-            // CELEBRATION: Mid-level transition screen splash burst
-            burstParticles(window.innerWidth / 2, window.innerHeight / 3, 40);
+            // Pop transition celebratory fireworks burst between core levels
+            burstParticles(window.innerWidth / 2, window.innerHeight / 3, 45);
             loadRound();
         } else {
             triggerWinCelebration();
@@ -382,7 +418,6 @@ function triggerWinCelebration() {
     winMusic.currentTime = 0;
     winMusic.play().catch(e => {});
     
-    // Continuous festive rain explosions
     triggerFullRainBurst();
     winInterval = setInterval(triggerFullRainBurst, 600);
 }
@@ -403,7 +438,7 @@ resize();
 window.addEventListener("resize", resize);
 
 function burstParticles(x, y, count) {
-    const hues = [0, 45, 120, 200, 280, 320]; // Vibrant rainbow tones
+    const hues = [0, 45, 120, 200, 280, 320]; 
     for(let i = 0; i < count; i++){
         let angle = Math.random() * 2 * Math.PI;
         let speed = Math.random() * 5 + 2;
@@ -422,7 +457,6 @@ function burstParticles(x, y, count) {
 }
 
 function triggerFullRainBurst() {
-    // Generate explosive showers at random top positions across the screen
     const randomX = Math.random() * canvas.width;
     const randomY = Math.random() * (canvas.height * 0.4) + (canvas.height * 0.1);
     burstParticles(randomX, randomY, 35);
