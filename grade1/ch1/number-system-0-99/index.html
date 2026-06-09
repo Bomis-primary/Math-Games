@@ -8,7 +8,12 @@
 * { box-sizing: border-box; }
 body { margin: 0; font-family: 'Comic Sans MS', Arial, sans-serif; background: #bdeeff; color: #222; overflow-x: hidden; }
 .screen { display: none; min-height: 100vh; padding: 20px; text-align: center; justify-content: center; align-items: center; }
-.screen.active { display: flex; flex-direction: column; }
+
+/* FIX: Changed .game-area to display none by default, but allow .active to override it */
+.game-area { position: relative; min-height: 100vh; background: linear-gradient(to bottom, #bdeeff 0%, #e0f7fa 70%, #81c784 100%); padding: 15px; overflow: hidden; display: none; flex-direction: column; justify-content: space-between; }
+
+/* Unified active state handler for both standard screens and the game area */
+.screen.active, .game-area.active { display: flex; flex-direction: column; }
 
 .card { background: rgba(255,255,255,0.95); border-radius: 32px; padding: 30px; max-width: 700px; width: 95%; box-shadow: 0 12px 30px rgba(0,0,0,0.15); border: 6px solid #174ea6; animation: popIn 0.5s ease-out;}
 @keyframes popIn {0% {transform: scale(0.9); opacity:0;} 100% {transform: scale(1); opacity:1;}}
@@ -23,9 +28,6 @@ p{font-size:18px; line-height:1.5; color:#444;}
 button{ border: 0; border-radius: 20px; padding: 16px 36px; font-size: 22px; font-weight: bold; cursor: pointer; background: #ffbf00; color: #4a2b00; box-shadow: 0 6px 0 #c58b00; margin: 15px 8px; transition: all 0.1s ease;}
 button:hover { background: #ffcc33; }
 button:active { transform: translateY(4px); box-shadow: 0 2px 0 #c58b00; }
-
-/* Game Layout */
-.game-area { position: relative; min-height: 100vh; background: linear-gradient(to bottom, #bdeeff 0%, #e0f7fa 70%, #81c784 100%); padding: 15px; overflow: hidden; display: none; flex-direction: column; justify-content: space-between; }
 
 .cloud { position: absolute; background: #fff; border-radius: 100px; opacity: 0.85; pointer-events: none; }
 .cloud::before, .cloud::after { content: ''; position: absolute; background: #fff; border-radius: 50%; }
@@ -57,24 +59,23 @@ button:active { transform: translateY(4px); box-shadow: 0 2px 0 #c58b00; }
 .correctAnim { border-color:#188038 !important; box-shadow:0 4px 0 #188038 !important; background:#e6f4ea !important; color:#188038; }
 @keyframes shake {0%,100%{transform:translateX(0);}20%,60%{transform:translateX(-8px);}40%,80%{transform:translateX(8px);} }
 
+/* FIX: Added properties so the child element #progress actually scales and renders color */
 .progress-wrap { width: 100%; max-width: 850px; background: #e0e0e0; height: 12px; border-radius: 6px; margin: 10px auto; border: 2px solid #bbb; overflow: hidden; }
+.progress { height: 100%; background: #0b8043; width: 0%; transition: width 0.4s ease; }
 
 #confetti-container { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; overflow:hidden; z-index:9999; }
 .confetti { position:absolute; width:10px; height:10px; border-radius:50%; opacity:0.9; animation:fall linear forwards; }
 @keyframes fall { 0% { transform: translateY(0) rotate(0deg); opacity:1; } 100% { transform: translateY(100vh) rotate(720deg); opacity:0; } }
-
 </style>
 </head>
 <body>
 
-<!-- SCREEN 1: LOGO -->
 <section id="splash" class="screen active">
   <div class="card splash-container" style="border:none; box-shadow:none;">
     <img src="assets/logo.png" class="innovine-logo" alt="Innovine Logo">
   </div>
 </section>
 
-<!-- SCREEN 2: TITLE -->
 <section id="start" class="screen">
   <div class="card">
     <h1>🚂 Train Number Journey</h1>
@@ -84,7 +85,6 @@ button:active { transform: translateY(4px); box-shadow: 0 2px 0 #c58b00; }
   </div>
 </section>
 
-<!-- SCREEN 3: GAME -->
 <section id="game" class="game-area">
   <div class="cloud one"></div>
   <div class="cloud two"></div>
@@ -105,7 +105,6 @@ button:active { transform: translateY(4px); box-shadow: 0 2px 0 #c58b00; }
   </div>
 </section>
 
-<!-- SCREEN 4: RESULT -->
 <section id="result" class="screen">
   <div id="confetti-container"></div>
   <div class="card">
@@ -246,6 +245,21 @@ function showResult(){
   document.getElementById("game").classList.remove("active");
   document.getElementById("result").classList.add("active");
   document.getElementById("finalScore").textContent=`Your Score: ${score} / ${questions.length}`;
+  
+  // Dynamic ending message and custom score feedback
+  const msgEl = document.getElementById("resultMsg");
+  const starsEl = document.getElementById("resultStars");
+  if(score >= 8) {
+    starsEl.textContent = "⭐⭐⭐";
+    msgEl.textContent = "Amazing! You're a true math conductor!";
+  } else if (score >= 5) {
+    starsEl.textContent = "⭐⭐";
+    msgEl.textContent = "Great journey! Keep practicing your numbers.";
+  } else {
+    starsEl.textContent = "⭐";
+    msgEl.textContent = "Nice try! Let's ride the train again to learn more.";
+  }
+  
   launchConfetti();
 }
 
