@@ -3,271 +3,398 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shape Sorting Factory</title>
+<title>Grade 1 Shapes Match Game</title>
+
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:'Comic Sans MS',Arial,sans-serif;background:#dff3ff;color:#222;overflow-x:hidden}
-.screen{display:none;min-height:100vh;padding:18px;text-align:center}
-.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
-.card{background:rgba(255,255,255,.94);border-radius:24px;padding:22px;max-width:850px;width:95%;box-shadow:0 10px 25px rgba(0,0,0,.18)}
-.logo{max-width:150px;margin-bottom:12px}
-h1{color:#174ea6;font-size:clamp(28px,5vw,48px);margin:10px 0}
-h2{color:#0b8043;font-size:clamp(22px,4vw,34px)}
-button{border:0;border-radius:18px;padding:14px 24px;font-size:20px;font-weight:bold;cursor:pointer;background:#ffbf00;color:#4a2b00;box-shadow:0 5px 0 #c58b00;margin:8px}
-button:active{transform:translateY(3px);box-shadow:0 2px 0 #c58b00}
-.game-area{position:relative;min-height:100vh;background:url("assets/factory-bg.png") center/cover no-repeat;padding:12px;overflow:hidden}
-.cloud{position:absolute;width:140px;opacity:.8;animation:floatCloud 24s linear infinite}
-.cloud.one{top:25px;left:-160px}
-.cloud.two{top:90px;left:-320px;animation-delay:8s}
-@keyframes floatCloud{to{transform:translateX(130vw)}}
-.topbar{display:flex;gap:8px;justify-content:space-between;align-items:center;max-width:950px;margin:0 auto 8px;background:rgba(255,255,255,.92);border-radius:16px;padding:10px;font-weight:bold}
-.timer{color:#d93025}.score{color:#188038}.attempts{color:#174ea6}
-.progress-wrap{height:18px;background:#fff;border-radius:20px;overflow:hidden;max-width:950px;margin:8px auto}
-.progress{height:100%;width:0;background:linear-gradient(90deg,#4285f4,#34a853,#fbbc04);transition:.4s}
-.factory-zone{position:relative;max-width:950px;height:210px;margin:5px auto}
-.machine{position:absolute;bottom:0;left:4%;width:180px;transition:.5s ease;animation:pulse 2.5s infinite}
-@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
-.conveyor{position:absolute;bottom:15px;left:240px;right:20px;height:55px;background:repeating-linear-gradient(90deg,#333 0 35px,#444 35px 70px);border:6px solid #0b57d0;border-radius:18px;box-shadow:0 6px 0 #063b8e}
-.shape-item{position:absolute;bottom:88px;left:50%;font-size:58px;animation:slideShape 4s linear infinite}
-@keyframes slideShape{0%{transform:translateX(-260px)}100%{transform:translateX(260px)}}
-.question-card{max-width:850px;margin:10px auto;background:rgba(255,255,255,.96);border-radius:24px;padding:18px;box-shadow:0 8px 20px rgba(0,0,0,.2)}
-.qno{font-size:18px;color:#666}
-.question{font-size:clamp(22px,4vw,34px);font-weight:bold;margin:12px 0}
-.options{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.option{background:#fff;border:4px solid #74b9ff;border-radius:18px;padding:18px;font-size:22px;font-weight:bold;cursor:pointer;min-height:70px}
-.option:hover{background:#eaf6ff}
-.feedback{min-height:44px;font-size:20px;font-weight:bold;margin-top:10px}
-.correct{color:#188038}.wrong{color:#d93025}
-.final-badge{background:#ffef99;border:3px dashed #fbbc04;padding:8px 14px;border-radius:14px;display:inline-block;margin-bottom:8px;font-weight:bold}
-.result-stars{font-size:46px}
-@media(max-width:600px){
-.options{grid-template-columns:1fr}
-.machine{width:125px}
-.conveyor{left:150px;height:45px}
-.factory-zone{height:160px}
-.shape-item{font-size:42px;bottom:75px}
-.topbar{font-size:14px;flex-wrap:wrap;justify-content:center}
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+    background: linear-gradient(135deg, #11998e, #38ef7d);
+    color: white;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    width: 100vw;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
 }
-.confetti{position:fixed;width:10px;height:10px;top:-10px;animation:fall 1.8s linear forwards;z-index:99}
-@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+
+/* HEADER STYLE */
+h1 {
+    margin: 20px 0 5px 0;
+    font-size: clamp(24px, 5vw, 36px);
+    text-shadow: 0px 4px 6px rgba(0,0,0,0.2);
+}
+
+p {
+    margin: 0 0 15px 0;
+    font-size: clamp(14px, 3vw, 18px);
+    color: #ffffcc;
+    font-weight: bold;
+}
+
+/* GAMEBOARD GRID */
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    justify-content: center;
+    margin: 10px auto;
+    padding: 10px;
+    width: 90vw;
+    max-width: 450px;
+}
+
+@media(min-width: 400px) {
+    .board {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+/* CARD STATES */
+.card {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 16px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: clamp(12px, 3.2vw, 16px);
+    transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s;
+    user-select: none;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    word-break: break-word;
+    padding: 6px;
+    box-sizing: border-box;
+}
+
+.normal {
+    background: #ffb703;
+    color: #000;
+    font-size: 28px;
+}
+
+.flipped {
+    background: #219ebc;
+    color: white;
+    transform: scale(1.02);
+}
+
+.matched {
+    background: #ff006e;
+    color: white;
+    cursor: default;
+    box-shadow: 0 0 15px #ff006e;
+    transform: scale(0.98);
+}
+
+/* INTERACTION BUTTONS */
+.btn {
+    padding: 12px 28px;
+    margin: 15px 0;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    background: #023e8a;
+    color: white;
+    box-shadow: 0 4px 15px rgba(2, 62, 138, 0.4);
+    transition: transform 0.1s, box-shadow 0.1s;
+}
+
+.btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 20px rgba(2, 62, 138, 0.6);
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+/* CELEBRATION EFFECTS LAYER */
+#fireworks {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 999;
+}
+
+/* WIN OVERLAY SCREEN */
+#winScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 25, 15, 0.95);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+#winScreen h1 {
+    font-size: clamp(36px, 8vw, 64px);
+    color: #ffd166;
+    margin: 0 0 10px 0;
+    animation: pop 0.6s ease-in-out infinite alternate;
+    text-shadow: 0 0 20px rgba(255, 209, 102, 0.5);
+}
+
+#winScreen p {
+    font-size: clamp(16px, 3.5vw, 24px);
+    color: #fff;
+    margin-bottom: 25px;
+}
+
+@keyframes pop {
+    from { transform: scale(1); }
+    to { transform: scale(1.08); }
+}
 </style>
 </head>
 
 <body>
 
-<section id="start" class="screen active">
-  <div class="card">
-    <img src="assets/logo.png" class="logo" onerror="this.style.display='none'">
-    <h1>🏭 Shape Sorting Factory</h1>
-    <h2>Grade 1 Maths — Shapes and Patterns</h2>
-    <p>Help the factory sort shapes, patterns, and moving objects correctly.</p>
-    <p><b>Rules:</b> You get 60 seconds and 2 attempts for each question.</p>
-    <button onclick="startGame()">Start Factory</button>
-  </div>
-</section>
+<h1>📐 Shapes Matching Game</h1>
+<p>Match the Shapes with their Correct Names!</p>
 
-<section id="game" class="screen game-area">
-  <img src="assets/clouds.png" class="cloud one">
-  <img src="assets/clouds.png" class="cloud two">
+<div id="board" class="board"></div>
+<button class="btn" onclick="startGame()">Restart Game</button>
 
-  <div class="topbar">
-    <div class="timer">⏱ Time: <span id="time">60</span>s</div>
-    <div class="score">⭐ Score: <span id="score">0</span></div>
-    <div class="attempts">🔁 Attempts Left: <span id="attempts">2</span></div>
-  </div>
+<canvas id="fireworks"></canvas>
 
-  <div class="progress-wrap"><div id="progress" class="progress"></div></div>
+<div id="winScreen">
+    <h1>SUPER JOB! 🎉</h1>
+    <p>You know your shapes perfectly!</p>
+    <button class="btn" style="background:#ff006e; box-shadow: 0 4px 15px rgba(255,0,110,0.4);" onclick="startGame()">Play Again 🔄</button>
+</div>
 
-  <div class="factory-zone">
-    <img src="assets/shape-machine.png" id="machine" class="machine">
-    <div class="conveyor"></div>
-    <div id="shapeItem" class="shape-item">🔵</div>
-  </div>
-
-  <div class="question-card">
-    <div id="finalBadge" class="final-badge" style="display:none;">Final Challenge</div>
-    <div class="qno">Question <span id="qnum">1</span> of <span id="total"></span></div>
-    <div id="question" class="question"></div>
-    <div id="options" class="options"></div>
-    <div id="feedback" class="feedback"></div>
-  </div>
-</section>
-
-<section id="result" class="screen">
-  <div class="card">
-    <img src="assets/stars.png" style="max-width:140px" onerror="this.style.display='none'">
-    <h1>Factory Complete!</h1>
-    <div id="resultStars" class="result-stars"></div>
-    <h2 id="finalScore"></h2>
-    <p id="resultMsg"></p>
-    <button onclick="restartGame()">Play Again</button>
-  </div>
-</section>
-
-<audio id="correctSound" src="assets/freesound_community-claps-44774.mp3"></audio>
-<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+<audio id="winMusic" preload="auto" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_d0b6b6b5c3.mp3?filename=success-fanfare-trumpets-6185.mp3"></audio>
+<audio id="correctSound" preload="auto" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_115b9bcd1a.mp3?filename=correct-2-46134.mp3"></audio>
+<audio id="wrongSound" preload="auto" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_9c6d4d1c57.mp3?filename=error-2-126514.mp3"></audio>
 
 <script>
-const questions = [
-  {icon:"🔴",q:"This shape is round and has no corners. Which shape is it?",options:["Circle","Square","Triangle","Rectangle"],answer:"Circle",hint:"A circle is round."},
-  {icon:"🔺",q:"Which shape has 3 sides and 3 corners?",options:["Circle","Triangle","Square","Oval"],answer:"Triangle",hint:"Tri means three."},
-  {icon:"🟨",q:"Which object is shaped like a square?",options:["Coin","Dice","Ball","Bottle"],answer:"Dice",hint:"A square has four equal sides."},
-  {icon:"▭",q:"A door looks like which shape?",options:["Circle","Triangle","Rectangle","Oval"],answer:"Rectangle",hint:"A rectangle has two long and two short sides."},
-  {icon:"⚽",q:"Which object can roll?",options:["Book","Box","Ball","Ruler"],answer:"Ball",hint:"Round objects can roll."},
-  {icon:"📦",q:"Which object mostly slides?",options:["Football","Marble","Box","Orange"],answer:"Box",hint:"Flat surfaces slide."},
-  {icon:"🔷",q:"Which is a 3D shape?",options:["Circle","Square","Cube","Triangle"],answer:"Cube",hint:"A cube is solid and can be held."},
-  {icon:"🔁",q:"Complete the pattern: Circle, Square, Circle, Square, __",options:["Circle","Triangle","Rectangle","Oval"],answer:"Circle",hint:"The pattern repeats circle, square."},
-  {icon:"🔁",q:"Complete the number pattern: 3, 6, 9, 12, __",options:["13","14","15","16"],answer:"15",hint:"Add 3 each time."},
-  {icon:"❓",q:"Which one does NOT belong?",options:["Circle","Square","Triangle","Apple"],answer:"Apple",hint:"Three are shapes, one is a fruit."},
-  {icon:"🔁",q:"Final: Complete the pattern: A, Z, A, Z, A, __",options:["A","B","Y","Z"],answer:"Z",hint:"The letters repeat A, Z.",final:true},
-  {icon:"🧠",q:"Final: Which object can both roll and slide?",options:["Cone","Book","Ruler","Notebook"],answer:"Cone",hint:"A cone has a curved surface and a flat surface.",final:true}
+const winMusic = document.getElementById("winMusic");
+const correctSound = document.getElementById("correctSound");
+const wrongSound = document.getElementById("wrongSound");
+
+// Balance volume for classroom environment
+[winMusic, correctSound, wrongSound].forEach(track => {
+    track.volume = 0.6;
+});
+
+// Primary Shape Pool covering all Learning Outcomes (2D, 3D, and Lines)
+const shapePool = [
+    { visual: "🔺", name: "Triangle" },
+    { visual: "🟩", name: "Square" },
+    { visual: "🟡", name: "Circle" },
+    { visual: "⬡", name: "Hexagon" },
+    { visual: "📦", name: "Cube (3D)" },
+    { visual: "⚽", name: "Sphere (3D)" },
+    { visual: "🍦", name: "Cone (3D)" },
+    { visual: "🛢️", name: "Cylinder (3D)" },
+    { visual: "➖", name: "Straight Line" },
+    { visual: "〰️", name: "Curved Line" }
 ];
 
-let current = 0, score = 0, attempts = 2, timeLeft = 60, timer;
+let cards = [];
+let flipped = [];
+let matched = [];
+let lock = false;
+let winTimerInterval = null; 
 
 function startGame(){
-  document.getElementById("start").classList.remove("active");
-  document.getElementById("game").classList.add("active");
-  document.getElementById("total").textContent = questions.length;
-  loadQuestion();
-}
-
-function loadQuestion(){
-  clearInterval(timer);
-  attempts = 2;
-  timeLeft = 60;
-  document.getElementById("time").textContent = timeLeft;
-  document.getElementById("attempts").textContent = attempts;
-  document.getElementById("feedback").textContent = "";
-  document.getElementById("feedback").className = "feedback";
-  document.getElementById("qnum").textContent = current + 1;
-
-  const q = questions[current];
-  document.getElementById("question").textContent = q.q;
-  document.getElementById("shapeItem").textContent = q.icon;
-  document.getElementById("finalBadge").style.display = q.final ? "inline-block" : "none";
-
-  const optionsBox = document.getElementById("options");
-  optionsBox.innerHTML = "";
-  const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
-
-  shuffledOptions.forEach(opt=>{
-    const div = document.createElement("div");
-    div.className = "option";
-    div.textContent = opt;
-    div.onclick = ()=>checkAnswer(opt, div);
-    optionsBox.appendChild(div);
-  });
-
-  updateProgress();
-  moveMachine();
-  timer = setInterval(updateTimer,1000);
-}
-
-function updateTimer(){
-  timeLeft--;
-  document.getElementById("time").textContent = timeLeft;
-  if(timeLeft<=0){
-    clearInterval(timer);
-    showCorrect("Time is up!");
-  }
-}
-
-function checkAnswer(selected, element){
-  const q = questions[current];
-  if(selected === q.answer){
-    clearInterval(timer);
-    score++;
-    document.getElementById("score").textContent = score;
-    element.style.background = "#d7ffd9";
-    element.style.borderColor = "#34a853";
-    document.getElementById("feedback").textContent = "Correct! The factory machine is powered!";
-    document.getElementById("feedback").className = "feedback correct";
-    playSound("correctSound");
-    confetti();
-    setTimeout(nextQuestion,1200);
-  } else {
-    attempts--;
-    document.getElementById("attempts").textContent = attempts;
-    element.style.background = "#ffe0e0";
-    element.style.borderColor = "#d93025";
-    playSound("wrongSound");
-    if(attempts > 0){
-      document.getElementById("feedback").textContent = "Try again! Hint: " + q.hint;
-      document.getElementById("feedback").className = "feedback wrong";
-    } else {
-      clearInterval(timer);
-      showCorrect("Good try!");
+    if(winTimerInterval) {
+        clearInterval(winTimerInterval);
+        winTimerInterval = null;
     }
-  }
+    
+    document.getElementById("winScreen").style.display = "none";
+    particles = []; 
+
+    cards = [];
+    flipped = [];
+    matched = [];
+    lock = false;
+
+    // Pick 6 random items from our pool to make 12 cards total
+    let selectedShapes = [];
+    let poolCopy = [...shapePool];
+    
+    while(selectedShapes.length < 6 && poolCopy.length > 0) {
+        let randomIndex = Math.floor(Math.random() * poolCopy.length);
+        selectedShapes.push(poolCopy.splice(randomIndex, 1)[0]);
+    }
+
+    // Split items into visual cards and name cards to create matching pairs
+    selectedShapes.forEach(item => {
+        cards.push({ value: item.visual, match: item.name });
+        cards.push({ value: item.name, match: item.visual });
+    });
+
+    shuffle(cards);
+    render();
 }
 
-function showCorrect(prefix){
-  const q = questions[current];
-  document.getElementById("feedback").textContent = `${prefix} Correct answer: ${q.answer}`;
-  document.getElementById("feedback").className = "feedback wrong";
-  setTimeout(nextQuestion,1800);
+function shuffle(arr){
+    for(let i = arr.length - 1; i > 0; i--){
+        let j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
 }
 
-function nextQuestion(){
-  current++;
-  if(current >= questions.length){ endGame(); }
-  else{ loadQuestion(); }
+function render(){
+    let board = document.getElementById("board");
+    board.innerHTML = "";
+
+    cards.forEach((c, i)=>{
+        let div = document.createElement("div");
+        let isMatched = matched.includes(i);
+        let isFlipped = flipped.includes(i);
+
+        if(isMatched){
+            div.className = "card matched";
+            div.innerText = c.value;
+        }
+        else if(isFlipped){
+            div.className = "card flipped";
+            div.innerText = c.value;
+        }
+        else{
+            div.className = "card normal";
+            div.innerText = "❓";
+        }
+
+        div.onclick = () => flip(i);
+        board.appendChild(div);
+    });
 }
 
-function updateProgress(){
-  document.getElementById("progress").style.width = ((current / questions.length) * 100) + "%";
+function flip(i){
+    if(lock) return;
+    if(flipped.includes(i) || matched.includes(i)) return;
+
+    flipped.push(i);
+    render();
+
+    if(flipped.length === 2){
+        lock = true;
+        let i1 = flipped[0];
+        let i2 = flipped[1];
+
+        // Check if item 1 matches the value of item 2
+        if(cards[i1].match === cards[i2].value){
+            matched.push(i1, i2);
+            
+            correctSound.currentTime = 0;
+            correctSound.play().catch(e => console.log("Audio block handled"));
+
+            setTimeout(()=>{
+                flipped = [];
+                lock = false;
+                render();
+                checkWin();
+            }, 500);
+        } else {
+            wrongSound.currentTime = 0;
+            wrongSound.play().catch(e => console.log("Audio block handled"));
+
+            setTimeout(()=>{
+                flipped = [];
+                lock = false;
+                render();
+            }, 900);
+        }
+    }
 }
 
-function moveMachine(){
-  const percent = current / (questions.length - 1);
-  document.getElementById("machine").style.left = (4 + percent * 12) + "%";
+function checkWin(){
+    if(matched.length === cards.length){
+        showWinScreen();
+    }
 }
 
-function endGame(){
-  clearInterval(timer);
-  document.getElementById("game").classList.remove("active");
-  document.getElementById("result").classList.add("active");
-  document.getElementById("finalScore").textContent = `Your Score: ${score} / ${questions.length}`;
+function showWinScreen(){
+    document.getElementById("winScreen").style.display = "flex";
+    
+    winMusic.currentTime = 0;
+    winMusic.play().catch(e => console.log("Audio play blocked by device context"));
 
-  const percent = score / questions.length;
-  document.getElementById("resultStars").textContent = percent >= .85 ? "⭐⭐⭐" : percent >= .6 ? "⭐⭐" : "⭐";
-  document.getElementById("resultMsg").textContent =
-    percent >= .85 ? "Excellent! You are a Shape Sorting Champion!" :
-    percent >= .6 ? "Good work! Practise a little more and try again." :
-    "Nice try! Replay the factory to strengthen your shape skills.";
+    burstFireworks();
+    winTimerInterval = setInterval(burstFireworks, 700);
 }
 
-function restartGame(){
-  clearInterval(timer);
-  current = 0;
-  score = 0;
-  attempts = 2;
-  document.getElementById("score").textContent = score;
-  document.getElementById("result").classList.remove("active");
-  document.getElementById("game").classList.add("active");
-  loadQuestion();
+// PARTICLE CELEBRATION ENGINE
+const canvas = document.getElementById("fireworks");
+const ctx = canvas.getContext("2d");
+let particles = [];
+
+function resize(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener("resize", resize);
+
+function burstFireworks(){
+    const originX = Math.random() * canvas.width;
+    const originY = Math.random() * (canvas.height * 0.6) + (canvas.height * 0.1);
+    const hue = Math.floor(Math.random() * 360);
+    const colorString = `hsla(${hue}, 100%, 60%, `;
+
+    for(let i = 0; i < 40; i++){
+        let angle = Math.random() * 2 * Math.PI;
+        let speed = Math.random() * 4 + 1.5;
+        particles.push({
+            x: originX,
+            y: originY,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            radius: Math.random() * 2 + 1,
+            alpha: 1,
+            color: colorString,
+            gravity: 0.04
+        });
+    }
 }
 
-function playSound(id){
-  const sound = document.getElementById(id);
-  if(sound){
-    sound.currentTime = 0;
-    sound.play().catch(()=>{});
-  }
-}
+function animate(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-function confetti(){
-  for(let i=0;i<25;i++){
-    const c = document.createElement("div");
-    c.className = "confetti";
-    c.style.left = Math.random()*100 + "vw";
-    c.style.background = ["#fbbc04","#34a853","#4285f4","#ea4335","#ff69b4"][Math.floor(Math.random()*5)];
-    c.style.animationDelay = Math.random()*0.3 + "s";
-    document.body.appendChild(c);
-    setTimeout(()=>c.remove(),2000);
-  }
+    particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += p.gravity;
+        p.alpha -= 0.015;
+    });
+
+    particles = particles.filter(p => p.alpha > 0);
+
+    particles.forEach(p => {
+        ctx.fillStyle = `${p.color}${p.alpha})`;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+    });
+
+    requestAnimationFrame(animate);
 }
+animate();
+
+// INITIAL START
+startGame();
 </script>
+
 </body>
 </html>
