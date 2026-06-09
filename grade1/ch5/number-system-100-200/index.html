@@ -1,266 +1,451 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Number Train 100–200 Quest</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Number Master: 100 to 200</title>
+
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:'Comic Sans MS',Arial,sans-serif;background:#bdeeff;color:#222;overflow-x:hidden}
-.screen{display:none;min-height:100vh;padding:18px;text-align:center}
-.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
-.card{background:rgba(255,255,255,.93);border-radius:24px;padding:22px;max-width:850px;width:95%;box-shadow:0 10px 25px rgba(0,0,0,.18)}
-.logo{max-width:150px;margin-bottom:12px}
-h1{color:#174ea6;font-size:clamp(28px,5vw,48px);margin:10px 0}
-h2{color:#0b8043;font-size:clamp(22px,4vw,34px)}
-button{border:0;border-radius:18px;padding:14px 24px;font-size:20px;font-weight:bold;cursor:pointer;background:#ffbf00;color:#4a2b00;box-shadow:0 5px 0 #c58b00;margin:8px}
-button:active{transform:translateY(3px);box-shadow:0 2px 0 #c58b00}
-.game-area{position:relative;min-height:100vh;background:url("assets/background.png") center/cover no-repeat;padding:12px;overflow:hidden}
-.cloud{position:absolute;width:150px;opacity:.9;animation:floatCloud 22s linear infinite}
-.cloud.one{top:30px;left:-160px}
-.cloud.two{top:90px;left:-300px;animation-delay:7s}
-@keyframes floatCloud{to{transform:translateX(130vw)}}
-.topbar{display:flex;gap:8px;justify-content:space-between;align-items:center;max-width:950px;margin:0 auto 8px;background:rgba(255,255,255,.9);border-radius:16px;padding:10px;font-weight:bold}
-.timer{color:#d93025}.score{color:#188038}.attempts{color:#174ea6}
-.progress-wrap{height:18px;background:#fff;border-radius:20px;overflow:hidden;max-width:950px;margin:8px auto}
-.progress{height:100%;width:0;background:linear-gradient(90deg,#34a853,#fbbc04);transition:.4s}
-.track-zone{position:relative;max-width:950px;height:170px;margin:5px auto}
-.track{position:absolute;bottom:0;left:0;width:100%;height:90px;object-fit:cover}
-.train{position:absolute;bottom:42px;left:2%;width:180px;transition:.5s ease}
-.question-card{max-width:850px;margin:10px auto;background:rgba(255,255,255,.95);border-radius:24px;padding:18px;box-shadow:0 8px 20px rgba(0,0,0,.2)}
-.qno{font-size:18px;color:#666}
-.question{font-size:clamp(22px,4vw,34px);font-weight:bold;margin:12px 0}
-.options{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.option{background:#fff;border:4px solid #74b9ff;border-radius:18px;padding:18px;font-size:24px;font-weight:bold;cursor:pointer;min-height:70px}
-.option:hover{background:#eaf6ff}
-.feedback{min-height:44px;font-size:20px;font-weight:bold;margin-top:10px}
-.correct{color:#188038}.wrong{color:#d93025}
-.final-badge{background:#ffef99;border:3px dashed #fbbc04;padding:8px 14px;border-radius:14px;display:inline-block;margin-bottom:8px;font-weight:bold}
-.result-stars{font-size:46px}
-@media(max-width:600px){
-.options{grid-template-columns:1fr}
-.train{width:135px}
-.track-zone{height:135px}
-.topbar{font-size:14px;flex-wrap:wrap;justify-content:center}
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+    background: linear-gradient(to bottom, #ffeb3b 0%, #fffde7 40%, #4fc3f7 40%, #0288d1 100%);
+    color: #333;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    width: 100vw;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-x: hidden;
+    user-select: none;
+    position: relative;
 }
-.confetti{position:fixed;width:10px;height:10px;top:-10px;animation:fall 1.8s linear forwards;z-index:99}
-@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+
+body::before {
+    content: "🚀";
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: clamp(50px, 10vw, 80px);
+    z-index: 1;
+}
+
+#splashScreen {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: #ffffff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    transition: opacity 0.3s ease-out;
+}
+#splashScreen img { max-width: 80%; max-height: 60%; object-fit: contain; }
+
+#gameContainer {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    z-index: 2;
+}
+
+.level-badge {
+    background: #e91e63;
+    color: white;
+    padding: 8px 28px;
+    border-radius: 30px;
+    font-size: 18px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-top: 15px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+
+h1 {
+    margin: 15px 0 5px 0;
+    font-size: clamp(28px, 6vw, 42px);
+    color: #1a237e;
+    text-shadow: 0px 2px 4px rgba(255,255,255,0.8);
+}
+
+.instruction {
+    margin: 0 0 25px 0;
+    font-size: clamp(18px, 4vw, 26px);
+    color: #b71c1c;
+    font-weight: bold;
+    max-width: 90%;
+    text-shadow: 0 1px 2px rgba(255,255,255,0.6);
+}
+
+/* Sequence Displays */
+.sequence-board {
+    background: #283593;
+    border: 8px solid #1a237e;
+    border-radius: 28px;
+    padding: 30px 20px;
+    margin-bottom: 35px;
+    box-shadow: 0 14px 30px rgba(0,0,0,0.3);
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    width: 92vw;
+    max-width: 600px;
+    box-sizing: border-box;
+}
+
+.number-node {
+    flex: 1;
+    max-width: 140px;
+    aspect-ratio: 1 / 1;
+    background: #ffffff;
+    border-radius: 20px;
+    border: 5px solid #ffb74d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(24px, 5vw, 38px);
+    font-weight: bold;
+    color: #1565c0;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    position: relative;
+    transition: transform 0.2s, background-color 0.3s, border-color 0.3s;
+}
+
+.number-node.missing-target {
+    background: rgba(255, 255, 255, 0.15);
+    border: 5px dashed #fff;
+    color: #ffd166;
+}
+
+/* Choice Bank Options */
+.options-container {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    width: 94vw;
+    max-width: 620px;
+    margin-top: 10px;
+}
+
+.option-card {
+    flex: 1;
+    max-width: 130px;
+    aspect-ratio: 1 / 1;
+    background: #ffffff;
+    border: 5px solid #fff;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(24px, 5vw, 36px);
+    font-weight: bold;
+    color: #2e7d32;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    transition: transform 0.2s, background-color 0.2s, color 0.2s;
+}
+.option-card:hover { transform: scale(1.08); }
+
+/* Playful cartoon animations */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-10px); }
+    40%, 80% { transform: translateX(10px); }
+}
+.shake-wrong {
+    animation: shake 0.4s ease-in-out;
+}
+
+@keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.25); }
+    100% { transform: scale(1); }
+}
+.pop-correct {
+    animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes bounceText {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+.bounce-title {
+    animation: bounceText 0.8s infinite ease-in-out;
+}
+
+.btn {
+    padding: 16px 55px;
+    margin: 35px 0 20px 0;
+    font-size: 22px;
+    font-weight: bold;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    background: #ff5722;
+    color: white;
+    box-shadow: 0 6px 14px rgba(255, 87, 34, 0.4);
+    transition: transform 0.1s;
+}
+.btn:active { transform: scale(0.95); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+#fireworks { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; }
+
+#winScreen {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(26, 35, 126, 0.98);
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+#winScreen h1 { font-size: clamp(40px, 9vw, 64px); color: #ffd166; margin: 0 0 15px 0; }
 </style>
 </head>
 <body>
 
-<section id="start" class="screen active">
-  <div class="card">
-    <img src="assets/logo.png" class="logo" onerror="this.style.display='none'">
-    <h1>🚂 Number Train 100–200 Quest</h1>
-    <h2>Grade 1 Maths — Number System 100 to 200</h2>
-    <p>Help the train travel through Hundred Town by solving number challenges.</p>
-    <p><b>Rules:</b> You get 60 seconds and 2 attempts for each question.</p>
-    <button onclick="startGame()">Start Quest</button>
-  </div>
-</section>
+<div id="splashScreen">
+    <img src="assets/logo.png" alt="💥 Number Quest 100-200 💥" style="font-size: 32px; font-weight: bold; color: #1a237e;">
+</div>
 
-<section id="game" class="screen game-area">
-  <img src="assets/clouds.png" class="cloud one">
-  <img src="assets/clouds.png" class="cloud two">
+<div id="gameContainer">
+    <div id="levelBadge" class="level-badge">LEVEL 1: WHAT COMES AFTER?</div>
+    <h1 id="gameTitle">Number Sequence Machine</h1>
+    <p id="gameInstruction" class="instruction">Find the missing sequence value!</p>
 
-  <div class="topbar">
-    <div class="timer">⏱ Time: <span id="time">60</span>s</div>
-    <div class="score">⭐ Score: <span id="score">0</span></div>
-    <div class="attempts">🔁 Attempts Left: <span id="attempts">2</span></div>
-  </div>
+    <div class="sequence-board" id="sequenceBoard">
+        </div>
+    
+    <div class="options-container" id="optionsContainer">
+        </div>
 
-  <div class="progress-wrap"><div id="progress" class="progress"></div></div>
+    <button id="actionControl" class="btn" onclick="advanceNextRound()" disabled>Next ➡️</button>
+</div>
 
-  <div class="track-zone">
-    <img src="assets/track.png" class="track">
-    <img src="assets/train.png" id="train" class="train">
-  </div>
+<canvas id="fireworks"></canvas>
 
-  <div class="question-card">
-    <div id="finalBadge" class="final-badge" style="display:none;">Final Challenge</div>
-    <div class="qno">Question <span id="qnum">1</span> of <span id="total"></span></div>
-    <div id="question" class="question"></div>
-    <div id="options" class="options"></div>
-    <div id="feedback" class="feedback"></div>
-  </div>
-</section>
+<div id="winScreen">
+    <h1 id="winHeader" class="bounce-title">CHALLENGE MET! 🎉</h1>
+    <p id="winMessage" style="font-size:24px; color:#e0f2f1; margin:0 0 30px 0;">Outstanding number sequencing skills!</p>
+    <button class="btn" style="background:#e91e63; box-shadow:0 6px 14px rgba(233,30,99,0.4);" onclick="handleOverlayReset()">Play Again 🔄</button>
+</div>
 
-<section id="result" class="screen">
-  <div class="card">
-    <img src="assets/stars.png" style="max-width:140px" onerror="this.style.display='none'">
-    <h1>Quest Complete!</h1>
-    <div id="resultStars" class="result-stars"></div>
-    <h2 id="finalScore"></h2>
-    <p id="resultMsg"></p>
-    <button onclick="restartGame()">Play Again</button>
-  </div>
-</section>
-
-<audio id="correctSound" src="assets/freesound_community-claps-44774.mp3"></audio>
-<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+<audio id="winMusic" preload="auto" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_d0b6b6b5c3.mp3?filename=success-fanfare-trumpets-6185.mp3"></audio>
+<audio id="correctSound" preload="auto" src="assets/correct.mp3"></audio>
+<audio id="wrongSound" preload="auto" src="assets/wrong.mp3"></audio>
 
 <script>
-const questions = [
-  {q:"The train coaches are 141, __, 143. Which number is missing?",options:["140","142","144","145"],answer:"142",hint:"Count forward from 141."},
-  {q:"Which number comes just before 170?",options:["168","169","171","172"],answer:"169",hint:"Before means one less."},
-  {q:"Which number comes just after 189?",options:["188","190","191","199"],answer:"190",hint:"After means one more."},
-  {q:"A number has 1 hundred, 2 tens and 5 ones. What is the number?",options:["152","125","215","105"],answer:"125",hint:"1 hundred = 100, 2 tens = 20, 5 ones = 5."},
-  {q:"What is the expanded form of 146?",options:["100 + 40 + 6","100 + 6 + 40","10 + 40 + 6","100 + 400 + 6"],answer:"100 + 40 + 6",hint:"Look at hundreds, tens and ones."},
-  {q:"What is the short form of 100 + 80 + 3?",options:["108","183","138","180"],answer:"183",hint:"100, 80 and 3 together make 183."},
-  {q:"Which number is greatest?",options:["158","185","123","146"],answer:"185",hint:"Compare the tens after the hundred."},
-  {q:"Choose the correct sign: 124 __ 118",options:["<",">","=","+"],answer:">",hint:"124 is bigger than 118."},
-  {q:"Which order is ascending?",options:["109, 123, 146","146, 123, 109","123, 109, 146","146, 109, 123"],answer:"109, 123, 146",hint:"Ascending means smallest to greatest."},
-  {q:"Which ordinal number means tenth?",options:["1st","5th","10th","20th"],answer:"10th",hint:"Tenth is written as 10th."},
-  {q:"Final: I have 1 in the hundreds place, no tens and 5 ones. Who am I?",options:["105","150","115","100"],answer:"105",hint:"No tens means 0 in the tens place.",final:true},
-  {q:"Final: Which statement is correct?",options:["192 < 187","121 > 147","158 = 158","133 > 149"],answer:"158 = 158",hint:"Equal numbers use =.",final:true}
-];
+const winMusic = document.getElementById("winMusic");
+const correctSound = document.getElementById("correctSound");
+const wrongSound = document.getElementById("wrongSound");
 
-let current = 0, score = 0, attempts = 2, timeLeft = 60, timer;
+let currentLevel = 1; // 1: After, 2: Before, 3: Between
+let currentRound = 0;
+const totalRoundsPerLevel = 3;
 
-function startGame(){
-  document.getElementById("start").classList.remove("active");
-  document.getElementById("game").classList.add("active");
-  document.getElementById("total").textContent = questions.length;
-  loadQuestion();
+let correctAnswer = 0;
+let winInterval = null;
+
+window.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => {
+        const splash = document.getElementById("splashScreen");
+        const container = document.getElementById("gameContainer");
+        splash.style.opacity = "0";
+        setTimeout(() => {
+            splash.style.display = "none";
+            container.style.display = "flex";
+            initGame();
+        }, 300);
+    }, 1200); 
+});
+
+function initGame() {
+    currentLevel = 1;
+    currentRound = 0;
+    loadRound();
 }
 
-function loadQuestion(){
-  clearInterval(timer);
-  attempts = 2;
-  timeLeft = 60;
-  document.getElementById("time").textContent = timeLeft;
-  document.getElementById("attempts").textContent = attempts;
-  document.getElementById("feedback").textContent = "";
-  document.getElementById("feedback").className = "feedback";
-  document.getElementById("qnum").textContent = current + 1;
+function loadRound() {
+    document.getElementById("actionControl").disabled = true;
+    
+    const badge = document.getElementById("levelBadge");
+    if (currentLevel === 1) badge.innerText = `LEVEL 1: WHAT COMES AFTER? (${currentRound + 1}/${totalRoundsPerLevel})`;
+    if (currentLevel === 2) badge.innerText = `LEVEL 2: WHAT COMES BEFORE? (${currentRound + 1}/${totalRoundsPerLevel})`;
+    if (currentLevel === 3) badge.innerText = `LEVEL 3: WHAT COMES BETWEEN? (${currentRound + 1}/${totalRoundsPerLevel})`;
 
-  const q = questions[current];
-  document.getElementById("question").textContent = q.q;
-  document.getElementById("finalBadge").style.display = q.final ? "inline-block" : "none";
+    let startNum = Math.floor(Math.random() * 95) + 101; 
+    let sequence = [startNum, startNum + 1, startNum + 2];
+    
+    let missingIndex = 2; 
+    if (currentLevel === 2) missingIndex = 0; 
+    if (currentLevel === 3) missingIndex = 1; 
+    
+    correctAnswer = sequence[missingIndex];
 
-  const optionsBox = document.getElementById("options");
-  optionsBox.innerHTML = "";
-  const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+    const board = document.getElementById("sequenceBoard");
+    board.innerHTML = "";
+    
+    sequence.forEach((num, idx) => {
+        const node = document.createElement("div");
+        if (idx === missingIndex) {
+            node.className = "number-node missing-target";
+            node.id = "targetSlot";
+            node.innerText = "?";
+        } else {
+            node.className = "number-node";
+            node.innerText = num;
+        }
+        board.appendChild(node);
+    });
 
-  shuffledOptions.forEach(opt=>{
-    const div = document.createElement("div");
-    div.className = "option";
-    div.textContent = opt;
-    div.onclick = ()=>checkAnswer(opt, div);
-    optionsBox.appendChild(div);
-  });
-
-  updateProgress();
-  moveTrain();
-  timer = setInterval(updateTimer,1000);
-}
-
-function updateTimer(){
-  timeLeft--;
-  document.getElementById("time").textContent = timeLeft;
-  if(timeLeft<=0){
-    clearInterval(timer);
-    showCorrect("Time is up!");
-  }
-}
-
-function checkAnswer(selected, element){
-  const q = questions[current];
-  if(selected === q.answer){
-    clearInterval(timer);
-    score++;
-    document.getElementById("score").textContent = score;
-    element.style.background = "#d7ffd9";
-    element.style.borderColor = "#34a853";
-    document.getElementById("feedback").textContent = "Correct! The train moves ahead!";
-    document.getElementById("feedback").className = "feedback correct";
-    playSound("correctSound");
-    confetti();
-    setTimeout(nextQuestion,1200);
-  } else {
-    attempts--;
-    document.getElementById("attempts").textContent = attempts;
-    element.style.background = "#ffe0e0";
-    element.style.borderColor = "#d93025";
-    playSound("wrongSound");
-
-    if(attempts > 0){
-      document.getElementById("feedback").textContent = "Try again! Hint: " + q.hint;
-      document.getElementById("feedback").className = "feedback wrong";
-    } else {
-      clearInterval(timer);
-      showCorrect("Good try!");
+    let choices = [correctAnswer];
+    while (choices.length < 3) {
+        let distractor = correctAnswer + (Math.random() > 0.5 ? 1 : -1) * (Math.floor(Math.random() * 4) + 1);
+        if (distractor >= 100 && distractor <= 200 && !choices.includes(distractor)) {
+            choices.push(distractor);
+        }
     }
-  }
+    choices.sort(() => Math.random() - 0.5);
+
+    const optionsContainer = document.getElementById("optionsContainer");
+    optionsContainer.innerHTML = "";
+    choices.forEach(val => {
+        const card = document.createElement("div");
+        card.className = "option-card";
+        card.innerText = val;
+        card.onclick = () => handleChoiceSelection(card, val);
+        optionsContainer.appendChild(card);
+    });
 }
 
-function showCorrect(prefix){
-  const q = questions[current];
-  document.getElementById("feedback").textContent = `${prefix} Correct answer: ${q.answer}`;
-  document.getElementById("feedback").className = "feedback wrong";
-  setTimeout(nextQuestion,1800);
+function handleChoiceSelection(selectedCard, chosenValue) {
+    if (chosenValue === correctAnswer) {
+        correctSound.currentTime = 0;
+        correctSound.play().catch(e => {});
+        
+        const target = document.getElementById("targetSlot");
+        target.innerText = correctAnswer;
+        target.style.background = "#81c784";
+        target.style.color = "#fff";
+        target.style.borderColor = "#2e7d32";
+        target.style.borderStyle = "solid";
+        target.classList.add("pop-correct");
+        
+        // CELEBRATION: Trigger star burst right over the target box area
+        const rect = target.getBoundingClientRect();
+        burstParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 25);
+        
+        document.querySelectorAll('.option-card').forEach(c => c.onclick = null);
+        document.getElementById("actionControl").disabled = false;
+    } else {
+        wrongSound.currentTime = 0;
+        wrongSound.play().catch(e => {});
+        
+        // Add visual shaking and feedback penalty colors
+        selectedCard.classList.add("shake-wrong");
+        selectedCard.style.backgroundColor = "#ffcdd2";
+        selectedCard.style.color = "#c62828";
+        
+        setTimeout(() => {
+            selectedCard.classList.remove("shake-wrong");
+            selectedCard.style.backgroundColor = "#ffffff";
+            selectedCard.style.color = "#2e7d32";
+        }, 500);
+    }
 }
 
-function nextQuestion(){
-  current++;
-  if(current >= questions.length){ endGame(); }
-  else{ loadQuestion(); }
+function advanceNextRound() {
+    currentRound++;
+    if (currentRound < totalRoundsPerLevel) {
+        loadRound();
+    } else {
+        if (currentLevel < 3) {
+            currentLevel++;
+            currentRound = 0;
+            // CELEBRATION: Mid-level transition screen splash burst
+            burstParticles(window.innerWidth / 2, window.innerHeight / 3, 40);
+            loadRound();
+        } else {
+            triggerWinCelebration();
+        }
+    }
 }
 
-function updateProgress(){
-  document.getElementById("progress").style.width = ((current / questions.length) * 100) + "%";
+function triggerWinCelebration() {
+    document.getElementById("winScreen").style.display = "flex";
+    winMusic.currentTime = 0;
+    winMusic.play().catch(e => {});
+    
+    // Continuous festive rain explosions
+    triggerFullRainBurst();
+    winInterval = setInterval(triggerFullRainBurst, 600);
 }
 
-function moveTrain(){
-  const percent = (current / (questions.length - 1)) * 70;
-  document.getElementById("train").style.left = `${2 + percent}%`;
+function handleOverlayReset() {
+    document.getElementById("winScreen").style.display = "none";
+    if (winInterval) clearInterval(winInterval);
+    particles = [];
+    initGame();
 }
 
-function endGame(){
-  clearInterval(timer);
-  document.getElementById("game").classList.remove("active");
-  document.getElementById("result").classList.add("active");
-  document.getElementById("finalScore").textContent = `Your Score: ${score} / ${questions.length}`;
+/* Particle engine handling card pop bursts and fullscreen confetti showers */
+const canvas = document.getElementById("fireworks");
+const ctx = canvas.getContext("2d");
+let particles = [];
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize();
+window.addEventListener("resize", resize);
 
-  const percent = score / questions.length;
-  document.getElementById("resultStars").textContent = percent >= .85 ? "⭐⭐⭐" : percent >= .6 ? "⭐⭐" : "⭐";
-  document.getElementById("resultMsg").textContent =
-    percent >= .85 ? "Excellent! You are a Hundred Town Champion!" :
-    percent >= .6 ? "Good work! Practise a little more and try again." :
-    "Nice try! Replay the quest to strengthen your number skills.";
+function burstParticles(x, y, count) {
+    const hues = [0, 45, 120, 200, 280, 320]; // Vibrant rainbow tones
+    for(let i = 0; i < count; i++){
+        let angle = Math.random() * 2 * Math.PI;
+        let speed = Math.random() * 5 + 2;
+        let hue = hues[Math.floor(Math.random() * hues.length)];
+        particles.push({ 
+            x: x, 
+            y: y, 
+            vx: Math.cos(angle) * speed, 
+            vy: Math.sin(angle) * speed, 
+            radius: Math.random() * 3 + 2, 
+            alpha: 1, 
+            color: `hsla(${hue}, 100%, 60%, `, 
+            gravity: 0.06 
+        });
+    }
 }
 
-function restartGame(){
-  clearInterval(timer);
-  current = 0;
-  score = 0;
-  attempts = 2;
-  document.getElementById("score").textContent = score;
-  document.getElementById("result").classList.remove("active");
-  document.getElementById("game").classList.add("active");
-  loadQuestion();
+function triggerFullRainBurst() {
+    // Generate explosive showers at random top positions across the screen
+    const randomX = Math.random() * canvas.width;
+    const randomY = Math.random() * (canvas.height * 0.4) + (canvas.height * 0.1);
+    burstParticles(randomX, randomY, 35);
 }
 
-function playSound(id){
-  const sound = document.getElementById(id);
-  if(sound){
-    sound.currentTime = 0;
-    sound.play().catch(()=>{});
-  }
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => { 
+        p.x += p.vx; 
+        p.y += p.vy; 
+        p.vy += p.gravity; 
+        p.alpha -= 0.014; 
+    });
+    particles = particles.filter(p => p.alpha > 0);
+    particles.forEach(p => {
+        ctx.fillStyle = `${p.color}${p.alpha})`;
+        ctx.beginPath(); 
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); 
+        ctx.fill();
+    });
+    requestAnimationFrame(animate);
 }
-
-function confetti(){
-  for(let i=0;i<25;i++){
-    const c = document.createElement("div");
-    c.className = "confetti";
-    c.style.left = Math.random()*100 + "vw";
-    c.style.background = ["#fbbc04","#34a853","#4285f4","#ea4335","#ff69b4"][Math.floor(Math.random()*5)];
-    c.style.animationDelay = Math.random()*0.3 + "s";
-    document.body.appendChild(c);
-    setTimeout(()=>c.remove(),2000);
-  }
-}
+animate();
 </script>
 </body>
 </html>
