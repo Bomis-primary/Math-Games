@@ -3,13 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grade 1 Shapes Match Game</title>
+<title>Grade 1 Shapes & Objects Factory Match</title>
 
 <style>
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     text-align: center;
-    background: linear-gradient(135deg, #11998e, #38ef7d);
+    background: url('factory-bg.png') no-repeat center center fixed, linear-gradient(135deg, #2c3e50, #000000);
+    background-size: cover;
     color: white;
     margin: 0;
     padding: 0;
@@ -22,18 +23,54 @@ body {
     overflow-x: hidden;
 }
 
+/* INTRO SPLASH SCREEN LOGIC */
+#splashScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffffff; /* Clean blank white canvas */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    transition: opacity 0.5s ease-out;
+}
+
+#splashScreen img {
+    max-width: 80%;
+    max-height: 60%;
+    object-fit: contain;
+}
+
+/* MAIN GAME CONTAINER (HIDDEN INITIALLY) */
+#gameContainer {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
 /* HEADER STYLE */
 h1 {
     margin: 20px 0 5px 0;
-    font-size: clamp(24px, 5vw, 36px);
-    text-shadow: 0px 4px 6px rgba(0,0,0,0.2);
+    font-size: clamp(22px, 5vw, 36px);
+    text-shadow: 0px 4px 8px rgba(0,0,0,0.8);
+    background: rgba(0, 0, 0, 0.4);
+    padding: 5px 15px;
+    border-radius: 10px;
 }
 
 p {
     margin: 0 0 15px 0;
     font-size: clamp(14px, 3vw, 18px);
-    color: #ffffcc;
+    color: #ffd166;
     font-weight: bold;
+    text-shadow: 0px 2px 4px rgba(0,0,0,0.8);
+    background: rgba(0, 0, 0, 0.4);
+    padding: 2px 10px;
+    border-radius: 8px;
 }
 
 /* GAMEBOARD GRID */
@@ -43,14 +80,18 @@ p {
     gap: 12px;
     justify-content: center;
     margin: 10px auto;
-    padding: 10px;
+    padding: 15px;
     width: 90vw;
-    max-width: 450px;
+    max-width: 500px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 20px;
+    backdrop-filter: blur(4px);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
 }
 
-@media(min-width: 400px) {
+@media(min-width: 480px) {
     .board {
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(4, 1fr); /* Expands cleanly if screen space allows */
     }
 }
 
@@ -59,65 +100,92 @@ p {
     width: 100%;
     aspect-ratio: 1 / 1;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     border-radius: 16px;
     cursor: pointer;
     font-weight: bold;
-    font-size: clamp(12px, 3.2vw, 16px);
     transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background 0.2s;
     user-select: none;
-    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
-    word-break: break-word;
-    padding: 6px;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+    padding: 8px;
     box-sizing: border-box;
 }
 
+.card-img {
+    width: 85%;
+    height: 85%;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+.card-text {
+    font-size: clamp(11px, 2.5vw, 13px);
+    margin-top: 4px;
+    text-align: center;
+    color: #fff;
+    text-shadow: 0 1px 2px #000;
+}
+
 .normal {
-    background: #ffb703;
-    color: #000;
-    font-size: 28px;
+    background: linear-gradient(135deg, #ffb703, #fb8500);
+    border: 3px solid #fff;
+}
+
+.card-back-icon {
+    width: 75%;
+    height: 75%;
+    object-fit: contain;
 }
 
 .flipped {
-    background: #219ebc;
-    color: white;
+    background: linear-gradient(135deg, #ffffff, #e0f2f1);
+    border: 3px solid #219ebc;
     transform: scale(1.02);
 }
 
+.flipped .card-text {
+    color: #023e8a;
+    text-shadow: none;
+    font-weight: 800;
+}
+
 .matched {
-    background: #ff006e;
-    color: white;
+    background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+    border: 3px solid #06d6a0;
     cursor: default;
-    box-shadow: 0 0 15px #ff006e;
+    box-shadow: 0 0 15px rgba(6, 214, 160, 0.6);
     transform: scale(0.98);
 }
 
-/* INTERACTION BUTTONS */
+.matched .card-text {
+    color: #1b5e20;
+    text-shadow: none;
+    font-weight: 800;
+}
+
+/* PRIMARY BUTTONS */
 .btn {
     padding: 12px 28px;
     margin: 15px 0;
     font-size: 16px;
     font-weight: bold;
-    border: none;
+    border: 2px solid #fff;
     border-radius: 50px;
     cursor: pointer;
     background: #023e8a;
     color: white;
-    box-shadow: 0 4px 15px rgba(2, 62, 138, 0.4);
+    box-shadow: 0 4px 15px rgba(2, 62, 138, 0.6);
     transition: transform 0.1s, box-shadow 0.1s;
 }
 
 .btn:hover {
     transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(2, 62, 138, 0.6);
+    box-shadow: 0 6px 20px rgba(2, 62, 138, 0.8);
 }
 
-.btn:active {
-    transform: scale(0.98);
-}
-
-/* CELEBRATION EFFECTS LAYER */
+/* CELEBRATION EFFECT LAYER */
 #fireworks {
     position: fixed;
     top: 0;
@@ -128,14 +196,14 @@ p {
     z-index: 999;
 }
 
-/* WIN OVERLAY SCREEN */
+/* OVERLAY WIN CONTAINER */
 #winScreen {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(10, 25, 15, 0.95);
+    background: rgba(10, 20, 30, 0.95);
     display: none;
     flex-direction: column;
     justify-content: center;
@@ -166,46 +234,53 @@ p {
 
 <body>
 
-<h1>📐 Shapes Matching Game</h1>
-<p>Match the Shapes with their Correct Names!</p>
+<div id="splashScreen">
+    <img src="assets/logo.png" alt="Logo">
+</div>
 
-<div id="board" class="board"></div>
-<button class="btn" onclick="startGame()">Restart Game</button>
+<div id="gameContainer">
+    <h1>🎯 Shape Sorting Factory</h1>
+    <p>Match the Geometric Shapes with Real Objects!</p>
+
+    <div id="board" class="board"></div>
+    <button class="btn" onclick="startGame()">Restart Game</button>
+</div>
 
 <canvas id="fireworks"></canvas>
 
 <div id="winScreen">
-    <h1>SUPER JOB! 🎉</h1>
-    <p>You know your shapes perfectly!</p>
-    <button class="btn" style="background:#ff006e; box-shadow: 0 4px 15px rgba(255,0,110,0.4);" onclick="startGame()">Play Again 🔄</button>
+    <h1>FACTORY CLEAR! 🎉</h1>
+    <p>Outstanding! You matched every single shape perfectly!</p>
+    <button class="btn" style="background:#ff006e; box-shadow: 0 4px 15px rgba(255,0,110,0.6);" onclick="startGame()">Play Again 🔄</button>
 </div>
 
 <audio id="winMusic" preload="auto" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_d0b6b6b5c3.mp3?filename=success-fanfare-trumpets-6185.mp3"></audio>
-<audio id="correctSound" preload="auto" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_115b9bcd1a.mp3?filename=correct-2-46134.mp3"></audio>
-<audio id="wrongSound" preload="auto" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_9c6d4d1c57.mp3?filename=error-2-126514.mp3"></audio>
+<audio id="correctSound" preload="auto" src="assets/correct.mp3"></audio>
+<audio id="wrongSound" preload="auto" src="assets/wrong.mp3"></audio>
 
 <script>
 const winMusic = document.getElementById("winMusic");
 const correctSound = document.getElementById("correctSound");
 const wrongSound = document.getElementById("wrongSound");
 
-// Balance volume for classroom environment
-[winMusic, correctSound, wrongSound].forEach(track => {
-    track.volume = 0.6;
-});
+[winMusic, correctSound, wrongSound].forEach(track => { track.volume = 0.5; });
 
-// Primary Shape Pool covering all Learning Outcomes (2D, 3D, and Lines)
-const shapePool = [
-    { visual: "🔺", name: "Triangle" },
-    { visual: "🟩", name: "Square" },
-    { visual: "🟡", name: "Circle" },
-    { visual: "⬡", name: "Hexagon" },
-    { visual: "📦", name: "Cube (3D)" },
-    { visual: "⚽", name: "Sphere (3D)" },
-    { visual: "🍦", name: "Cone (3D)" },
-    { visual: "🛢️", name: "Cylinder (3D)" },
-    { visual: "➖", name: "Straight Line" },
-    { visual: "〰️", name: "Curved Line" }
+// Mapping arrays utilizing the exact names from your uploaded repository list
+const fullFactoryPool = [
+    { id: 1, imgFile: "assets/circle.png", text: "Circle" },
+    { id: 1, imgFile: "assets/coin.png", text: "Coin" },
+    
+    { id: 2, imgFile: "assets/triangle.png", text: "Triangle" },
+    { id: 2, imgFile: "assets/pizza-slice.png", text: "Pizza" },
+    
+    { id: 3, imgFile: "assets/square.png", text: "Square" },
+    { id: 3, imgFile: "assets/window.png", text: "Window" },
+    
+    { id: 4, imgFile: "assets/sphere.png", text: "Sphere" },
+    { id: 4, imgFile: "assets/ball.png", text: "Ball" },
+    
+    { id: 5, imgFile: "assets/cone.png", text: "Cone" },
+    { id: 5, imgFile: "assets/party-hat.png", text: "Party Hat" }
 ];
 
 let cards = [];
@@ -213,6 +288,21 @@ let flipped = [];
 let matched = [];
 let lock = false;
 let winTimerInterval = null; 
+
+// Initial splash screen handler script
+window.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => {
+        const splash = document.getElementById("splashScreen");
+        const gameUI = document.getElementById("gameContainer");
+        
+        splash.style.opacity = "0";
+        setTimeout(() => {
+            splash.style.display = "none";
+            gameUI.style.display = "flex";
+            startGame(); // Start the card load sequence once open
+        }, 500);
+    }, 5000); // 5000 milliseconds = 5 Seconds static display hold
+});
 
 function startGame(){
     if(winTimerInterval) {
@@ -223,25 +313,12 @@ function startGame(){
     document.getElementById("winScreen").style.display = "none";
     particles = []; 
 
-    cards = [];
     flipped = [];
     matched = [];
     lock = false;
 
-    // Pick 6 random items from our pool to make 12 cards total
-    let selectedShapes = [];
-    let poolCopy = [...shapePool];
-    
-    while(selectedShapes.length < 6 && poolCopy.length > 0) {
-        let randomIndex = Math.floor(Math.random() * poolCopy.length);
-        selectedShapes.push(poolCopy.splice(randomIndex, 1)[0]);
-    }
-
-    // Split items into visual cards and name cards to create matching pairs
-    selectedShapes.forEach(item => {
-        cards.push({ value: item.visual, match: item.name });
-        cards.push({ value: item.name, match: item.visual });
-    });
+    // Load copies cleanly
+    cards = JSON.parse(JSON.stringify(fullFactoryPool));
 
     shuffle(cards);
     render();
@@ -265,15 +342,17 @@ function render(){
 
         if(isMatched){
             div.className = "card matched";
-            div.innerText = c.value;
+            div.innerHTML = `<img class="card-img" src="${c.imgFile}" alt="${c.text}"><div class="card-text">${c.text}</div>`;
         }
         else if(isFlipped){
             div.className = "card flipped";
-            div.innerText = c.value;
+            div.innerHTML = `<img class="card-img" src="${c.imgFile}" alt="${c.text}"><div class="card-text">${c.text}</div>`;
         }
-        else{
+        else {
             div.className = "card normal";
-            div.innerText = "❓";
+            // Uses your custom shape-machine card-back design illustration
+            div.innerHTML = `<img class="card-back-icon" src="assets/shape-machine.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                             <div style="display:none; font-size:32px;">❓</div>`;
         }
 
         div.onclick = () => flip(i);
@@ -293,14 +372,13 @@ function flip(i){
         let i1 = flipped[0];
         let i2 = flipped[1];
 
-        // Check if item 1 matches the value of item 2
-        if(cards[i1].match === cards[i2].value){
+        if(cards[i1].id === cards[i2].id && i1 !== i2){
             matched.push(i1, i2);
             
             correctSound.currentTime = 0;
-            correctSound.play().catch(e => console.log("Audio block handled"));
+            correctSound.play().catch(e => console.log("Audio play error handled"));
 
-            setTimeout(()=>{
+            setTimeout(() => {
                 flipped = [];
                 lock = false;
                 render();
@@ -308,9 +386,9 @@ function flip(i){
             }, 500);
         } else {
             wrongSound.currentTime = 0;
-            wrongSound.play().catch(e => console.log("Audio block handled"));
+            wrongSound.play().catch(e => console.log("Audio play error handled"));
 
-            setTimeout(()=>{
+            setTimeout(() => {
                 flipped = [];
                 lock = false;
                 render();
@@ -329,13 +407,13 @@ function showWinScreen(){
     document.getElementById("winScreen").style.display = "flex";
     
     winMusic.currentTime = 0;
-    winMusic.play().catch(e => console.log("Audio play blocked by device context"));
+    winMusic.play().catch(e => console.log("Audio stream blocked by engine runtime"));
 
     burstFireworks();
     winTimerInterval = setInterval(burstFireworks, 700);
 }
 
-// PARTICLE CELEBRATION ENGINE
+// EXPLOSIVE GRAPHICS ENGINE LOGIC
 const canvas = document.getElementById("fireworks");
 const ctx = canvas.getContext("2d");
 let particles = [];
@@ -391,9 +469,6 @@ function animate(){
     requestAnimationFrame(animate);
 }
 animate();
-
-// INITIAL START
-startGame();
 </script>
 
 </body>
