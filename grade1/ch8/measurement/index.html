@@ -41,7 +41,7 @@ body::before {
     justify-content: center;
     align-items: center;
     z-index: 2000;
-    transition: opacity 0.5s ease-out;
+    transition: opacity 0.3s ease-out;
 }
 #splashScreen img { max-width: 80%; max-height: 60%; object-fit: contain; }
 
@@ -81,7 +81,6 @@ h1 {
     text-shadow: 0 1px 2px rgba(255,255,255,0.6);
 }
 
-/* Wooden Area holding both items */
 #sortingArena {
     display: flex;
     flex-direction: column;
@@ -135,13 +134,14 @@ h1 {
     box-sizing: border-box;
     cursor: grab;
     touch-action: none;
-    position: relative; /* Added relative positioning context */
+    position: relative;
+    left: 0;
+    top: 0;
     z-index: 10;
 }
 .draggable-wrapper:active { cursor: grabbing; }
 .draggable-wrapper img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
 
-/* Basket drop targets */
 .bins-container {
     display: flex;
     justify-content: center;
@@ -169,7 +169,6 @@ h1 {
 .sort-bin .bin-title { font-size: clamp(18px, 4vw, 24px); font-weight: bold; color: #0d47a1; text-shadow: 0 1px 1px white; margin-bottom: 5px; }
 .sort-bin img.bin-icon { width: 90%; max-height: 100px; object-fit: contain; pointer-events: none; }
 
-/* Level 2 */
 #orderingArena {
     display: none;
     flex-direction: column;
@@ -318,7 +317,6 @@ let currentRound = 0;
 let winInterval = null;
 let roundSortedCount = 0;
 
-/* Clean asset routing matching your GitHub specifications */
 const sortingRounds = [
     {
         instruction: "Round 1: Which item is Heavy and which is Light?",
@@ -370,6 +368,7 @@ const orderingPool = [
 let level2PlacementIndex = 1;
 
 window.addEventListener("DOMContentLoaded", () => {
+    // Cut delay to 1 second so you don't get stuck on the splash image
     setTimeout(() => {
         const splash = document.getElementById("splashScreen");
         const container = document.getElementById("gameContainer");
@@ -378,8 +377,8 @@ window.addEventListener("DOMContentLoaded", () => {
             splash.style.display = "none";
             container.style.display = "flex";
             startLevel1();
-        }, 500);
-    }, 5000); // 5 second splash delay as requested
+        }, 300);
+    }, 1000); 
 });
 
 function startLevel1() {
@@ -414,7 +413,7 @@ function loadSortingRound(roundIndex) {
         const frame = document.createElement("div");
         frame.className = "draggable-wrapper";
         frame.id = "drag-item-" + index;
-        frame.dataset.targetSide = item.targetSide; // Stores whether it belongs in the left or right basket
+        frame.dataset.targetSide = item.targetSide;
         frame.innerHTML = `<img src="${item.img}">`;
         makeElementMobileDraggable(frame);
         scaffold.appendChild(frame);
@@ -479,7 +478,6 @@ function makeElementMobileDraggable(el) {
         const targetBin = getHoveredBin(finalX, finalY);
         document.querySelectorAll('.sort-bin').forEach(bin => bin.classList.remove('drag-over'));
 
-        // Evaluates if the dropped basket side matches the object's correct side property
         if (targetBin && targetBin.dataset.side === el.dataset.targetSide) {
             correctSound.currentTime = 0;
             correctSound.play().catch(err => {});
