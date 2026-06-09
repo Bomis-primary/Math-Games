@@ -3,13 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Shape Champions: The Great Object Match</title>
+<title>Shape & Pattern Champions</title>
 
 <style>
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     text-align: center;
-    /* Clean, vibrant fallback gradient background */
     background: linear-gradient(135deg, #2b5876, #4e4376);
     color: white;
     margin: 0;
@@ -21,6 +20,7 @@ body {
     flex-direction: column;
     align-items: center;
     overflow-x: hidden;
+    transition: background 0.5s ease;
 }
 
 /* 5-SECOND SPLASH SCREEN */
@@ -44,7 +44,7 @@ body {
     object-fit: contain;
 }
 
-/* MAIN GAME CONTAINER */
+/* MAIN GAME RUNTIME CONTAINER */
 #gameContainer {
     display: none;
     flex-direction: column;
@@ -52,9 +52,20 @@ body {
     width: 100%;
 }
 
-/* HEADERS & TEXT */
+/* LEVEL BADGE INFOBAR */
+.level-badge {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 6px 20px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    margin-top: 15px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
 h1 {
-    margin: 20px 0 5px 0;
+    margin: 10px 0 5px 0;
     font-size: clamp(24px, 6vw, 38px);
     text-shadow: 0px 4px 8px rgba(0,0,0,0.4);
     color: #ffd166;
@@ -63,7 +74,6 @@ h1 {
 .description {
     margin: 0 0 5px 0;
     font-size: clamp(14px, 3.2vw, 18px);
-    color: #ffffff;
     opacity: 0.9;
     max-width: 90%;
 }
@@ -71,12 +81,12 @@ h1 {
 .instruction {
     margin: 0 0 15px 0;
     font-size: clamp(15px, 3.5vw, 19px);
-    color: #a8ffb2; /* Bright friendly green for instructions */
+    color: #a8ffb2;
     font-weight: bold;
     text-shadow: 0px 2px 4px rgba(0,0,0,0.3);
 }
 
-/* GAMEBOARD GRID - Formats cleanly as 4 columns x 3 rows */
+/* LEVEL 1: SHAPES MATCHING GRID (4 cols x 3 rows) */
 .board {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -94,16 +104,13 @@ h1 {
 }
 
 @media(min-width: 440px) {
-    .board {
-        grid-template-columns: repeat(4, 1fr);
-    }
+    .board { grid-template-columns: repeat(4, 1fr); }
 }
 
-/* CARD STATES & FIX FOR TINY IMAGES */
+/* CARD LAYOUTS & CLARITY FIX FOR TINY ASSETS */
 .card {
     width: 100%;
     aspect-ratio: 1 / 1;
-    /* Added strict min-dimensions to prevent cards from collapsing or getting tiny */
     min-width: 85px;
     min-height: 85px;
     display: flex;
@@ -120,14 +127,12 @@ h1 {
     box-sizing: border-box;
 }
 
-/* Image scaling optimization to maximize presentation size */
 .card-img {
     width: 95%;
     height: 95%;
     object-fit: contain;
     pointer-events: none;
-    /* Scales up the inner graphic asset to prevent tiny rendering */
-    transform: scale(1.15); 
+    transform: scale(1.15); /* Maximizes asset presentation sizes cleanly */
 }
 
 .card-text {
@@ -136,7 +141,6 @@ h1 {
     text-align: center;
     color: #fff;
     text-shadow: 0 1px 2px #000;
-    font-weight: bold;
 }
 
 .normal {
@@ -154,14 +158,9 @@ h1 {
 .flipped {
     background: linear-gradient(135deg, #ffffff, #e0f2f1);
     border: 3px solid #219ebc;
-    transform: scale(1.02);
 }
 
-.flipped .card-text {
-    color: #023e8a;
-    text-shadow: none;
-    font-weight: 800;
-}
+.flipped .card-text { color: #023e8a; text-shadow: none; font-weight: 800; }
 
 .matched {
     background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
@@ -171,17 +170,95 @@ h1 {
     transform: scale(0.98);
 }
 
-.matched .card-text {
-    color: #1b5e20;
-    text-shadow: none;
-    font-weight: 800;
+.matched .card-text { color: #1b5e20; text-shadow: none; font-weight: 800; }
+
+
+/* LEVEL 2: PATTERNS SYSTEM VISUAL ARENAS */
+#patternsArena {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
 }
 
-/* BUTTONS */
+.pattern-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 20px;
+    border-radius: 20px;
+    width: 90vw;
+    max-width: 540px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    margin-bottom: 25px;
+}
+
+.pattern-tile {
+    width: clamp(55px, 12vw, 75px);
+    aspect-ratio: 1 / 1;
+    background: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+.pattern-tile img { width: 100%; height: 100%; object-fit: contain; }
+
+.blank-tile {
+    border: 3px dashed #fffb00;
+    background: rgba(0, 0, 0, 0.2);
+    color: #fffb00;
+    font-size: clamp(24px, 6vw, 36px);
+    font-weight: bold;
+    animation: pulse 1.5s infinite alternate;
+}
+
+@keyframes pulse {
+    from { transform: scale(1); opacity: 0.8; }
+    to { transform: scale(1.05); opacity: 1; }
+}
+
+.options-grid {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-bottom: 20px;
+    width: 90vw;
+    max-width: 540px;
+}
+
+.option-btn {
+    width: clamp(70px, 16vw, 95px);
+    aspect-ratio: 1 / 1;
+    background: #ffffff;
+    border: 4px solid #fff;
+    border-radius: 18px;
+    cursor: pointer;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    transition: transform 0.2s, background-color 0.2s;
+    padding: 8px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.option-btn img { width: 100%; height: 100%; object-fit: contain; }
+.option-btn:hover { transform: scale(1.08); }
+
+
+/* CORE INTERACTION CONTROLS */
 .btn {
-    padding: 12px 28px;
+    padding: 14px 35px;
     margin: 15px 0;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: bold;
     border: 2px solid #fff;
     border-radius: 50px;
@@ -189,32 +266,22 @@ h1 {
     background: #023e8a;
     color: white;
     box-shadow: 0 4px 15px rgba(2, 62, 138, 0.6);
-    transition: transform 0.1s, box-shadow 0.1s;
+    transition: transform 0.1s, opacity 0.3s;
 }
 
-.btn:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 20px rgba(2, 62, 138, 0.8);
-}
+.btn:hover:not(:disabled) { transform: scale(1.05); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* CELEBRATION LAYER */
+/* CELEBRATIONS & INTERFACES */
 #fireworks {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 999;
+    top: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; z-index: 999;
 }
 
-/* WIN OVERLAY CONTAINER */
 #winScreen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(20, 15, 35, 0.95);
     display: none;
     flex-direction: column;
@@ -228,19 +295,9 @@ h1 {
     color: #ffd166;
     margin: 0 0 10px 0;
     animation: pop 0.6s ease-in-out infinite alternate;
-    text-shadow: 0 0 20px rgba(255, 209, 102, 0.5);
 }
 
-#winScreen p {
-    font-size: clamp(16px, 3.5vw, 24px);
-    color: #fff;
-    margin-bottom: 25px;
-}
-
-@keyframes pop {
-    from { transform: scale(1); }
-    to { transform: scale(1.08); }
-}
+@keyframes pop { from { transform: scale(1); } to { transform: scale(1.06); } }
 </style>
 </head>
 
@@ -251,20 +308,27 @@ h1 {
 </div>
 
 <div id="gameContainer">
-    <h1>👑 Shape Champions</h1>
-    <p class="description">Become a geometry master by linking matching pairs!</p>
-    <p class="instruction">👉 Click the tiles to match the shapes to the objects.</p>
+    <div id="levelBadge" class="level-badge">LEVEL 1</div>
+    <h1 id="mainTitle">👑 Shape Champions</h1>
+    <p id="mainDesc" class="description">Become a geometry master by linking matching pairs!</p>
+    <p id="mainInstr" class="instruction">👉 Click the tiles to match the shapes to the objects.</p>
 
-    <div id="board" class="board"></div>
-    <button class="btn" onclick="startGame()">Restart Game</button>
+    <div id="shapesBoard" class="board"></div>
+
+    <div id="patternsArena">
+        <div id="patternBoard" class="pattern-container"></div>
+        <div id="optionsContainer" class="options-grid"></div>
+    </div>
+
+    <button id="actionBtn" class="btn" onclick="handleActionBtnClick()">Restart Level</button>
 </div>
 
 <canvas id="fireworks"></canvas>
 
 <div id="winScreen">
-    <h1>VICTORY! 🎉</h1>
-    <p>Fantastic job, Champion! You sorted every shape perfectly!</p>
-    <button class="btn" style="background:#ff006e; box-shadow: 0 4px 15px rgba(255,0,110,0.6);" onclick="startGame()">Play Again 🔄</button>
+    <h1 id="winTitle">LEVEL CLEAR! 🎉</h1>
+    <p id="winDesc" style="font-size: 20px; margin-bottom:25px;">Outstanding! You did an amazing job!</p>
+    <button id="winResetBtn" class="btn" style="background:#ff006e; box-shadow: 0 4px 15px rgba(255,0,110,0.6);" onclick="handleWinScreenReset()">Next Level ➡️</button>
 </div>
 
 <audio id="winMusic" preload="auto" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_d0b6b6b5c3.mp3?filename=success-fanfare-trumpets-6185.mp3"></audio>
@@ -278,76 +342,129 @@ const wrongSound = document.getElementById("wrongSound");
 
 [winMusic, correctSound, wrongSound].forEach(track => { track.volume = 0.5; });
 
-// 12 Items Total (6 custom paired image blocks)
-const fullFactoryPool = [
+let currentLevel = 1; // Tracks current gameplay layer index
+let winTimerInterval = null;
+
+/* LEVEL 1 DEFINITIONS ARRAY */
+const shapesPool = [
     { id: 1, imgFile: "assets/circle.png", text: "Circle" },
     { id: 1, imgFile: "assets/coin.png", text: "Coin" },
-    
     { id: 2, imgFile: "assets/triangle.png", text: "Triangle" },
     { id: 2, imgFile: "assets/pizza-slice.png", text: "Pizza" },
-    
     { id: 3, imgFile: "assets/square.png", text: "Square" },
     { id: 3, imgFile: "assets/window.png", text: "Window" },
-    
     { id: 4, imgFile: "assets/sphere.png", text: "Sphere" },
     { id: 4, imgFile: "assets/ball.png", text: "Ball" },
-    
     { id: 5, imgFile: "assets/cone.png", text: "Cone" },
     { id: 5, imgFile: "assets/party-hat.png", text: "Party Hat" },
-
     { id: 6, imgFile: "assets/cube.png", text: "Cube" },
     { id: 6, imgFile: "assets/dice.png", text: "Dice" }
 ];
 
-let cards = [];
-let flipped = [];
-let matched = [];
-let lock = false;
-let winTimerInterval = null; 
+/* LEVEL 2 DEFINITIONS ARRAY */
+const patternsPool = [
+    {
+        sequence: ["assets/circle.png", "assets/triangle.png", "assets/circle.png", "assets/triangle.png", "assets/circle.png"],
+        correctAnswer: "assets/triangle.png",
+        options: ["assets/triangle.png", "assets/square.png", "assets/pizza-slice.png"]
+    },
+    {
+        sequence: ["assets/stars.png", "assets/clouds.png", "assets/stars.png", "assets/clouds.png", "assets/stars.png"],
+        correctAnswer: "assets/clouds.png",
+        options: ["assets/circle.png", "assets/clouds.png", "assets/ball.png"]
+    },
+    {
+        sequence: ["assets/cube.png", "assets/sphere.png", "assets/cube.png", "assets/sphere.png", "assets/cube.png"],
+        correctAnswer: "assets/sphere.png",
+        options: ["assets/sphere.png", "assets/dice.png", "assets/cone.png"]
+    },
+    {
+        sequence: ["assets/pizza-slice.png", "assets/coin.png", "assets/pizza-slice.png", "assets/coin.png", "assets/pizza-slice.png"],
+        correctAnswer: "assets/coin.png",
+        options: ["assets/window.png", "assets/triangle.png", "assets/coin.png"]
+    },
+    {
+        sequence: ["assets/square.png", "assets/rectangle.png", "assets/triangle.png", "assets/square.png", "assets/rectangle.png"],
+        correctAnswer: "assets/triangle.png",
+        options: ["assets/circle.png", "assets/triangle.png", "assets/square.png"]
+    }
+];
 
-// Auto dismiss splash interface overlay after 5000 milliseconds
+// Level 1 Variable Context State
+let cards = []; let flipped = []; let matched = []; let lock = false;
+
+// Level 2 Variable Context State
+let currentPatternIndex = 0; let patternAnswerSelected = false;
+
+// Auto-dismiss initialization screen handler
 window.addEventListener("DOMContentLoaded", () => {
     setTimeout(() => {
         const splash = document.getElementById("splashScreen");
         const gameUI = document.getElementById("gameContainer");
-        
         splash.style.opacity = "0";
         setTimeout(() => {
             splash.style.display = "none";
             gameUI.style.display = "flex";
-            startGame();
+            initLevel1();
         }, 500);
     }, 5000); 
 });
 
-function startGame(){
-    if(winTimerInterval) {
-        clearInterval(winTimerInterval);
-        winTimerInterval = null;
+/* CORE ROUTING CONTROL LOGIC */
+function handleActionBtnClick() {
+    if (currentLevel === 1) {
+        initLevel1();
+    } else {
+        if (patternAnswerSelected) {
+            loadNextPattern();
+        }
     }
-    
+}
+
+function handleWinScreenReset() {
     document.getElementById("winScreen").style.display = "none";
-    particles = []; 
+    if (winTimerInterval) clearInterval(winTimerInterval);
+    particles = [];
 
-    flipped = [];
-    matched = [];
-    lock = false;
-
-    cards = JSON.parse(JSON.stringify(fullFactoryPool));
-
-    shuffle(cards);
-    render();
-}
-
-function shuffle(arr){
-    for(let i = arr.length - 1; i > 0; i--){
-        let j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[j]] = [arr[j], arr[i]];
+    if (currentLevel === 1) {
+        // Elevate user into Level 2 context
+        currentLevel = 2;
+        initLevel2();
+    } else {
+        // Loop back directly to Level 1
+        currentLevel = 1;
+        initLevel1();
     }
 }
 
-function render(){
-    let board = document.getElementById("board");
+/* ================= LEVEL 1: ENGINE OPERATORS ================= */
+function initLevel1() {
+    document.body.style.background = "linear-gradient(135deg, #2b5876, #4e4376)";
+    document.getElementById("levelBadge").innerText = "LEVEL 1";
+    document.getElementById("mainTitle").innerText = "👑 Shape Champions";
+    document.getElementById("mainDesc").innerText = "Become a geometry master by linking matching pairs!";
+    document.getElementById("mainInstr").innerText = "👉 Click the tiles to match the shapes to the objects.";
+    
+    document.getElementById("shapesBoard").style.display = "grid";
+    document.getElementById("patternsArena").style.display = "none";
+    
+    const actionBtn = document.getElementById("actionBtn");
+    actionBtn.innerText = "Restart Level";
+    actionBtn.disabled = false;
+
+    flipped = []; matched = []; lock = false;
+    cards = JSON.parse(JSON.stringify(shapesPool));
+    
+    // Shuffle level elements
+    for(let i = cards.length - 1; i > 0; i--){
+        let j = Math.floor(Math.random() * (i + 1));
+        [cards[i], cards[j]] = [cards[j], cards[i]];
+    }
+    renderShapesBoard();
+}
+
+function renderShapesBoard() {
+    let board = document.getElementById("shapesBoard");
     board.innerHTML = "";
 
     cards.forEach((c, i)=>{
@@ -358,84 +475,162 @@ function render(){
         if(isMatched){
             div.className = "card matched";
             div.innerHTML = `<img class="card-img" src="${c.imgFile}" alt="${c.text}"><div class="card-text">${c.text}</div>`;
-        }
-        else if(isFlipped){
+        } else if(isFlipped){
             div.className = "card flipped";
             div.innerHTML = `<img class="card-img" src="${c.imgFile}" alt="${c.text}"><div class="card-text">${c.text}</div>`;
-        }
-        else {
+        } else {
             div.className = "card normal";
             div.innerHTML = `<img class="card-back-icon" src="assets/shape-machine.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                              <div style="display:none; font-size:32px;">❓</div>`;
         }
-
-        div.onclick = () => flip(i);
+        div.onclick = () => flipCard(i);
         board.appendChild(div);
     });
 }
 
-function flip(i){
+function flipCard(i){
     if(lock) return;
     if(flipped.includes(i) || matched.includes(i)) return;
 
     flipped.push(i);
-    render();
+    renderShapesBoard();
 
     if(flipped.length === 2){
         lock = true;
-        let i1 = flipped[0];
-        let i2 = flipped[1];
+        let i1 = flipped[0]; let i2 = flipped[1];
 
         if(cards[i1].id === cards[i2].id && i1 !== i2){
             matched.push(i1, i2);
-            
             correctSound.currentTime = 0;
-            correctSound.play().catch(e => console.log("Audio play caught"));
+            correctSound.play().catch(e => {});
 
             setTimeout(() => {
-                flipped = [];
-                lock = false;
-                render();
-                checkWin();
+                flipped = []; lock = false;
+                renderShapesBoard();
+                if(matched.length === cards.length) triggerLevelClearWindow("LEVEL 1 CLEAR! 🎉", "Superb work! Ready for the patterns challenge?", "Next Level ➡️");
             }, 500);
         } else {
             wrongSound.currentTime = 0;
-            wrongSound.play().catch(e => console.log("Audio play caught"));
+            wrongSound.play().catch(e => {});
 
             setTimeout(() => {
-                flipped = [];
-                lock = false;
-                render();
+                flipped = []; lock = false;
+                renderShapesBoard();
             }, 900);
         }
     }
 }
 
-function checkWin(){
-    if(matched.length === cards.length){
-        showWinScreen();
+/* ================= LEVEL 2: ENGINE OPERATORS ================= */
+function initLevel2() {
+    document.body.style.background = "linear-gradient(135deg, #11998e, #38ef7d)"; // Transition layout theme hue automatically
+    document.getElementById("levelBadge").innerText = "LEVEL 2";
+    document.getElementById("mainTitle").innerText = "✨ Pattern Wizards";
+    document.getElementById("mainDesc").innerText = "Look closely at the repeating items!";
+    document.getElementById("mainInstr").innerText = "👉 Which image fills the missing spot?";
+    
+    document.getElementById("shapesBoard").style.display = "none";
+    document.getElementById("patternsArena").style.display = "flex";
+    
+    currentPatternIndex = 0;
+    loadPatternSequence(currentPatternIndex);
+}
+
+function loadPatternSequence(index) {
+    patternAnswerSelected = false;
+    
+    const actionBtn = document.getElementById("actionBtn");
+    actionBtn.innerText = "Next Pattern ➡️";
+    actionBtn.disabled = true;
+
+    const currentPattern = patternsPool[index];
+    const board = document.getElementById("patternBoard");
+    board.innerHTML = "";
+
+    currentPattern.sequence.forEach(imgSrc => {
+        const tile = document.createElement("div");
+        tile.className = "pattern-tile";
+        tile.innerHTML = `<img src="${imgSrc}">`;
+        board.appendChild(tile);
+    });
+
+    const missingSlot = document.createElement("div");
+    missingSlot.className = "pattern-tile blank-tile";
+    missingSlot.id = "targetBlank";
+    missingSlot.innerText = "?";
+    board.appendChild(missingSlot);
+
+    const optionsBox = document.getElementById("optionsContainer");
+    optionsBox.innerHTML = "";
+    
+    currentPattern.options.forEach(optionSrc => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.innerHTML = `<img src="${optionSrc}">`;
+        btn.onclick = () => verifyPatternChoice(btn, optionSrc, currentPattern.correctAnswer);
+        optionsBox.appendChild(btn);
+    });
+}
+
+function verifyPatternChoice(btnElement, chosenSrc, correctSrc) {
+    if (patternAnswerSelected) return;
+
+    if (chosenSrc === correctSrc) {
+        patternAnswerSelected = true;
+        correctSound.currentTime = 0;
+        correctSound.play().catch(e => {});
+
+        const blank = document.getElementById("targetBlank");
+        blank.className = "pattern-tile";
+        blank.style.animation = "none";
+        blank.innerHTML = `<img src="${chosenSrc}">`;
+        
+        btnElement.style.backgroundColor = "#c8e6c9";
+        btnElement.style.borderColor = "#06d6a0";
+
+        document.getElementById("actionBtn").disabled = false;
+    } else {
+        wrongSound.currentTime = 0;
+        wrongSound.play().catch(e => {});
+        
+        btnElement.style.backgroundColor = "#ffcdd2";
+        btnElement.style.borderColor = "#ff1744";
+        setTimeout(() => {
+            btnElement.style.backgroundColor = "#ffffff";
+            btnElement.style.borderColor = "#ffffff";
+        }, 600);
     }
 }
 
-function showWinScreen(){
+function loadNextPattern() {
+    currentPatternIndex++;
+    if (currentPatternIndex < patternsPool.length) {
+        loadPatternSequence(currentPatternIndex);
+    } else {
+        triggerLevelClearWindow("GRAND CHAMPION! 🏆", "Incredible job! You mastered both Levels perfectly!", "Play Again 🔄");
+    }
+}
+
+/* ================= OVERLAY WINDOW HANDLING ================= */
+function triggerLevelClearWindow(title, desc, buttonText) {
+    document.getElementById("winTitle").innerText = title;
+    document.getElementById("winDesc").innerText = desc;
+    document.getElementById("winResetBtn").innerText = buttonText;
     document.getElementById("winScreen").style.display = "flex";
     
     winMusic.currentTime = 0;
-    winMusic.play().catch(e => console.log("Audio blocking bypassed"));
+    winMusic.play().catch(e => {});
 
     burstFireworks();
     winTimerInterval = setInterval(burstFireworks, 700);
 }
 
-// CANVAS FIREWORKS RENDER LOGIC
+// VECTOR FIREWORKS RENDERING SYSTEM
 const canvas = document.getElementById("fireworks");
 const ctx = canvas.getContext("2d");
 let particles = [];
 
-function resize(){
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-}
+function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
 resize();
 window.addEventListener("resize", resize);
 
@@ -445,45 +640,29 @@ function burstFireworks(){
     const hue = Math.floor(Math.random() * 360);
     const colorString = `hsla(${hue}, 100%, 60%, `;
 
-    for(let i = 0; i < 40; i++){
+    for(let i = 0; i < 35; i++){
         let angle = Math.random() * 2 * Math.PI;
         let speed = Math.random() * 4 + 1.5;
         particles.push({
-            x: originX,
-            y: originY,
-            vx: Math.cos(angle) * speed,
-            vy: Math.sin(angle) * speed,
-            radius: Math.random() * 2 + 1,
-            alpha: 1,
-            color: colorString,
-            gravity: 0.04
+            x: originX, y: originY,
+            vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+            radius: Math.random() * 2 + 1, alpha: 1,
+            color: colorString, gravity: 0.04
         });
     }
 }
 
 function animate(){
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    particles.forEach(p => {
-        p.x += p.vx;
-        p.y += p.vy;
-        p.vy += p.gravity;
-        p.alpha -= 0.015;
-    });
-
+    particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.alpha -= 0.015; });
     particles = particles.filter(p => p.alpha > 0);
-
     particles.forEach(p => {
         ctx.fillStyle = `${p.color}${p.alpha})`;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
     });
-
     requestAnimationFrame(animate);
 }
 animate();
 </script>
-
 </body>
 </html>
