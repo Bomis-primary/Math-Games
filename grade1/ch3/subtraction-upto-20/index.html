@@ -1,393 +1,471 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Apple Basket Rescue</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;font-family:'Comic Sans MS',Arial,sans-serif;background:#d8f8d0;color:#222;overflow-x:hidden}
-.screen{display:none;min-height:100vh;padding:18px;text-align:center}
-.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
-.card{background:rgba(255,255,255,.94);border-radius:24px;padding:22px;max-width:850px;width:95%;box-shadow:0 10px 25px rgba(0,0,0,.18)}
-.logo{max-width:150px;margin-bottom:12px}
-h1{color:#c5221f;font-size:clamp(28px,5vw,48px);margin:10px 0}
-h2{color:#188038;font-size:clamp(22px,4vw,34px)}
-button{border:0;border-radius:18px;padding:14px 24px;font-size:20px;font-weight:bold;cursor:pointer;background:#ffbf00;color:#4a2b00;box-shadow:0 5px 0 #c58b00;margin:8px}
-button:active{transform:translateY(3px);box-shadow:0 2px 0 #c58b00}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dino's Apple Subtraction - Chapter 3</title>
+  <style>
+    :root {
+      --text-dark: #2e7d32;
+      --btn-gold-light: #fff176;
+      --btn-gold-dark: #fbc02d;
+    }
 
-.game-area{position:relative;min-height:100vh;background:url("assets/apples-orchard.png") center/cover no-repeat;padding:12px;overflow:hidden}
-.cloud{position:absolute;width:150px;opacity:.9;animation:floatCloud 24s linear infinite}
-.cloud.one{top:30px;left:-160px}
-.cloud.two{top:100px;left:-320px;animation-delay:8s}
-@keyframes floatCloud{to{transform:translateX(130vw)}}
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-.topbar{display:flex;gap:8px;justify-content:space-between;align-items:center;max-width:950px;margin:0 auto 8px;background:rgba(255,255,255,.92);border-radius:16px;padding:10px;font-weight:bold}
-.timer{color:#d93025}.score{color:#188038}.attempts{color:#174ea6}
-.progress-wrap{height:18px;background:#fff;border-radius:20px;overflow:hidden;max-width:950px;margin:8px auto}
-.progress{height:100%;width:0;background:linear-gradient(90deg,#34a853,#fbbc04);transition:.4s}
+    body {
+      font-family: 'Trebuchet MS', 'Comic Sans MS', sans-serif;
+      background: #e8f5e9;
+      color: #1b5e20;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+      overflow-x: hidden;
+    }
 
-.rescue-zone{position:relative;max-width:950px;height:220px;margin:5px auto}
-.basket{position:absolute;bottom:5px;left:5%;width:190px;transition:.6s ease;animation:bounceBasket 2.6s ease-in-out infinite}
-@keyframes bounceBasket{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    .game-container {
+      width: 100%;
+      max-width: 800px;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      min-height: 520px;
+    }
 
-.falling-apple{position:absolute;font-size:36px;top:-50px;animation:appleFall 2.4s linear forwards;z-index:3}
-@keyframes appleFall{to{transform:translateY(260px) rotate(360deg);opacity:0}}
+    /* 5-Second Brand Loader Splash Screen */
+    #screen-splash {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    #screen-splash img {
+      max-width: 70%;
+      max-height: 70%;
+      object-fit: contain;
+    }
 
-.question-card{max-width:850px;margin:10px auto;background:rgba(255,255,255,.96);border-radius:24px;padding:18px;box-shadow:0 8px 20px rgba(0,0,0,.2)}
-.qno{font-size:18px;color:#666}
-.question{font-size:clamp(22px,4vw,34px);font-weight:bold;margin:12px 0}
-.options{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.option{background:#fff;border:4px solid #ff8a80;border-radius:18px;padding:18px;font-size:24px;font-weight:bold;cursor:pointer;min-height:70px}
-.option:hover{background:#fff1f0}
-.feedback{min-height:44px;font-size:20px;font-weight:bold;margin-top:10px}
-.correct{color:#188038}.wrong{color:#d93025}
-.final-badge{background:#ffef99;border:3px dashed #fbbc04;padding:8px 14px;border-radius:14px;display:inline-block;margin-bottom:8px;font-weight:bold}
-.result-stars{font-size:46px}
+    /* HUD Dashboard Top Bar */
+    .game-header {
+      background: #2e7d32;
+      color: white;
+      padding: 15px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
 
-@media(max-width:600px){
-.options{grid-template-columns:1fr}
-.basket{width:140px}
-.rescue-zone{height:170px}
-.topbar{font-size:14px;flex-wrap:wrap;justify-content:center}
-}
-.confetti{position:fixed;width:10px;height:10px;top:-10px;animation:fall 1.8s linear forwards;z-index:99}
-@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
-</style>
+    .title-area h1 { font-size: 1.4rem; color: #fff176; }
+    .hud-stats { display: flex; gap: 15px; font-weight: bold; font-size: 1.1rem; }
+    
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: #1b5e20;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(to right, #fff176, #ffb300);
+      transition: width 0.4s ease;
+    }
+
+    /* Screen Setup */
+    .screen { display: none; padding: 25px; text-align: center; }
+    .screen.active { display: block; }
+
+    /* Dialog Box */
+    .story-bubble {
+      background: #f1f8e9;
+      border: 3px dashed #81c784;
+      border-radius: 16px;
+      padding: 15px;
+      margin-bottom: 20px;
+      font-size: 1.2rem;
+      line-height: 1.5;
+    }
+
+    /* Scenery Canvas Area matching assets path */
+    .scenery-canvas {
+      height: 240px;
+      background-image: url('assets/apples-orchard.png');
+      background-size: cover;
+      background-position: center;
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 20px;
+      border: 4px solid #81c784;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 20px 20px 20px 120px; /* Leave space for dino on the left */
+    }
+
+    /* Graphic Displays */
+    .dino-sprite {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      width: 100px;
+      height: 120px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: bottom left;
+      z-index: 5;
+    }
+
+    .apple-container {
+      width: 42px;
+      height: 42px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: white;
+      border-radius: 50px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      transition: all 0.3s ease;
+    }
+
+    .apple-item {
+      width: 32px;
+      height: 32px;
+      background-image: url('assets/apples-basket.png');
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+    }
+
+    .apple-container.eaten {
+      opacity: 0.25;
+      transform: scale(0.7) rotate(70deg);
+      background: #e0e0e0;
+      filter: grayscale(100%);
+    }
+
+    /* Question & Controls */
+    .question-prompt {
+      font-size: 1.6rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #1b5e20;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      max-width: 450px;
+      margin: 0 auto;
+    }
+
+    .game-btn {
+      background: linear-gradient(to bottom, var(--btn-gold-light), var(--btn-gold-dark));
+      border: none;
+      padding: 15px;
+      font-size: 1.6rem;
+      font-weight: bold;
+      color: #3e2723;
+      border-radius: 14px;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #f57f17;
+      transition: transform 0.1s, box-shadow 0.1s;
+      outline: none;
+    }
+    .game-btn:active {
+      transform: translateY(4px);
+      box-shadow: 0 2px 0 #f57f17;
+    }
+
+    .game-btn.correct { background: #66bb6a !important; box-shadow: 0 4px 0 #388e3c !important; color: white; }
+    .game-btn.wrong { background: #ef5350 !important; box-shadow: 0 4px 0 #d32f2f !important; color: white; animation: shake 0.3s ease; }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-6px); }
+      75% { transform: translateX(6px); }
+    }
+
+    .feedback-banner {
+      height: 30px;
+      margin-top: 15px;
+      font-size: 1.4rem;
+      font-weight: bold;
+    }
+
+    .action-btn {
+      background: #ff9800;
+      color: white;
+      border: none;
+      padding: 15px 35px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #e65100;
+      margin-top: 15px;
+    }
+    .action-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 #e65100;
+    }
+
+    /* Confetti Particle Engine */
+    .particle {
+      position: absolute;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 999;
+      animation: blow-up 0.8s ease-out forwards;
+    }
+    @keyframes blow-up {
+      0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+      100% { transform: translate(var(--dx), var(--dy)) scale(0.5) rotate(360deg); opacity: 0; }
+    }
+  </style>
 </head>
-
 <body>
 
-<section id="start" class="screen active">
-  <div class="card">
-    <img src="assets/logo.png" class="logo" onerror="this.style.display='none'">
-    <h1>🍎 Apple Basket Rescue</h1>
-    <h2>Grade 1 Maths — Subtraction up to 20</h2>
-    <p>Help Raju save the apple baskets by solving subtraction challenges.</p>
-    <p><b>Rules:</b> You get 60 seconds and 2 attempts for each question.</p>
-    <button onclick="startGame()">Start Rescue</button>
+  <audio id="snd-correct" src="assets/correct.mp3" preload="auto"></audio>
+  <audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+  <div class="game-container">
+    
+    <div id="screen-splash">
+      <img src="assets/logo.png" alt="Logo" />
+    </div>
+
+    <div class="game-header">
+      <div class="title-area">
+        <h1 id="stage-title">Chapter 3: Subtraction Orchard</h1>
+      </div>
+      <div class="hud-stats">
+        <span>⭐ Score: <span id="score-val">0</span></span>
+        <span>🍏 Task: <span id="progress-val">1/10</span></span>
+      </div>
+    </div>
+    <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+
+    <div id="screen-intro" class="screen active">
+      <div class="story-bubble">
+        <p><strong>The Hungry Dinos are here!</strong> "Roar! We love juicy apples from the orchard! Can you help us count how many apples are left after we crunch them up?"</p>
+      </div>
+      <div class="scenery-canvas" style="justify-content: center; padding-left: 20px;">
+        <div class="apple-container" style="scale: 1.3;"><div class="apple-item"></div></div>
+        <div class="apple-container" style="scale: 1.3;"><div class="apple-item"></div></div>
+        <div class="apple-container" style="scale: 1.3;"><div class="apple-item"></div></div>
+      </div>
+      <button class="action-btn" onclick="startGame()">Start Apple Feast! 🍏</button>
+    </div>
+
+    <div id="screen-play" class="screen">
+      <div class="story-bubble">
+        <p id="story-text">A dino is looking for sweet treats...</p>
+      </div>
+
+      <div class="scenery-canvas" id="stage-canvas"></div>
+
+      <div class="question-prompt" id="question-text">How many apples are left?</div>
+      <div class="options-grid" id="options-box"></div>
+      <div class="feedback-banner" id="feedback-box"></div>
+    </div>
+
+    <div id="screen-end" class="screen">
+      <div class="story-bubble">
+        <p><strong>🎉 Outstanding Job, Little Mathematician!</strong></p>
+        <p>You helped the dinos and tracked every single apple. You know your subtraction up to 20 perfectly!</p>
+      </div>
+      <h2 style="font-size: 2.5rem; color: #2e7d32; margin-bottom: 20px;">You Win! ⭐</h2>
+      <button class="action-btn" style="background: #2e7d32; box-shadow: 0 5px 0 #1b5e20;" onclick="resetWholeGame()">Play Again 🔄</button>
+    </div>
   </div>
-</section>
 
-<section id="game" class="screen game-area">
-  <img src="assets/clouds.png" class="cloud one">
-  <img src="assets/clouds.png" class="cloud two">
-
-  <div class="topbar">
-    <div class="timer">⏱ Time: <span id="time">60</span>s</div>
-    <div class="score">⭐ Score: <span id="score">0</span></div>
-    <div class="attempts">🔁 Attempts Left: <span id="attempts">2</span></div>
-  </div>
-
-  <div class="progress-wrap"><div id="progress" class="progress"></div></div>
-
-  <div class="rescue-zone" id="rescueZone">
-    <img src="assets/apples-basket.png" id="basket" class="basket">
-  </div>
-
-  <div class="question-card">
-    <div id="finalBadge" class="final-badge" style="display:none;">Final Challenge</div>
-    <div class="qno">Question <span id="qnum">1</span> of <span id="total"></span></div>
-    <div id="question" class="question"></div>
-    <div id="options" class="options"></div>
-    <div id="feedback" class="feedback"></div>
-  </div>
-</section>
-
-<section id="result" class="screen">
-  <div class="card">
-    <img src="assets/stars.png" style="max-width:140px" onerror="this.style.display='none'">
-    <h1>Rescue Complete!</h1>
-    <div id="resultStars" class="result-stars"></div>
-    <h2 id="finalScore"></h2>
-    <p id="resultMsg"></p>
-    <button onclick="restartGame()">Play Again</button>
-  </div>
-</section>
-
-<audio id="correctSound" src="assets/freesound_community-claps-44774.mp3"></audio>
-<audio id="wrongSound" src="assets/wrong.mp3"></audio>
-
-<script>
-const questions = [
-  {
-    q:"Raju has 8 apples. He gives away 3 apples. How many apples are left?",
-    options:["4","5","6","7"],
-    answer:"5",
-    hint:"Take away 3 from 8."
-  },
-  {
-    q:"There are 7 flowers. 0 flowers are taken away. How many are left?",
-    options:["0","6","7","8"],
-    answer:"7",
-    hint:"Subtracting zero does not change the number."
-  },
-  {
-    q:"Start at 9 on a number line. Move 2 steps back. Where do you land?",
-    options:["6","7","8","11"],
-    answer:"7",
-    hint:"For subtraction, move left/backward."
-  },
-  {
-    q:"Which number is the predecessor of 14?",
-    options:["12","13","14","15"],
-    answer:"13",
-    hint:"Predecessor means one less."
-  },
-  {
-    q:"Which subtraction gives 0?",
-    options:["6 - 0","6 - 1","6 - 6","6 - 3"],
-    answer:"6 - 6",
-    hint:"A number minus itself is zero."
-  },
-  {
-    q:"Mia has 10 stickers. She uses 4 stickers. How many stickers remain?",
-    options:["5","6","7","8"],
-    answer:"6",
-    hint:"Subtract 4 from 10."
-  },
-  {
-    q:"Which sentence matches the story? 12 birds were on a tree. 2 flew away.",
-    options:["12 + 2 = 14","12 - 2 = 10","10 - 2 = 8","2 + 10 = 12"],
-    answer:"12 - 2 = 10",
-    hint:"Flew away means subtract."
-  },
-  {
-    q:"Which answer is correct? 18 - 6 =",
-    options:["10","11","12","13"],
-    answer:"12",
-    hint:"Subtract the ones: 8 - 6 = 2, keep 1 ten."
-  },
-  {
-    q:"Which subtraction statement is wrong?",
-    options:["9 - 4 = 5","8 - 0 = 8","7 - 7 = 1","10 - 3 = 7"],
-    answer:"7 - 7 = 1",
-    hint:"A number minus itself gives 0."
-  },
-  {
-    q:"A shopkeeper has ₹20. He gives ₹8 back as change. How much money is left with him?",
-    options:["₹10","₹11","₹12","₹13"],
-    answer:"₹12",
-    hint:"Subtract 8 from 20."
-  },
-  {
-    q:"Final: Anjali had 19 beads. She used 18 beads. How many beads are left?",
-    options:["0","1","2","3"],
-    answer:"1",
-    hint:"19 - 18 = 1.",
-    final:true
-  },
-  {
-    q:"Final: Sasha has 18 stickers. Akira has 10 fewer. How many stickers does Akira have?",
-    options:["6","7","8","9"],
-    answer:"8",
-    hint:"10 fewer means subtract 10.",
-    final:true
-  }
-];
-
-let current = 0;
-let score = 0;
-let attempts = 2;
-let timeLeft = 60;
-let timer;
-
-const startScreen = document.getElementById("start");
-const gameScreen = document.getElementById("game");
-const resultScreen = document.getElementById("result");
-
-function startGame(){
-  startScreen.classList.remove("active");
-  gameScreen.classList.add("active");
-  document.getElementById("total").textContent = questions.length;
-  loadQuestion();
-}
-
-function loadQuestion(){
-  clearInterval(timer);
-  attempts = 2;
-  timeLeft = 60;
-
-  document.getElementById("time").textContent = timeLeft;
-  document.getElementById("attempts").textContent = attempts;
-  document.getElementById("feedback").textContent = "";
-  document.getElementById("feedback").className = "feedback";
-  document.getElementById("qnum").textContent = current + 1;
-
-  const q = questions[current];
-  document.getElementById("question").textContent = q.q;
-  document.getElementById("finalBadge").style.display = q.final ? "inline-block" : "none";
-
-  const optionsBox = document.getElementById("options");
-  optionsBox.innerHTML = "";
-
-  const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
-
-  shuffledOptions.forEach(opt=>{
-    const div = document.createElement("div");
-    div.className = "option";
-    div.textContent = opt;
-    div.onclick = ()=>checkAnswer(opt, div);
-    optionsBox.appendChild(div);
-  });
-
-  updateProgress();
-  moveBasket();
-
-  timer = setInterval(updateTimer,1000);
-}
-
-function updateTimer(){
-  timeLeft--;
-  document.getElementById("time").textContent = timeLeft;
-
-  if(timeLeft<=0){
-    clearInterval(timer);
-    showCorrect("Time is up!");
-  }
-}
-
-function checkAnswer(selected, element){
-  const q = questions[current];
-
-  if(selected === q.answer){
-    clearInterval(timer);
-    score++;
-    document.getElementById("score").textContent = score;
-
-    element.style.background = "#d7ffd9";
-    element.style.borderColor = "#34a853";
-
-    document.getElementById("feedback").textContent = "Correct! The basket is safe!";
-    document.getElementById("feedback").className = "feedback correct";
-
-    playSound("correctSound");
-    confetti();
-    fallingApple();
-
-    setTimeout(nextQuestion,1200);
-  } else {
-    attempts--;
-    document.getElementById("attempts").textContent = attempts;
-
-    element.style.background = "#ffe0e0";
-    element.style.borderColor = "#d93025";
-
-    playSound("wrongSound");
-
-    if(attempts > 0){
-      document.getElementById("feedback").textContent = "Try again! Hint: " + q.hint;
-      document.getElementById("feedback").className = "feedback wrong";
-    } else {
-      clearInterval(timer);
-      showCorrect("Good try!");
+  <script>
+    function playAudio(elementId) {
+      const sound = document.getElementById(elementId);
+      if (sound) {
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log("Audio play blocked: ", e));
+      }
     }
-  }
-}
 
-function showCorrect(prefix){
-  const q = questions[current];
+    function popConfetti() {
+      const container = document.querySelector('.game-container');
+      const rect = container.getBoundingClientRect();
+      for (let i = 0; i < 40; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = Math.random() * rect.width + 'px'; 
+        p.style.top = Math.random() * (rect.height * 0.6) + 'px';
+        p.style.background = ['#4caf50','#81c784','#ffeb3b','#ff9800','#ff5722'][Math.floor(Math.random()*5)];
+        p.style.setProperty('--dx', (Math.random() - 0.5) * 250 + 'px'); 
+        p.style.setProperty('--dy', (Math.random() - 0.5) * 250 - 50 + 'px');
+        container.appendChild(p);
+        setTimeout(() => p.remove(), 800);
+      }
+    }
 
-  document.getElementById("feedback").textContent = `${prefix} Correct answer: ${q.answer}`;
-  document.getElementById("feedback").className = "feedback wrong";
+    let turnIndex = 0;
+    let runningScore = 0;
+    let acceptInput = true;
+    let stageQuestions = [];
+    const TOTAL_TURNS = 10;
 
-  setTimeout(nextQuestion,1800);
-}
+    const dinoList = ['blue-dino.png', 'pink-dino.png', 'red-dino.png', 'yellow-dino.png'];
 
-function nextQuestion(){
-  current++;
+    function assembleLevelQuestions() {
+      stageQuestions = [];
+      for(let i=0; i<TOTAL_TURNS; i++) {
+        let totalApples = Math.floor(Math.random() * 9) + 11; // 11 to 19 total apples
+        let eatenApples = Math.floor(Math.random() * 7) + 2;   // 2 to 8 eaten apples
+        let correctVal = totalApples - eatenApples;
+        
+        let randomDino = dinoList[Math.floor(Math.random() * dinoList.length)];
 
-  if(current >= questions.length){
-    endGame();
-  } else {
-    loadQuestion();
-  }
-}
+        let decoys = new Set([correctVal + 1, correctVal - 1]);
+        if (correctVal - 1 < 0) { decoys.add(correctVal + 2); decoys.delete(correctVal - 1); }
+        while(decoys.size < 2) { decoys.add(Math.floor(Math.random() * 15)); }
+        let opts = [correctVal, ...decoys];
 
-function updateProgress(){
-  const percent = (current / questions.length) * 100;
-  document.getElementById("progress").style.width = percent + "%";
-}
+        stageQuestions.push({
+          total: totalApples,
+          eaten: eatenApples,
+          dino: randomDino,
+          answer: correctVal,
+          options: opts.sort(() => Math.random() - 0.5)
+        });
+      }
+    }
 
-function moveBasket(){
-  const percent = current / (questions.length - 1);
-  const left = 5 + percent * 65;
-  const basket = document.getElementById("basket");
-  basket.style.left = left + "%";
-}
+    function startGame() {
+      document.getElementById('screen-intro').classList.remove('active');
+      document.getElementById('screen-play').classList.add('active');
+      renderActiveTurn();
+    }
 
-function endGame(){
-  clearInterval(timer);
+    function renderActiveTurn() {
+      if (turnIndex >= TOTAL_TURNS) {
+        showEndGameSummary();
+        return;
+      }
 
-  gameScreen.classList.remove("active");
-  resultScreen.classList.add("active");
+      acceptInput = true;
+      document.getElementById('feedback-box').innerText = "";
+      
+      let currentQ = stageQuestions[turnIndex];
 
-  document.getElementById("finalScore").textContent = `Your Score: ${score} / ${questions.length}`;
+      document.getElementById('progress-val').innerText = `${turnIndex + 1} / ${TOTAL_TURNS}`;
+      document.getElementById('progress-fill').style.width = `${(turnIndex / TOTAL_TURNS) * 100}%`;
+      document.getElementById('score-val').innerText = runningScore;
 
-  let msg = "";
-  let stars = "";
-  const percent = score / questions.length;
+      document.getElementById('story-text').innerHTML = `<strong>Look!</strong> There were ${currentQ.total} fresh apples. The dino ate ${currentQ.eaten} of them!`;
+      document.getElementById('question-text').innerText = `${currentQ.total} - ${currentQ.eaten} = ?`;
 
-  if(percent >= .85){
-    msg = "Excellent! You are a Subtraction Rescue Champion!";
-    stars = "⭐⭐⭐";
-  } else if(percent >= .6){
-    msg = "Good work! Practise a little more and try again.";
-    stars = "⭐⭐";
-  } else {
-    msg = "Nice try! Replay the rescue to strengthen your subtraction skills.";
-    stars = "⭐";
-  }
+      const canvas = document.getElementById('stage-canvas');
+      canvas.innerHTML = '';
 
-  document.getElementById("resultMsg").textContent = msg;
-  document.getElementById("resultStars").textContent = stars;
-}
+      let dinoElement = document.createElement('div');
+      dinoElement.className = 'dino-sprite';
+      dinoElement.style.backgroundImage = `url('assets/${currentQ.dino}')`;
+      canvas.appendChild(dinoElement);
 
-function restartGame(){
-  clearInterval(timer);
+      for (let i = 0; i < currentQ.total; i++) {
+        let container = document.createElement('div');
+        container.className = 'apple-container';
+        
+        let apple = document.createElement('div');
+        apple.className = 'apple-item';
+        
+        container.appendChild(apple);
+        
+        if (i < currentQ.eaten) {
+          container.classList.add('eaten');
+        }
+        canvas.appendChild(container);
+      }
 
-  current = 0;
-  score = 0;
-  attempts = 2;
+      const optionsBox = document.getElementById('options-box');
+      optionsBox.innerHTML = "";
+      currentQ.options.forEach(opt => {
+        let btn = document.createElement('button');
+        btn.className = "game-btn";
+        btn.innerText = opt;
+        btn.onclick = function() { processSelection(btn, opt); };
+        optionsBox.appendChild(btn);
+      });
+    }
 
-  document.getElementById("score").textContent = score;
+    function processSelection(clickedElement, pickedValue) {
+      if (!acceptInput) return;
+      acceptInput = false;
 
-  resultScreen.classList.remove("active");
-  gameScreen.classList.add("active");
+      let currentQ = stageQuestions[turnIndex];
+      let feedBox = document.getElementById('feedback-box');
 
-  loadQuestion();
-}
+      if (pickedValue === currentQ.answer) {
+        runningScore += 10;
+        clickedElement.classList.add('correct');
+        feedBox.style.color = '#2e7d32';
+        feedBox.innerText = "Yum! Correct answer! 🍏🎉";
+        
+        playAudio('snd-correct');
+        popConfetti();
+        
+        turnIndex++;
+        setTimeout(renderActiveTurn, 1400);
+      } else {
+        clickedElement.classList.add('wrong');
+        feedBox.style.color = '#c62828';
+        feedBox.innerText = "Count the bright red apples! Try again!";
+        
+        playAudio('snd-wrong');
+        
+        setTimeout(() => {
+          clickedElement.classList.remove('wrong');
+          acceptInput = true;
+        }, 600);
+      }
+      document.getElementById('score-val').innerText = runningScore;
+    }
 
-function playSound(id){
-  const sound = document.getElementById(id);
-  if(sound){
-    sound.currentTime = 0;
-    sound.play().catch(()=>{});
-  }
-}
+    function showEndGameSummary() {
+      document.getElementById('progress-fill').style.width = "100%";
+      document.getElementById('screen-play').classList.remove('active');
+      document.getElementById('screen-end').classList.add('active');
+    }
 
-function confetti(){
-  for(let i=0;i<25;i++){
-    const c = document.createElement("div");
-    c.className = "confetti";
-    c.style.left = Math.random()*100 + "vw";
-    c.style.background = ["#fbbc04","#34a853","#4285f4","#ea4335","#ff69b4"][Math.floor(Math.random()*5)];
-    c.style.animationDelay = Math.random()*0.3 + "s";
-    document.body.appendChild(c);
+    function resetWholeGame() {
+      turnIndex = 0;
+      runningScore = 0;
+      document.getElementById('screen-end').classList.remove('active');
+      document.getElementById('screen-intro').classList.add('active');
+      document.getElementById('progress-val').innerText = `1 / ${TOTAL_TURNS}`;
+      document.getElementById('score-val').innerText = "0";
+      assembleLevelQuestions();
+    }
 
-    setTimeout(()=>c.remove(),2000);
-  }
-}
-
-function fallingApple(){
-  const zone = document.getElementById("rescueZone");
-  const apple = document.createElement("div");
-  apple.className = "falling-apple";
-  apple.textContent = "🍎";
-  apple.style.left = Math.random() * 85 + "%";
-  zone.appendChild(apple);
-  setTimeout(()=>apple.remove(),2500);
-}
-</script>
+    window.onload = function() {
+      assembleLevelQuestions();
+      setTimeout(() => {
+        const splash = document.getElementById('screen-splash');
+        if (splash) splash.style.display = 'none';
+      }, 5000);
+    };
+  </script>
 </body>
 </html>
