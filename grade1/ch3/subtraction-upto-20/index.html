@@ -36,7 +36,7 @@
       display: flex;
       flex-direction: column;
       position: relative;
-      min-height: 580px;
+      min-height: 600px;
     }
 
     /* 5-Second Brand Loader Splash Screen */
@@ -79,7 +79,7 @@
       transition: width 0.4s ease;
     }
 
-    /* Screens layout configuration */
+    /* Screens Layout Configuration */
     .screen { display: none; padding: 20px; text-align: center; position: relative; }
     .screen.active { display: block; }
 
@@ -96,7 +96,7 @@
 
     /* Scenery Canvas Field Map */
     .scenery-canvas {
-      height: 300px;
+      height: 320px;
       background-image: url('assets/apples-orchard.png');
       background-size: cover;
       background-position: center;
@@ -107,17 +107,22 @@
       border: 4px solid #81c784;
     }
 
-    /* Dino Position and Character settings */
-    .dino-zone {
+    /* Dino Character Box Layout */
+    .dino-container-box {
       position: absolute;
       bottom: 10px;
       left: 15px;
-      width: 140px;
-      height: 140px;
+      width: 150px;
+      height: 150px;
+      z-index: 5;
+    }
+
+    .dino-zone {
+      width: 100%;
+      height: 100%;
       background-size: contain;
       background-repeat: no-repeat;
       background-position: bottom left;
-      z-index: 5;
       transition: transform 0.2s ease;
     }
     
@@ -134,61 +139,63 @@
       75% { transform: translateX(10px) rotate(5deg); }
     }
 
-    /* Apple Drag Assets styling */
+    /* Apple Draggable Wrapper - Using individual apples.png asset safely */
     .apple-draggable {
-      width: 46px;
-      height: 46px;
-      background-image: url('assets/apples-basket.png');
-      background-size: contain;
+      width: 48px;
+      height: 48px;
+      background-image: url('assets/apples.png');
+      background-size: 90%;
       background-repeat: no-repeat;
       background-position: center;
       position: absolute;
       cursor: grab;
       z-index: 10;
       touch-action: none;
+      border-radius: 50%;
+      filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.15));
     }
-    .apple-draggable:active { cursor: grabbing; }
+    .apple-draggable:active { cursor: grabbing; transform: scale(1.1); }
 
     /* Interactive Subtraction Statement Layout */
     .equation-container {
-      font-size: 2.5rem;
+      font-size: 2.6rem;
       font-weight: bold;
       margin-bottom: 15px;
       color: #1b5e20;
       background: #ffffff;
-      padding: 10px 25px;
+      padding: 8px 30px;
       border-radius: 50px;
       display: inline-block;
       box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      border: 2px solid #c8e6c9;
+      border: 3px solid #c8e6c9;
     }
     
     .equation-blank {
       display: inline-block;
-      width: 60px;
-      height: 50px;
+      width: 65px;
+      height: 52px;
       border-bottom: 5px solid #ff9800;
       color: #ff9800;
       text-align: center;
-      line-height: 40px;
+      line-height: 42px;
       vertical-align: middle;
     }
 
-    /* Multiple Choice Layout options */
+    /* Options Button Grid (Strict anti-cheat tracking mechanics) */
     .options-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 15px;
       max-width: 420px;
       margin: 0 auto;
-      min-height: 70px;
+      min-height: 72px;
     }
 
     .game-btn {
       background: linear-gradient(to bottom, var(--btn-gold-light), var(--btn-gold-dark));
       border: none;
       padding: 12px;
-      font-size: 1.8rem;
+      font-size: 1.9rem;
       font-weight: bold;
       color: #3e2723;
       border-radius: 14px;
@@ -211,7 +218,7 @@
     }
 
     .feedback-banner {
-      height: 30px;
+      height: 32px;
       margin-top: 10px;
       font-size: 1.4rem;
       font-weight: bold;
@@ -270,8 +277,8 @@
 
     <div id="screen-intro" class="screen active">
       <div class="story-bubble">
-        <p><strong>Welcome to the Orchard Math Challenge!</strong> 🦖🍏</p>
-        <p style="margin-top: 10px; font-size: 1.15rem; color: #388e3c;">Look closely at the subtraction sentence. Drag the exact number of apples to the dino to complete the puzzle!</p>
+        <p><strong>Welcome to the Orchard Subtraction Challenge!</strong> 🦖🍏</p>
+        <p style="margin-top: 10px; font-size: 1.15rem; color: #388e3c;">Look at the subtraction sentence. Drag the right amount of apples to feed the dino, then count how many are left!</p>
       </div>
       <button class="action-btn" onclick="startGame()">Let's Solve Puzzles! 🚀</button>
     </div>
@@ -315,288 +322,9 @@
 
     const dinoList = ['blue-dino.png', 'pink-dino.png', 'red-dino.png', 'yellow-dino.png'];
     
-    // Fun contextual story configurations to cycle through dynamically
     const dynamicStories = [
-      "The dinosaur is hungry! Look at the subtraction problem and feed him the correct number of apples.",
-      "Help the dino crunch the right amount of fruits to complete the equation below!",
-      "Orchard puzzle time! Feed the dino exactly how many apples need to be subtracted.",
-      "Can you solve this mystery? Drag the correct number of apples into the dino's mouth!",
-      "Look at the minus number! That's how many juicy apples our friendly dino wants to eat."
-    ];
-
-    function playAudio(elementId) {
-      const sound = document.getElementById(elementId);
-      if (sound) {
-        sound.currentTime = 0;
-        sound.play().catch(e => console.log("Audio skipped", e));
-      }
-    }
-
-    function popConfetti() {
-      const container = document.querySelector('.game-container');
-      const rect = container.getBoundingClientRect();
-      for (let i = 0; i < 40; i++) {
-        const p = document.createElement('div');
-        p.className = 'particle';
-        p.style.left = Math.random() * rect.width + 'px'; 
-        p.style.top = Math.random() * (rect.height * 0.6) + 'px';
-        p.style.background = ['#4caf50','#81c784','#ffeb3b','#ff9800','#ff5722'][Math.floor(Math.random()*5)];
-        p.style.setProperty('--dx', (Math.random() - 0.5) * 250 + 'px'); 
-        p.style.setProperty('--dy', (Math.random() - 0.5) * 250 - 50 + 'px');
-        container.appendChild(p);
-        setTimeout(() => p.remove(), 800);
-      }
-    }
-
-    function assembleLevelQuestions() {
-      stageQuestions = [];
-      for(let i=0; i<TOTAL_TURNS; i++) {
-        let totalApples = Math.floor(Math.random() * 6) + 10; // 10 to 15 apples on screen fields
-        let eatenApples = Math.floor(Math.random() * 6) + 3;   // Subtract 3 to 8 apples
-        let correctVal = totalApples - eatenApples;
-        
-        let randomDino = dinoList[Math.floor(Math.random() * dinoList.length)];
-
-        let decoys = new Set([correctVal + 1, correctVal - 1]);
-        if (correctVal - 1 < 0) { decoys.add(correctVal + 2); decoys.delete(correctVal - 1); }
-        while(decoys.size < 2) { decoys.add(Math.floor(Math.random() * 8) + 1); }
-        let opts = [correctVal, ...decoys];
-
-        stageQuestions.push({
-          total: totalApples,
-          eaten: eatenApples,
-          dino: randomDino,
-          answer: correctVal,
-          options: opts.sort(() => Math.random() - 0.5)
-        });
-      }
-    }
-
-    function startGame() {
-      document.getElementById('screen-intro').classList.remove('active');
-      document.getElementById('screen-play').classList.add('active');
-      renderActiveTurn();
-    }
-
-    function renderActiveTurn() {
-      if (turnIndex >= TOTAL_TURNS) {
-        showEndGameSummary();
-        return;
-      }
-
-      acceptInput = false; // Buttons hidden/disabled until dragging quota is accurately reached
-      currentApplesEaten = 0;
-      document.getElementById('feedback-box').innerText = "";
-      document.getElementById('options-box').innerHTML = "";
-      document.getElementById('math-blank').innerText = "?";
-      document.getElementById('math-blank').style.color = "#ff9800";
-
-      let currentQ = stageQuestions[turnIndex];
-      targetToEat = currentQ.eaten;
-
-      document.getElementById('progress-val').innerText = `${turnIndex + 1} / ${TOTAL_TURNS}`;
-      document.getElementById('progress-fill').style.width = `${(turnIndex / TOTAL_TURNS) * 100}%`;
-      document.getElementById('score-val').innerText = runningScore;
-
-      // Update interactive subtraction view panel values
-      document.getElementById('math-total').innerText = currentQ.total;
-      document.getElementById('math-minus').innerText = currentQ.eaten;
-
-      // Select random creative prompt text instructions
-      document.getElementById('story-text').innerHTML = `<strong>Puzzle:</strong> ${dynamicStories[turnIndex % dynamicStories.length]}`;
-
-      const canvas = document.getElementById('stage-canvas');
-      canvas.innerHTML = '';
-
-      // Render Active Dino Instance 
-      let dinoElement = document.createElement('div');
-      dinoElement.className = 'dino-zone';
-      dinoElement.id = 'active-dino';
-      dinoElement.style.backgroundImage = `url('assets/${currentQ.dino}')`;
-      canvas.appendChild(dinoElement);
-
-      // Randomly position the exact number of fresh orchard apples on field vectors
-      const padding = 35;
-      const startX = 180; // Keep space on left clear for Dino housing layout zone
-      const endX = canvas.clientWidth - padding - 45;
-      const startY = padding;
-      const endY = canvas.clientHeight - padding - 45;
-
-      for (let i = 0; i < currentQ.total; i++) {
-        let apple = document.createElement('div');
-        apple.className = 'apple-draggable';
-        
-        let randX = Math.floor(Math.random() * (endX - startX)) + startX;
-        let randY = Math.floor(Math.random() * (endY - startY)) + startY;
-        
-        apple.style.left = randX + 'px';
-        apple.style.top = randY + 'px';
-        
-        setupDraggingEngine(apple, dinoElement);
-        canvas.appendChild(apple);
-      }
-    }
-
-    function setupDraggingEngine(element, targetDino) {
-      let activeDrag = false;
-      let startX, startY, initialLeft, initialTop;
-
-      element.addEventListener('mousedown', dragStart);
-      element.addEventListener('touchstart', dragStart, { passive: false });
-
-      function dragStart(e) {
-        activeDrag = true;
-        let clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
-        let clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
-        
-        startX = clientX;
-        startY = clientY;
-        initialLeft = parseInt(element.style.left) || 0;
-        initialTop = parseInt(element.style.top) || 0;
-
-        document.addEventListener('mousemove', dragMove);
-        document.addEventListener('touchmove', dragMove, { passive: false });
-        document.addEventListener('mouseup', dragEnd);
-        document.addEventListener('touchend', dragEnd);
-        if (e.cancelable) e.preventDefault();
-      }
-
-      function dragMove(e) {
-        if (!activeDrag) return;
-        let clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
-        let clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
-        
-        let dx = clientX - startX;
-        let dy = clientY - startY;
-
-        element.style.left = (initialLeft + dx) + 'px';
-        element.style.top = (initialTop + dy) + 'px';
-        if (e.cancelable) e.preventDefault();
-      }
-
-      function dragEnd() {
-        if (!activeDrag) return;
-        activeDrag = false;
-
-        document.removeEventListener('mousemove', dragMove);
-        document.removeEventListener('touchmove', dragMove);
-        document.removeEventListener('mouseup', dragEnd);
-        document.removeEventListener('touchend', dragEnd);
-
-        // Calculate boundary intersections
-        let appleRect = element.getBoundingClientRect();
-        let dinoRect = targetDino.getBoundingClientRect();
-
-        let hit = !(appleRect.right < dinoRect.left || 
-                    appleRect.left > dinoRect.right || 
-                    appleRect.bottom < dinoRect.top || 
-                    appleRect.top > dinoRect.bottom);
-
-        if (hit) {
-          // Guardrail: If they already fed the required number, dino refuses more food!
-          if (currentApplesEaten >= targetToEat) {
-            targetDino.classList.add('refusing');
-            playAudio('snd-wrong');
-            document.getElementById('feedback-box').style.color = '#c62828';
-            document.getElementById('feedback-box').innerText = "Wait! Look at the math statement. Dino has eaten enough!";
-            
-            // Snap apple back onto the field field out of boundary space
-            element.style.left = (canvas.clientWidth - 80) + 'px';
-            setTimeout(() => targetDino.classList.remove('refusing'), 450);
-            return;
-          }
-
-          // Otherwise, proceed with valid eating cycle loop action
-          element.remove();
-          currentApplesEaten++;
-          
-          targetDino.classList.add('chewing');
-          playAudio('snd-wrong'); // Crunch sound effect feedback 
-          setTimeout(() => targetDino.classList.remove('chewing'), 300);
-
-          if (currentApplesEaten === targetToEat) {
-            triggerChoiceAnswerPhase();
-          }
-        }
-      }
-    }
-
-    function triggerChoiceAnswerPhase() {
-      let feedBox = document.getElementById('feedback-box');
-      feedBox.style.color = '#2e7d32';
-      feedBox.innerText = "Yum! Dino is done eating. Now solve the problem!";
-      
-      let currentQ = stageQuestions[turnIndex];
-      const optionsBox = document.getElementById('options-box');
-      optionsBox.innerHTML = "";
-      
-      // Inject multiple choice item fields onto lower grid view 
-      currentQ.options.forEach(opt => {
-        let btn = document.createElement('button');
-        btn.className = "game-btn";
-        btn.innerText = opt;
-        btn.onclick = function() { processFinalMathSelection(btn, opt); };
-        optionsBox.appendChild(btn);
-      });
-      
-      acceptInput = true;
-    }
-
-    function processFinalMathSelection(clickedElement, pickedValue) {
-      if (!acceptInput) return;
-      let currentQ = stageQuestions[turnIndex];
-      let feedBox = document.getElementById('feedback-box');
-
-      if (pickedValue === currentQ.answer) {
-        acceptInput = false;
-        runningScore += 10;
-        
-        clickedElement.classList.add('correct');
-        document.getElementById('math-blank').innerText = currentQ.answer;
-        document.getElementById('math-blank').style.color = "#4caf50";
-        
-        feedBox.style.color = '#2e7d32';
-        feedBox.innerText = "Brilliant! You completed the statement! 🎉🍏";
-        
-        playAudio('snd-correct');
-        popConfetti();
-        
-        turnIndex++;
-        setTimeout(renderActiveTurn, 1600);
-      } else {
-        clickedElement.classList.add('wrong');
-        feedBox.style.color = '#c62828';
-        feedBox.innerText = "Count the apples left on the ground! Try again!";
-        
-        playAudio('snd-wrong');
-        setTimeout(() => clickedElement.classList.remove('wrong'), 600);
-      }
-      document.getElementById('score-val').innerText = runningScore;
-    }
-
-    function showEndGameSummary() {
-      document.getElementById('progress-fill').style.width = "100%";
-      document.getElementById('screen-play').classList.remove('active');
-      document.getElementById('screen-end').classList.add('active');
-    }
-
-    function resetWholeGame() {
-      turnIndex = 0;
-      runningScore = 0;
-      document.getElementById('screen-end').classList.remove('active');
-      document.getElementById('screen-intro').classList.add('active');
-      document.getElementById('progress-val').innerText = `1 / ${TOTAL_TURNS}`;
-      document.getElementById('score-val').innerText = "0";
-      assembleLevelQuestions();
-    }
-
-    window.onload = function() {
-      assembleLevelQuestions();
-      setTimeout(() => {
-        const splash = document.getElementById('screen-splash');
-        if (splash) splash.style.display = 'none';
-      }, 5000);
-    };
-  </script>
-</body>
-</html>
+      "Look closely at the minus number! Feed the dinosaur that exact amount of apples.",
+      "Help the dino crunch the correct number of fruits from the equation statement!",
+      "Orchard puzzle alert! Drag the apples being subtracted right into the dino's mouth.",
+      "Can you match the math sentence? Feed the dino the right number of sweet treats!",
+      "Look at the equation box below. How many apples does our friendly dinosaur need to eat?"
