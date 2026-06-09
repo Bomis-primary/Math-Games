@@ -3,13 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Number Master: 100 to 200</title>
+<title>Number Master Quest: 100 to 200</title>
 
 <style>
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     text-align: center;
-    /* Level 1 Default Background Theme */
     background: linear-gradient(to bottom, #ffeb3b 0%, #fffde7 40%, #4fc3f7 40%, #0288d1 100%);
     color: #333;
     margin: 0;
@@ -23,11 +22,11 @@ body {
     overflow-x: hidden;
     user-select: none;
     position: relative;
-    transition: background 0.5s ease;
+    transition: background 0.6s ease;
 }
 
 body::before {
-    content: "🚀";
+    content: "👑";
     position: absolute;
     top: 15px;
     right: 20px;
@@ -84,8 +83,8 @@ h1 {
     text-shadow: 0 1px 2px rgba(255,255,255,0.6);
 }
 
-/* Sequence Displays */
-.sequence-board {
+/* Master Core Display Boards */
+.game-board {
     background: #283593;
     border: 8px solid #1a237e;
     border-radius: 28px;
@@ -94,11 +93,13 @@ h1 {
     box-shadow: 0 14px 30px rgba(0,0,0,0.3);
     display: flex;
     justify-content: center;
+    align-items: center;
     gap: 15px;
     width: 92vw;
     max-width: 600px;
+    min-height: 160px;
     box-sizing: border-box;
-    transition: background-color 0.3s, border-color 0.3s;
+    transition: background-color 0.4s, border-color 0.4s;
 }
 
 .number-node {
@@ -125,7 +126,28 @@ h1 {
     color: #ffd166;
 }
 
-/* Choice Bank Options */
+/* Specialized nodes for comparisons and long formulas */
+.expansion-node {
+    font-size: clamp(26px, 5vw, 42px);
+    color: #fff;
+    font-weight: bold;
+    text-shadow: 0 3px 6px rgba(0,0,0,0.4);
+}
+
+.symbol-slot {
+    width: 90px;
+    height: 90px;
+    background: rgba(255,255,255,0.2);
+    border: 4px dashed #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 42px;
+    color: #ffeb3b;
+}
+
+/* Choice Bank Tray */
 .options-container {
     display: flex;
     justify-content: center;
@@ -133,53 +155,49 @@ h1 {
     width: 94vw;
     max-width: 620px;
     margin-top: 10px;
+    flex-wrap: wrap;
 }
 
 .option-card {
     flex: 1;
-    max-width: 130px;
-    aspect-ratio: 1 / 1;
+    min-width: 100px;
+    max-width: 180px;
+    padding: 15px 10px;
     background: #ffffff;
     border: 5px solid #fff;
     border-radius: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: clamp(24px, 5vw, 36px);
+    font-size: clamp(22px, 4.5vw, 34px);
     font-weight: bold;
     color: #2e7d32;
     cursor: pointer;
     box-shadow: 0 10px 20px rgba(0,0,0,0.2);
     transition: transform 0.2s, background-color 0.2s, color 0.2s;
 }
-.option-card:hover { transform: scale(1.08); }
+.option-card:hover { transform: scale(1.06); }
 
-/* Playful cartoon animations */
+/* Animation triggers */
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
     20%, 60% { transform: translateX(-10px); }
     40%, 80% { transform: translateX(10px); }
 }
-.shake-wrong {
-    animation: shake 0.4s ease-in-out;
-}
+.shake-wrong { animation: shake 0.4s ease-in-out; }
 
 @keyframes pop {
     0% { transform: scale(1); }
     50% { transform: scale(1.25); }
     100% { transform: scale(1); }
 }
-.pop-correct {
-    animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
+.pop-correct { animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
 
 @keyframes bounceText {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-15px); }
 }
-.bounce-title {
-    animation: bounceText 0.8s infinite ease-in-out;
-}
+.bounce-title { animation: bounceText 0.8s infinite ease-in-out; }
 
 .btn {
     padding: 16px 55px;
@@ -220,10 +238,10 @@ h1 {
 
 <div id="gameContainer">
     <div id="levelBadge" class="level-badge">LEVEL 1</div>
-    <h1 id="gameTitle">Number Sequence Machine</h1>
-    <p id="gameInstruction" class="instruction">Find the missing sequence value!</p>
+    <h1 id="gameTitle">Number Quest Machine</h1>
+    <p id="gameInstruction" class="instruction">Loading your goal...</p>
 
-    <div class="sequence-board" id="sequenceBoard">
+    <div class="game-board" id="masterBoard">
         </div>
     
     <div class="options-container" id="optionsContainer">
@@ -235,8 +253,8 @@ h1 {
 <canvas id="fireworks"></canvas>
 
 <div id="winScreen">
-    <h1 id="winHeader" class="bounce-title">CHALLENGE MET! 🎉</h1>
-    <p id="winMessage" style="font-size:24px; color:#e0f2f1; margin:0 0 30px 0;">Outstanding number sequencing skills!</p>
+    <h1 id="winHeader" class="bounce-title">QUEST COMPLETED! 🏆</h1>
+    <p id="winMessage" style="font-size:24px; color:#e0f2f1; margin:0 0 30px 0;">You are officially a 100-200 Number Master!</p>
     <button class="btn" style="background:#e91e63; box-shadow:0 6px 14px rgba(233,30,99,0.4);" onclick="handleOverlayReset()">Play Again 🔄</button>
 </div>
 
@@ -249,33 +267,30 @@ const winMusic = document.getElementById("winMusic");
 const correctSound = document.getElementById("correctSound");
 const wrongSound = document.getElementById("wrongSound");
 
-// Unified Game State Matrix
-let currentLevel = 1; // Level 1 (100-130), Level 2 (131-170), Level 3 (171-200)
-let currentRound = 0; // 0, 1, 2 rounds per level configuration
+// Global Unified State Architecture
+let currentLevel = 1; // 1: Sequence Engine, 2: Expanded Reactor Engine, 3: Crocodile Compare Engine
+let currentRound = 0; 
 const totalRoundsPerLevel = 3;
 
-let correctAnswer = 0;
+let correctAnswerText = "";
 let winInterval = null;
 
-// Level Dynamic Configuration Sets (Visual themes and math boundaries)
-const levelConfigs = {
+// The Configuration Matrix defining visual assets and level paradigms
+const levelThemes = {
     1: {
-        minRange: 100, maxRange: 128,
         bgStyle: "linear-gradient(to bottom, #ffeb3b 0%, #fffde7 40%, #4fc3f7 40%, #0288d1 100%)",
         boardColor: "#283593", boardBorder: "#1a237e", badgeColor: "#e91e63",
-        modeName: "WHAT COMES AFTER?", missingIndex: 2
+        title: "Number Sequence Machine", instruction: "Find the missing sequence number!"
     },
     2: {
-        minRange: 131, maxRange: 168,
         bgStyle: "linear-gradient(to bottom, #a8ff78 0%, #78ffd6 40%, #11998e 40%, #38ef7d 100%)",
         boardColor: "#1b5e20", boardBorder: "#0d5316", badgeColor: "#ff9800",
-        modeName: "WHAT COMES BEFORE?", missingIndex: 0
+        title: "Expanded Form Reactor", instruction: "Match the correct Expanded Form parts!"
     },
     3: {
-        minRange: 171, maxRange: 197,
         bgStyle: "linear-gradient(to bottom, #ff9966 0%, #ff5e62 40%, #8e2de2 40%, #4a00e0 100%)",
         boardColor: "#4a148c", boardBorder: "#310c61", badgeColor: "#9c27b0",
-        modeName: "WHAT COMES BETWEEN?", missingIndex: 1
+        title: "Number Comparison Arena", instruction: "Choose the correct sign to match the values!"
     }
 };
 
@@ -295,13 +310,15 @@ window.addEventListener("DOMContentLoaded", () => {
 function initGame() {
     currentLevel = 1;
     currentRound = 0;
-    loadRound();
+    loadRoundEngine();
 }
 
-function updateVisualTheme(cfg) {
+function updateLayoutTheme(cfg) {
     document.body.style.background = cfg.bgStyle;
+    document.getElementById("gameTitle").innerText = cfg.title;
+    document.getElementById("gameInstruction").innerText = cfg.instruction;
     
-    const board = document.getElementById("sequenceBoard");
+    const board = document.getElementById("masterBoard");
     board.style.backgroundColor = cfg.boardColor;
     board.style.borderColor = cfg.boardBorder;
     
@@ -309,26 +326,41 @@ function updateVisualTheme(cfg) {
     badge.style.backgroundColor = cfg.badgeColor;
 }
 
-function loadRound() {
+function loadRoundEngine() {
     document.getElementById("actionControl").disabled = true;
-    const cfg = levelConfigs[currentLevel];
+    const cfg = levelThemes[currentLevel];
+    updateLayoutTheme(cfg);
     
-    // Update structural layout styling per level configuration
-    updateVisualTheme(cfg);
-    
-    // Update Badge descriptive text
-    document.getElementById("levelBadge").innerText = `LEVEL ${currentLevel}: ${cfg.modeName} (${currentRound + 1}/${totalRoundsPerLevel})`;
+    // Set informative badge string headers
+    document.getElementById("levelBadge").innerText = `LEVEL ${currentLevel} - ROUND ${currentRound + 1}/${totalRoundsPerLevel}`;
 
-    // Generate strict boundaries based on calculation parameters
-    let startNum = Math.floor(Math.random() * (cfg.maxRange - cfg.minRange)) + cfg.minRange; 
+    const board = document.getElementById("masterBoard");
+    const optionsContainer = document.getElementById("optionsContainer");
+    board.innerHTML = "";
+    optionsContainer.innerHTML = "";
+
+    // BRANCH: Execute specialized Level Builder Engine depending on active index
+    if (currentLevel === 1) {
+        buildSequenceRound(board, optionsContainer);
+    } else if (currentLevel === 2) {
+        buildExpansionRound(board, optionsContainer);
+    } else if (currentLevel === 3) {
+        buildComparisonRound(board, optionsContainer);
+    }
+}
+
+/* ==========================================
+   LEVEL 1 GENERATOR ENGINE: SEQUENCING
+   ========================================== */
+function buildSequenceRound(board, optionsContainer) {
+    let startNum = Math.floor(Math.random() * 90) + 101; 
     let sequence = [startNum, startNum + 1, startNum + 2];
     
-    let missingIndex = cfg.missingIndex;
-    correctAnswer = sequence[missingIndex];
+    // Rotate index choices dynamically between rounds (After, Before, Between)
+    let missingIndex = currentRound === 0 ? 2 : (currentRound === 1 ? 0 : 1);
+    let correctValue = sequence[missingIndex];
+    correctAnswerText = correctValue.toString();
 
-    const board = document.getElementById("sequenceBoard");
-    board.innerHTML = "";
-    
     sequence.forEach((num, idx) => {
         const node = document.createElement("div");
         if (idx === missingIndex) {
@@ -342,41 +374,159 @@ function loadRound() {
         board.appendChild(node);
     });
 
-    let choices = [correctAnswer];
+    let choices = [correctValue];
     while (choices.length < 3) {
-        let distractor = correctAnswer + (Math.random() > 0.5 ? 1 : -1) * (Math.floor(Math.random() * 4) + 1);
+        let distractor = correctValue + (Math.random() > 0.5 ? 1 : -1) * (Math.floor(Math.random() * 5) + 1);
         if (distractor >= 100 && distractor <= 200 && !choices.includes(distractor)) {
             choices.push(distractor);
         }
     }
     choices.sort(() => Math.random() - 0.5);
 
-    const optionsContainer = document.getElementById("optionsContainer");
-    optionsContainer.innerHTML = "";
     choices.forEach(val => {
         const card = document.createElement("div");
         card.className = "option-card";
         card.innerText = val;
-        card.onclick = () => handleChoiceSelection(card, val);
+        card.onclick = () => verifyPlayerInput(card, val.toString(), () => {
+            const target = document.getElementById("targetSlot");
+            target.innerText = correctAnswerText;
+            target.style.background = "#81c784";
+            target.style.color = "#fff";
+            target.style.borderColor = "#2e7d32";
+            target.style.borderStyle = "solid";
+            target.classList.add("pop-correct");
+        });
         optionsContainer.appendChild(card);
     });
 }
 
-function handleChoiceSelection(selectedCard, chosenValue) {
-    if (chosenValue === correctAnswer) {
+/* ==========================================
+   LEVEL 2 GENERATOR ENGINE: EXPANDED FORM
+   ========================================== */
+function buildExpansionRound(board, optionsContainer) {
+    let targetNum = Math.floor(Math.random() * 99) + 101; // Range: 101-200
+    
+    let hundreds = Math.floor(targetNum / 100) * 100;
+    let tens = Math.floor((targetNum % 100) / 10) * 10;
+    let ones = targetNum % 10;
+    
+    correctAnswerText = `${hundreds} + ${tens} + ${ones}`;
+
+    // Render target node display 
+    const targetNode = document.createElement("div");
+    targetNode.className = "number-node";
+    targetNode.style.maxWidth = "160px";
+    targetNode.innerText = targetNum;
+    board.appendChild(targetNode);
+
+    const equalSign = document.createElement("div");
+    equalSign.className = "expansion-node";
+    equalSign.innerText = "=";
+    board.appendChild(equalSign);
+
+    const slotNode = document.createElement("div");
+    slotNode.className = "number-node missing-target";
+    slotNode.id = "targetSlot";
+    slotNode.style.maxWidth = "260px";
+    slotNode.style.aspectRatio = "auto";
+    slotNode.style.padding = "10px 25px";
+    slotNode.innerText = "? + ? + ?";
+    board.appendChild(slotNode);
+
+    // Distractor logic matrix generating parallel false expansion combinations
+    let choices = [correctAnswerText];
+    while (choices.length < 3) {
+        let fakeNum = Math.floor(Math.random() * 99) + 101;
+        let fH = Math.floor(fakeNum / 100) * 100;
+        let fT = Math.floor((fakeNum % 100) / 10) * 10;
+        let fO = fakeNum % 10;
+        let fakeOption = `${fH} + ${fT} + ${fO}`;
+        if (!choices.includes(fakeOption)) {
+            choices.push(fakeOption);
+        }
+    }
+    choices.sort(() => Math.random() - 0.5);
+
+    choices.forEach(formula => {
+        const card = document.createElement("div");
+        card.className = "option-card";
+        card.style.maxWidth = "220px";
+        card.innerText = formula;
+        card.onclick = () => verifyPlayerInput(card, formula, () => {
+            const target = document.getElementById("targetSlot");
+            target.innerText = correctAnswerText;
+            target.style.background = "#81c784";
+            target.style.color = "#fff";
+            target.style.borderColor = "#2e7d32";
+            target.style.fontSize = "clamp(18px, 3.5vw, 26px)";
+            target.style.borderStyle = "solid";
+            target.classList.add("pop-correct");
+        });
+        optionsContainer.appendChild(card);
+    });
+}
+
+/* ==========================================
+   LEVEL 3 GENERATOR ENGINE: COMPARISONS (<, >)
+   ========================================== */
+function buildComparisonRound(board, optionsContainer) {
+    let numA = Math.floor(Math.random() * 90) + 105;
+    let numB = Math.floor(Math.random() * 90) + 105;
+    while (numA === numB) {
+        numB = Math.floor(Math.random() * 90) + 105;
+    }
+
+    correctAnswerText = numA > numB ? ">" : "<";
+
+    const nodeA = document.createElement("div");
+    nodeA.className = "number-node";
+    nodeA.innerText = numA;
+    board.appendChild(nodeA);
+
+    const slotNode = document.createElement("div");
+    slotNode.className = "symbol-slot";
+    slotNode.id = "targetSlot";
+    slotNode.innerText = "?";
+    board.appendChild(slotNode);
+
+    const nodeB = document.createElement("div");
+    nodeB.className = "number-node";
+    nodeB.innerText = numB;
+    board.appendChild(nodeB);
+
+    const operationalChoices = [">", "<"];
+    operationalChoices.forEach(symbol => {
+        const card = document.createElement("div");
+        card.className = "option-card";
+        card.style.fontSize = "48px";
+        card.innerText = symbol;
+        card.onclick = () => verifyPlayerInput(card, symbol, () => {
+            const target = document.getElementById("targetSlot");
+            target.innerText = correctAnswerText;
+            target.style.backgroundColor = "#ffeb3b";
+            target.style.color = "#e65100";
+            target.style.borderColor = "#e65100";
+            target.style.borderStyle = "solid";
+            target.classList.add("pop-correct");
+        });
+        optionsContainer.appendChild(card);
+    });
+}
+
+/* ==========================================
+   VALIDATION & STATE STEPPING MANAGEMENT
+   ========================================== */
+function verifyPlayerInput(selectedCard, alternativeValue, updateUIDelegate) {
+    if (alternativeValue === correctAnswerText) {
         correctSound.currentTime = 0;
         correctSound.play().catch(e => {});
         
-        const target = document.getElementById("targetSlot");
-        target.innerText = correctAnswer;
-        target.style.background = "#81c784";
-        target.style.color = "#fff";
-        target.style.borderColor = "#2e7d32";
-        target.style.borderStyle = "solid";
-        target.classList.add("pop-correct");
+        updateUIDelegate();
         
+        // Target localized flash pop particles directly above target block positioning
+        const target = document.getElementById("targetSlot");
         const rect = target.getBoundingClientRect();
-        burstParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 25);
+        burstParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 28);
         
         document.querySelectorAll('.option-card').forEach(c => c.onclick = null);
         document.getElementById("actionControl").disabled = false;
@@ -399,14 +549,15 @@ function handleChoiceSelection(selectedCard, chosenValue) {
 function advanceNextRound() {
     currentRound++;
     if (currentRound < totalRoundsPerLevel) {
-        loadRound();
+        loadRoundEngine();
     } else {
         if (currentLevel < 3) {
             currentLevel++;
             currentRound = 0;
-            // Pop transition celebratory fireworks burst between core levels
-            burstParticles(window.innerWidth / 2, window.innerHeight / 3, 45);
-            loadRound();
+            
+            // Core Level Transition screen flash celebration burst
+            burstParticles(window.innerWidth / 2, window.innerHeight / 3, 50);
+            loadRoundEngine();
         } else {
             triggerWinCelebration();
         }
@@ -419,7 +570,7 @@ function triggerWinCelebration() {
     winMusic.play().catch(e => {});
     
     triggerFullRainBurst();
-    winInterval = setInterval(triggerFullRainBurst, 600);
+    winInterval = setInterval(triggerFullRainBurst, 550);
 }
 
 function handleOverlayReset() {
@@ -429,7 +580,7 @@ function handleOverlayReset() {
     initGame();
 }
 
-/* Particle engine handling card pop bursts and fullscreen confetti showers */
+/* High-Performance Canvas Confetti Particle Pipeline */
 const canvas = document.getElementById("fireworks");
 const ctx = canvas.getContext("2d");
 let particles = [];
@@ -438,20 +589,20 @@ resize();
 window.addEventListener("resize", resize);
 
 function burstParticles(x, y, count) {
-    const hues = [0, 45, 120, 200, 280, 320]; 
+    const hues = [15, 45, 135, 195, 275, 335]; 
     for(let i = 0; i < count; i++){
         let angle = Math.random() * 2 * Math.PI;
-        let speed = Math.random() * 5 + 2;
+        let speed = Math.random() * 6 + 2.5;
         let hue = hues[Math.floor(Math.random() * hues.length)];
         particles.push({ 
             x: x, 
             y: y, 
             vx: Math.cos(angle) * speed, 
             vy: Math.sin(angle) * speed, 
-            radius: Math.random() * 3 + 2, 
+            radius: Math.random() * 3 + 2.5, 
             alpha: 1, 
             color: `hsla(${hue}, 100%, 60%, `, 
-            gravity: 0.06 
+            gravity: 0.07 
         });
     }
 }
@@ -468,7 +619,7 @@ function animate() {
         p.x += p.vx; 
         p.y += p.vy; 
         p.vy += p.gravity; 
-        p.alpha -= 0.014; 
+        p.alpha -= 0.013; 
     });
     particles = particles.filter(p => p.alpha > 0);
     particles.forEach(p => {
