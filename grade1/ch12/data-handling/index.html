@@ -3,92 +3,380 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Milo's Toy Party</title>
+<title>Sorting Sam's Data Grid Blueprint</title>
+
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; overflow: hidden; }
-
-  .screen { display: none; height: 100vh; width: 100vw; justify-content: center; align-items: center; flex-direction: column; }
-  .screen.active { display: flex; }
-
-  /* Splash screen */
-  #splash { background: #ffffff; }
-  .logo { max-width: 250px; }
-
-  /* Start screen with uploaded background */
-  #start {
-    background: url('/mnt/data/ac01eba0-2313-4c93-8e1c-7d42c3c30614.png') center/cover no-repeat;
-    width: 100%;
-    height: 100%;
-    position: relative;
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     text-align: center;
-  }
-  #start h1 {
-    font-size: 3em;
-    margin-top: 50px;
-    color: #fff;
-    text-shadow: 2px 2px 4px #000;
-  }
-  #start button {
-    padding: 16px 36px;
+    background: linear-gradient(to bottom, #e3f2fd 0%, #bbdefb 100%);
+    color: #333;
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+}
+
+#gameContainer {
+    width: 100%;
+    max-width: 900px;
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 25px;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+    box-sizing: border-box;
+}
+
+.level-badge {
+    background: #ec407a;
+    color: white;
+    padding: 6px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+h1 {
+    margin: 5px 0;
+    font-size: clamp(24px, 4vw, 32px);
+    color: #0d47a1;
+}
+
+.instruction {
+    font-size: 18px;
+    color: #c2185b;
+    font-weight: bold;
+    margin: 5px 0 20px 0;
+}
+
+/* Messy Items Display Deck Area */
+.scrambled-inventory-box {
+    background: #f5f5f5;
+    border: 3px dashed #b0bec5;
+    border-radius: 16px;
+    padding: 20px;
+    min-height: 110px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.scrambled-item {
+    font-size: 42px;
+    cursor: pointer;
+    background: #ffffff;
+    width: 65px;
+    height: 65px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.scrambled-item:hover {
+    transform: scale(1.15);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+/* Graph Blueprint Grid Engine Frame Layout */
+.chart-container {
+    width: 100%;
+    overflow-x: auto;
+    margin-bottom: 25px;
+    border: 3px solid #b39ddb;
+    border-radius: 16px;
+    background: #fff;
+}
+
+.chart-row {
+    display: flex;
+    align-items: center;
+    border-bottom: 3px solid #b39ddb;
+    min-width: 800px;
+}
+.chart-row:last-child {
+    border-bottom: none;
+}
+
+/* Category Title Cell Column */
+.category-lead-cell {
+    width: 100px;
+    min-height: 85px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 45px;
+    background: #f3e5f5;
+    border-right: 3px solid #b39ddb;
+    flex-shrink: 0;
+}
+
+/* Plot Blocks Track Column */
+.grid-track {
+    display: flex;
+    flex-grow: 1;
+    background-image: linear-gradient(to right, #b39ddb 2px, transparent 2px);
+    background-size: 65px 100%;
+    min-height: 85px;
+    align-items: center;
+    padding-left: 2px;
+}
+
+.grid-cell-slot {
+    width: 65px;
+    height: 85px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 38px;
+    animation: dropIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* Answer Input Block Box Column */
+.input-answer-zone {
+    width: 120px;
+    min-height: 85px;
+    background: #fff9c4;
+    border-left: 3px solid #b39ddb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    gap: 5px;
+}
+
+.count-input {
+    width: 60px;
+    height: 45px;
     font-size: 22px;
     font-weight: bold;
-    border-radius: 12px;
-    border: none;
-    background: #ffbf00;
-    cursor: pointer;
-    position: absolute;
-    bottom: 50px;
-    left: 50%;
-    transform: translateX(-50%);
-  }
+    text-align: center;
+    border: 2px solid #fbc02d;
+    border-radius: 8px;
+    color: #5d4037;
+}
+.count-input:disabled {
+    background: #e8f5e9;
+    border-color: #4caf50;
+    color: #2e7d32;
+}
 
-  /* Game screen */
-  #game {
-    display: none;
-    height: 100vh;
-    width: 100vw;
-    background: #e0f7fa;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    position: relative;
-  }
+.status-indicator {
+    font-size: 22px;
+    width: 25px;
+}
+
+/* Base Level Form Control Elements */
+.btn {
+    padding: 14px 45px;
+    font-size: 20px;
+    font-weight: bold;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    background: #2e7d32;
+    color: white;
+    box-shadow: 0 6px 14px rgba(46, 125, 50, 0.3);
+    transition: transform 0.1s;
+    margin-top: 10px;
+}
+.btn:active { transform: scale(0.96); }
+.btn:disabled { background: #b0bec5; cursor: not-allowed; box-shadow: none; }
+
+#fireworks { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; }
+
+@keyframes dropIn {
+    0% { transform: translateY(-30px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
+}
+.error-shake { animation: shake 0.4s ease-in-out; }
 </style>
 </head>
 <body>
 
-<!-- Splash screen -->
-<section id="splash" class="screen active">
-  <img src="assets/logo.png" class="logo" alt="Innovine Logo">
-</section>
+<div id="gameContainer">
+    <div class="level-badge">THINKING SKILLS HOTS</div>
+    <h1>Sam's Grid Blueprint Tracker</h1>
+    <p class="instruction">1. Click the items in the top box to sort them into rows! Then type how many you counted.</p>
 
-<!-- Start screen -->
-<section id="start" class="screen">
-  <h1>Milo's Toy Party</h1>
-  <button id="startBtn">Start Game 🟢</button>
-</section>
+    <div class="scrambled-inventory-box" id="scrambledPile"></div>
 
-<!-- Game screen -->
-<section id="game" class="screen">
-  <h2>Game Started!</h2>
-</section>
+    <div class="chart-container">
+        <div class="chart-row" id="row-ball">
+            <div class="category-lead-cell">⚽</div>
+            <div class="grid-track" id="track-ball"></div>
+            <div class="input-answer-zone">
+                <input type="number" id="input-ball" class="count-input" min="0" placeholder="?" disabled>
+                <span id="status-ball" class="status-indicator"></span>
+            </div>
+        </div>
+
+        <div class="chart-row" id="row-car">
+            <div class="category-lead-cell">🚗</div>
+            <div class="grid-track" id="track-car"></div>
+            <div class="input-answer-zone">
+                <input type="number" id="input-car" class="count-input" min="0" placeholder="?" disabled>
+                <span id="status-car" class="status-indicator"></span>
+            </div>
+        </div>
+    </div>
+
+    <button id="verifyBtn" class="btn" onclick="verifyCalculations()" disabled>Verify Answers Check 🎯</button>
+</div>
+
+<canvas id="fireworks"></canvas>
+
+<audio id="clickSound" preload="auto" src="assets/click.mp3"></audio>
+<audio id="correctSound" preload="auto" src="assets/correct.mp3"></audio>
+<audio id="wrongSound" preload="auto" src="assets/wrong.mp3"></audio>
 
 <script>
-window.onload = function() {
-  // Splash screen for 5 seconds
-  setTimeout(() => {
-    document.getElementById("splash").classList.remove("active");
-    document.getElementById("start").classList.add("active");
-  }, 5000);
+// Target answers configured systematically via dataset setup
+const targetsCount = { ball: 0, car: 0 };
+let currentSortedTotal = 0;
+let grandTotalPopulation = 0;
 
-  // Start button functionality
-  document.getElementById("startBtn").addEventListener("click", function() {
-    document.getElementById("start").classList.remove("active");
-    document.getElementById("game").classList.add("active");
-  });
-};
+function generateScrambledDeck() {
+    // Generate matching randomized structural count between 4 and 9 to fill out rows neatly
+    targetsCount.ball = Math.floor(Math.random() * 5) + 4;
+    targetsCount.car = Math.floor(Math.random() * 5) + 4;
+    grandTotalPopulation = targetsCount.ball + targetsCount.car;
+
+    let totalPool = [];
+    for (let i = 0; i < targetsCount.ball; i++) totalPool.push({ type: 'ball', emoji: '⚽' });
+    for (let i = 0; i < targetsCount.car; i++) totalPool.push({ type: 'car', emoji: '🚗' });
+
+    // Mix up objects inside array setup randomly
+    totalPool.sort(() => Math.random() - 0.5);
+
+    const pile = document.getElementById("scrambledPile");
+    pile.innerHTML = "";
+
+    totalPool.forEach((item, index) => {
+        const element = document.createElement("div");
+        element.className = "scrambled-item";
+        element.id = `inv-${index}`;
+        element.innerText = item.emoji;
+        element.onclick = () => sendToGridTrack(index, item.type, item.emoji);
+        pile.appendChild(element);
+    });
+}
+
+function sendToGridTrack(index, type, emoji) {
+    const activeItem = document.getElementById(`inv-${index}`);
+    if (!activeItem) return;
+
+    // Play click audio transition natively
+    document.getElementById("clickSound").currentTime = 0;
+    document.getElementById("clickSound").play().catch(()=>{});
+
+    // Append child item clean clone structure directly into row grid track
+    const targetTrack = document.getElementById(`track-${type}`);
+    const cellSlot = document.createElement("div");
+    cellSlot.className = "grid-cell-slot";
+    cellSlot.innerText = emoji;
+    targetTrack.appendChild(cellSlot);
+
+    // Delete item from random layout block wrapper
+    activeItem.remove();
+    currentSortedTotal++;
+
+    // Unblock tracking data calculation field elements once organization completes
+    if (currentSortedTotal === grandTotalPopulation) {
+        document.getElementById("input-ball").disabled = false;
+        document.getElementById("input-car").disabled = false;
+        document.getElementById("verifyBtn").disabled = false;
+        document.querySelector(".instruction").innerText = "2. Perfect sorting! Now count each row and type the number on the right.";
+    }
+}
+
+function verifyCalculations() {
+    const valBall = parseInt(document.getElementById("input-ball").value);
+    const valCar = parseInt(document.getElementById("input-car").value);
+
+    let rowBallCorrect = (valBall === targetsCount.ball);
+    let rowCarCorrect = (valCar === targetsCount.car);
+
+    // Update graphical response tracking status markers
+    document.getElementById("status-ball").innerText = rowBallCorrect ? "✅" : "❌";
+    document.getElementById("status-car").innerText = rowCarCorrect ? "✅" : "❌";
+
+    if (rowBallCorrect && rowCarCorrect) {
+        document.getElementById("correctSound").play().catch(()=>{});
+        document.getElementById("input-ball").disabled = true;
+        document.getElementById("input-car").disabled = true;
+        document.getElementById("verifyBtn").disabled = true;
+        
+        document.querySelector(".instruction").innerText = "🏆 Amazing Data Analysis! Everything matches beautifully!";
+        triggerWinCelebration();
+    } else {
+        document.getElementById("wrongSound").play().catch(()=>{});
+        const container = document.getElementById("gameContainer");
+        container.classList.add("error-shake");
+        setTimeout(() => container.classList.remove("error-shake"), 400);
+    }
+}
+
+/* Particle Canvas Confetti Pipeline */
+const canvas = document.getElementById("fireworks");
+const ctx = canvas.getContext("2d");
+let particles = [];
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize();
+window.addEventListener("resize", resize);
+
+function triggerWinCelebration() {
+    let duration = 3000;
+    let end = Date.now() + duration;
+
+    (function frame() {
+        burstParticles(Math.random() * canvas.width, Math.random() * canvas.height * 0.4, 8);
+        if (Date.now() < end) {
+            requestAnimationFrame(frame);
+        }
+    }());
+}
+
+function burstParticles(x, y, count) {
+    for(let i = 0; i < count; i++){
+        let angle = Math.random() * 2 * Math.PI;
+        let speed = Math.random() * 4 + 2;
+        particles.push({ 
+            x: x, y: y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, 
+            radius: Math.random() * 3 + 2, alpha: 1, gravity: 0.05,
+            color: `hsla(${Math.random() * 360}, 100%, 60%, `
+        });
+    }
+}
+
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.alpha -= 0.015; });
+    particles = particles.filter(p => p.alpha > 0);
+    particles.forEach(p => {
+        ctx.fillStyle = `${p.color}${p.alpha})`;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
+    });
+    requestAnimationFrame(animate);
+}
+animate();
+
+window.onload = generateScrambledDeck;
 </script>
-
 </body>
 </html>
