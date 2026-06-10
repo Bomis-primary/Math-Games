@@ -37,7 +37,7 @@
       display: flex;
       flex-direction: column;
       position: relative;
-      min-height: 600px;
+      min-height: 650px;
       border: 4px solid var(--library-blue);
     }
 
@@ -92,15 +92,15 @@
       border: 3px dashed #4caf50;
       border-radius: 16px;
       padding: 15px;
-      margin-bottom: 20px;
-      font-size: 1.25rem;
-      line-height: 1.5;
+      margin-bottom: 15px;
+      font-size: 1.2rem;
+      line-height: 1.4;
       text-align: left;
     }
 
-    /* Classroom Chalkboard Workspace */
+    /* Classroom Chalkboard Canvas containing the Vertical Columns */
     .chalkboard-canvas {
-      height: 180px;
+      min-height: 250px;
       background-color: var(--chalkboard-green); 
       border-radius: 16px;
       position: relative;
@@ -108,7 +108,8 @@
       border: 8px solid var(--wood-brown);
       display: flex;
       align-items: center;
-      justify-content: space-around;
+      justify-content: center;
+      gap: 50px;
       padding: 20px;
       box-shadow: inset 0 0 20px rgba(0,0,0,0.4), 0 4px 10px rgba(0,0,0,0.15);
     }
@@ -130,53 +131,63 @@
       75% { transform: translateX(8px) rotate(3deg); }
     }
 
-    .board-text-display {
-      color: #ffffff;
+    /* Vertical Place Value Column System */
+    .math-grid-table {
+      border-collapse: collapse;
+      color: white;
       font-family: 'Courier New', Courier, monospace;
       font-size: 2.5rem;
       font-weight: bold;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
-      letter-spacing: 2px;
-    }
-
-    /* Live Equation Input Display */
-    .equation-container {
-      font-size: 2.5rem;
-      font-weight: bold;
-      margin-bottom: 15px;
-      color: var(--text-dark);
-      background: #ffffff;
-      padding: 8px 40px;
-      border-radius: 50px;
-      display: inline-block;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      border: 3px solid #b0bec5;
-    }
-    
-    .equation-blank {
-      display: inline-block;
-      min-width: 85px;
-      border-bottom: 5px solid #e65100;
-      color: #e65100;
       text-align: center;
     }
-    .equation-blank.typing {
-      color: var(--library-blue);
-      border-bottom-color: var(--library-blue);
+    .math-grid-table td {
+      width: 65px;
+      height: 55px;
+      padding: 2px;
+      position: relative;
+    }
+    
+    /* Place Value Headers (H, T, O) matching textbook format */
+    .math-grid-table .header-row td {
+      font-family: 'Trebuchet MS', sans-serif;
+      font-size: 1.6rem;
+      color: #fff9c4;
+      border-bottom: 3px dashed rgba(255,255,255,0.25);
+      height: 40px;
+    }
+    
+    .math-grid-table .operator-cell {
+      text-align: right;
+      padding-right: 15px;
+      color: #ffb300;
+      font-size: 2.3rem;
+    }
+    
+    .math-grid-table .minus-row td {
+      border-bottom: 5px solid white;
+    }
+    
+    /* Answer row typography */
+    .math-grid-table .result-cell {
+      color: #ffeb3b;
+    }
+    .math-grid-table .result-cell.typing-active {
+      color: #ff9800;
+      text-decoration: underline;
     }
 
-    /* Input Pad Layout */
+    /* Input Pad Area */
     .keypad-box {
       display: flex;
       justify-content: center;
       gap: 8px;
-      margin: 5px auto 10px auto;
+      margin: 5px auto;
       max-width: 520px;
       flex-wrap: wrap;
     }
     .key-btn {
-      width: 50px;
-      height: 50px;
+      width: 52px;
+      height: 52px;
       font-size: 1.4rem;
       font-weight: bold;
       background: #ffffff;
@@ -198,7 +209,7 @@
       color: white;
     }
     .key-btn.go-key {
-      width: 90px;
+      width: 95px;
       background: var(--forest-green);
       border-color: #1b5e20;
       box-shadow: 0 4px 0 #1b5e20;
@@ -206,8 +217,8 @@
     }
 
     .feedback-banner {
-      height: 35px;
-      font-size: 1.2rem;
+      height: 30px;
+      font-size: 1.15rem;
       font-weight: bold;
       margin-top: 5px;
     }
@@ -245,7 +256,7 @@
     <div id="screen-intro" class="screen active">
       <div class="story-bubble">
         <p><strong>Reena's Big Day at the School Library 📚👧</strong></p>
-        <p style="margin-top: 10px; font-size: 1.15rem; color: #2c3e50;">Help Reena solve math challenges up to 500! Read the story problem carefully, calculate your subtraction answer, and use the on-screen keypad to type it in!</p>
+        <p style="margin-top: 10px; font-size: 1.1rem; color: #2c3e50;">Help Reena organize book counts up to 500! Look closely at the Hundreds, Tens, and Ones grid on the chalkboard, subtract column by column, and type your answer!</p>
       </div>
       <button class="action-btn" onclick="startGame()">Help Reena Sort! 🚀</button>
     </div>
@@ -257,183 +268,19 @@
 
       <div class="chalkboard-canvas">
         <div id="helper-character" class="helper-avatar">👧</div>
-        <div class="board-text-display" id="board-equation-preview">480 - 232 = ?</div>
-      </div>
-
-      <div>
-        <div class="equation-container">
-          <span id="math-total">0</span> - <span id="math-minus">0</span> = <span class="equation-blank" id="math-blank">?</span>
-        </div>
-      </div>
-
-      <div class="keypad-box">
-        <button class="key-btn" onclick="pressKey('1')">1</button>
-        <button class="key-btn" onclick="pressKey('2')">2</button>
-        <button class="key-btn" onclick="pressKey('3')">3</button>
-        <button class="key-btn" onclick="pressKey('4')">4</button>
-        <button class="key-btn" onclick="pressKey('5')">5</button>
-        <button class="key-btn" onclick="pressKey('6')">6</button>
-        <button class="key-btn" onclick="pressKey('7')">7</button>
-        <button class="key-btn" onclick="pressKey('8')">8</button>
-        <button class="key-btn" onclick="pressKey('9')">9</button>
-        <button class="key-btn" onclick="pressKey('0')">0</button>
-        <button class="key-btn action-key" onclick="pressKey('CLEAR')">Clear</button>
-        <button class="key-btn go-key" onclick="submitLibraryAnswer()">Check</button>
-      </div>
-
-      <div class="feedback-banner" id="feedback-box"></div>
-    </div>
-
-    <div id="screen-end" class="screen">
-      <div class="story-bubble">
-        <p><strong>🎉 Phenomenal Library Assistant!</strong></p>
-        <p>You correctly calculated shelf balances and sorted all library resources flawlessly!</p>
-      </div>
-      <h2 style="font-size: 2.4rem; color: var(--forest-green); margin-bottom: 20px;">Mission Accomplished! ⭐</h2>
-      <button class="action-btn" style="background: var(--text-dark); box-shadow: 0 5px 0 #111;" onclick="resetWholeGame()">Play Again 🔄</button>
-    </div>
-  </div>
-
-  <script>
-    let turnIndex = 0;
-    let runningScore = 0;
-    let currentLevelData = null;
-    let currentTypedAnswer = "";
-    
-    const gameQuestions = [
-      { total: 480, minus: 232, remain: 248, tag: "Mission 1: Fiction and Non-fiction", story: "The school library has 480 books. Out of these, 232 books are fiction books. How many books are non-fiction books?" },
-      { total: 232, minus: 102, remain: 130, tag: "Mission 2: Stories and Novels", story: "Out of the 232 fiction books, 102 are story books. The rest are novels. How many novels are there?" },
-      { total: 100, minus: 35,  remain: 65,  tag: "Mission 3: Classroom Distribution", story: "The librarian gives Reena 100 books to distribute to students. She gives 35 books to children in her class. How many books are left with Reena?" },
-      { total: 112, minus: 86,  remain: 26,  tag: "Mission 4: Page Comparison", story: "Reena chooses a book with 112 pages. Her friend Ron chooses a book with 86 pages. How many more pages does Reena's book have?" },
-      { total: 112, minus: 36,  remain: 76,  tag: "Mission 5: Monday Reading", story: "On Monday, Reena reads 36 pages from her 112-page book. How many pages are left to read?" },
-      { total: 76,  minus: 28,  remain: 48,  tag: "Mission 6: Tuesday Reading", story: "On Tuesday, she reads 28 more pages. She had 76 pages left after Monday. How many pages remain now?" },
-      { total: 125, minus: 48,  remain: 77,  tag: "Mission 7: Books Returned", story: "At the end of the day, 125 books had been borrowed from the library. Students return 48 books. How many books are still borrowed?" },
-      { total: 300, minus: 24,  remain: 276, tag: "Mission 8: Damaged Books", story: "The library has 300 science books. The librarian finds 24 damaged books that need repair. How many science books are ready for students?" },
-      { total: 250, minus: 173, remain: 77,  tag: "Mission 9: Reading Challenge", story: "Reena's class must read 250 books this year. So far, they have read 173 books. How many more books do they need to read?" },
-      { total: 480, minus: 156, remain: 324, tag: "Mission 10: End-of-Day Shelf Check", story: "The library started the day with 480 books. By closing time, 156 books were borrowed. How many books are still on the shelves?" },
-      { total: 500, minus: 278, remain: 222, tag: "👑 BONUS BOSS LEVEL", story: "The library had 500 bookmarks. During Reading Week, students used 278 bookmarks. How many bookmarks are left?" }
-    ];
-
-    function triggerAudioTone(freq, wave, duration) {
-      try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        osc.type = wave;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gainNode.gain.setValueAtTime(0.12, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-        osc.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
-      } catch (e) {}
-    }
-
-    function startGame() {
-      document.getElementById('screen-intro').classList.remove('active');
-      document.getElementById('screen-play').classList.add('active');
-      renderActiveTurn();
-    }
-
-    function renderActiveTurn() {
-      if (turnIndex >= gameQuestions.length) {
-        showEndGameSummary();
-        return;
-      }
-
-      currentTypedAnswer = "";
-      document.getElementById('feedback-box').style.color = "var(--text-dark)";
-      document.getElementById('feedback-box').innerText = "👉 Work out the math, type your answer below, and click Check!";
-      
-      const blankField = document.getElementById('math-blank');
-      blankField.innerText = "_";
-      blankField.classList.add('typing');
-      
-      currentLevelData = gameQuestions[turnIndex];
-
-      document.getElementById('stage-label').innerText = `${currentLevelData.tag}`;
-      document.getElementById('progress-fill').style.width = `${(turnIndex / gameQuestions.length) * 100}%`;
-      document.getElementById('score-val').innerText = runningScore;
-
-      document.getElementById('math-total').innerText = currentLevelData.total;
-      document.getElementById('math-minus').innerText = currentLevelData.minus;
-      document.getElementById('story-text').innerHTML = `<strong>Challenge:</strong> ${currentLevelData.story}`;
-      
-      // Update Classroom Chalkboard Display
-      document.getElementById('board-equation-preview').innerText = `${currentLevelData.total} - ${currentLevelData.minus} = ?`;
-    }
-
-    function pressKey(val) {
-      triggerAudioTone(600, 'sine', 0.05);
-      const blankField = document.getElementById('math-blank');
-      if (val === 'CLEAR') {
-        currentTypedAnswer = "";
-        blankField.innerText = "_";
-      } else {
-        if (currentTypedAnswer.length < 3) {
-          currentTypedAnswer += val;
-          blankField.innerText = currentTypedAnswer;
-        }
-      }
-    }
-
-    function submitLibraryAnswer() {
-      const helper = document.getElementById('helper-character');
-      const numericSubmission = parseInt(currentTypedAnswer, 10);
-
-      if (numericSubmission === currentLevelData.remain) {
-        runningScore += 10;
-        document.getElementById('score-val').innerText = runningScore;
         
-        document.getElementById('feedback-box').style.color = 'var(--forest-green)';
-        document.getElementById('feedback-box').innerText = "Brilliant! Your answer is completely correct! 🎉";
-        document.getElementById('math-blank').classList.remove('typing');
-        document.getElementById('board-equation-preview').innerText = `${currentLevelData.total} - ${currentLevelData.minus} = ${currentLevelData.remain}`;
-        helper.classList.add('happy');
-        
-        triggerAudioTone(587.33, 'sine', 0.15);
-        setTimeout(() => triggerAudioTone(880, 'sine', 0.4), 120);
-        
-        turnIndex++;
-        setTimeout(() => {
-          helper.classList.remove('happy');
-          renderActiveTurn();
-        }, 2200);
-      } else {
-        helper.classList.add('sad');
-        triggerAudioTone(150, 'sawtooth', 0.4);
-        document.getElementById('feedback-box').style.color = '#c62828';
-        document.getElementById('feedback-box').innerText = "Not quite! Check your math and try entering your answer again!";
-        
-        currentTypedAnswer = "";
-        document.getElementById('math-blank').innerText = "_";
-        setTimeout(() => helper.classList.remove('sad'), 500);
-      }
-    }
-
-    function showEndGameSummary() {
-      document.getElementById('progress-fill').style.width = "100%";
-      document.getElementById('screen-play').classList.remove('active');
-      document.getElementById('screen-end').classList.add('active');
-    }
-
-    function resetWholeGame() {
-      turnIndex = 0;
-      runningScore = 0;
-      document.getElementById('screen-end').classList.remove('active');
-      document.getElementById('screen-intro').classList.add('active');
-    }
-
-    window.onload = function() {
-      setTimeout(() => {
-        const splash = document.getElementById('screen-splash');
-        if (splash) {
-          splash.style.opacity = '0';
-          setTimeout(() => { splash.style.display = 'none'; }, 500);
-        }
-      }, 4000);
-    };
-  </script>
-</body>
-</html>
+        <table class="math-grid-table">
+          <tr class="header-row">
+            <td></td> <td>H</td>
+            <td>T</td>
+            <td>O</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td id="cell-top-h">4</td>
+            <td id="cell-top-t">8</td>
+            <td id="cell-top-o">0</td>
+          </tr>
+          <tr class="minus-row">
+            <td class="operator-cell">-</td>
+            <td id="cell-bot-
