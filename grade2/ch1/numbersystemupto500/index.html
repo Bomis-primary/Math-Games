@@ -63,6 +63,13 @@
             height: 100%;
             border-radius: 20px;
             z-index: 10;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #splash-screen.active {
+            display: flex;
         }
 
         #splash-screen img {
@@ -396,8 +403,8 @@
             totalQuestionsInGame += levelQuestionsDatabase[key].length;
         });
 
-        // Trigger logo timing screen routine on browser instantiation
-        window.addEventListener('DOMContentLoaded', () => {
+        // Safe Load Event Listener to fully pass modern browser security layouts
+        window.addEventListener('load', () => {
             startLogoTimer();
         });
 
@@ -480,4 +487,92 @@
 
             if (currentLevel === 1) {
                 title.innerText = "🚀 Stage 1: Launch Orbit";
-                desc.innerText = "Welcome, Captain Cosmo! To fuel your rocket and break out of
+                desc.innerText = "Welcome, Captain Cosmo! To fuel your rocket and break out of Earth's atmosphere, you need to match missing tracking values, recognize numeric wording, and chart cosmic counting sequences up to 500!";
+            } else if (currentLevel === 2) {
+                title.innerText = "🌌 Stage 2: Deep Space Maze";
+                desc.innerText = "Great job breaking orbit! Now we are deep in space. Asteroids lie ahead! To dodge them, use your star tracker to calculate place values, evaluate target face digit markers, and expand numeric coordinates correctly.";
+            } else if (currentLevel === 3) {
+                title.innerText = "🛸 Stage 3: Alien Outpost Gate";
+                desc.innerText = "Final stretch! An alien outpost security grid is blocking our path. Clear the frequency portal by comparing spatial coordinates, sorting values in ascending order, and identifying odd or even number patterns!";
+            }
+            showScreen('story-screen');
+        }
+
+        // Active Play Loop Initialization
+        function startLevelGameplay() {
+            currentQuestionIdx = 0;
+            questions = JSON.parse(JSON.stringify(levelQuestionsDatabase[currentLevel]));
+            
+            document.getElementById('level-label').innerText = `Stage ${currentLevel}`;
+            document.getElementById('score-label').innerText = `Gems: ${score}`;
+
+            const optionsBox = document.getElementById('options-box');
+            if(currentLevel === 3) {
+                optionsBox.classList.add('row-layout');
+            } else {
+                optionsBox.classList.remove('row-layout');
+            }
+            
+            showScreen('game-screen');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            canAnswer = true;
+            let q = questions[currentQuestionIdx];
+            
+            let progressPercent = (currentQuestionIdx / questions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+
+            document.getElementById('question-text').innerText = q.question;
+            const optionsBox = document.getElementById('options-box');
+            optionsBox.innerHTML = "";
+
+            q.choices.forEach(choice => {
+                let btn = document.createElement('button');
+                btn.className = "btn";
+                btn.innerText = choice;
+                btn.onclick = () => selectAnswer(btn, choice);
+                optionsBox.appendChild(btn);
+            });
+        }
+
+        function selectAnswer(selectedBtn, choice) {
+            if (!canAnswer) return;
+            canAnswer = false;
+
+            let q = questions[currentQuestionIdx];
+            let buttons = document.getElementById('options-box').children;
+
+            if (choice.toString().trim() === q.answer.toString().trim()) {
+                selectedBtn.classList.add('correct');
+                score++;
+                document.getElementById('score-label').innerText = `Gems: ${score}`;
+                playSound('audio-correct');
+                triggerCorrectConfetti();
+            } else {
+                selectedBtn.classList.add('wrong');
+                playSound('audio-wrong');
+                for (let btn of buttons) {
+                    if (btn.innerText.toString().trim() === q.answer.toString().trim()) {
+                        btn.classList.add('correct');
+                    }
+                }
+            }
+
+            for (let btn of buttons) {
+                btn.classList.add('disabled');
+            }
+
+            setTimeout(() => {
+                currentQuestionIdx++;
+                if (currentQuestionIdx < questions.length) {
+                    loadQuestion();
+                } else {
+                    handleLevelCompletion();
+                }
+            }, 2000);
+        }
+
+        function handleLevelCompletion() {
+            document.getElementById('progress
