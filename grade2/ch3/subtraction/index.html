@@ -283,4 +283,218 @@
           </tr>
           <tr class="minus-row">
             <td class="operator-cell">-</td>
-            <td id="cell-bot-
+            <td id="cell-bot-h">2</td>
+            <td id="cell-bot-t">3</td>
+            <td id="cell-bot-o">2</td>
+          </tr>
+          <tr>
+            <td></td>
+            <td id="cell-ans-h" class="result-cell">?</td>
+            <td id="cell-ans-t" class="result-cell">?</td>
+            <td id="cell-ans-o" class="result-cell">?</td>
+          </tr>
+        </table>
+      </div>
+
+      <div class="keypad-box">
+        <button class="key-btn" onclick="pressKey('1')">1</button>
+        <button class="key-btn" onclick="pressKey('2')">2</button>
+        <button class="key-btn" onclick="pressKey('3')">3</button>
+        <button class="key-btn" onclick="pressKey('4')">4</button>
+        <button class="key-btn" onclick="pressKey('5')">5</button>
+        <button class="key-btn" onclick="pressKey('6')">6</button>
+        <button class="key-btn" onclick="pressKey('7')">7</button>
+        <button class="key-btn" onclick="pressKey('8')">8</button>
+        <button class="key-btn" onclick="pressKey('9')">9</button>
+        <button class="key-btn" onclick="pressKey('0')">0</button>
+        <button class="key-btn action-key" onclick="pressKey('CLEAR')">Clear</button>
+        <button class="key-btn go-key" onclick="submitLibraryAnswer()">Check</button>
+      </div>
+
+      <div class="feedback-banner" id="feedback-box"></div>
+    </div>
+
+    <div id="screen-end" class="screen">
+      <div class="story-bubble">
+        <p><strong>🎉 Phenomenal Library Assistant!</strong></p>
+        <p>You correctly calculated shelf balances and sorted all library resources flawlessly!</p>
+      </div>
+      <h2 style="font-size: 2.4rem; color: var(--forest-green); margin-bottom: 20px;">Mission Accomplished! ⭐</h2>
+      <button class="action-btn" style="background: var(--text-dark); box-shadow: 0 5px 0 #111;" onclick="resetWholeGame()">Play Again 🔄</button>
+    </div>
+  </div>
+
+  <script>
+    let turnIndex = 0;
+    let runningScore = 0;
+    let currentLevelData = null;
+    let currentTypedAnswer = "";
+    
+    // Exact story questions matching textbook metrics
+    const gameQuestions = [
+      { total: 480, minus: 232, remain: 248, tag: "Mission 1: Fiction and Non-fiction", story: "The school library has 480 books. Out of these, 232 books are fiction books. How many books are non-fiction books?" },
+      { total: 232, minus: 102, remain: 130, tag: "Mission 2: Stories and Novels", story: "Out of the 232 fiction books, 102 are story books. The rest are novels. How many novels are there?" },
+      { total: 100, minus: 35,  remain: 65,  tag: "Mission 3: Classroom Distribution", story: "The librarian gives Reena 100 books to distribute to students. She gives 35 books to children in her class. How many books are left with Reena?" },
+      { total: 112, minus: 86,  remain: 26,  tag: "Mission 4: Page Comparison", story: "Reena chooses a book with 112 pages. Her friend Ron chooses a book with 86 pages. How many more pages does Reena's book have?" },
+      { total: 112, minus: 36,  remain: 76,  tag: "Mission 5: Monday Reading", story: "On Monday, Reena reads 36 pages from her 112-page book. How many pages are left to read?" },
+      { total: 76,  minus: 28,  remain: 48,  tag: "Mission 6: Tuesday Reading", story: "On Tuesday, she reads 28 more pages. She had 76 pages left after Monday. How many pages remain now?" },
+      { total: 125, minus: 48,  remain: 77,  tag: "Mission 7: Books Returned", story: "At the end of the day, 125 books had been borrowed from the library. Students return 48 books. How many books are still borrowed?" },
+      { total: 300, minus: 24,  remain: 276, tag: "Mission 8: Damaged Books", story: "The library has 300 science books. The librarian finds 24 damaged books that need repair. How many science books are ready for students?" },
+      { total: 250, minus: 173, remain: 77,  tag: "Mission 9: Reading Challenge", story: "Reena's class must read 250 books this year. So far, they have read 173 books. How many more books do they need to read?" },
+      { total: 480, minus: 156, remain: 324, tag: "Mission 10: End-of-Day Shelf Check", story: "The library started the day with 480 books. By closing time, 156 books were borrowed. How many books are still on the shelves?" },
+      { total: 500, minus: 278, remain: 222, tag: "👑 BONUS BOSS LEVEL", story: "The library had 500 bookmarks. During Reading Week, students used 278 bookmarks. How many bookmarks are left?" }
+    ];
+
+    function triggerAudioTone(freq, wave, duration) {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.type = wave;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function startGame() {
+      document.getElementById('screen-intro').classList.remove('active');
+      document.getElementById('screen-play').classList.add('active');
+      renderActiveTurn();
+    }
+
+    function renderActiveTurn() {
+      if (turnIndex >= gameQuestions.length) {
+        showEndGameSummary();
+        return;
+      }
+
+      currentTypedAnswer = "";
+      document.getElementById('feedback-box').style.color = "var(--text-dark)";
+      document.getElementById('feedback-box').innerText = "👉 Subtract column by column, enter your answer, and click Check!";
+      
+      currentLevelData = gameQuestions[turnIndex];
+
+      document.getElementById('stage-label').innerText = `${currentLevelData.tag}`;
+      document.getElementById('progress-fill').style.width = `${(turnIndex / gameQuestions.length) * 100}%`;
+      document.getElementById('score-val').innerText = runningScore;
+      document.getElementById('story-text').innerHTML = `<strong>Challenge:</strong> ${currentLevelData.story}`;
+
+      // Distribute top digits neatly into vertical containers
+      let topStr = String(currentLevelData.total).padStart(3, '0');
+      document.getElementById('cell-top-h').innerText = topStr[0] === '0' ? ' ' : topStr[0];
+      document.getElementById('cell-top-t').innerText = (topStr[0] === '0' && topStr[1] === '0') ? ' ' : topStr[1];
+      document.getElementById('cell-top-o').innerText = topStr[2];
+
+      // Distribute bottom digits neatly into vertical containers
+      let botStr = String(currentLevelData.minus).padStart(3, '0');
+      document.getElementById('cell-bot-h').innerText = botStr[0] === '0' ? ' ' : botStr[0];
+      document.getElementById('cell-bot-t').innerText = (botStr[0] === '0' && botStr[1] === '0') ? ' ' : botStr[1];
+      document.getElementById('cell-bot-o').innerText = botStr[2];
+
+      // Clear the answer cells back to question marks
+      updateAnswerGridDisplay("???");
+    }
+
+    // Handles Right-to-Left alignment layout for responsive kid typing
+    function updateAnswerGridDisplay(strValue) {
+      const hCell = document.getElementById('cell-ans-h');
+      const tCell = document.getElementById('cell-ans-t');
+      const oCell = document.getElementById('cell-ans-o');
+
+      if (!strValue || strValue === "???") {
+        hCell.innerText = "?"; tCell.innerText = "?"; oCell.innerText = "?";
+        hCell.classList.remove('typing-active'); tCell.classList.remove('typing-active'); oCell.classList.remove('typing-active');
+        return;
+      }
+
+      let padded = strValue.padStart(3, ' ');
+      
+      hCell.innerText = padded[0] === ' ' ? ' ' : padded[0];
+      tCell.innerText = padded[1] === ' ' ? ' ' : padded[1];
+      oCell.innerText = padded[2];
+
+      hCell.classList.add('typing-active');
+      tCell.classList.add('typing-active');
+      oCell.classList.add('typing-active');
+    }
+
+    function pressKey(val) {
+      triggerAudioTone(600, 'sine', 0.05);
+      if (val === 'CLEAR') {
+        currentTypedAnswer = "";
+        updateAnswerGridDisplay("???");
+      } else {
+        if (currentTypedAnswer.length < 3) {
+          currentTypedAnswer += val;
+          updateAnswerGridDisplay(currentTypedAnswer);
+        }
+      }
+    }
+
+    function submitLibraryAnswer() {
+      const helper = document.getElementById('helper-character');
+      const numericSubmission = parseInt(currentTypedAnswer, 10);
+
+      if (numericSubmission === currentLevelData.remain) {
+        runningScore += 10;
+        document.getElementById('score-val').innerText = runningScore;
+        
+        document.getElementById('feedback-box').style.color = 'var(--forest-green)';
+        document.getElementById('feedback-box').innerText = "Excellent calculation! That is completely correct! 🎉";
+        
+        updateAnswerGridDisplay(String(currentLevelData.remain));
+        document.getElementById('cell-ans-h').classList.remove('typing-active');
+        document.getElementById('cell-ans-t').classList.remove('typing-active');
+        document.getElementById('cell-ans-o').classList.remove('typing-active');
+        
+        helper.classList.add('happy');
+        triggerAudioTone(587.33, 'sine', 0.15);
+        setTimeout(() => triggerAudioTone(880, 'sine', 0.4), 120);
+        
+        turnIndex++;
+        setTimeout(() => {
+          helper.classList.remove('happy');
+          renderActiveTurn();
+        }, 2200);
+      } else {
+        helper.classList.add('sad');
+        triggerAudioTone(150, 'sawtooth', 0.4);
+        document.getElementById('feedback-box').style.color = '#c62828';
+        document.getElementById('feedback-box').innerText = "Try working it out column by column from right to left!";
+        
+        currentTypedAnswer = "";
+        updateAnswerGridDisplay("???");
+        setTimeout(() => helper.classList.remove('sad'), 500);
+      }
+    }
+
+    function showEndGameSummary() {
+      document.getElementById('progress-fill').style.width = "100%";
+      document.getElementById('screen-play').classList.remove('active');
+      document.getElementById('screen-end').classList.add('active');
+    }
+
+    function resetWholeGame() {
+      turnIndex = 0;
+      runningScore = 0;
+      document.getElementById('screen-end').classList.remove('active');
+      document.getElementById('screen-intro').classList.add('active');
+    }
+
+    window.onload = function() {
+      setTimeout(() => {
+        const splash = document.getElementById('screen-splash');
+        if (splash) {
+          splash.style.opacity = '0';
+          setTimeout(() => { splash.style.display = 'none'; }, 500);
+        }
+      }, 4000);
+    };
+  </script>
+</body>
+</html>
