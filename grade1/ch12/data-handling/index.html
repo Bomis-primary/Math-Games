@@ -3,9 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sorting Sam's Blueprint Tracker</title>
+<title>Sorting Sam's Drag & Drop Blueprint</title>
 
 <style>
+/* Splash Screen Overlay System */
+#splashScreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+#splashLogo {
+    width: 280px;
+    height: auto;
+    object-fit: contain;
+    animation: pulseLogo 2s infinite ease-in-out;
+}
+
+.splash-loader {
+    margin-top: 20px;
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #0d47a1;
+    border-radius: 50%;
+    animation: spinLoader 1s linear infinite;
+}
+
+@keyframes pulseLogo {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+@keyframes spinLoader {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Base Layout styling */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     text-align: center;
@@ -29,9 +73,10 @@ body {
     padding: 25px;
     box-shadow: 0 12px 24px rgba(0,0,0,0.1);
     box-sizing: border-box;
+    opacity: 0; /* Hidden until splash screen fades out */
+    transition: opacity 0.5s ease;
 }
 
-/* Character Dialogue Box */
 .character-box {
     background: #ffffff;
     border: 4px solid #ffb74d;
@@ -84,7 +129,7 @@ h1 {
     color: #0d47a1;
 }
 
-/* Scrambled Pile Container */
+/* Scrambled source elements box */
 .scrambled-inventory-box {
     background: #f5f5f5;
     border: 3px dashed #b0bec5;
@@ -100,7 +145,7 @@ h1 {
 }
 
 .scrambled-item {
-    cursor: pointer;
+    cursor: grab;
     background: #ffffff;
     width: 70px;
     height: 70px;
@@ -109,19 +154,21 @@ h1 {
     justify-content: center;
     border-radius: 50%;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    transition: transform 0.2s, box-shadow 0.2s;
+    transition: transform 0.2s;
+    touch-action: none;
 }
-.scrambled-item:hover {
-    transform: scale(1.15);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+.scrambled-item:active {
+    cursor: grabbing;
+    transform: scale(0.95);
 }
 .scrambled-item img {
     width: 50px;
     height: 50px;
     object-fit: contain;
+    pointer-events: none;
 }
 
-/* Tracking Pictograph Grid */
+/* Graph Matrix Structure Grid Frame */
 .chart-container {
     width: 100%;
     overflow-x: auto;
@@ -136,14 +183,19 @@ h1 {
     align-items: center;
     border-bottom: 3px solid #b39ddb;
     min-width: 800px;
+    transition: background-color 0.2s;
 }
 .chart-row:last-child {
     border-bottom: none;
 }
 
+.chart-row.drag-over {
+    background-color: #ede7f6;
+}
+
 .category-lead-cell {
     width: 100px;
-    min-height: 90px;
+    min-height: 95px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -157,19 +209,21 @@ h1 {
     object-fit: contain;
 }
 
+/* Droppable Track Zone */
 .grid-track {
     display: flex;
     flex-grow: 1;
     background-image: linear-gradient(to right, #b39ddb 2px, transparent 2px);
-    background-size: 70px 100%;
-    min-height: 90px;
+    background-size: 75px 100%;
+    min-height: 95px;
     align-items: center;
     padding-left: 2px;
+    gap: 2px;
 }
 
 .grid-cell-slot {
-    width: 70px;
-    height: 90px;
+    width: 73px;
+    height: 95px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -183,7 +237,7 @@ h1 {
 
 .input-answer-zone {
     width: 130px;
-    min-height: 90px;
+    min-height: 95px;
     background: #fff9c4;
     border-left: 3px solid #b39ddb;
     display: flex;
@@ -233,8 +287,8 @@ h1 {
 #fireworks { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; }
 
 @keyframes dropIn {
-    0% { transform: translateY(-30px); opacity: 0; }
-    100% { transform: translateY(0); opacity: 1; }
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
 }
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
@@ -246,15 +300,19 @@ h1 {
 </head>
 <body>
 
+<div id="splashScreen">
+    <img id="splashLogo" src="assets/logo.png" alt="Innovine Logo"> <div class="splash-loader"></div>
+</div>
+
 <div id="gameContainer">
     <div class="level-badge">THINKING SKILLS HOTS</div>
-    <h1>Sam's Workshop Grid Alignment</h1>
+    <h1>Sam's Drag & Drop Alignment Board</h1>
 
     <div class="character-box">
         <div class="char-avatar">🤖</div>
         <div>
             <p class="char-text" id="dialogueText">
-                Greetings, data assistant! My inventory box spilled! Click each item to arrange them neatly into rows on our blueprint chart, then count them!
+                Pick up the items from the messy pile and **drag them down** into their matching row blueprint! Put similar items together!
             </p>
         </div>
     </div>
@@ -262,27 +320,24 @@ h1 {
     <div class="scrambled-inventory-box" id="scrambledPile"></div>
 
     <div class="chart-container">
-        <div class="chart-row" id="row-ball">
-            <div class="category-lead-cell"><img src="assets/ball.png" alt="Ball"></div>
-            <div class="grid-track" id="track-ball"></div>
+        <div class="chart-row" id="row-ball" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'ball')">
+            <div class="category-lead-cell"><img src="assets/ball.png" alt="Ball"></div> <div class="grid-track" id="track-ball"></div>
             <div class="input-answer-zone">
                 <input type="number" id="input-ball" class="count-input" min="0" placeholder="?" disabled>
                 <span id="status-ball" class="status-indicator"></span>
             </div>
         </div>
 
-        <div class="chart-row" id="row-bear">
-            <div class="category-lead-cell"><img src="assets/bear.png" alt="Bear"></div>
-            <div class="grid-track" id="track-bear"></div>
+        <div class="chart-row" id="row-bear" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'bear')">
+            <div class="category-lead-cell"><img src="assets/bear.png" alt="Bear"></div> <div class="grid-track" id="track-bear"></div>
             <div class="input-answer-zone">
                 <input type="number" id="input-bear" class="count-input" min="0" placeholder="?" disabled>
                 <span id="status-bear" class="status-indicator"></span>
             </div>
         </div>
 
-        <div class="chart-row" id="row-car">
-            <div class="category-lead-cell"><img src="assets/car.png" alt="Car"></div>
-            <div class="grid-track" id="track-car"></div>
+        <div class="chart-row" id="row-car" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'car')">
+            <div class="category-lead-cell"><img src="assets/car.png" alt="Car"></div> <div class="grid-track" id="track-car"></div>
             <div class="input-answer-zone">
                 <input type="number" id="input-car" class="count-input" min="0" placeholder="?" disabled>
                 <span id="status-car" class="status-indicator"></span>
@@ -290,7 +345,7 @@ h1 {
         </div>
     </div>
 
-    <button id="verifyBtn" class="btn" onclick="verifyCalculations()" disabled>Verify Grid Data 🎯</button>
+    <button id="verifyBtn" class="btn" onclick="verifyCalculations()" disabled>Verify Answers Check 🎯</button>
 </div>
 
 <canvas id="fireworks"></canvas>
@@ -304,11 +359,30 @@ const targetsCount = { ball: 0, bear: 0, car: 0 };
 let currentSortedTotal = 0;
 let grandTotalPopulation = 0;
 
+// Setup Splash Screen Lifecycle Engine
+function initGameLifecycle() {
+    generateScrambledDeck();
+    
+    // Exactly 5 seconds timer block execution
+    setTimeout(() => {
+        const splash = document.getElementById("splashScreen");
+        const gameBoard = document.getElementById("gameContainer");
+        
+        splash.style.opacity = "0";
+        splash.style.transform = "scale(1.05)";
+        gameBoard.style.opacity = "1";
+        
+        // Fully unload element from processing context tree after animation completes
+        setTimeout(() => {
+            splash.style.display = "none";
+        }, 800);
+    }, 5000); 
+}
+
 function generateScrambledDeck() {
-    // Generate dynamic item quantities between 3 and 7 to fit nicely in rows
-    targetsCount.ball = Math.floor(Math.random() * 5) + 3;
-    targetsCount.bear = Math.floor(Math.random() * 5) + 3;
-    targetsCount.car = Math.floor(Math.random() * 5) + 3;
+    targetsCount.ball = Math.floor(Math.random() * 4) + 3; 
+    targetsCount.bear = Math.floor(Math.random() * 4) + 3;
+    targetsCount.car = Math.floor(Math.random() * 4) + 3;
     
     grandTotalPopulation = targetsCount.ball + targetsCount.bear + targetsCount.car;
 
@@ -317,7 +391,6 @@ function generateScrambledDeck() {
     for (let i = 0; i < targetsCount.bear; i++) totalPool.push({ type: 'bear', src: 'assets/bear.png' });
     for (let i = 0; i < targetsCount.car; i++) totalPool.push({ type: 'car', src: 'assets/car.png' });
 
-    // Scramble the array placement
     totalPool.sort(() => Math.random() - 0.5);
 
     const pile = document.getElementById("scrambledPile");
@@ -326,38 +399,67 @@ function generateScrambledDeck() {
     totalPool.forEach((item, index) => {
         const element = document.createElement("div");
         element.className = "scrambled-item";
-        element.id = `inv-${index}`;
+        element.id = `drag-${index}`;
+        element.setAttribute("draggable", "true");
         element.innerHTML = `<img src="${item.src}" alt="${item.type}">`;
-        element.onclick = () => sendToGridTrack(index, item.type, item.src);
+        
+        element.ondragstart = (e) => {
+            e.dataTransfer.setData("text/plain", JSON.stringify({ id: element.id, type: item.type, src: item.src }));
+        };
+        
         pile.appendChild(element);
     });
 }
 
-function sendToGridTrack(index, type, src) {
-    const activeItem = document.getElementById(`inv-${index}`);
-    if (!activeItem) return;
+function allowDrop(e) {
+    e.preventDefault();
+    e.currentTarget.classList.add("drag-over");
+}
 
-    // Optional audio handling feedback loop
-    document.getElementById("clickSound").currentTime = 0;
-    document.getElementById("clickSound").play().catch(()=>{});
+function dragLeave(e) {
+    e.currentTarget.classList.remove("drag-over");
+}
 
-    // Drop clean thumbnail asset into the row
-    const targetTrack = document.getElementById(`track-${type}`);
-    const cellSlot = document.createElement("div");
-    cellSlot.className = "grid-cell-slot";
-    cellSlot.innerHTML = `<img src="${src}" alt="${type}">`;
-    targetTrack.appendChild(cellSlot);
+function handleDrop(e, expectedType) {
+    e.preventDefault();
+    const rowElement = e.currentTarget;
+    rowElement.classList.remove("drag-over");
 
-    activeItem.remove();
-    currentSortedTotal++;
+    try {
+        const rawData = e.dataTransfer.getData("text/plain");
+        const draggedData = JSON.parse(rawData);
 
-    // Switch step context when whole canvas is sorted row-wise
-    if (currentSortedTotal === grandTotalPopulation) {
-        document.getElementById("input-ball").disabled = false;
-        document.getElementById("input-bear").disabled = false;
-        document.getElementById("input-car").disabled = false;
-        document.getElementById("verifyBtn").disabled = false;
-        document.getElementById("dialogueText").innerHTML = "Splendid arrangement! Now count up each row, write the total numbers in the gold boxes, and click Verify! 📝";
+        if (draggedData.type === expectedType) {
+            const sourceNode = document.getElementById(draggedData.id);
+            if (!sourceNode) return;
+
+            document.getElementById("clickSound").currentTime = 0;
+            document.getElementById("clickSound").play().catch(()=>{});
+
+            const targetTrack = document.getElementById(`track-${expectedType}`);
+            const cellSlot = document.createElement("div");
+            cellSlot.className = "grid-cell-slot";
+            cellSlot.innerHTML = `<img src="${draggedData.src}" alt="${expectedType}">`;
+            targetTrack.appendChild(cellSlot);
+
+            sourceNode.remove();
+            currentSortedTotal++;
+
+            if (currentSortedTotal === grandTotalPopulation) {
+                document.getElementById("input-ball").disabled = false;
+                document.getElementById("input-bear").disabled = false;
+                document.getElementById("input-car").disabled = false;
+                document.getElementById("verifyBtn").disabled = false;
+                document.getElementById("dialogueText").innerHTML = "Fantastic organization! Now use your counting skills to check each row and fill in the text boxes! 📝";
+            }
+        } else {
+            document.getElementById("wrongSound").currentTime = 0;
+            document.getElementById("wrongSound").play().catch(()=>{});
+            rowElement.classList.add("error-shake");
+            setTimeout(() => rowElement.classList.remove("error-shake"), 400);
+        }
+    } catch (err) {
+        console.error("Drop Parse Fail", err);
     }
 }
 
@@ -381,7 +483,7 @@ function verifyCalculations() {
         document.getElementById("input-car").disabled = true;
         document.getElementById("verifyBtn").disabled = true;
         
-        document.getElementById("dialogueText").innerHTML = "Mission Successful! 🏆 You correctly sorted and analyzed the whole workshop ledger. Sam is proud of you!";
+        document.getElementById("dialogueText").innerHTML = "Mission Successful! 🏆 You tracked, sorted, and counted every single asset. Incredible work!";
         triggerWinCelebration();
     } else {
         document.getElementById("wrongSound").play().catch(()=>{});
@@ -391,7 +493,7 @@ function verifyCalculations() {
     }
 }
 
-/* Confetti Pipeline */
+/* Confetti System Framework */
 const canvas = document.getElementById("fireworks");
 const ctx = canvas.getContext("2d");
 let particles = [];
@@ -432,7 +534,7 @@ function animate() {
 }
 animate();
 
-window.onload = generateScrambledDeck;
+window.onload = initGameLifecycle;
 </script>
 </body>
 </html>
