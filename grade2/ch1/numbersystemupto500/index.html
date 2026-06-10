@@ -173,9 +173,9 @@
             margin-bottom: 10px;
         }
 
-        /* Symmetrical alignment for evaluation glyphs */
+        /* Horizontal option configuration if layout demands */
         .options-container.row-layout {
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(2, 1fr);
         }
 
         /* Playable Choice elements */
@@ -192,6 +192,7 @@
             transition: all 0.1s ease;
             outline: none;
             user-select: none;
+            text-align: center;
         }
 
         .btn:active:not(.disabled) {
@@ -288,30 +289,125 @@
             <div class="story-box">
                 🧑‍🚀 Captain Cosmo has safely successfully crossed deep space, decoded all galactic nodes, and established the outpost! The coordinates up to 500 are completely secured!
             </div>
-            <div id="final-score-text" style="font-size: 1.4rem; margin-bottom: 25px; color: #fbbf24; font-weight: bold;">Total Gems Captured: 0 / 30</div>
+            <div id="final-score-text" style="font-size: 1.4rem; margin-bottom: 25px; color: #fbbf24; font-weight: bold;">Total Gems Captured: 0 / 15</div>
             <button class="action-btn" style="background:#f59e0b; border-color:#d97706;" onclick="resetToSplash()">Restart Mission</button>
         </div>
 
     </div>
 
     <script>
+        // Static Master Database mapped exactly from the user's document
+        const levelQuestionsDatabase = {
+            1: [
+                {
+                    question: "Which of the following shows three hundred forty-seven?",
+                    choices: ["374", "347", "437", "734"],
+                    answer: "347"
+                },
+                {
+                    question: "Which number comes just before two hundred ten?",
+                    choices: ["211", "220", "209", "200"],
+                    answer: "209"
+                },
+                {
+                    question: "Fill in the missing number: 12, 14, ___, 18, 20.",
+                    choices: ["15", "13", "17", "16"],
+                    answer: "16"
+                },
+                {
+                    question: "What comes next: 5, 10, 15, 20, ___?",
+                    choices: ["25", "21", "30", "24"],
+                    answer: "25"
+                },
+                {
+                    question: "Fill in the missing number: 110, 120, ___, 140, 150",
+                    choices: ["125", "140", "135", "130"],
+                    answer: "130"
+                },
+                {
+                    question: "Count by fives: 480, ___, 490, 495, 500",
+                    choices: ["485", "486", "488", "487"],
+                    answer: "485"
+                },
+                {
+                    question: "Count by 5s starting from 360: 360, ___, 370, 375, 380",
+                    choices: ["365", "366", "368", "367"],
+                    answer: "365"
+                },
+                {
+                    question: "Count by tens: 420, ___, 440, 450",
+                    choices: ["430", "435", "425", "432"],
+                    answer: "430"
+                }
+            ],
+            2: [
+                {
+                    question: "In the number 428, what is the place value of 2?",
+                    choices: ["20", "200", "2", "28"],
+                    answer: "20"
+                },
+                {
+                    question: "In 356, what is the face value of 5?",
+                    choices: ["35", "5", "500", "50"],
+                    answer: "5"
+                },
+                {
+                    question: "Write 472 in expanded form.",
+                    choices: ["400 + 70 + 2", "400 + 7 + 2", "40 + 70 + 2", "400 + 20 + 7"],
+                    answer: "400 + 70 + 2"
+                }
+            ],
+            3: [
+                {
+                    question: "Which number is greater?",
+                    choices: ["323", "332"],
+                    answer: "332"
+                },
+                {
+                    question: "Arrange in ascending order: 412, 134, 241",
+                    choices: ["412, 241, 134", "241, 412, 134", "134, 241, 412", "134, 412, 241"],
+                    answer: "134, 241, 412"
+                },
+                {
+                    question: "Which number is even?",
+                    choices: ["237", "428", "155", "301"],
+                    answer: "428"
+                },
+                {
+                    question: "Which number is odd?",
+                    choices: ["400", "248", "317", "250"],
+                    answer: "317"
+                }
+            ]
+        };
+
         // Core Logic State Tracking Variables
         let currentLevel = 1;
         let currentQuestionIdx = 0;
         let score = 0;
         let questions = [];
+        let totalQuestionsInGame = 0;
         let canAnswer = true;
         let globalVolume = 0.8;
         let audioUnlocked = false;
 
-        // Auto-triggers logo timing upon load instance
+        // Count total global database questions dynamically
+        Object.keys(levelQuestionsDatabase).forEach(key => {
+            totalQuestionsInGame += levelQuestionsDatabase[key].length;
+        });
+
+        // Trigger logo timing screen routine on browser instantiation
         window.addEventListener('DOMContentLoaded', () => {
+            startLogoTimer();
+        });
+
+        function startLogoTimer() {
             setTimeout(() => {
                 showStoryBriefing();
             }, 5000);
-        });
+        }
 
-        // Safe Audio Core Context Unlocker Engine
+        // Safe Audio Context Handler
         function unlockAudio() {
             if (audioUnlocked) return;
             const sounds = ['audio-correct', 'audio-wrong', 'audio-applause'];
@@ -321,7 +417,7 @@
                     sound.play().then(() => {
                         sound.pause();
                         sound.currentTime = 0;
-                    }).catch(e => console.log("System initialization sequence ready."));
+                    }).catch(e => console.log("System driver initialised."));
                 }
             });
             audioUnlocked = true;
@@ -332,7 +428,7 @@
             if (sound) {
                 sound.volume = globalVolume;
                 sound.currentTime = 0;
-                sound.play().catch(e => console.log("Media driver engaged."));
+                sound.play().catch(e => console.log("Audio waiting for user context."));
             }
         }
 
@@ -340,7 +436,7 @@
             globalVolume = document.getElementById('volume-slider').value;
         }
 
-        // Side Cannon Blast Confetti Array
+        // Confetti Particle Side Cannons
         function triggerCorrectConfetti() {
             let end = Date.now() + (0.4 * 1000);
             let colors = ['#c084fc', '#ec4899', '#3b82f6', '#22c55e', '#fbbf24'];
@@ -352,7 +448,7 @@
             }());
         }
 
-        // 3-Second Cascade Fireworks Pattern
+        // Confetti Fireworks Cascade Intermission
         function triggerCompletionConfetti() {
             let duration = 3 * 1000;
             let animationEnd = Date.now() + duration;
@@ -370,13 +466,13 @@
             }, 250);
         }
 
-        // Central Router Function
+        // Core Layout Screen Router
         function showScreen(screenId) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(screenId).classList.add('active');
         }
 
-        // Story Screen Generator Mapping
+        // Story Screen Intermissions
         function showStoryBriefing() {
             unlockAudio();
             const title = document.getElementById('story-title');
@@ -384,250 +480,4 @@
 
             if (currentLevel === 1) {
                 title.innerText = "🚀 Stage 1: Launch Orbit";
-                desc.innerText = "Welcome, Captain Cosmo! To fuel your rocket and break out of Earth's atmosphere, you need to match tracking numbers, recognize standard numeric readings, and chart cosmic patterns up to 500!";
-            } else if (currentLevel === 2) {
-                title.innerText = "🌌 Stage 2: Deep Space Maze";
-                desc.innerText = "Great job breaking orbit! Now we are deep in space. Asteroids lie ahead! To dodge them, use your star tracker to calculate place values, find target digit values, and expand numeric coordinates correctly.";
-            } else if (currentLevel === 3) {
-                title.innerText = "🛸 Stage 3: Alien Outpost Gate";
-                desc.innerText = "Final stretch! An alien outpost security grid is blocking our path. Balance the shield energy frequencies by comparing values (<, >, =), identifying properties, and figuring out smaller or greater cosmic values!";
-            }
-            showScreen('story-screen');
-        }
-
-        // Start Stage Core Loops
-        function startLevelGameplay() {
-            currentQuestionIdx = 0;
-            questions = [];
-            document.getElementById('level-label').innerText = `Stage ${currentLevel}`;
-            document.getElementById('score-label').innerText = `Gems: ${score}`;
-
-            const optionsBox = document.getElementById('options-box');
-            optionsBox.classList.remove('row-layout');
-
-            // Formulate questions based on target pedagogical fields across the stages
-            for (let i = 0; i < 10; i++) {
-                if (currentLevel === 1) generateLevel1Question();
-                else if (currentLevel === 2) generateLevel2Question();
-                else if (currentLevel === 3) generateLevel3Question();
-            }
-            
-            showScreen('game-screen');
-            loadQuestion();
-        }
-
-        function getRandomNum(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
-        function shuffleArray(arr) { return arr.sort(() => Math.random() - 0.5); }
-
-        // --- STAGE 1 LOGIC ENGINE (Recognition, Reading, Counting Intervals) ---
-        function generateLevel1Question() {
-            let type = getRandomNum(1, 3);
-            let qText = "";
-            let correctAns = "";
-            let base = getRandomNum(100, 450);
-
-            if (type === 1) {
-                // Word form recognition
-                let numTextMap = {1:"One", 2:"Two", 3:"Three", 4:"Four", 5:"Five", 6:"Six", 7:"Seven", 8:"Eight", 9:"Nine"};
-                let h = Math.floor(base / 100);
-                qText = `Recognise the text: Which number reads as "${numTextMap[h]} Hundred"?`;
-                correctAns = (h * 100).toString();
-            } else if (type === 2) {
-                // Counting interval patterns (by twos, fives, tens)
-                let intervals = [2, 5, 10];
-                let step = intervals[getRandomNum(0, 2)];
-                qText = `Complete the interval jump: ${base}, ${base + step}, ${base + (step*2)}, ____?`;
-                correctAns = (base + (step * 3)).toString();
-            } else {
-                // Identification values
-                qText = `Identify the value: How do we write the number value of ${base}?`;
-                correctAns = base.toString();
-            }
-
-            let choices = [correctAns];
-            while (choices.length < 4) {
-                let fake = (parseInt(correctAns) + getRandomNum(-12, 15)).toString();
-                if (parseInt(fake) > 0 && !choices.includes(fake)) choices.push(fake);
-            }
-            questions.push({ question: qText, choices: shuffleArray(choices), answer: correctAns });
-        }
-
-        // --- STAGE 2 LOGIC ENGINE (Place Values, Digit Values, Expanded Form) ---
-        function generateLevel2Question() {
-            let type = getRandomNum(1, 3);
-            let qText = "";
-            let correctAns = "";
-            let num = getRandomNum(100, 499);
-            let h = Math.floor(num / 100);
-            let t = Math.floor((num % 100) / 10);
-            let o = num % 10;
-
-            if (type === 1) {
-                // Concept of ones, tens, hundreds place values
-                let places = ["Ones", "Tens", "Hundreds"];
-                let chosenIdx = getRandomNum(0, 2);
-                let digits = [o, t, h];
-                qText = `In the number ${num}, what place value column holds the digit ${digits[chosenIdx]}?`;
-                correctAns = places[chosenIdx];
-            } else if (type === 2) {
-                // Face vs actual place value expression of each digit
-                let chosenIdx = getRandomNum(0, 2);
-                let digits = [o, t, h];
-                let values = [o, t * 10, h * 100];
-                qText = `What is the actual structural value of the digit ${digits[chosenIdx]} in ${num}?`;
-                correctAns = values[chosenIdx].toString();
-            } else {
-                // Express numbers in expanded form
-                qText = `What is the correct expanded form of the coordinates: ${num}?`;
-                correctAns = `${h * 100} + ${t * 10} + ${o}`;
-            }
-
-            let choices = [correctAns];
-            if (type === 1) {
-                choices = ["Ones", "Tens", "Hundreds"];
-            } else if (type === 2) {
-                while (choices.length < 4) {
-                    let fake = (getRandomNum(0, 9) * [1, 10, 100][getRandomNum(0, 2)]).toString();
-                    if (!choices.includes(fake)) choices.push(fake);
-                }
-            } else {
-                while (choices.length < 4) {
-                    let fake = `${getRandomNum(1,4)*100} + ${getRandomNum(0,9)*10} + ${getRandomNum(0,9)}`;
-                    if (!choices.includes(fake) && fake !== correctAns) choices.push(fake);
-                }
-            }
-            questions.push({ question: qText, choices: type === 1 ? choices : shuffleArray(choices), answer: correctAns });
-        }
-
-        // --- STAGE 3 LOGIC ENGINE (Compare Symbols, Greater/Smaller, Even/Odd) ---
-        function generateLevel3Question() {
-            let type = getRandomNum(1, 3);
-            let qText = "";
-            let correctAns = "";
-            let choices = [];
-
-            if (type === 1) {
-                // Compare symbols (<, >, =)
-                let num1 = getRandomNum(100, 500);
-                let num2 = getRandomNum(100, 500);
-                if (getRandomNum(1, 3) === 1) num2 = num1;
-
-                qText = `Compare the systems:  ${num1}  ______  ${num2}`;
-                correctAns = "=";
-                if (num1 > num2) correctAns = ">";
-                if (num1 < num2) correctAns = "<";
-                choices = ["<", ">", "="];
-                document.getElementById('options-box').classList.add('row-layout');
-            } else if (type === 2) {
-                // Greater / smaller determination
-                let num1 = getRandomNum(100, 500);
-                let num2 = num1 + getRandomNum(5, 30);
-                if (num2 > 500) num2 = num1 - 20;
-
-                if (getRandomNum(1, 2) === 1) {
-                    qText = `Which coordinate value is GREATER?`;
-                    correctAns = Math.max(num1, num2).toString();
-                } else {
-                    qText = `Which coordinate value is SMALLER?`;
-                    correctAns = Math.min(num1, num2).toString();
-                }
-                choices = [num1.toString(), num2.toString()];
-            } else {
-                // Classify as even or odd
-                let target = getRandomNum(100, 500);
-                let isEven = (target % 2 === 0);
-                qText = `Analyze the number frequency ${target}: Is it Even or Odd?`;
-                correctAns = isEven ? "Even" : "Odd";
-                choices = ["Even", "Odd"];
-            }
-
-            questions.push({ question: qText, choices: type === 1 ? choices : shuffleArray(choices), answer: correctAns });
-        }
-
-        function loadQuestion() {
-            canAnswer = true;
-            let q = questions[currentQuestionIdx];
-            
-            let progressPercent = (currentQuestionIdx / 10) * 100;
-            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
-
-            document.getElementById('question-text').innerText = q.question;
-            const optionsBox = document.getElementById('options-box');
-            optionsBox.innerHTML = "";
-
-            q.choices.forEach(choice => {
-                let btn = document.createElement('button');
-                btn.className = "btn";
-                btn.innerText = choice;
-                btn.onclick = () => selectAnswer(btn, choice);
-                optionsBox.appendChild(btn);
-            });
-        }
-
-        function selectAnswer(selectedBtn, choice) {
-            if (!canAnswer) return;
-            canAnswer = false;
-
-            let q = questions[currentQuestionIdx];
-            let buttons = document.getElementById('options-box').children;
-
-            if (choice.toString() === q.answer.toString()) {
-                selectedBtn.classList.add('correct');
-                score++;
-                document.getElementById('score-label').innerText = `Gems: ${score}`;
-                playSound('audio-correct');
-                triggerCorrectConfetti();
-            } else {
-                selectedBtn.classList.add('wrong');
-                playSound('audio-wrong');
-                for (let btn of buttons) {
-                    if (btn.innerText.toString() === q.answer.toString()) {
-                        btn.classList.add('correct');
-                    }
-                }
-            }
-
-            for (let btn of buttons) {
-                btn.classList.add('disabled');
-            }
-
-            setTimeout(() => {
-                currentQuestionIdx++;
-                if (currentQuestionIdx < 10) {
-                    loadQuestion();
-                } else {
-                    handleLevelCompletion();
-                }
-            }, 2000);
-        }
-
-        function handleLevelCompletion() {
-            document.getElementById('progress-bar').style.width = `100%`;
-            triggerCompletionConfetti();
-
-            setTimeout(() => {
-                if (currentLevel < 3) {
-                    currentLevel++;
-                    showStoryBriefing();
-                } else {
-                    playSound('audio-applause');
-                    document.getElementById('final-score-text').innerText = `Total Gems Captured: ${score} / 30`;
-                    showScreen('end-screen');
-                }
-            }, 1500);
-        }
-
-        function resetToSplash() {
-            audioUnlocked = false;
-            currentLevel = 1;
-            score = 0;
-            showScreen('splash-screen');
-            // Automatic loop re-triggering the 5-sec cycle on reset
-            setTimeout(() => {
-                showStoryBriefing();
-            }, 5000);
-        }
-    </script>
-
-</body>
-</html>
+                desc.innerText = "Welcome, Captain Cosmo! To fuel your rocket and break out of
