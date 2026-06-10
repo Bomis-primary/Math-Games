@@ -11,6 +11,7 @@ body, html {
   height:100%; width:100%;
   display:flex; justify-content:center; align-items:center;
   background:#FDF6EC;
+  overflow: hidden;
 }
 #logoScreen, #clockScreen, #cardScreen, #endScreen {
   width:100%; height:100%;
@@ -22,9 +23,11 @@ body, html {
 #logoScreen img { width:200px; }
 
 #clockScreen, #cardScreen { display:none; z-index:1; position:relative; }
-#bgImg { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:-1; }
+#endScreen { display:none; z-index:1; background:#fff; }
 
-#question {
+.bg-image { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:-1; }
+
+.question-text {
   font-size:22px; color:#fff; text-align:left;
   background: rgba(0,0,0,0.6);
   padding: 15px 20px; border-radius:10px;
@@ -47,9 +50,10 @@ button.option-btn {
   width:100%;
   box-shadow: 2px 4px 6px rgba(0,0,0,0.4);
   border: 2px solid #fff;
+  transition: background 0.2s;
 }
-button.option-btn.wrong { background:red; }
-button.option-btn.correct { background:green; }
+button.option-btn.wrong { background:red !important; }
+button.option-btn.correct { background:green !important; }
 
 .card-container {
   position:absolute;
@@ -61,10 +65,13 @@ button.option-btn.correct { background:green; }
   width:150px; height:150px;
   border:3px solid transparent; border-radius:10px;
   cursor:pointer;
+  background: white;
+  object-fit: contain;
   transition: transform 0.2s, border 0.2s;
 }
 .card:hover { transform: scale(1.05); }
-.card.shake { animation: shake 0.3s; }
+.card.shake, button.option-btn.shake { animation: shake 0.3s; }
+
 @keyframes shake {
   0% { transform: translateX(0); }
   25% { transform: translateX(-5px); }
@@ -73,67 +80,82 @@ button.option-btn.correct { background:green; }
   100% { transform: translateX(0); }
 }
 
-#feedback {
+.feedback-banner {
   font-size:26px; font-weight:bold;
   color:#fff; background-color:#001f4d;
   padding:10px 15px; border-radius:8px;
   position:absolute; top:70%; left:3%; max-width:40%;
   z-index:5; text-align:center;
 }
-#nextBtn, #playAgainBtn {
+
+.nav-btn {
   margin-top:20px; font-size:20px; padding:10px 20px;
   background:#FF69B4; color:#fff; border:none; border-radius:5px;
-  cursor:pointer; display:none; position:absolute; top:80%; left:3%;
+  cursor:pointer; display:none; position:absolute; top:82%; left:3%;
   z-index:5;
 }
+
+#playAgainBtn {
+  margin-top:20px; font-size:20px; padding:12px 25px;
+  background:#FF69B4; color:#fff; border:none; border-radius:8px;
+  cursor:pointer; z-index:5;
+}
+
 #confetti {
   position:absolute; top:0; left:0; width:100%; height:100%;
-  pointer-events:none; display:none;
+  pointer-events:none; display:none; z-index:4;
+}
+.confetti-piece {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  animation: fall 3s linear infinite;
+}
+@keyframes fall {
+  0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
 }
 </style>
 </head>
 <body>
 
-<!-- Logo Screen -->
 <div id="logoScreen">
   <img src="assets/logo.png" alt="Logo">
 </div>
 
-<!-- Clock Screen (Wake Up) -->
 <div id="clockScreen">
-  <img id="bgImg" src="assets/bedroom-bg.jpg" alt="Bedroom Background">
-  <div id="question">Click the correct time as shown on the clock.</div>
+  <img class="bg-image" src="assets/bedroom-bg.jpg" alt="Bedroom Background">
+  <div class="question-text">Click the correct time as shown on the clock.</div>
   <div class="button-container">
     <button class="option-btn" onclick="checkClock(this,true)">7:00 AM</button>
     <button class="option-btn" onclick="checkClock(this,false)">6:00 AM</button>
   </div>
-  <div id="feedback"></div>
-  <button id="nextBtn" onclick="goToCardScreen()">Next</button>
+  <div id="clockFeedback" class="feedback-banner"></div>
+  <button id="clockNextBtn" class="nav-btn" onclick="goToCardScreen()">Next</button>
 </div>
 
-<!-- Card Screen (What Next) -->
 <div id="cardScreen">
-  <img id="bgImg" src="assets/bedroom-bg.jpg" alt="Background">
-  <div id="question">What does Riya do next after waking up?</div>
+  <img class="bg-image" src="assets/bedroom-bg.jpg" alt="Background">
+  <div class="question-text">What does Riya do next after waking up?</div>
   <div class="card-container">
-    <img src="assets/brushing.png" class="card" onclick="checkCard(this,true)">
-    <img src="assets/breakfast.jpg" class="card" onclick="checkCard(this,false)">
-    <img src="assets/ready.png" class="card" onclick="checkCard(this,false)">
+    <img src="assets/brushing.png" class="card" alt="Brushing" onclick="checkCard(this,true)">
+    <img src="assets/breakfast.jpg" class="card" alt="Breakfast" onclick="checkCard(this,false)">
+    <img src="assets/ready.png" class="card" alt="Ready" onclick="checkCard(this,false)">
   </div>
-  <div id="feedback"></div>
-  <button id="nextBtn" onclick="nextTask()">Next</button>
+  <div id="cardFeedback" class="feedback-banner"></div>
+  <button id="cardNextBtn" class="nav-btn" onclick="nextTask()">Next</button>
 </div>
 
-<!-- End Screen -->
 <div id="endScreen">
   <div id="confetti"></div>
-  <h1>Well Done!</h1>
+  <h1 style="font-size: 3rem; color: #2c3e50; margin-bottom: 20px;">Well Done! 🎉</h1>
   <button id="playAgainBtn" onclick="restartGame()">Play Again</button>
 </div>
 
 <script>
-let attemptsClock=0;
-let attemptsCard=0;
+let attemptsClock = 0;
+let attemptsCard = 0;
 
 // Show logo for 3 seconds
 setTimeout(()=>{
@@ -142,114 +164,136 @@ setTimeout(()=>{
 },3000);
 
 // Clock screen logic
-function checkClock(button,isCorrect){
+function checkClock(button, isCorrect){
   attemptsClock++;
-  const feedback=document.getElementById('feedback');
+  const feedback = document.getElementById('clockFeedback');
   if(isCorrect){
     button.classList.add('correct');
-    feedback.textContent="Good Job!";
+    feedback.textContent = "Good Job!";
     playSound('correct');
-    document.querySelector('#clockScreen #nextBtn').style.display='inline-block';
+    document.getElementById('clockNextBtn').style.display = 'inline-block';
     disableClockButtons();
   } else {
     button.classList.add('wrong');
-    feedback.textContent="Try again!";
+    feedback.textContent = "Try again!";
     playSound('wrong');
     button.classList.add('shake');
     setTimeout(()=>button.classList.remove('shake'),300);
-    if(attemptsClock>=2){
-      feedback.textContent="Correct answer is 7:00 AM";
+    
+    if(attemptsClock >= 2){
+      feedback.textContent = "Correct answer is 7:00 AM";
       disableClockButtons();
-      document.querySelector('#clockScreen #nextBtn').style.display='inline-block';
+      document.getElementById('clockNextBtn').style.display = 'inline-block';
     }
   }
 }
+
 function disableClockButtons(){
-  const buttons=document.querySelectorAll('#clockScreen .option-btn');
-  buttons.forEach(b=>b.disabled=true);
+  const buttons = document.querySelectorAll('#clockScreen .option-btn');
+  buttons.forEach(b=>b.disabled = true);
 }
+
 function goToCardScreen(){
-  document.getElementById('clockScreen').style.display='none';
-  document.getElementById('cardScreen').style.display='flex';
-  attemptsCard=0;
-  document.getElementById('feedback').textContent='';
-  const cards=document.querySelectorAll('#cardScreen .card');
+  document.getElementById('clockScreen').style.display = 'none';
+  document.getElementById('cardScreen').style.display = 'flex';
+  attemptsCard = 0;
+  document.getElementById('cardFeedback').textContent = '';
+  const cards = document.querySelectorAll('#cardScreen .card');
   cards.forEach(c=>{
-    c.style.border='3px solid transparent';
-    c.style.pointerEvents='auto';
+    c.style.border = '3px solid transparent';
+    c.style.pointerEvents = 'auto';
   });
-  document.querySelector('#cardScreen #nextBtn').style.display='none';
+  document.getElementById('cardNextBtn').style.display = 'none';
 }
 
 // Card screen logic
-function checkCard(card,isCorrect){
+function checkCard(card, isCorrect){
   attemptsCard++;
-  const feedback=document.getElementById('feedback');
+  const feedback = document.getElementById('cardFeedback');
   if(isCorrect){
-    card.style.border="3px solid green";
-    feedback.textContent="Good Job!";
+    card.style.border = "3px solid green";
+    feedback.textContent = "Good Job!";
     playSound('correct');
-    document.querySelector('#cardScreen #nextBtn').style.display='inline-block';
+    document.getElementById('cardNextBtn').style.display = 'inline-block';
     disableCards();
   } else {
-    card.style.border="3px solid red";
-    feedback.textContent="Try again!";
+    card.style.border = "3px solid red";
+    feedback.textContent = "Try again!";
     playSound('wrong');
     card.classList.add('shake');
     setTimeout(()=>card.classList.remove('shake'),300);
-    if(attemptsCard>=2){
-      feedback.textContent="Correct answer is brushing teeth!";
+    
+    if(attemptsCard >= 2){
+      feedback.textContent = "Correct answer is brushing teeth!";
       disableCards();
-      document.querySelector('#cardScreen #nextBtn').style.display='inline-block';
+      document.getElementById('cardNextBtn').style.display = 'inline-block';
     }
   }
 }
+
 function disableCards(){
-  const cards=document.querySelectorAll('#cardScreen .card');
-  cards.forEach(c=>c.style.pointerEvents='none');
+  const cards = document.querySelectorAll('#cardScreen .card');
+  cards.forEach(c=>c.style.pointerEvents = 'none');
 }
 
 // End screen
 function nextTask(){
-  document.getElementById('cardScreen').style.display='none';
-  document.getElementById('endScreen').style.display='flex';
+  document.getElementById('cardScreen').style.display = 'none';
+  document.getElementById('endScreen').style.display = 'flex';
   showConfetti();
 }
 
 // Restart game
 function restartGame(){
-  document.getElementById('endScreen').style.display='none';
-  document.getElementById('clockScreen').style.display='flex';
-  attemptsClock=0; attemptsCard=0;
-  const feedback=document.getElementById('feedback');
-  feedback.textContent='';
-  const buttons=document.querySelectorAll('#clockScreen .option-btn');
-  buttons.forEach(b=>{ b.disabled=false; b.classList.remove('wrong','correct'); });
-  const cards=document.querySelectorAll('#cardScreen .card');
-  cards.forEach(c=>{ c.style.border='3px solid transparent'; c.style.pointerEvents='auto'; });
-  document.querySelectorAll('#clockScreen #nextBtn, #cardScreen #nextBtn').forEach(b=>b.style.display='none');
+  document.getElementById('endScreen').style.display = 'none';
+  document.getElementById('clockScreen').style.display = 'flex';
+  
+  attemptsClock = 0; 
+  attemptsCard = 0;
+  
+  document.getElementById('clockFeedback').textContent = '';
+  document.getElementById('cardFeedback').textContent = '';
+  
+  const buttons = document.querySelectorAll('#clockScreen .option-btn');
+  buttons.forEach(b=>{ b.disabled = false; b.classList.remove('wrong','correct'); });
+  
+  const cards = document.querySelectorAll('#cardScreen .card');
+  cards.forEach(c=>{ c.style.border = '3px solid transparent'; c.style.pointerEvents = 'auto'; });
+  
+  document.getElementById('clockNextBtn').style.display = 'none';
+  document.getElementById('cardNextBtn').style.display = 'none';
+  
+  const conf = document.getElementById("confetti");
+  conf.innerHTML = '';
+  conf.style.display = 'none';
 }
 
-// Confetti
+// Confetti Engine
 function showConfetti(){
-  const conf=document.getElementById("confetti");
-  conf.style.display='block';
-  for(let i=0;i<100;i++){
-    let dot=document.createElement('div');
-    dot.style.position='absolute';
-    dot.style.width='10px';
-    dot.style.height='10px';
-    dot.style.background=['#FF69B4','#FFD700','#8E44AD','#00CED1'][Math.floor(Math.random()*4)];
-    dot.style.left=Math.random()*100+'%';
-    dot.style.top=Math.random()*100+'%';
+  const conf = document.getElementById("confetti");
+  conf.innerHTML = '';
+  conf.style.display = 'block';
+  const colors = ['#FF69B4','#FFD700','#8E44AD','#00CED1'];
+  
+  for(let i=0; i<100; i++){
+    let dot = document.createElement('div');
+    dot.className = 'confetti-piece';
+    dot.style.background = colors[Math.floor(Math.random()*colors.length)];
+    dot.style.left = Math.random() * 100 + '%';
+    // Stagger start times so they drift down smoothly
+    dot.style.animationDelay = (Math.random() * 2) + 's';
     conf.appendChild(dot);
-    setTimeout(()=>dot.remove(),3000);
   }
 }
 
+// Web-safe Audio Handler
 function playSound(type){
-  const audio=new Audio(type==='correct'?'assets/correct.mp3':'assets/wrong.mp3');
-  audio.play();
+  try {
+    const audio = new Audio(type === 'correct' ? 'assets/correct.mp3' : 'assets/wrong.mp3');
+    audio.play().catch(e => console.log("Audio play blocked or file missing: ", e));
+  } catch(err) {
+    console.log("Audio not supported or error: ", err);
+  }
 }
 </script>
 </body>
