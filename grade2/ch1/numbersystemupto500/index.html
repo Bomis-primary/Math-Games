@@ -53,7 +53,7 @@
             display: flex;
         }
 
-        /* Splash Screen - Entirely clean, absolute centered logo */
+        /* Splash Screen - Clean white background layout */
         #splash-screen {
             background: #ffffff;
             position: absolute;
@@ -63,13 +63,6 @@
             height: 100%;
             border-radius: 20px;
             z-index: 10;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #splash-screen.active {
-            display: flex;
         }
 
         #splash-screen img {
@@ -294,7 +287,7 @@
         <div id="end-screen" class="screen">
             <div class="transition-title" style="font-size: 2.2rem; color: #a855f7;">🚀 Mission Success! 🚀</div>
             <div class="story-box">
-                🧑‍🚀 Captain Cosmo has safely successfully crossed deep space, decoded all galactic nodes, and established the outpost! The coordinates up to 500 are completely secured!
+                🧑‍🚀 Captain Cosmo has successfully crossed deep space, decoded all galactic nodes, and established the outpost! The coordinates up to 500 are completely secured!
             </div>
             <div id="final-score-text" style="font-size: 1.4rem; margin-bottom: 25px; color: #fbbf24; font-weight: bold;">Total Gems Captured: 0 / 15</div>
             <button class="action-btn" style="background:#f59e0b; border-color:#d97706;" onclick="resetToSplash()">Restart Mission</button>
@@ -303,7 +296,7 @@
     </div>
 
     <script>
-        // Static Master Database mapped exactly from the user's document
+        // Static Master Database mapped exactly from your document
         const levelQuestionsDatabase = {
             1: [
                 {
@@ -398,13 +391,13 @@
         let globalVolume = 0.8;
         let audioUnlocked = false;
 
-        // Count total global database questions dynamically
+        // Calculate total global database questions dynamically
         Object.keys(levelQuestionsDatabase).forEach(key => {
             totalQuestionsInGame += levelQuestionsDatabase[key].length;
         });
 
-        // Safe Load Event Listener to fully pass modern browser security layouts
-        window.addEventListener('load', () => {
+        // Trigger loading screen routine as soon as the page structure is available
+        document.addEventListener('DOMContentLoaded', () => {
             startLogoTimer();
         });
 
@@ -414,7 +407,7 @@
             }, 5000);
         }
 
-        // Safe Audio Context Handler
+        // Audio Handler
         function unlockAudio() {
             if (audioUnlocked) return;
             const sounds = ['audio-correct', 'audio-wrong', 'audio-applause'];
@@ -424,7 +417,7 @@
                     sound.play().then(() => {
                         sound.pause();
                         sound.currentTime = 0;
-                    }).catch(e => console.log("System driver initialised."));
+                    }).catch(e => console.log("Audio contexts managed."));
                 }
             });
             audioUnlocked = true;
@@ -435,144 +428,3 @@
             if (sound) {
                 sound.volume = globalVolume;
                 sound.currentTime = 0;
-                sound.play().catch(e => console.log("Audio waiting for user context."));
-            }
-        }
-
-        function updateVolume() {
-            globalVolume = document.getElementById('volume-slider').value;
-        }
-
-        // Confetti Particle Side Cannons
-        function triggerCorrectConfetti() {
-            let end = Date.now() + (0.4 * 1000);
-            let colors = ['#c084fc', '#ec4899', '#3b82f6', '#22c55e', '#fbbf24'];
-
-            (function frame() {
-                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0, y: 0.85 }, colors: colors });
-                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1, y: 0.85 }, colors: colors });
-                if (Date.now() < end) requestAnimationFrame(frame);
-            }());
-        }
-
-        // Confetti Fireworks Cascade Intermission
-        function triggerCompletionConfetti() {
-            let duration = 3 * 1000;
-            let animationEnd = Date.now() + duration;
-            let defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 100 };
-
-            function randomInRange(min, max) { return Math.random() * (max - min) + min; }
-
-            let interval = setInterval(function() {
-                let timeLeft = animationEnd - Date.now();
-                if (timeLeft <= 0) return clearInterval(interval);
-
-                let particleCount = 50 * (timeLeft / duration);
-                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
-                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
-            }, 250);
-        }
-
-        // Core Layout Screen Router
-        function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
-        }
-
-        // Story Screen Intermissions
-        function showStoryBriefing() {
-            unlockAudio();
-            const title = document.getElementById('story-title');
-            const desc = document.getElementById('story-desc');
-
-            if (currentLevel === 1) {
-                title.innerText = "🚀 Stage 1: Launch Orbit";
-                desc.innerText = "Welcome, Captain Cosmo! To fuel your rocket and break out of Earth's atmosphere, you need to match missing tracking values, recognize numeric wording, and chart cosmic counting sequences up to 500!";
-            } else if (currentLevel === 2) {
-                title.innerText = "🌌 Stage 2: Deep Space Maze";
-                desc.innerText = "Great job breaking orbit! Now we are deep in space. Asteroids lie ahead! To dodge them, use your star tracker to calculate place values, evaluate target face digit markers, and expand numeric coordinates correctly.";
-            } else if (currentLevel === 3) {
-                title.innerText = "🛸 Stage 3: Alien Outpost Gate";
-                desc.innerText = "Final stretch! An alien outpost security grid is blocking our path. Clear the frequency portal by comparing spatial coordinates, sorting values in ascending order, and identifying odd or even number patterns!";
-            }
-            showScreen('story-screen');
-        }
-
-        // Active Play Loop Initialization
-        function startLevelGameplay() {
-            currentQuestionIdx = 0;
-            questions = JSON.parse(JSON.stringify(levelQuestionsDatabase[currentLevel]));
-            
-            document.getElementById('level-label').innerText = `Stage ${currentLevel}`;
-            document.getElementById('score-label').innerText = `Gems: ${score}`;
-
-            const optionsBox = document.getElementById('options-box');
-            if(currentLevel === 3) {
-                optionsBox.classList.add('row-layout');
-            } else {
-                optionsBox.classList.remove('row-layout');
-            }
-            
-            showScreen('game-screen');
-            loadQuestion();
-        }
-
-        function loadQuestion() {
-            canAnswer = true;
-            let q = questions[currentQuestionIdx];
-            
-            let progressPercent = (currentQuestionIdx / questions.length) * 100;
-            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
-
-            document.getElementById('question-text').innerText = q.question;
-            const optionsBox = document.getElementById('options-box');
-            optionsBox.innerHTML = "";
-
-            q.choices.forEach(choice => {
-                let btn = document.createElement('button');
-                btn.className = "btn";
-                btn.innerText = choice;
-                btn.onclick = () => selectAnswer(btn, choice);
-                optionsBox.appendChild(btn);
-            });
-        }
-
-        function selectAnswer(selectedBtn, choice) {
-            if (!canAnswer) return;
-            canAnswer = false;
-
-            let q = questions[currentQuestionIdx];
-            let buttons = document.getElementById('options-box').children;
-
-            if (choice.toString().trim() === q.answer.toString().trim()) {
-                selectedBtn.classList.add('correct');
-                score++;
-                document.getElementById('score-label').innerText = `Gems: ${score}`;
-                playSound('audio-correct');
-                triggerCorrectConfetti();
-            } else {
-                selectedBtn.classList.add('wrong');
-                playSound('audio-wrong');
-                for (let btn of buttons) {
-                    if (btn.innerText.toString().trim() === q.answer.toString().trim()) {
-                        btn.classList.add('correct');
-                    }
-                }
-            }
-
-            for (let btn of buttons) {
-                btn.classList.add('disabled');
-            }
-
-            setTimeout(() => {
-                currentQuestionIdx++;
-                if (currentQuestionIdx < questions.length) {
-                    loadQuestion();
-                } else {
-                    handleLevelCompletion();
-                }
-            }, 2000);
-        }
-
-        function handleLevelCompletion() {
-            document.getElementById('progress
