@@ -290,6 +290,23 @@
         let questions = [];
         let canAnswer = true;
         let globalVolume = 0.8;
+        let audioUnlocked = false;
+
+        // Unlock audio contexts on user interaction
+        function unlockAudio() {
+            if (audioUnlocked) return;
+            const sounds = ['audio-correct', 'audio-wrong', 'audio-applause'];
+            sounds.forEach(id => {
+                const sound = document.getElementById(id);
+                if (sound) {
+                    sound.play().then(() => {
+                        sound.pause();
+                        sound.currentTime = 0;
+                    }).catch(e => console.log("Audio unlock context managed."));
+                }
+            });
+            audioUnlocked = true;
+        }
 
         // Sound Triggers
         function playSound(id) {
@@ -297,7 +314,7 @@
             if (sound) {
                 sound.volume = globalVolume;
                 sound.currentTime = 0;
-                sound.play().catch(e => console.log("Audio playback waiting for interaction."));
+                sound.play().catch(e => console.log("Audio playback held by browser restrictions."));
             }
         }
 
@@ -363,6 +380,7 @@
 
         // Initialize and Start Game
         function startGame() {
+            unlockAudio(); // Unlocks browser standard security safely on interaction
             currentLevel = 1;
             currentQuestionIdx = 0;
             score = 0;
@@ -482,7 +500,6 @@
         function generateLevel3Question() {
             let num1 = getRandomNum(100, 500);
             let num2 = getRandomNum(100, 500);
-            // Balance out chances of getting exact equal numbers randomly
             if (getRandomNum(1, 4) === 1) {
                 num2 = num1;
             }
@@ -500,7 +517,6 @@
             canAnswer = true;
             let q = questions[currentQuestionIdx];
             
-            // Progress Update
             let progressPercent = (currentQuestionIdx / 10) * 100;
             document.getElementById('progress-bar').style.width = `${progressPercent}%`;
 
@@ -534,7 +550,6 @@
             } else {
                 selectedBtn.classList.add('wrong');
                 playSound('audio-wrong');
-                // Reveal the correct answer visually
                 for (let btn of buttons) {
                     if (btn.innerText.toString() === q.answer.toString()) {
                         btn.classList.add('correct');
@@ -542,12 +557,10 @@
                 }
             }
 
-            // Lock out other buttons
             for (let btn of buttons) {
                 btn.classList.add('disabled');
             }
 
-            // Step up question pointer loop
             setTimeout(() => {
                 currentQuestionIdx++;
                 if (currentQuestionIdx < 10) {
@@ -571,7 +584,6 @@
                 }
                 showScreen('clear-screen');
             } else {
-                // Game Finished Entirely
                 playSound('audio-applause');
                 document.getElementById('final-score-text').innerText = `Total Score: ${score} / 30`;
                 showScreen('end-screen');
@@ -579,12 +591,12 @@
         }
 
         function nextLevel() {
-            currentLevel++;
             setupLevel();
             showScreen('game-screen');
         }
 
         function resetToSplash() {
+            audioUnlocked = false; // Reset status toggle to safely restart
             showScreen('splash-screen');
         }
     </script>
