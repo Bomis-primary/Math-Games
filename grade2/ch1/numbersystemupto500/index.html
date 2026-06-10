@@ -1,456 +1,593 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Grade 2: Ultimate Number System Suite up to 500</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 2 Math Challenge</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
 
-<style>
-/* 5-Second Splash Screen Engine Layout */
-#splashScreen {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100vw; height: 100vh;
-    background-color: #ffffff;
-    display: flex; flex-direction: column;
-    justify-content: center; align-items: center;
-    z-index: 9999;
-    transition: opacity 0.8s ease, transform 0.8s ease;
-}
-#splashLogo {
-    width: 250px; height: auto;
-    object-fit: contain;
-    animation: gentlePulse 2s infinite ease-in-out;
-}
-.loader-arc {
-    margin-top: 25px;
-    width: 45px; height: 45px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #6200ea;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-@keyframes gentlePulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        body {
+            background: linear-gradient(135deg, #ffdeb4 0%, #b2ebf2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            overflow-x: hidden;
+        }
 
-/* Universal Canvas Element Theme */
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    text-align: center;
-    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
-    color: #212121;
-    margin: 0; padding: 15px;
-    min-height: 100vh;
-    box-sizing: border-box;
-    display: flex; flex-direction: column; align-items: center;
-    user-select: none; overflow-x: hidden;
-}
+        .game-container {
+            background: white;
+            border-radius: 24px;
+            padding: 25px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.15);
+            text-align: center;
+            border: 6px solid #4fc3f7;
+            position: relative;
+            min-height: 450px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
 
-#gameContainer {
-    width: 100%; max-width: 900px;
-    background: #ffffff;
-    border-radius: 24px;
-    padding: 25px;
-    box-shadow: 0 12px 32px rgba(98, 0, 234, 0.15);
-    box-sizing: border-box;
-    opacity: 0;
-    transition: opacity 0.6s ease;
-}
+        .screen {
+            display: none;
+            width: 100%;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
 
-.chapter-badge {
-    background: #6200ea; color: white;
-    padding: 6px 18px; border-radius: 20px;
-    font-size: 13px; font-weight: bold;
-    display: inline-block; margin-bottom: 5px;
-}
-h1 { margin: 5px 0 20px 0; font-size: clamp(22px, 4vw, 30px); color: #311b92; }
+        .screen.active {
+            display: flex;
+        }
 
-/* Dashboard Navigation Tabs Matrix */
-.nav-tabs {
-    display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-bottom: 25px;
-}
-.tab-btn {
-    padding: 10px 16px; font-size: 13px; font-weight: bold;
-    background: #f5f5f5; border: 2px solid #e0e0e0;
-    border-radius: 12px; cursor: pointer; transition: all 0.2s;
-}
-.tab-btn.active {
-    background: #6200ea; color: white; border-color: #311b92;
-}
+        /* Splash Screen styling */
+        #splash-screen img {
+            max-width: 220px;
+            height: auto;
+            margin-bottom: 30px;
+            filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.1));
+        }
 
-/* Master Controller Visibility States */
-.game-mode-panel { display: none; animation: viewFadeIn 0.4s ease; }
-.game-mode-panel.active { display: block; }
+        /* Header / Controls styling */
+        .game-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            background: #f1f8e9;
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 2px dashed #8bc34a;
+        }
 
-.prompt-box {
-    background: #fff8e1; border: 3px solid #ffe082;
-    border-radius: 16px; padding: 18px; margin-bottom: 20px;
-    font-size: 18px; font-weight: bold; color: #f57c00;
-}
-.challenge-val-txt { font-size: 46px; font-weight: 900; color: #d84315; display: block; margin-top: 5px; }
+        .level-indicator {
+            font-size: 0.95rem;
+            color: #2e7d32;
+            font-weight: bold;
+        }
 
-/* MODE 1: ABACUS CSS DRAWING HOOKS */
-.abacus-frame {
-    display: flex; justify-content: space-around; align-items: flex-end;
-    background: #fafafa; border: 4px solid #b39ddb;
-    border-radius: 20px; height: 260px; padding: 20px 40px;
-    position: relative; margin-bottom: 20px;
-}
-.abacus-base-beam {
-    position: absolute; bottom: 65px; left: 4%; width: 92%; height: 16px;
-    background: #795548; border-radius: 8px; z-index: 2;
-}
-.abacus-spike-column {
-    display: flex; flex-direction: column-reverse; align-items: center;
-    width: 100px; height: 230px; position: relative;
-}
-.abacus-spike-column::before {
-    content: ''; position: absolute; bottom: 65px; width: 10px; height: 160px;
-    background: #b0bec5; border-radius: 5px; z-index: 1;
-}
-.spike-bead-container {
-    display: flex; flex-direction: column-reverse; align-items: center;
-    gap: 4px; width: 100%; height: 150px; margin-bottom: 75px; z-index: 3;
-}
-.abacus-bead {
-    width: 75px; height: 14px; border-radius: 8px;
-    box-shadow: 0 3px 5px rgba(0,0,0,0.15); animation: dropFallAnimation 0.2s ease-out;
-}
-.bead-h { background: #2196f3; border: 2px solid #0d47a1; }
-.bead-t { background: #4caf50; border: 2px solid #1b5e20; }
-.bead-o { background: #ff9800; border: 2px solid #e65100; }
-.spike-label { position: absolute; bottom: 5px; font-weight: bold; font-size: 14px; color: #311b92; }
+        .score-board {
+            font-size: 0.95rem;
+            color: #e65100;
+            font-weight: bold;
+        }
 
-.bead-dock {
-    display: flex; justify-content: center; gap: 15px; background: #f5f5f5;
-    padding: 12px; border-radius: 16px; margin-bottom: 20px;
-}
-.drag-bead-source {
-    cursor: grab; padding: 10px 18px; font-size: 14px; font-weight: bold;
-    color: white; border-radius: 10px; touch-action: none;
-}
-.drag-bead-source.dragging { position: fixed; pointer-events: none; z-index: 999; transform: scale(1.1); }
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #e1f5fe;
+            padding: 4px 8px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            color: #0277bd;
+            font-weight: bold;
+        }
 
-/* MODES 2, 3, 4, 5 CORE GEOMETRIES */
-.sequence-container, .comparison-container, .train-wrapper {
-    display: flex; justify-content: center; align-items: center; gap: 12px;
-    margin: 30px 0; font-size: 32px; font-weight: bold; flex-wrap: wrap;
-}
-.seq-box, .train-car {
-    width: 110px; height: 90px; background: #f1f8e9; border: 3px solid #8bc34a;
-    border-radius: 16px; display: flex; justify-content: center; align-items: center; color: #33691e;
-}
-.comp-val {
-    min-width: 120px; padding: 15px; background: #e3f2fd; border: 3px solid #2196f3;
-    border-radius: 16px; color: #0d47a1;
-}
-.comp-choice-box {
-    width: 100px; height: 90px; border: 3px dashed #b0bec5; border-radius: 16px;
-    display: flex; justify-content: center; align-items: center; font-size: 42px; color: #e91e63;
-}
-.train-car { background: #e3f2fd; border-color: #2196f3; color: #0d47a1; position: relative; }
-.train-car::after {
-    content: '■■'; position: absolute; right: -18px; bottom: 30px;
-    font-size: 12px; color: #90caf9; letter-spacing: -2px;
-}
-.train-car:last-child::after { content: ''; }
+        .volume-control input {
+            width: 60px;
+            cursor: pointer;
+        }
 
-.shared-game-input {
-    width: 110px; height: 90px; text-align: center; font-size: 32px; font-weight: bold;
-    border: 3px dashed #6200ea; border-radius: 16px; color: #6200ea; background: #f3e5f5;
-    outline: none; box-sizing: border-box;
-}
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            height: 14px;
+            border: 1px solid #ccc;
+        }
 
-.sorting-zone { display: flex; justify-content: center; gap: 30px; margin: 30px 0; }
-.bin-target {
-    flex: 1; max-width: 250px; height: 140px; border: 3px dashed #6200ea; border-radius: 20px;
-    background: #f3e5f5; display: flex; flex-direction: column; justify-content: center;
-    align-items: center; font-size: 26px; font-weight: bold; color: #311b92; cursor: pointer; transition: all 0.2s;
-}
-.bin-target:hover { background: #e1bee7; transform: scale(1.02); }
-.bin-target span { font-size: 13px; color: #7e57c2; margin-top: 5px; font-weight: normal; }
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff9800, #ffeb3b);
+            transition: width 0.3s ease;
+        }
 
-.symbol-grid { display: flex; justify-content: center; gap: 20px; margin-top: 20px; }
-.sym-btn {
-    width: 70px; height: 70px; font-size: 32px; font-weight: bold; cursor: pointer;
-    background: #e91e63; color: white; border: none; border-radius: 50%;
-    box-shadow: 0 4px 10px rgba(233,30,99,0.3); transition: transform 0.1s;
-}
-.sym-btn:active { transform: scale(0.95); }
+        /* Question & Options */
+        .question-box {
+            font-size: 1.4rem;
+            color: #333;
+            margin-bottom: 25px;
+            font-weight: bold;
+            line-height: 1.4;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-/* Dynamic Control Mechanics */
-.action-btn {
-    padding: 14px 45px; font-size: 18px; font-weight: bold; border: none;
-    border-radius: 50px; cursor: pointer; background: #6200ea; color: white;
-    box-shadow: 0 6px 16px rgba(98, 0, 234, 0.3); margin: 5px; transition: transform 0.1s;
-}
-.action-btn:active { transform: scale(0.97); }
+        .options-container {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
 
-#canvasCelebration { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+        /* Flexbox structure for symbols level */
+        .options-container.row-layout {
+            grid-template-columns: repeat(3, 1fr);
+        }
 
-@keyframes viewFadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes dropFallAnimation { from { transform: translateY(-100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-@keyframes structuralShake { 0%, 100% { transform: translateX(0); } 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
-.error-shake { animation: structuralShake 0.4s ease-in-out; }
-</style>
+        .btn {
+            background: #fff;
+            border: 3px solid #ffb74d;
+            border-bottom: 7px solid #ffb74d;
+            border-radius: 16px;
+            padding: 14px 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #e65100;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            outline: none;
+            user-select: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .btn:active:not(.disabled) {
+            border-bottom-width: 3px;
+            transform: translateY(4px);
+        }
+
+        .btn.correct {
+            background-color: #c8e6c9 !important;
+            border-color: #4caf50 !important;
+            border-bottom-color: #388e3c !important;
+            color: #1b5e20 !important;
+        }
+
+        .btn.wrong {
+            background-color: #ffcdd2 !important;
+            border-color: #f44336 !important;
+            border-bottom-color: #d32f2f !important;
+            color: #b71c1c !important;
+        }
+
+        .btn.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Action Buttons (Start, Next, Restart) */
+        .action-btn {
+            background: #4caf50;
+            border: 3px solid #388e3c;
+            border-bottom: 7px solid #388e3c;
+            color: white;
+            font-size: 1.3rem;
+            padding: 12px 30px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 15px;
+            transition: all 0.1s ease;
+        }
+
+        .action-btn:active {
+            border-bottom-width: 3px;
+            transform: translateY(4px);
+        }
+
+        /* Transition Screens */
+        .transition-title {
+            font-size: 2rem;
+            color: #2e7d32;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .transition-text {
+            font-size: 1.1rem;
+            color: #555;
+            margin-bottom: 25px;
+        }
+
+        /* End Screen values */
+        .final-title {
+            font-size: 2.2rem;
+            color: #e65100;
+            margin-bottom: 15px;
+        }
+        
+        .final-score {
+            font-size: 1.4rem;
+            margin-bottom: 25px;
+            color: #333;
+        }
+    </style>
 </head>
 <body>
 
-<div id="splashScreen">
-    <img id="splashLogo" src="assets/innovine-logo.png" alt="Logo"> <div class="loader-arc"></div>
-</div>
+    <div class="game-container">
+        
+        <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
+        <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+        <audio id="audio-applause" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
 
-<div id="gameContainer">
-    <div class="chapter-badge">CHAPTER 1 • NUMBER SYSTEM UP TO 500</div> <h1>Number System Suite</h1>
+        <div id="splash-screen" class="screen active">
+            <img src="assets/innovine-logo.png" alt="INNOVINE LOGO">
+            <button class="action-btn" onclick="startGame()">Start Game</button>
+        </div>
 
-    <div class="nav-tabs">
-        <button class="tab-btn active" onclick="switchActiveTab('abacus')">1. Abacus Spikes 🔵</button> <button class="tab-btn" onclick="switchActiveTab('sequence')">2. Before & After 🔢</button> <button class="tab-btn" onclick="switchActiveTab('compare')">3. Compare Signs 🐊</button> <button class="tab-btn" onclick="switchActiveTab('classify')">4. Even or Odd ⚖️</button> <button class="tab-btn" onclick="switchActiveTab('counting')">5. Skip-Counting 🚂</button> </div>
+        <div id="game-screen" class="screen">
+            <div class="game-header">
+                <div id="level-label" class="level-indicator">Level 1</div>
+                <div class="volume-control">
+                    <span>🔊</span>
+                    <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.8" onchange="updateVolume()">
+                </div>
+                <div id="score-label" class="score-board">Score: 0</div>
+            </div>
 
-    <div id="panel-abacus" class="game-mode-panel active">
-        <div class="prompt-box">
-            Represent this number on the abacus spikes: <span id="targetAbacusNum" class="challenge-val-txt">---</span>
+            <div class="progress-container">
+                <div id="progress-bar" class="progress-bar"></div>
+            </div>
+
+            <div id="question-text" class="question-box">Loading question...</div>
+            <div id="options-box" class="options-container"></div>
         </div>
-        <div class="abacus-frame">
-            <div class="abacus-base-beam"></div>
-            <div class="abacus-spike-column" id="spike-H" data-value="H">
-                <div class="spike-bead-container" id="box-H"></div>
-                <div class="spike-label">Hundreds (H)</div> </div>
-            <div class="abacus-spike-column" id="spike-T" data-value="T">
-                <div class="spike-bead-container" id="box-T"></div>
-                <div class="spike-label">Tens (T)</div> </div>
-            <div class="abacus-spike-column" id="spike-O" data-value="O">
-                <div class="spike-bead-container" id="box-O"></div>
-                <div class="spike-label">Ones (O)</div> </div>
+
+        <div id="clear-screen" class="screen">
+            <div class="transition-title">🎉 Level Clear! 🎉</div>
+            <div id="clear-msg" class="transition-text">You did an amazing job! Ready for the next challenge?</div>
+            <button id="next-level-btn" class="action-btn" onclick="nextLevel()">Next Level</button>
         </div>
-        <div style="font-size: 20px; font-weight: bold; margin-bottom: 15px;">Current Value: <span id="currentAbacusValue">0</span></div>
-        <div class="bead-dock">
-            <div class="drag-bead-source bead-h" data-type="H">Drag +100 🔵</div>
-            <div class="drag-bead-source bead-t" data-type="T">Drag +10 🟢</div>
-            <div class="drag-bead-source bead-o" data-type="O">Drag +1 🟠</div>
+
+        <div id="end-screen" class="screen">
+            <div class="final-title">🏆 Superstar! 🏆</div>
+            <div class="transition-text">You completed all three levels of the Grade 2 Math Challenge!</div>
+            <div id="final-score-text" class="final-score">Total Score: 0 / 30</div>
+            <button class="action-btn" style="background:#ff9800; border-color:#f57c00;" onclick="resetToSplash()">Restart Game</button>
         </div>
-        <button class="action-btn" onclick="verifyAbacusScore()">Verify Abacus 🎯</button>
-        <button class="action-btn" style="background:#90a4ae;" onclick="clearAbacusSpikes()">Clear 🔄</button>
+
     </div>
 
-    <div id="panel-sequence" class="game-mode-panel">
-        <div class="prompt-box">
-            Fill in the missing pattern block value! <span id="sequenceTypePrompt" style="font-size:15px; color:#e65100; display:block; margin-top:5px;">Target Identification</span>
-        </div>
-        <div class="sequence-container">
-            <div class="seq-box" id="seq-slot1">---</div>
-            <div class="seq-box" id="seq-slot2">---</div>
-            <div class="seq-box" id="seq-slot3">---</div>
-        </div>
-        <button class="action-btn" onclick="verifySequenceScore()">Check Answer 🎯</button>
-    </div>
+    <script>
+        // Game Variables
+        let currentLevel = 1;
+        let currentQuestionIdx = 0;
+        let score = 0;
+        let questions = [];
+        let canAnswer = true;
+        let globalVolume = 0.8;
 
-    <div id="panel-compare" class="game-mode-panel">
-        <div class="prompt-box">Choose the correct comparative logic symbol!</div> <div class="comparison-container">
-            <div class="comp-val" id="comp-left">---</div>
-            <div class="comp-choice-box" id="comp-sign">?</div>
-            <div class="comp-val" id="comp-right">---</div>
-        </div>
-        <div class="symbol-grid">
-            <button class="sym-btn" onclick="submitSymbolSelection('<')">&lt;</button>
-            <button class="sym-btn" onclick="submitSymbolSelection('=')">=</button>
-            <button class="sym-btn" onclick="submitSymbolSelection('>')">&gt;</button>
-        </div>
-    </div>
-
-    <div id="panel-classify" class="game-mode-panel">
-        <div class="prompt-box">
-            Is this value Even or Odd? Check the ones unit position! <span id="targetClassificationNum" class="challenge-val-txt">---</span>
-        </div>
-        <div class="sorting-zone">
-            <div class="bin-target" onclick="submitClassificationScore('even')">EVEN 🟢<span>Ends in 0, 2, 4, 6, 8</span></div>
-            <div class="bin-target" onclick="submitClassificationScore('odd')">ODD 🟠<span>Ends in 1, 3, 5, 7, 9</span></div>
-        </div>
-    </div>
-
-    <div id="panel-counting" class="game-mode-panel">
-        <div class="prompt-box">
-            Find the missing passenger number block on the train! <span id="skipIntervalLabel" style="font-size:15px; color:#0d47a1; display:block; margin-top:5px;">Interval Rule</span>
-        </div>
-        <div class="train-wrapper">
-            <div class="train-car" id="train-slot1">---</div>
-            <div class="train-car" id="train-slot2">---</div>
-            <div class="train-car" id="train-slot3">---</div>
-            <div class="train-car" id="train-slot4">---</div>
-        </div>
-        <button class="action-btn" onclick="verifySkipCountingScore()">Check Train 🎯</button>
-    </div>
-</div>
-
-<canvas id="canvasCelebration"></canvas>
-
-<audio id="sndClick" preload="auto" src="assets/click.mp3"></audio>
-<audio id="sndCorrect" preload="auto" src="assets/correct.mp3"></audio>
-<audio id="sndWrong" preload="auto" src="assets/wrong.mp3"></audio>
-
-<script>
-let activeModeTab = 'abacus';
-let targetNumA = 0, countH = 0, countT = 0, countO = 0;
-let seqTargetIndex = 0, seqCorrectAnswer = 0;
-let compLeftVal = 0, compRightVal = 0;
-let classificationTarget = 0;
-let skipCountSequence = [], missingCarIndex = 0, missingCarCorrectValue = 0;
-
-function runGlobalInitialization() {
-    setupPointerPhysicsEngine();
-    generateAbacusRound();
-    generateSequenceRound();
-    generateCompareRound();
-    generateClassificationChallenge();
-    generateSkipCountingChallenge();
-
-    // 5000ms Splash screen layout display execution delay constraint
-    setTimeout(() => {
-        document.getElementById("splashScreen").style.opacity = "0";
-        document.getElementById("gameContainer").style.opacity = "1";
-        setTimeout(() => document.getElementById("splashScreen").style.display = "none", 800);
-    }, 5000);
-}
-
-function switchActiveTab(tabId) {
-    triggerAudioEffect("sndClick");
-    activeModeTab = tabId;
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.game-mode-panel').forEach(p => p.classList.remove('active'));
-    
-    event.target.classList.add('active');
-    document.getElementById(`panel-${tabId}`).classList.add('active');
-}
-
-// ---- ENGINE 1: ABACUS SPICES ----
-function generateAbacusRound() {
-    targetNumA = Math.floor(Math.random() * 401) + 100; // Limits 100 to 500
-    document.getElementById("targetAbacusNum").innerText = targetNumA;
-    clearAbacusSpikes();
-}
-function clearAbacusSpikes() {
-    countH = 0; countT = 0; countO = 0;
-    document.getElementById("box-H").innerHTML = "";
-    document.getElementById("box-T").innerHTML = "";
-    document.getElementById("box-O").innerHTML = "";
-    updateAbacusDisplay();
-}
-function updateAbacusDisplay() {
-    document.getElementById("currentAbacusValue").innerText = (countH * 100) + (countT * 10) + countO; //
-}
-function setupPointerPhysicsEngine() {
-    document.querySelectorAll('.drag-bead-source').forEach(item => {
-        item.addEventListener('pointerdown', (e) => {
-            e.preventDefault();
-            item.releasePointerCapture(e.pointerId);
-            const type = item.getAttribute('data-type');
-            const clone = item.cloneNode(true);
-            clone.classList.add('dragging');
-            
-            let rect = item.getBoundingClientRect();
-            let offsetX = e.clientX - rect.left; let offsetY = e.clientY - rect.top;
-            clone.style.left = rect.left + 'px'; clone.style.top = rect.top + 'px';
-            document.body.appendChild(clone);
-
-            function drag(me) {
-                clone.style.left = (me.clientX - offsetX) + 'px';
-                clone.style.top = (me.clientY - offsetY) + 'px';
+        // Sound Triggers
+        function playSound(id) {
+            const sound = document.getElementById(id);
+            if (sound) {
+                sound.volume = globalVolume;
+                sound.currentTime = 0;
+                sound.play().catch(e => console.log("Audio playback waiting for interaction."));
             }
-            function drop(ue) {
-                document.removeEventListener('pointermove', drag);
-                document.removeEventListener('pointerup', drop);
-                clone.remove();
+        }
 
-                let elemBeneath = document.elementFromPoint(ue.clientX, ue.clientY);
-                let colNode = elemBeneath ? elemBeneath.closest('.abacus-spike-column') : null;
-                if(colNode) {
-                    let val = colNode.getAttribute('data-value');
-                    if(type === 'H' && val === 'H' && countH < 9) { injectBeadNode("box-H", "bead-h"); countH++; }
-                    else if(type === 'T' && val === 'T' && countT < 9) { injectBeadNode("box-T", "bead-t"); countT++; }
-                    else if(type === 'O' && val === 'O' && countO < 9) { injectBeadNode("box-O", "bead-o"); countO++; }
-                    else { triggerAudioEffect("sndWrong"); return; }
-                    triggerAudioEffect("sndClick");
-                    updateAbacusDisplay();
+        function updateVolume() {
+            globalVolume = document.getElementById('volume-slider').value;
+        }
+
+        // Confetti Side Cannons (Correct Answer Reward)
+        function triggerCorrectConfetti() {
+            let end = Date.now() + (0.4 * 1000);
+            let colors = ['#ffeb3b', '#ff9800', '#00ebff', '#ff007f', '#4caf50'];
+
+            (function frame() {
+                confetti({
+                    particleCount: 4,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0, y: 0.9 },
+                    colors: colors
+                });
+                confetti({
+                    particleCount: 4,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1, y: 0.9 },
+                    colors: colors
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
+
+        // Continuous Fireworks Confetti (Level/Game Completion Reward)
+        function triggerCompletionConfetti() {
+            let duration = 3 * 1000;
+            let animationEnd = Date.now() + duration;
+            let defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            let interval = setInterval(function() {
+                let timeLeft = animationEnd - Date.now();
+
+                if (timeLeft <= 0) {
+                    return clearInterval(interval);
+                }
+
+                let particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+
+        // Screen Routing
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // Initialize and Start Game
+        function startGame() {
+            currentLevel = 1;
+            currentQuestionIdx = 0;
+            score = 0;
+            setupLevel();
+            showScreen('game-screen');
+        }
+
+        // Construct Questions dynamic to levels
+        function setupLevel() {
+            currentQuestionIdx = 0;
+            questions = [];
+            document.getElementById('level-label').innerText = `Level ${currentLevel}`;
+            document.getElementById('score-label').innerText = `Score: ${score}`;
+
+            const optionsBox = document.getElementById('options-box');
+            if (currentLevel === 3) {
+                optionsBox.classList.add('row-layout');
+            } else {
+                optionsBox.classList.remove('row-layout');
+            }
+
+            for (let i = 0; i < 10; i++) {
+                if (currentLevel === 1) {
+                    generateLevel1Question();
+                } else if (currentLevel === 2) {
+                    generateLevel2Question();
+                } else if (currentLevel === 3) {
+                    generateLevel3Question();
                 }
             }
-            document.addEventListener('pointermove', drag);
-            document.addEventListener('pointerup', drop);
-        });
-    });
-}
-function injectBeadNode(id, className) {
-    let b = document.createElement("div"); b.className = `abacus-bead ${className}`;
-    document.getElementById(id).appendChild(b);
-}
-function verifyAbacusScore() {
-    if(((countH * 100) + (countT * 10) + countO) === targetNumA) { //
-        triggerAudioEffect("sndCorrect"); runConfettiBurstFX(); setTimeout(generateAbacusRound, 1800);
-    } else fireShakeFX();
-}
+            loadQuestion();
+        }
 
-// ---- ENGINE 2: BEFORE / AFTER / BETWEEN ----
-function generateSequenceRound() {
-    let seed = Math.floor(Math.random() * 395) + 102; // Limits up to 500
-    seqTargetIndex = Math.floor(Math.random() * 3);
-    let titles = ["What comes BEFORE?", "What comes BETWEEN?", "What comes AFTER?"]; //
-    document.getElementById("sequenceTypePrompt").innerText = titles[seqTargetIndex];
+        // Helper randomizer
+        function getRandomNum(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
 
-    let left = seed - 1, mid = seed, right = seed + 1;
-    seqCorrectAnswer = (seqTargetIndex === 0) ? left : (seqTargetIndex === 1) ? mid : right;
+        function shuffleArray(arr) {
+            return arr.sort(() => Math.random() - 0.5);
+        }
 
-    document.getElementById("seq-slot1").innerHTML = seqTargetIndex === 0 ? '<input type="number" id="seqIn" class="shared-game-input">' : left;
-    document.getElementById("seq-slot2").innerHTML = seqTargetIndex === 1 ? '<input type="number" id="seqIn" class="shared-game-input">' : mid;
-    document.getElementById("seq-slot3").innerHTML = seqTargetIndex === 2 ? '<input type="number" id="seqIn" class="shared-game-input">' : right;
-}
-function verifySequenceScore() {
-    let field = document.getElementById("seqIn");
-    if(field && parseInt(field.value) === seqCorrectAnswer) {
-        triggerAudioEffect("sndCorrect"); runConfettiBurstFX(); setTimeout(generateSequenceRound, 1800);
-    } else fireShakeFX();
-}
+        // LEVEL 1 GENERATOR: Before, After, Between
+        function generateLevel1Question() {
+            let type = getRandomNum(1, 3); // 1=Before, 2=After, 3=Between
+            let qText = "";
+            let correctAns = 0;
+            let baseNum = getRandomNum(100, 490);
 
-// ---- ENGINE 3: VALUE COMPARISONS ----
-function generateCompareRound() {
-    compLeftVal = Math.floor(Math.random() * 401) + 100; // Limits up to 500
-    compRightVal = Math.floor(Math.random() * 401) + 100; // Limits up to 500
-    if(Math.random() < 0.2) compRightVal = compLeftVal;
+            if (type === 1) {
+                qText = `What number comes before ${baseNum}?`;
+                correctAns = baseNum - 1;
+            } else if (type === 2) {
+                qText = `What number comes after ${baseNum}?`;
+                correctAns = baseNum + 1;
+            } else {
+                qText = `What number is between ${baseNum} and ${baseNum + 2}?`;
+                correctAns = baseNum + 1;
+            }
 
-    document.getElementById("comp-left").innerText = compLeftVal;
-    document.getElementById("comp-right").innerText = compRightVal;
-    document.getElementById("comp-sign").innerText = "?";
-}
-function submitSymbolSelection(sym) {
-    triggerAudioEffect("sndClick");
-    document.getElementById("comp-sign").innerText = sym;
-    let standard = compLeftVal > compRightVal ? '>' : compLeftVal < compRightVal ? '<' : '='; //
-    if(sym === standard) {
-        triggerAudioEffect("sndCorrect"); runConfettiBurstFX(); setTimeout(generateCompareRound, 1800);
-    } else fireShakeFX();
-}
+            let choices = [correctAns];
+            while (choices.length < 4) {
+                let fake = correctAns + getRandomNum(-15, 15);
+                if (fake > 0 && fake <= 500 && !choices.includes(fake)) {
+                    choices.push(fake);
+                }
+            }
+            questions.push({ question: qText, choices: shuffleArray(choices), answer: correctAns });
+        }
 
-// ---- ENGINE 4: ODD & EVEN SORTING ----
-function generateClassificationChallenge() {
-    classificationTarget = Math.floor(Math.random() * 401) + 100; // Limits up to 500
-    document.getElementById("targetClassificationNum").innerText = classificationTarget;
-}
-function submitClassificationScore(chosenType) {
-    triggerAudioEffect("sndClick");
-    let actual = (classificationTarget % 2 === 0) ? 'even' : 'odd'; //
-    if (chosenType === actual) {
-        triggerAudioEffect("sndCorrect"); runConfettiBurstFX(); setTimeout(generateClassificationChallenge, 1500);
-    } else fireShakeFX();
-}
+        // LEVEL 2 GENERATOR: Place Value & Expanded Form
+        function generateLevel2Question() {
+            let type = getRandomNum(1, 3); // 1=Standard form, 2=Expanded form, 3=Place Value Identify
+            let qText = "";
+            let correctAns = "";
+            let num = getRandomNum(100, 499);
+            
+            let h = Math.floor(num / 100);
+            let t = Math.floor((num % 100) / 10);
+            let o = num % 10;
 
-// ---- ENGINE 5: INTERVAL SKIP-COUNTING ----
-function generateSkipCountingChallenge() {
-    const rules = [2, 5, 10]; // Intervals
-    let factor = rules[Math.floor(Math.random() * rules.length)];
-    document.getElementById("skipIntervalLabel").innerText = `Skip-Counting Pattern: Count by ${factor}s!`; //
-    
-    let baseSeed = Math.floor(Math.random() * (440 - 100 + 1)) + 100; // Limits safely within 500
-    skipCountSequence = [baseSeed, baseSeed + factor, baseSeed + (factor * 2), baseSeed + (factor * 3)];
+            let choices = [];
 
-    missingCarIndex = Math.floor(Math.random() * 4);
-    missingCarCorrectValue = skipCountSequence[missingCarIndex];
+            if (type === 1) {
+                qText = `What is ${h * 100} + ${t * 10} + ${o} in standard form?`;
+                correctAns = num.toString();
+                choices.push(correctAns);
+                while (choices.length < 4) {
+                    let fake = (num + getRandomNum(-20, 20)).toString();
+                    if (!choices.includes(fake)) choices.push(fake);
+                }
+            } else if (type === 2) {
+                qText = `What is the expanded form of ${num}?`;
+                correctAns = `${h * 100} + ${t * 10} + ${o}`;
+                choices.push(correctAns);
+                while (choices.length < 4) {
+                    let fh = getRandomNum(1, 4) * 100;
+                    let ft = getRandomNum(0, 9) * 10;
+                    let fo = getRandomNum(0, 9);
+                    let fake = `${fh} + ${ft} + ${fo}`;
+                    if (!choices.includes(fake) && fake !== correctAns) choices.push(fake);
+                }
+            } else {
+                let places = ["Ones", "Tens", "Hundreds"];
+                let chosenPlaceIdx = getRandomNum(0, 2);
+                let targetDigit = [o, t, h][chosenPlaceIdx];
+                
+                qText = `In the number ${num}, what is the place value of digit ${targetDigit}?`;
+                correctAns = places[chosenPlaceIdx];
+                choices = ["Ones", "Tens", "Hundreds"];
+            }
 
-    for (let i = 0; i < 4; i++) {
-        let node = document.getElementById(`train-
+            questions.push({ question: qText, choices: shuffleArray(choices), answer: correctAns });
+        }
+
+        // LEVEL 3 GENERATOR: Comparison
+        function generateLevel3Question() {
+            let num1 = getRandomNum(100, 500);
+            let num2 = getRandomNum(100, 500);
+            // Balance out chances of getting exact equal numbers randomly
+            if (getRandomNum(1, 4) === 1) {
+                num2 = num1;
+            }
+
+            let qText = `Compare: ${num1}  ______  ${num2}`;
+            let correctAns = "=";
+            if (num1 > num2) correctAns = ">";
+            if (num1 < num2) correctAns = "<";
+
+            questions.push({ question: qText, choices: ["<", ">", "="], answer: correctAns });
+        }
+
+        // Load current Question into UI
+        function loadQuestion() {
+            canAnswer = true;
+            let q = questions[currentQuestionIdx];
+            
+            // Progress Update
+            let progressPercent = (currentQuestionIdx / 10) * 100;
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+
+            document.getElementById('question-text').innerText = q.question;
+            const optionsBox = document.getElementById('options-box');
+            optionsBox.innerHTML = "";
+
+            q.choices.forEach(choice => {
+                let btn = document.createElement('button');
+                btn.className = "btn";
+                btn.innerText = choice;
+                btn.onclick = () => selectAnswer(btn, choice);
+                optionsBox.appendChild(btn);
+            });
+        }
+
+        // Evaluate Answer selections
+        function selectAnswer(selectedBtn, choice) {
+            if (!canAnswer) return;
+            canAnswer = false;
+
+            let q = questions[currentQuestionIdx];
+            let buttons = document.getElementById('options-box').children;
+
+            if (choice.toString() === q.answer.toString()) {
+                selectedBtn.classList.add('correct');
+                score++;
+                document.getElementById('score-label').innerText = `Score: ${score}`;
+                playSound('audio-correct');
+                triggerCorrectConfetti();
+            } else {
+                selectedBtn.classList.add('wrong');
+                playSound('audio-wrong');
+                // Reveal the correct answer visually
+                for (let btn of buttons) {
+                    if (btn.innerText.toString() === q.answer.toString()) {
+                        btn.classList.add('correct');
+                    }
+                }
+            }
+
+            // Lock out other buttons
+            for (let btn of buttons) {
+                btn.classList.add('disabled');
+            }
+
+            // Step up question pointer loop
+            setTimeout(() => {
+                currentQuestionIdx++;
+                if (currentQuestionIdx < 10) {
+                    loadQuestion();
+                } else {
+                    handleLevelCompletion();
+                }
+            }, 2000);
+        }
+
+        // Manage Level shifting
+        function handleLevelCompletion() {
+            document.getElementById('progress-bar').style.width = `100%`;
+            triggerCompletionConfetti();
+
+            if (currentLevel < 3) {
+                if (currentLevel === 1) {
+                    document.getElementById('clear-msg').innerText = "Superb! You solved Before, After, and Between Numbers. Ready for Level 2: Place Value & Expanded Form?";
+                } else if (currentLevel === 2) {
+                    document.getElementById('clear-msg').innerText = "Fantastic Work! Place values are cleared. Ready for Level 3: The Great Number Comparison?";
+                }
+                showScreen('clear-screen');
+            } else {
+                // Game Finished Entirely
+                playSound('audio-applause');
+                document.getElementById('final-score-text').innerText = `Total Score: ${score} / 30`;
+                showScreen('end-screen');
+            }
+        }
+
+        function nextLevel() {
+            currentLevel++;
+            setupLevel();
+            showScreen('game-screen');
+        }
+
+        function resetToSplash() {
+            showScreen('splash-screen');
+        }
+    </script>
+
+</body>
+</html>
