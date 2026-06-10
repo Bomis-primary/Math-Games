@@ -1,589 +1,463 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Innovine - Magic Toy Box Subtraction</title>
+  <style>
+    :root {
+      --text-dark: #2c3e50;
+      --btn-gold-light: #fff9c4;
+      --btn-gold-dark: #fbc02d;
+      --toy-blue: #0288d1;
+    }
 
-<title>Subtraction Safari</title>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
-<style>
+    body {
+      font-family: 'Trebuchet MS', 'Comic Sans MS', sans-serif;
+      background: #e1f5fe;
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+      user-select: none;
+    }
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
-}
+    .game-container {
+      width: 100%;
+      max-width: 850px;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      min-height: 600px;
+      border: 4px solid #0288d1;
+    }
 
-body{
-background:linear-gradient(180deg,#c8f7c5,#eafbea);
-min-height:100vh;
-text-align:center;
-}
+    /* 4-Second Splash Screen Overlay for Innovine Logo */
+    #screen-splash {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      transition: opacity 0.5s ease;
+    }
+    #screen-splash img {
+      max-width: 55%;
+      max-height: 55%;
+      object-fit: contain;
+    }
 
-.header{
-background:white;
-padding:10px;
-box-shadow:0 2px 6px rgba(0,0,0,0.15);
-}
+    /* HUD Progress Bar Area */
+    .game-header {
+      background: #0288d1;
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .hud-title { font-weight: bold; font-size: 1.2rem; color: #fff9c4; }
+    .hud-stats { display: flex; gap: 20px; font-weight: bold; font-size: 1.1rem; }
+    
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: #01579b;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(to right, #fff9c4, #fbc02d);
+      transition: width 0.4s ease;
+    }
 
-.logo{
-height:70px;
-}
+    /* Layout Screens */
+    .screen { display: none; padding: 20px; text-align: center; position: relative; }
+    .screen.active { display: block; }
 
-.container{
-max-width:900px;
-margin:auto;
-padding:20px;
-}
+    .story-bubble {
+      background: #f1f8e9;
+      border: 3px dashed #4caf50;
+      border-radius: 16px;
+      padding: 15px;
+      margin-bottom: 15px;
+      font-size: 1.25rem;
+      line-height: 1.5;
+    }
 
-.screen{
-display:none;
-}
+    /* Playroom Scenery Canvas Frame */
+    .scenery-canvas {
+      height: 330px;
+      background-color: #fffde7; 
+      background-image: radial-gradient(#fff59d 20%, transparent 20%),
+                        radial-gradient(#fff59d 20%, transparent 20%);
+      background-size: 40px 40px;
+      background-position: 0 0, 20px 20px;
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 15px;
+      border: 4px solid #ffe082;
+    }
 
-.active{
-display:block;
-}
+    /* Side Assistant Graphic Label */
+    .helper-container {
+      position: absolute;
+      bottom: 10px;
+      left: 15px;
+      width: 150px;
+      height: 180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
 
-.card{
-background:white;
-padding:25px;
-border-radius:20px;
-box-shadow:0 5px 15px rgba(0,0,0,0.2);
-margin-top:20px;
-}
+    .helper-avatar {
+      font-size: 5.5rem;
+      transition: transform 0.2s ease;
+    }
+    .helper-avatar.happy { animation: jumpCelebrate 0.4s ease infinite alternate; }
+    .helper-avatar.sad { animation: headShake 0.4s ease; }
 
-h1{
-color:#2c3e50;
-margin-bottom:10px;
-}
+    @keyframes jumpCelebrate {
+      0% { transform: translateY(0) scale(1); }
+      100% { transform: translateY(-20px) scale(1.05); }
+    }
+    @keyframes headShake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px) rotate(-3deg); }
+      75% { transform: translateX(8px) rotate(3deg); }
+    }
 
-h2{
-margin-bottom:15px;
-}
+    /* Toy Box Collection Grid */
+    .toy-crate-grid {
+      position: absolute;
+      right: 20px;
+      top: 20px;
+      width: 600px;
+      height: 290px;
+      background: #ffcc80;
+      border: 5px solid #d84315;
+      border-radius: 16px;
+      padding: 15px;
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-auto-rows: 60px;
+      gap: 8px;
+      overflow-y: auto;
+      box-shadow: inset 0 0 15px rgba(0,0,0,0.2);
+    }
 
-.btn{
-background:#27ae60;
-color:white;
-border:none;
-padding:14px 25px;
-border-radius:10px;
-font-size:18px;
-cursor:pointer;
-margin-top:15px;
-}
+    /* Pop-able Counting Items */
+    .toy-item {
+      background: #bbdefb;
+      border: 2px solid #1e88e5;
+      border-radius: 12px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 2rem;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      transition: transform 0.1s, opacity 0.2s;
+    }
+    .toy-item:hover { transform: scale(1.05); }
+    .toy-item:active { transform: scale(0.9); }
+    
+    .toy-item.popped {
+      opacity: 0.15;
+      background: #cfd8dc;
+      border-color: #78909c;
+      cursor: not-allowed;
+      transform: scale(0.9) !important;
+    }
 
-.btn:hover{
-background:#1e8449;
-}
+    /* Live Equation Box Layout */
+    .equation-container {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: var(--text-dark);
+      background: #ffffff;
+      padding: 8px 35px;
+      border-radius: 50px;
+      display: inline-block;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      border: 3px solid #b0bec5;
+    }
+    
+    .equation-blank {
+      display: inline-block;
+      min-width: 65px;
+      border-bottom: 5px solid #e65100;
+      color: #e65100;
+      text-align: center;
+    }
 
-.question{
-font-size:24px;
-margin-bottom:20px;
-}
+    .feedback-banner {
+      height: 35px;
+      font-size: 1.3rem;
+      font-weight: bold;
+      margin-top: 5px;
+    }
 
-.option{
-display:block;
-width:100%;
-margin:10px 0;
-padding:15px;
-border:none;
-border-radius:10px;
-background:#27ae60;
-color:white;
-font-size:18px;
-cursor:pointer;
-}
-
-.option:hover{
-background:#1e8449;
-}
-
-#message{
-font-size:20px;
-font-weight:bold;
-margin-top:15px;
-height:30px;
-}
-
-.progress-container{
-width:100%;
-background:#ddd;
-border-radius:20px;
-margin:15px 0;
-overflow:hidden;
-}
-
-.progress-bar{
-height:22px;
-width:0%;
-background:#2ecc71;
-transition:0.4s;
-}
-
-#animals{
-font-size:32px;
-margin-top:10px;
-min-height:40px;
-}
-
-.score{
-font-size:22px;
-font-weight:bold;
-color:#27ae60;
-}
-
-.instructions{
-text-align:left;
-line-height:1.8;
-font-size:18px;
-}
-
-.win-text{
-font-size:30px;
-color:#e67e22;
-}
-
-</style>
+    .action-btn {
+      background: var(--toy-blue);
+      color: white;
+      border: none;
+      padding: 15px 45px;
+      font-size: 1.4rem;
+      font-weight: bold;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 5px 0 #01579b;
+      margin-top: 10px;
+    }
+    .action-btn:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 #01579b;
+    }
+  </style>
 </head>
-
 <body>
 
-<div class="header">
-<img src="assets/innovine-logo.png" class="logo">
-</div>
-
-<div class="container">
-
-<div id="startScreen" class="screen active">
-
-<div class="card">
-
-<h1>🦁 Subtraction Safari 🦁</h1>
-
-<p>
-Help rescue jungle animals by solving subtraction challenges.
-Rescue all 10 animals to become a Jungle Hero!
-</p>
-
-<button class="btn" onclick="showInstructions()">
-Start Safari
-</button>
-
-</div>
-
-</div>
-
-<div id="instructionScreen" class="screen">
-
-<div class="card">
-
-<h2>📖 How to Play</h2>
-
-<div class="instructions">
-
-✔ Solve subtraction questions.<br>
-✔ Every correct answer rescues one animal.<br>
-✔ Rescue all 10 animals to win.<br>
-✔ Listen for sound effects as you play.
-
-</div>
-
-<button class="btn" onclick="startGame()">
-Play
-</button>
-
-</div>
-
-</div>
-
-<div id="gameScreen" class="screen">
-
-<div class="card">
-
-<div class="score" id="score">
-Animals Rescued: 0 / 10
-</div>
-
-<div class="progress-container">
-<div class="progress-bar" id="progressBar"></div>
-</div>
-
-<div id="animals"></div>
-
-<div class="question" id="question"></div>
-
-<div id="options"></div>
-
-<div id="message"></div>
-
-</div>
-
-</div>
-
-<div id="winScreen" class="screen">
-
-<div class="card">
-
-<div class="win-text">
-🏆 Jungle Hero!
-</div>
-
-<br>
-
-<p>
-You rescued all 10 jungle animals!
-</p>
-
-<br>
-
-<div id="finalAnimals"></div>
-
-<br>
-
-<button class="btn" onclick="location.reload()">
-Play Again
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-<audio id="correctSound" src="assets/correct.mp3"></audio>
-<audio id="wrongSound" src="assets/wrong.mp3"></audio>
-<audio id="winSound" src="assets/freesound_community-claps-44774.mp3"></audio>
-
-<script>
-
-let rescued = 0;
-let correctAnswer = "";
-
-const animalList = [
-"🐵","🦁","🐘","🦓","🐼",
-"🦜","🦒","🐯","🦘","🦥"
-];
-
-function switchScreen(id){
-
-document.querySelectorAll(".screen").forEach(screen=>{
-screen.classList.remove("active");
-});
-
-document.getElementById(id).classList.add("active");
-
-}
-
-function showInstructions(){
-switchScreen("instructionScreen");
-}
-
-function startGame(){
-switchScreen("gameScreen");
-generateQuestion();
-}
-
-function random(min,max){
-return Math.floor(Math.random()*(max-min+1))+min;
-}
-
-function shuffle(array){
-return array.sort(()=>Math.random()-0.5);
-}
-  function generateQuestion(){
-
-if(rescued>=10){
-showWinScreen();
-return;
-}
-
-document.getElementById("message").innerHTML="";
-
-let type=random(1,10);
-
-let question="";
-let answer="";
-let options=[];
-
-if(type===1){
-
-let total=random(10,50);
-let removed=random(1,total-1);
-
-question=
-`${total} fruits were on a tree. ${removed} were eaten. How many are left?`;
-
-answer=(total-removed).toString();
-
-options=[
-answer,
-(total-removed+1).toString(),
-(total-removed-1).toString(),
-(total-removed+5).toString()
-];
-
-}
-
-if(type===2){
-
-let n=random(10,500);
-
-question=`${n} - 0 = ?`;
-
-answer=n.toString();
-
-options=[
-answer,
-(n-1).toString(),
-(n+1).toString(),
-"0"
-];
-
-}
-
-if(type===3){
-
-let n=random(10,500);
-
-question=`${n} - ${n} = ?`;
-
-answer="0";
-
-options=[
-"0",
-n.toString(),
-"1",
-(n-1).toString()
-];
-
-}
-
-if(type===4){
-
-let a=random(20,99);
-let b=random(1,8);
-
-while((a%10)<b){
-a=random(20,99);
-}
-
-question=`${a} - ${b} = ?`;
-
-answer=(a-b).toString();
-
-options=[
-answer,
-(a-b+1).toString(),
-(a-b-1).toString(),
-(a-b+10).toString()
-];
-
-}
-
-if(type===5){
-
-let a=random(20,99);
-let b=random(6,9);
-
-while((a%10)>=b){
-a=random(20,99);
-}
-
-question=`${a} - ${b} = ?`;
-
-answer=(a-b).toString();
-
-options=[
-answer,
-(a-b+1).toString(),
-(a-b-1).toString(),
-(a-b+10).toString()
-];
-
-}
-
-if(type===6){
-
-let a=random(40,99);
-let b=random(10,39);
-
-while((a%10)<(b%10)){
-a=random(40,99);
-b=random(10,39);
-}
-
-question=`${a} - ${b} = ?`;
-
-answer=(a-b).toString();
-
-options=[
-answer,
-(a-b+2).toString(),
-(a-b-2).toString(),
-(a-b+10).toString()
-];
-
-}
-
-if(type===7){
-
-let a=random(50,99);
-let b=random(20,49);
-
-while((a%10)>=(b%10)){
-a=random(50,99);
-b=random(20,49);
-}
-
-question=`${a} - ${b} = ?`;
-
-answer=(a-b).toString();
-
-options=[
-answer,
-(a-b+2).toString(),
-(a-b-2).toString(),
-(a-b+10).toString()
-];
-
-}
-
-if(type===8){
-
-let a=random(150,499);
-let b=random(10,99);
-
-question=`${a} - ${b} = ?`;
-
-answer=(a-b).toString();
-
-options=[
-answer,
-(a-b+10).toString(),
-(a-b-10).toString(),
-(a-b+1).toString()
-];
-
-}
-
-if(type===9){
-
-let a=random(300,999);
-let b=random(100,299);
-
-question=`${a} - ${b} = ?`;
-
-answer=(a-b).toString();
-
-options=[
-answer,
-(a-b+10).toString(),
-(a-b-10).toString(),
-(a-b+100).toString()
-];
-
-}
-
-if(type===10){
-
-let total=random(200,500);
-let used=random(50,199);
-
-question=
-`A monkey had ${total} bananas. It ate ${used} bananas. How many bananas are left?`;
-
-answer=(total-used).toString();
-
-options=[
-answer,
-(total-used+10).toString(),
-(total-used-10).toString(),
-(total-used+1).toString()
-];
-
-}
-
-correctAnswer=answer;
-
-options=shuffle(options);
-
-document.getElementById("question").innerHTML=question;
-
-let html="";
-
-options.forEach(option=>{
-
-html += `
-<button class="option"
-onclick="checkAnswer('${option}')">
-${option}
-</button>
-`;
-
-});
-
-document.getElementById("options").innerHTML=html;
-
-}
-
-function checkAnswer(selected){
-
-if(selected==correctAnswer){
-
-document.getElementById("correctSound").play();
-
-rescued++;
-
-document.getElementById("message").innerHTML=
-"✅ Animal Rescued!";
-
-document.getElementById("score").innerHTML=
-`Animals Rescued: ${rescued} / 10`;
-
-let display="";
-
-for(let i=0;i<rescued;i++){
-display+=animalList[i];
-}
-
-document.getElementById("animals").innerHTML=
-display;
-
-document.getElementById("progressBar").style.width=
-(rescued*10)+"%";
-
-}
-else{
-  document.getElementById("wrongSound").play();
-
-document.getElementById("message").innerHTML=
-`❌ Correct Answer: ${correctAnswer}`;
-
-}
-
-setTimeout(generateQuestion,1200);
-
-}
-
-function showWinScreen(){
-
-document.getElementById("winSound").play();
-
-switchScreen("winScreen");
-
-let finalDisplay="";
-
-animalList.forEach(animal=>{
-finalDisplay+=animal;
-});
-
-document.getElementById("finalAnimals").innerHTML=
-finalDisplay;
-
-}
-
-</script>
-
+  <div class="game-container">
+    
+    <div id="screen-splash">
+      <img src="./assets/logo.png" alt="Innovine Logo" />
+    </div>
+
+    <div class="game-header">
+      <span class="hud-title" id="stage-label">Packing Order: 1 / 5</span>
+      <div class="hud-stats">
+        <span>⭐ Score: <span id="score-val">0</span></span>
+      </div>
+    </div>
+    <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+
+    <div id="screen-intro" class="screen active">
+      <div class="story-bubble">
+        <p><strong>Welcome to the Toy Box Subtraction Challenge! 🤖📦</strong></p>
+        <p style="margin-top: 10px; font-size: 1.15rem; color: #2c3e50;">Help sort out the toy delivery crates! Read each story problem, then **tap the toys inside the wooden box to take them out** and ship them away. Count what is left behind!</p>
+      </div>
+      <button class="action-btn" onclick="startGame()">Start Sorting! 🚀</button>
+    </div>
+
+    <div id="screen-play" class="screen">
+      <div class="story-bubble" style="padding: 10px; margin-bottom: 10px;">
+        <p id="story-text">Loading fresh toy crate matrix...</p>
+      </div>
+
+      <div class="scenery-canvas">
+        <div class="helper-container">
+          <div id="helper-character" class="helper-avatar">🤖</div>
+        </div>
+        <div class="toy-crate-grid" id="basket-box"></div>
+      </div>
+
+      <div>
+        <div class="equation-container">
+          <span id="math-total">0</span> - <span id="math-minus">0</span> = <span class="equation-blank" id="math-blank">?</span>
+        </div>
+      </div>
+
+      <div class="feedback-banner" id="feedback-box"></div>
+    </div>
+
+    <div id="screen-end" class="screen">
+      <div class="story-bubble">
+        <p><strong>🎉 Master Toy Organizer!</strong></p>
+        <p>You correctly removed the items and kept an accurate counting record of the leftovers. All crates are shipped out perfectly!</p>
+      </div>
+      <h2 style="font-size: 2.4rem; color: #0288d1; margin-bottom: 20px;">Mission Complete! ⭐</h2>
+      <button class="action-btn" style="background: #2c3e50; box-shadow: 0 5px 0 #1c2833;" onclick="resetWholeGame()">Sort Again 🔄</button>
+    </div>
+  </div>
+
+  <script>
+    let turnIndex = 0;
+    let runningScore = 0;
+    let currentToysPopped = 0;
+    let targetToSubtract = 0;
+    let currentLevelData = null;
+    
+    // Explicit 5-question counting bank spanning Grade 2 ranges with randomized emojis
+    const gameQuestions = [
+      { total: 16, minus: 5, remain: 11, emoji: '🧸', story: "A container holds 16 teddy bears. We need to take out 5 bears for a gift basket. Tap 5 bears to remove them. How many are left?" },
+      { total: 19, minus: 7, remain: 12, emoji: '🚗', story: "There are 19 toy cars parked in the box. A customer buys 7 of them. Tap 7 cars to drive them out. How many are left?" },
+      { total: 22, minus: 6, remain: 16, emoji: '🚀', story: "You have 22 shiny rockets safely packed. 6 rockets take off into the sky! Clear out 6 rockets. How many remain?" },
+      { total: 26, minus: 10, remain: 16, emoji: '🧩', story: "Look at the box with 26 colorful puzzle blocks. The shopkeeper unloads 10 blocks. Remove 10 blocks. How many are left?" },
+      { total: 32, minus: 14, remain: 18, emoji: '🎨', story: "A large wholesale delivery brings 32 paint kits! We move 14 kits onto front display counters. Take out 14 kits. How many remain?" }
+    ];
+
+    // Synthesized Web Audio Engine (Generates sounds natively without needing file assets)
+    function triggerAudioTone(freq, wave, duration) {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        osc.type = wave;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        
+        gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {
+        console.log("Audio syntax error ignored.");
+      }
+    }
+
+    function startGame() {
+      document.getElementById('screen-intro').classList.remove('active');
+      document.getElementById('screen-play').classList.add('active');
+      renderActiveTurn();
+    }
+
+    function renderActiveTurn() {
+      if (turnIndex >= gameQuestions.length) {
+        showEndGameSummary();
+        return;
+      }
+
+      currentToysPopped = 0;
+      document.getElementById('feedback-box').innerText = "";
+      document.getElementById('feedback-box').style.color = "var(--text-dark)";
+      document.getElementById('math-blank').innerText = "?";
+      
+      currentLevelData = gameQuestions[turnIndex];
+      targetToSubtract = currentLevelData.minus;
+
+      // Update UI Header Strings
+      document.getElementById('stage-label').innerText = `Packing Order: ${turnIndex + 1} / ${gameQuestions.length}`;
+      document.getElementById('progress-fill').style.width = `${(turnIndex / gameQuestions.length) * 100}%`;
+      document.getElementById('score-val').innerText = runningScore;
+
+      document.getElementById('math-total').innerText = currentLevelData.total;
+      document.getElementById('math-minus').innerText = currentLevelData.minus;
+      document.getElementById('story-text').innerHTML = `<strong>Store Goal:</strong> ${currentLevelData.story}`;
+
+      const gridContainer = document.getElementById('basket-box');
+      gridContainer.innerHTML = '';
+
+      // Populate grid with standard items
+      for (let i = 0; i < currentLevelData.total; i++) {
+        let toy = document.createElement('div');
+        toy.className = 'toy-item';
+        toy.innerText = currentLevelData.emoji;
+        toy.dataset.popped = "false";
+        
+        toy.onclick = function() {
+          handleToyInteraction(toy);
+        };
+        gridContainer.appendChild(toy);
+      }
+    }
+
+    function handleToyInteraction(element) {
+      const helper = document.getElementById('helper-character');
+      
+      // Tap again to restore item (error correction allowance)
+      if (element.dataset.popped === "true") {
+        element.dataset.popped = "false";
+        element.classList.remove('popped');
+        currentToysPopped--;
+        triggerAudioTone(220, 'sine', 0.15); // Return item tone
+        
+        document.getElementById('math-blank').innerText = "?";
+        document.getElementById('feedback-box').innerText = `Items removed: ${currentToysPopped} of ${targetToSubtract}`;
+        helper.classList.remove('happy');
+        return;
+      }
+
+      // Stop student if they click past the needed subtraction limit
+      if (currentToysPopped >= targetToSubtract) {
+        helper.classList.add('sad');
+        triggerAudioTone(150, 'sawtooth', 0.3); // Error buzz
+        document.getElementById('feedback-box').style.color = '#c62828';
+        document.getElementById('feedback-box').innerText = `Wait! You already removed ${targetToSubtract} items. Check the minus sign!`;
+        setTimeout(() => helper.classList.remove('sad'), 450);
+        return;
+      }
+
+      // Remove the item successfully
+      element.dataset.popped = "true";
+      element.classList.add('popped');
+      currentToysPopped++;
+      triggerAudioTone(523.25, 'triangle', 0.1); // Quick high pop tone
+
+      document.getElementById('feedback-box').style.color = 'var(--text-dark)';
+      document.getElementById('feedback-box').innerText = `Items removed: ${currentToysPopped} of ${targetToSubtract}`;
+
+      if (currentToysPopped === targetToSubtract) {
+        evaluateCorrectState();
+      }
+    }
+
+    function evaluateCorrectState() {
+      const helper = document.getElementById('helper-character');
+      runningScore += 10;
+      document.getElementById('score-val').innerText = runningScore;
+      
+      document.getElementById('math-blank').innerText = currentLevelData.remain;
+      document.getElementById('feedback-box').style.color = '#2e7d32';
+      document.getElementById('feedback-box').innerText = `Great! Remaining count inside the box is ${currentLevelData.remain}! 🎉`;
+      
+      helper.classList.add('happy');
+      
+      // Happy chime sequence
+      triggerAudioTone(587.33, 'sine', 0.15);
+      setTimeout(() => triggerAudioTone(880, 'sine', 0.4), 120);
+      
+      turnIndex++;
+      setTimeout(() => {
+        helper.classList.remove('happy');
+        renderActiveTurn();
+      }, 2500);
+    }
+
+    function showEndGameSummary() {
+      document.getElementById('progress-fill').style.width = "100%";
+      document.getElementById('screen-play').classList.remove('active');
+      document.getElementById('screen-end').classList.add('active');
+    }
+
+    function resetWholeGame() {
+      turnIndex = 0;
+      runningScore = 0;
+      document.getElementById('screen-end').classList.remove('active');
+      document.getElementById('screen-intro').classList.add('active');
+      document.getElementById('progress-fill').style.width = "0%";
+      document.getElementById('score-val').innerText = "0";
+    }
+
+    // Hide Splash after exactly 4 seconds
+    window.onload = function() {
+      setTimeout(() => {
+        const splash = document.getElementById('screen-splash');
+        if (splash) {
+          splash.style.opacity = '0';
+          setTimeout(() => { splash.style.display = 'none'; }, 500);
+        }
+      }, 4000);
+    };
+  </script>
 </body>
 </html>
