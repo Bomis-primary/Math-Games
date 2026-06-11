@@ -16,21 +16,24 @@
         width: 100%; height: 100%;
         font-family: 'Segoe UI', Arial, sans-serif;
         color: #1e293b; overflow: hidden;
-        background-color: var(--sky-blue);
+        background-color: #ffffff; /* Default clear pure white background for startup */
     }
 
-    .game-container {
-        position: relative; width: 100%; height: 100%;
+    /* CRITICAL FAILSAPE: Complete 100% Blank Screen Wrapper until Splash finishes */
+    #app-viewport-wrapper {
+        width: 100%; height: 100%;
+        position: relative;
+        display: none; /* Turned ON via JavaScript strictly after splash screen clears */
         background: #38bdf8 url('assets/sky-bg.png') no-repeat center center;
         background-size: cover;
-        display: flex; justify-content: center; align-items: center;
+        justify-content: center; align-items: center;
         flex-direction: column; padding: 15px;
     }
 
-    /* Brand Splash Overlay */
+    /* Pure Isolated Splash Screen Overlay */
     #screen-splash {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: #ffffff !important; z-index: 9999;
+        background: #ffffff !important; z-index: 99999;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         opacity: 1; transition: opacity 0.5s ease;
     }
@@ -69,7 +72,7 @@
     h1 { font-size: 34px; color: #0284c7; margin-bottom: 10px; font-weight: 800; }
     p { font-size: 17px; line-height: 1.5; color: #475569; margin-bottom: 20px; }
 
-    /* Character Selection Setup */
+    /* Character Selection Board */
     .character-select-box {
         display: flex; justify-content: center; gap: 15px; margin: 15px 0;
     }
@@ -86,7 +89,7 @@
         display: flex; align-items: center; justify-content: center; font-size: 36px; color: white;
     }
 
-    /* VERTICAL TOWER BOARD DESIGN */
+    /* Vertical Tower Board */
     .board-frame-wrapper {
         position: relative; width: 100%; max-width: 420px; background: #cbd5e1;
         padding: 12px; border-radius: 24px; margin-bottom: 15px; border: 5px solid #94a3b8;
@@ -94,8 +97,8 @@
     }
     .board-grid-tower {
         display: grid;
-        grid-template-columns: repeat(4, 1fr); /* 4 columns across */
-        grid-template-rows: repeat(2, 1fr);    /* 2 rows high */
+        grid-template-columns: repeat(4, 1fr); 
+        grid-template-rows: repeat(2, 1fr);    
         gap: 10px; width: 100%;
     }
     .board-tile {
@@ -113,12 +116,412 @@
         padding: 2px 6px; border-radius: 8px; margin-top: auto; text-transform: uppercase;
     }
 
-    /* SMOOTHLY MOVING CHARACTER PAWN */
+    /* Token Movement Character Pawn */
     .pawn-container-anchor {
         position: absolute; width: 55px; height: 55px;
-        transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); /* Makes character slide/climb smoothly */
+        transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); 
         z-index: 10; pointer-events: none;
         display: flex; align-items: center; justify-content: center;
     }
     .pawn-avatar-img {
-        width: 100%; height: 100%; object-fit
+        width: 100%; height: 100%; object-fit: contain;
+        filter: drop-shadow(0 6px 8px rgba(0,0,0,0.25));
+        animation: tokenFloatIdle 2s infinite ease-in-out;
+    }
+    .pawn-avatar-fallback {
+        width: 50px; height: 50px; background: #f97316; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; font-size: 30px;
+        color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+
+    .hud-bar {
+        width: 100%; display: flex; justify-content: space-between; font-weight: bold;
+        background: #f1f5f9; padding: 10px 20px; border-radius: 16px; margin-bottom: 12px;
+        font-size: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+    }
+
+    .math-panel {
+        background: #fef08a; color: #854d0e; font-size: 34px; font-weight: 900;
+        padding: 12px 35px; border-radius: 24px; border: 5px solid #facc15;
+        margin-bottom: 15px; display: inline-block; letter-spacing: 1px;
+    }
+
+    .options-grid {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; width: 100%;
+    }
+
+    .btn {
+        padding: 14px 24px; font-size: 19px; font-weight: 900;
+        color: white; border: none; border-radius: 20px; cursor: pointer;
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        box-shadow: 0 6px 0px #15803d, 0 10px 15px rgba(0,0,0,0.15);
+        transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0px #15803d, 0 12px 20px rgba(0,0,0,0.2); }
+    .btn:active { transform: translateY(4px); box-shadow: 0 2px 0px #15803d; }
+    
+    .btn-blue {
+        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        box-shadow: 0 6px 0px #0369a1, 0 10px 15px rgba(0,0,0,0.15);
+    }
+    .btn-blue:hover { box-shadow: 0 8px 0px #0369a1, 0 12px 20px rgba(0,0,0,0.2); }
+    .btn-blue:active { box-shadow: 0 2px 0px #0369a1; }
+
+    .btn-choice {
+        background: white; color: #1e293b; border: 4px solid #cbd5e1;
+        box-shadow: 0 6px 0px #94a3b8, 0 8px 12px rgba(0,0,0,0.1); font-size: 24px;
+    }
+    .btn-choice:hover { border-color: #38bdf8; background: #f8fafc; box-shadow: 0 8px 0px #94a3b8; }
+
+    #event-banner {
+        position: fixed; top: 25%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
+        background: rgba(255, 255, 255, 0.98); border: 6px solid var(--ladder-gold);
+        padding: 18px 36px; border-radius: 24px; font-size: 30px; font-weight: 900;
+        z-index: 100; display: none; opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 20px 30px rgba(0,0,0,0.3);
+    }
+    #event-banner.pop-show { display: block; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+    @keyframes loadProgress { 0% { left: -100%; } 100% { left: 0%; } }
+    @keyframes tokenFloatIdle {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-5px); }
+    }
+    .dice-cube { font-size: 40px; display: inline-block; margin-left: 8px; display: none; animation: spinD 0.4s infinite alternate; }
+    @keyframes spinD { 0% { transform: rotate(0deg); } 100% { transform: rotate(180deg); } }
+</style>
+</head>
+<body>
+
+<div id="screen-splash">
+    <div class="logo-container">
+        <img class="logo-img" src="assets/logo.png" onerror="this.style.display='none'; document.getElementById('brand-fallback').style.display='flex';" alt="Innovine Logo">
+        <div id="brand-fallback" class="logo-fallback" style="display:none;">I</div>
+    </div>
+    <div class="splash-loader">
+        <div class="splash-loader-bar"></div>
+    </div>
+</div>
+
+<div id="event-banner">LADDER CLIMB!</div>
+
+<div id="app-viewport-wrapper">
+
+    <div id="screen-welcome" class="screen active">
+        <div class="card">
+            <h1>Math Climb Tower 🎲🪜</h1>
+            <p>Solve addition & subtraction up to 999 to move your character around the grid and climb the majestic tower ladders!</p>
+            
+            <h3 style="color: #475569;">Select Your Animal Companion:</h3>
+            <div class="character-select-box">
+                <div class="char-card selected" id="c-0" onclick="pickCharacter(0)">
+                    <img src="assets/rabbit.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="fallback-avatar" style="display:none;">🐰</div>
+                    <div style="font-weight:bold; margin-top:5px; font-size:14px;">Bunny</div>
+                </div>
+                <div class="char-card" id="c-1" onclick="pickCharacter(1)">
+                    <img src="assets/lion.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="fallback-avatar" style="display:none;">🦁</div>
+                    <div style="font-weight:bold; margin-top:5px; font-size:14px;">Lion</div>
+                </div>
+                <div class="char-card" id="c-2" onclick="pickCharacter(2)">
+                    <img src="assets/elephant.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="fallback-avatar" style="display:none;">🐘</div>
+                    <div style="font-weight:bold; margin-top:5px; font-size:14px;">Elephant</div>
+                </div>
+            </div>
+
+            <button class="btn btn-blue" onclick="startBoardClimb();">Enter Tower Arena</button>
+        </div>
+    </div>
+
+    <div id="screen-game" class="screen">
+        <div class="hud-bar">
+            <div id="hud-score">Stars: ⭐ 0</div>
+            <div>Goal: Space 8 🏆</div>
+            <div id="hud-status" style="color: #0284c7;">Your Turn</div>
+        </div>
+
+        <div class="board-frame-wrapper">
+            <div class="board-grid-tower" id="board-grid-matrix"></div>
+            <div id="live-pawn-token" class="pawn-container-anchor"></div>
+        </div>
+
+        <div class="card" style="padding: 20px;">
+            <div style="margin-bottom: 8px; font-weight: bold; color: #475569; font-size: 15px;">
+                Solve to climb! <span id="dice-graphic" class="dice-cube">🎲</span>
+            </div>
+            
+            <div class="math-panel" id="math-problem-display">---</div>
+            <div class="options-grid" id="choices-btn-grid"></div>
+        </div>
+    </div>
+
+    <div id="screen-end" class="screen">
+        <div class="card">
+            <div style="font-size: 65px; margin-bottom: 10px;">🏆👑</div>
+            <h1>Tower Conquered!</h1>
+            <p id="end-summary-text">Fantastic counting! You mastered double and triple digit sums.</p>
+            <button class="btn" onclick="goToScreen('screen-welcome'); resetBoardState();">Climb Again</button>
+        </div>
+    </div>
+
+</div>
+
+<audio id="snd-correct" src="assets/correct.mp3" preload="auto"></audio>
+<audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+<script>
+    const characterFilePaths = ['assets/rabbit.png', 'assets/lion.png', 'assets/elephant.png'];
+    const fallbackEmojis = ['🐰', '🦁', '🐘'];
+    
+    let activeCharacterIdx = 0;
+    let playerCurrentTileSpace = 1;
+    const finalWinningTileSpace = 8;
+    let earnedStarsScore = 0;
+    let targetSolution = 0;
+
+    const specialTilesLayout = {
+        3: { type: 'ladder', target: 5, label: '🪜 Up to 5' },
+        6: { type: 'snake', target: 2, label: '🐍 Down to 2' }
+    };
+
+    const architecturalTileOrder = [
+        8, 7, 6, 5,  
+        1, 2, 3, 4   
+    ];
+
+    // ABSOLUTE 5-SECOND LOCKED TIMEOUT CHANNELS FOR SPLASH ENTRY
+    setTimeout(function() {
+        const splash = document.getElementById('screen-splash');
+        const mainAppWrapper = document.getElementById('app-viewport-wrapper');
+        
+        if (splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => {
+                splash.style.display = 'none';
+                // Strictly turn on game content flex engine layout AFTER the curtain falls away
+                if (mainAppWrapper) {
+                    mainAppWrapper.style.display = 'flex';
+                    // Recalculate tracking offset dynamically 
+                    if(document.getElementById('screen-game').classList.contains('active')) {
+                        positionTokenOnGridSpace(playerCurrentTileSpace);
+                    }
+                }
+            }, 500);
+        }
+    }, 5000); // 5000ms = Exactly 5 Seconds on a blank white backdrop
+
+    function goToScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        const screenNode = document.getElementById(screenId);
+        if(screenNode) screenNode.classList.add('active');
+    }
+
+    function pickCharacter(index) {
+        activeCharacterIdx = index;
+        document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
+        const targetCard = document.getElementById(`c-${index}`);
+        if(targetCard) targetCard.classList.add('selected');
+    }
+
+    function resetBoardState() {
+        playerCurrentTileSpace = 1;
+        earnedStarsScore = 0;
+    }
+
+    function startBoardClimb() {
+        resetBoardState();
+        goToScreen('screen-game');
+        buildTowerGridMatrix();
+        generateEquationRound();
+    }
+
+    function buildTowerGridMatrix() {
+        const matrix = document.getElementById('board-grid-matrix');
+        if(!matrix) return;
+        matrix.innerHTML = '';
+
+        architecturalTileOrder.forEach(tileNum => {
+            const tile = document.createElement('div');
+            tile.className = 'board-tile';
+            tile.id = `grid-tile-node-${tileNum}`;
+            
+            let decorativeLabel = `Space ${tileNum}`;
+            if (specialTilesLayout[tileNum]) {
+                if (specialTilesLayout[tileNum].type === 'ladder') {
+                    tile.classList.add('ladder-tile');
+                    decorativeLabel = specialTilesLayout[tileNum].label;
+                } else if (specialTilesLayout[tileNum].type === 'snake') {
+                    tile.classList.add('snake-tile');
+                    decorativeLabel = specialTilesLayout[tileNum].label;
+                }
+            } else if (tileNum === finalWinningTileSpace) {
+                tile.classList.add('win-tile');
+                decorativeLabel = '🏆 WIN';
+            }
+
+            tile.innerHTML = `<div>${tileNum}</div><div class="tile-decor-tag">${decorativeLabel}</div>`;
+            matrix.appendChild(tile);
+        });
+
+        setupPlayerTokenGraphic();
+        setTimeout(() => { positionTokenOnGridSpace(playerCurrentTileSpace); }, 50);
+    }
+
+    function setupPlayerTokenGraphic() {
+        const tokenContainer = document.getElementById('live-pawn-token');
+        if(!tokenContainer) return;
+
+        tokenContainer.innerHTML = `
+            <img class="pawn-avatar-img" src="${characterFilePaths[activeCharacterIdx]}" 
+                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+            <div class="pawn-avatar-fallback" style="display:none;">${fallbackEmojis[activeCharacterIdx]}</div>
+        `;
+    }
+
+    function positionTokenOnGridSpace(spaceId) {
+        const tokenContainer = document.getElementById('live-pawn-token');
+        const targetTileNode = document.getElementById(`grid-tile-node-${spaceId}`);
+        
+        if (tokenContainer && targetTileNode) {
+            const parentFrameRect = targetTileNode.parentElement.getBoundingClientRect();
+            const targetTileRect = targetTileNode.getBoundingClientRect();
+
+            const targetTopPosition = targetTileRect.top - parentFrameRect.top + (targetTileRect.height / 2) - 25;
+            const targetLeftPosition = targetTileRect.left - parentFrameRect.left + (targetTileRect.width / 2) - 27;
+
+            tokenContainer.style.top = `${targetTopPosition}px`;
+            tokenContainer.style.left = `${targetLeftPosition}px`;
+        }
+    }
+
+    function generateEquationRound() {
+        document.getElementById('hud-status').innerText = "Your Turn";
+        document.getElementById('hud-status').style.color = "#0284c7";
+        document.getElementById('dice-graphic').style.display = 'none';
+
+        const isAdditionMode = Math.random() > 0.5;
+        let numA, numB;
+
+        if (isAdditionMode) {
+            numA = Math.floor(Math.random() * 500) + 100;
+            numB = Math.floor(Math.random() * 300) + 50;
+            targetSolution = numA + numB;
+            document.getElementById('math-problem-display').innerText = `${numA} + ${numB}`;
+        } else {
+            numA = Math.floor(Math.random() * 500) + 400;
+            numB = Math.floor(Math.random() * 300) + 50;
+            targetSolution = numA - numB;
+            document.getElementById('math-problem-display').innerText = `${numA} - ${numB}`;
+        }
+
+        let choiceA = targetSolution + (Math.random() > 0.5 ? 10 : -10);
+        let choiceB = targetSolution + (Math.random() > 0.5 ? 5 : -5);
+        if (choiceA === targetSolution) choiceA += 20;
+        if (choiceB === targetSolution || choiceB === choiceA) choiceB += 15;
+
+        let optionsPool = [targetSolution, choiceA, choiceB];
+        optionsPool.sort(() => Math.random() - 0.5);
+
+        const btnGrid = document.getElementById('choices-btn-grid');
+        if(!btnGrid) return;
+        btnGrid.innerHTML = '';
+
+        optionsPool.forEach(val => {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-choice';
+            btn.innerText = val;
+            btn.onclick = function() { checkPlayerAnswer(val); };
+            btnGrid.appendChild(btn);
+        });
+    }
+
+    function triggerEventOverlay(text, color) {
+        const banner = document.getElementById('event-banner');
+        if(!banner) return;
+        banner.innerText = text;
+        banner.style.borderColor = color;
+        banner.classList.add('pop-show');
+        setTimeout(() => banner.classList.remove('pop-show'), 1800);
+    }
+
+    function checkPlayerAnswer(selectedVal) {
+        document.querySelectorAll('.btn-choice').forEach(b => b.onclick = null);
+
+        if (selectedVal === targetSolution) {
+            earnedStarsScore += 10;
+            document.getElementById('hud-score').innerText = `Stars: ⭐ ${earnedStarsScore}`;
+            
+            const audioC = document.getElementById('snd-correct');
+            if(audioC) audioC.play().catch(() => {});
+
+            document.getElementById('math-problem-display').innerText = "CORRECT! ✨";
+            document.getElementById('hud-status').innerText = "Rolling Die...";
+            document.getElementById('hud-status').style.color = "#22c55e";
+            
+            const diceNode = document.getElementById('dice-graphic');
+            if(diceNode) diceNode.style.display = 'inline-block';
+
+            setTimeout(() => {
+                const movementSteps = Math.floor(Math.random() * 2) + 1;
+                playerCurrentTileSpace += movementSteps;
+                
+                if (playerCurrentTileSpace >= finalWinningTileSpace) {
+                    playerCurrentTileSpace = finalWinningTileSpace;
+                    positionTokenOnGridSpace(playerCurrentTileSpace);
+                    setTimeout(() => {
+                        goToScreen('screen-end');
+                        document.getElementById('end-summary-text').innerText = `Magnificent work Tower Conqueror! You climbed all the way to Space 8, amassed ${earnedStarsScore} total Stars, and dominated Grade 2 calculations perfectly!`;
+                    }, 1200);
+                    return;
+                }
+
+                positionTokenOnGridSpace(playerCurrentTileSpace);
+
+                setTimeout(() => {
+                    if (specialTilesLayout[playerCurrentTileSpace]) {
+                        const gridEvent = specialTilesLayout[playerCurrentTileSpace];
+                        playerCurrentTileSpace = gridEvent.target;
+                        
+                        if (gridEvent.type === 'ladder') {
+                            triggerEventOverlay("🪜 LADDER CLIMB!", "#fbbf24");
+                            earnedStarsScore += 15;
+                            document.getElementById('hud-score').innerText = `Stars: ⭐ ${earnedStarsScore}`;
+                        } else {
+                            triggerEventOverlay("🐍 SNAKE SLIDE!", "#ef4444");
+                        }
+                        
+                        setTimeout(() => {
+                            positionTokenOnGridSpace(playerCurrentTileSpace);
+                            generateEquationRound();
+                        }, 1200);
+                    } else {
+                        generateEquationRound();
+                    }
+                }, 1100);
+
+            }, 1400);
+
+        } else {
+            const audioW = document.getElementById('snd-wrong');
+            if(audioW) audioW.play().catch(() => {});
+
+            document.getElementById('math-problem-display').innerText = `Oops! Solved: ${targetSolution}`;
+            document.getElementById('hud-status').innerText = "Try Again!";
+            document.getElementById('hud-status').style.color = "#ef4444";
+
+            setTimeout(() => {
+                generateEquationRound();
+            }, 2400);
+        }
+    }
+
+    window.addEventListener('resize', () => {
+        if(document.getElementById('screen-game').classList.contains('active')) {
+            positionTokenOnGridSpace(playerCurrentTileSpace);
+        }
+    });
+</script>
+</body>
+</html>
