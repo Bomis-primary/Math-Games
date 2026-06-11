@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grade 3: Mission Save the Sea Turtles!</title>
+    <title>Grade 3: Mission Save the Sea Creatures!</title>
     <style>
         :root {
             --text-main: #1A237E;
@@ -82,16 +82,16 @@
             background-position: center;
         }
 
-        /* Litter Asset Optimization: Removes White Background Box Artifacts */
+        /* Litter Blending (Removes White Boxes) */
         .trash-item {
             position: absolute;
             width: 48px;
             height: auto;
-            mix-blend-mode: multiply; /* Blends away solid white bounding spaces */
+            mix-blend-mode: multiply;
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Phase 2 Interactive Turtles */
+        /* Phase 2 Interactive Trapped Creatures */
         .turtle-interactive {
             position: absolute;
             width: 70px;
@@ -108,22 +108,27 @@
             animation: softPulse 1.5s infinite alternate;
             filter: drop-shadow(0px 0px 8px #FFEB3B);
         }
+        
+        /* FIXED ANIMATION: Animates forward/right off the playfield screen */
         .turtle-interactive.saved {
             cursor: default;
             pointer-events: none;
-            animation: swimAway 3s forwards ease-in-out;
+            animation: swimForwardAway 2.5s forwards ease-in-out;
         }
 
         @keyframes softPulse {
             0% { transform: scale(1); }
             100% { transform: scale(1.12); }
         }
-        @keyframes swimAway {
+        
+        /* Moves asset FORWARD and off the right edge of the screen */
+        @keyframes swimForwardAway {
             0% { transform: scale(1) translateX(0); opacity: 1; }
-            100% { transform: scale(0.4) translateX(300px); opacity: 0; }
+            40% { transform: scale(1.1) translateY(-15px); opacity: 1; }
+            100% { transform: scale(0.5) translateX(450px) translateY(-30px); opacity: 0; }
         }
 
-        /* --- HUD & QUESTIONS --- */
+        /* --- HUD & CONTROL INTERFACE --- */
         .hud-header {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 12px; font-weight: bold; font-size: 1.1rem;
@@ -161,26 +166,23 @@
 </head>
 <body>
 
-    <!-- Splash Loader Screen -->
     <div id="splash-screen">
         <img src="assets/logo.png" alt="Innovine Logo" class="splash-logo" onerror="this.src='https://placehold.co/200?text=Innovine'">
     </div>
 
-    <!-- Main Game Context -->
     <div id="game-container">
         
         <div id="intro-card">
             <div style="font-size: 4rem; margin-bottom: 10px;">🌊🐢</div>
             <h2 style="color: #00838F; font-size: 2.3rem; margin-bottom: 12px;">Mission: Save the Sea Turtles!</h2>
             <p class="mission-text">
-                Litter has washed up on the beach, and baby turtles are stuck out in the coral reef!
+                Litter has washed up on the beach, and baby creatures are stuck out in the coral reef!
                 <br><br>
-                <strong>Your Mission:</strong> Solve place-value math questions to clear the beach litter, then click on trapped turtles in the reef to save them!
+                <strong>Your Mission:</strong> Solve place-value math questions to clear the beach litter, then click on trapped creatures in the reef to save them!
             </p>
             <button class="start-btn" onclick="engageMission()">Accept Mission! 🚀</button>
         </div>
 
-        <!-- Playfield Interface -->
         <div id="active-playfield" style="display: none;">
             <div class="hud-header">
                 <span id="label-task">Progress Tracker</span>
@@ -190,19 +192,17 @@
 
             <div class="progress-track"><div id="progress-bar"></div></div>
 
-            <!-- ANIMATED ENVIROMENT FRAME -->
             <div id="eco-stage"></div>
 
             <div class="equation-box" id="field-question">Loading assignment...</div>
             <div class="grid-matrix" id="field-options"></div>
         </div>
 
-        <!-- End Card -->
         <div id="victory-card" style="display: none;">
             <div style="font-size: 5rem;">🏆🐢🏆</div>
             <h1 style="color: #2E7D32; font-size: 2.5rem; margin: 15px 0;">Marine Hero Certified!</h1>
             <p style="font-size: 1.3rem; margin-bottom: 25px; padding: 0 20px;">
-                Outstanding job! The beach is pristine, and all baby sea turtles are swimming freely in the ocean.
+                Outstanding job! The beach is pristine, and all creatures are swimming safely and freely.
             </p>
             <h2 id="final-stats" style="color: #EF6C00; margin-bottom: 20px;"></h2>
             <button class="start-btn" onclick="resetSimulator()">Play Challenge Again 🔄</button>
@@ -210,7 +210,6 @@
 
     </div>
 
-    <!-- AUDIO HARDWARE -->
     <audio id="snd-correct" src="assets/correct.mp3"></audio>
     <audio id="snd-wrong" src="assets/wrong.mp3"></audio>
 
@@ -249,7 +248,7 @@
             }
         }
 
-        // Grade 3 Curriculum Database
+        // Temporary Database Setup — Send over your list and we can drop them right in!
         var phase1Pool = [
             { question: "What is the place value of 5 in the number 3,524?", answers: ["50", "500", "5", "5000"], correct: "500" },
             { question: "Express in Standard Form digits: Four thousand, two hundred sixty-one", answers: ["4261", "4026", "4216", "4621"], correct: "4261" },
@@ -262,8 +261,8 @@
         ];
 
         var phase2Pool = [
-            { question: "Form the smallest 4-digit number using digits [4, 0, 8, 1] safely.", answers: ["0148", "1480", "1048", "4810"], correct: "1048" },
-            { question: "Form the largest 4-digit number using digits [3, 9, 2, 7] safely.", answers: ["9732", "9723", "2379", "7932"], correct: "9732" },
+            { question: "Form the smallest 4-digit number using digits [4, 0, 8, 1].", answers: ["0148", "1480", "1048", "4810"], correct: "1048" },
+            { question: "Form the largest 4-digit number using digits [3, 9, 2, 7].", answers: ["9732", "9723", "2379", "7932"], correct: "9732" },
             { question: "Which of the following numbers is an ODD number?", answers: ["4320", "8812", "5674", "7129"], correct: "7129" },
             { question: "Round off the 4-digit number 4,325 to the nearest HUNDRED.", answers: ["4300", "4400", "4330", "4000"], correct: "4300" },
             { question: "Perform skip counting by 100s to fill the blank: 1200, 1300, 1400, ____", answers: ["1410", "1500", "2400", "1600"], correct: "1500" }
@@ -274,7 +273,6 @@
         var gameScore = 0;
         var activeTurtleTarget = null;
 
-        // Phase 1: All mixed clutter assets (Bottles, Tetras, and Wrappers together)
         var beachLitter = [
             { asset: "assets/bottle1.png", top: "130px", left: "30px" },
             { asset: "assets/wrapper-purple.png", top: "165px", left: "110px" },
@@ -286,7 +284,6 @@
             { asset: "assets/bottle1.png", top: "155px", left: "640px" }
         ];
 
-        // Phase 2: Reef coordinate spaces tracking individual turtle instances
         var reefTurtles = [
             { id: 0, top: "40px", left: "50px", solved: false },
             { id: 1, top: "120px", left: "180px", solved: false },
@@ -301,7 +298,6 @@
             initBeachPhase();
         }
 
-        /* --- PHASE 1 RUNTIME MECHANICS --- */
         function initBeachPhase() {
             currentPhase = 1;
             p1Index = 0;
@@ -374,10 +370,12 @@
             }, 2200);
         }
 
-        /* --- PHASE 2 RUNTIME MECHANICS (CLICK TURTLE TO INITIATE) --- */
+        /* --- PHASE 2 RUNTIME MECHANICS --- */
         function initReefPhase() {
             currentPhase = 2;
             var stage = document.getElementById('eco-stage');
+            
+            // RENDERS REEF BACKGROUND IMMEDIATELY UPON PHASE INITIATION
             stage.style.backgroundImage = "url('assets/reef.png')";
             stage.innerHTML = '';
 
@@ -395,7 +393,7 @@
 
                 var img = document.createElement('img');
                 img.id = 'turtle-img-' + t.id;
-                img.src = 'assets/turtle-sad.png'; // Start as trapped/sad
+                img.src = 'assets/turtle-sad.png';
 
                 wrapper.appendChild(img);
                 wrapper.onclick = function() { chooseTurtleTarget(t.id); };
@@ -411,7 +409,7 @@
             document.getElementById('label-task').innerText = "Challenge: " + (completedCount + 1) + " / " + totalQ;
             document.getElementById('progress-bar').style.width = ((completedCount / totalQ) * 100) + "%";
 
-            document.getElementById('field-question').innerText = "🐢 Tap or Click any trapped turtle in the coral reef to start their rescue challenge!";
+            document.getElementById('field-question').innerText = "🐢 Tap or Click any trapped creature in the coral reef to start their rescue challenge!";
             document.getElementById('field-options').innerHTML = '';
         }
 
@@ -423,7 +421,6 @@
             if(reefTurtles[id].solved) return;
             activeTurtleTarget = id;
 
-            // Stop pulse effect on others, focus highlight on selected
             reefTurtles.forEach(function(t) {
                 var node = document.getElementById('turtle-node-' + t.id);
                 if(node) node.classList.remove('pulse');
@@ -457,11 +454,9 @@
 
                 reefTurtles[activeTurtleTarget].solved = true;
                 
-                // Instantly transform texture to happy swimming state
                 var tImg = document.getElementById('turtle-img-' + activeTurtleTarget);
                 if(tImg) tImg.src = 'assets/turtle-happy.png';
 
-                // Triggers structural smooth transition animation moving out of area bounds
                 var node = document.getElementById('turtle-node-' + activeTurtleTarget);
                 if(node) node.classList.add('saved');
             } else {
@@ -471,14 +466,12 @@
                     if(b.innerText === correct) b.classList.add('correct');
                 });
                 
-                // Return selected back to generic state pool if failed so it can be re-attempted
                 var node = document.getElementById('turtle-node-' + activeTurtleTarget);
                 if(node) node.classList.add('pulse');
             }
 
             setTimeout(function() {
                 if(getSolvedTurtlesCount() < phase2Pool.length) {
-                    // Make remaining unsolved ones pulse again
                     reefTurtles.forEach(function(t) {
                         var n = document.getElementById('turtle-node-' + t.id);
                         if(n && !t.solved) n.classList.add('pulse');
@@ -501,7 +494,6 @@
             location.reload();
         }
 
-        // Loader Screen Dismiss
         setTimeout(function() {
             var splash = document.getElementById('splash-screen');
             var mainContainer = document.getElementById('game-container');
