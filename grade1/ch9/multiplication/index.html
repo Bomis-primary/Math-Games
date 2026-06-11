@@ -3,310 +3,284 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cosmic Rocket Fuel: Hyper-Drive Mission</title>
+<title>Orchard Re-Grow Multiplication</title>
 <style>
     :root {
-        --primary-color: #38bdf8;
-        --accent-color: #facc15;
-        --bg-dark: #0f172a;
-        --success: #22c55e;
-        --danger: #ef4444;
+        --primary-vibrant: #22c55e;
+        --secondary-gold: #facc15;
+        --text-dark: #1e293b;
     }
-    * { box-sizing: border-box; }
-    body, html { 
-        margin:0; padding:0; width:100%; height:100%; 
-        font-family: 'Segoe UI', Arial, sans-serif; 
-        overflow:hidden; 
-        background-color: #0b0f19;
-        color: white;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html {
+        width: 100%; height: 100%;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background-color: #65a30d; /* Base green backup */
+        color: white; overflow: hidden;
     }
-    
-    /* Splash Screen Overlay - Starts visible, hidden via JavaScript safety timers */
+
+    /* Main Container with vibrant Orchard background image */
+    .game-container {
+        position: relative; width: 100%; height: 100%;
+        background: url('assets/orchard-bg.jpg') no-repeat center center;
+        background-size: cover;
+        display: flex; justify-content: center; align-items: center;
+        flex-direction: column; padding: 20px;
+    }
+
+    /* Splash Screen with Logo, fades out after 5 seconds */
     #splash-screen {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background-color: #ffffff; display: flex; justify-content: center; align-items: center;
         z-index: 9999; opacity: 1; transition: opacity 0.5s ease-out;
     }
-    #splash-screen .splash-fallback {
-        color: #0f172a; font-size: 32px; font-weight: bold;
-    }
     #splash-screen img { max-width: 60%; max-height: 50%; object-fit: contain; }
 
-    /* Moving Space Nebula Background Layer */
-    #starfield {
-        position: absolute; width: 100%; height: 100%; top: 0; left: 0;
-        background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #090d16 100%); 
-        z-index: 1; overflow: hidden;
-    }
-    .star {
-        position: absolute; background-color: white; border-radius: 50%;
-        animation: flyForward 4s infinite linear; opacity: 0;
-    }
-    @keyframes flyForward {
-        0% { transform: scale(0.2) translateY(0); opacity: 0; }
-        10% { opacity: 0.8; }
-        90% { opacity: 0.8; }
-        100% { transform: scale(1.5) translateY(100vh); opacity: 0; }
-    }
-
-    .screen { 
-        width:100%; height:100%; position:absolute; top:0; left:0; 
-        display:none; justify-content:center; align-items:center; 
-        flex-direction:column; padding: 20px; z-index: 2;
+    /* Game Screens Base Layout */
+    .screen {
+        display: none; width: 100%; max-width: 750px;
+        flex-direction: column; align-items: center; text-align: center;
+        z-index: 2;
     }
     .screen.active { display: flex; }
-    
-    .title-card {
-        text-align: center; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px);
-        padding: 40px; border-radius: 24px; border: 2px solid rgba(56, 189, 248, 0.4);
-        max-width: 620px; width: 90%; box-shadow: 0 25px 50px rgba(0,0,0,0.6);
-        animation: panelFade 0.5s ease-out;
-    }
-    @keyframes panelFade { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
 
-    h1 { font-size: 36px; margin: 0 0 15px 0; color: var(--primary-color); text-shadow: 0 0 15px rgba(56,189,248,0.4); }
-    p { font-size: 17px; line-height: 1.6; color: #cbd5e1; margin: 0 0 25px 0; }
+    /* Cartoonish Mission Title Card */
+    .card {
+        background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px);
+        padding: 40px; border-radius: 24px;
+        border: 4px solid var(--primary-vibrant); box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+    }
+    h1 { font-size: 38px; color: var(--secondary-gold); margin-bottom: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    p { font-size: 19px; line-height: 1.6; color: #f1f5f9; margin-bottom: 25px; }
+
+    /* Playful Cartoonish Buttons */
+    .btn {
+        padding: 16px 32px; font-size: 20px; font-weight: bold;
+        color: white; border: none; border-radius: 16px; cursor: pointer;
+        background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+        box-shadow: 0 6px 0px #166534, 0 10px 20px rgba(0,0,0,0.3);
+        transition: transform 0.1s ease, box-shadow 0.1s ease;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 0px #166534, 0 12px 25px rgba(0,0,0,0.4); }
+    .btn:active { transform: translateY(4px); box-shadow: 0 2px 0px #166534; }
 
     /* Top HUD Dashboard */
-    .hud-bar {
-        position: absolute; top: 20px; width: 90%;
-        display: flex; justify-content: space-between; align-items: center;
-        background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.2);
-        padding: 14px 28px; border-radius: 30px; font-size: 16px; font-weight: bold; z-index: 5;
-    }
-    
-    /* Core Energy Progress Bar Container */
-    .progress-container {
-        width: 40%; background: #334155; height: 16px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);
-    }
-    .progress-fill {
-        width: 0%; height: 100%; background: linear-gradient(90deg, #06b6d4, #22c55e);
-        transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    .hud {
+        width: 100%; max-width: 700px; display: flex; justify-content: space-between; align-items: center;
+        background: rgba(15, 23, 42, 0.85); padding: 14px 28px;
+        border-radius: 30px; margin-bottom: 20px; font-size: 17px; font-weight: bold;
     }
 
-    /* Rockets Space Arena Grid */
-    .rocket-container { 
-        display:flex; gap:35px; margin-top:90px; flex-wrap: wrap; 
-        justify-content: center; align-items: center; max-width: 95%; min-height: 200px;
-    }
-    
-    .rocket-pad { 
-        position:relative; display: flex; flex-direction: column; align-items: center;
-        width: 120px; height: 160px; transition: transform 0.3s ease;
-    }
-    
-    /* Visual Placeholder fallback if graphics fail */
-    .rocket-fallback {
-        width: 70px; height: 100px; background: #38bdf8; 
-        border-radius: 50% 50% 10px 10px; display:flex; align-items:center; justify-content:center;
-        font-weight: bold; color: #0f172a; border: 2px solid white;
-    }
-    .rocket-pad .rocket-img { 
-        width: 100%; height: 85%; object-fit: contain; 
-        filter: drop-shadow(0px 8px 12px rgba(56,189,248,0.25));
-    }
-    
-    /* Custom Physics Rocket Liftoff Blast Animation */
-    .rocket-pad.launching {
-        animation: launchSequence 1.2s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards;
-    }
-    @keyframes launchSequence {
-        0% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 5px #f97316); }
-        15% { transform: translateY(8px) scale(0.98); filter: drop-shadow(0 0 20px #ef4444); }
-        100% { transform: translateY(-100vh) scale(0.5); opacity: 0; filter: drop-shadow(0 0 40px #eab308); }
+    /* Core Instructional Message Box */
+    .instruction-box {
+        font-size: 24px; font-weight: bold; background: rgba(15, 23, 42, 0.8);
+        padding: 10px 25px; border-radius: 20px; margin-bottom: 25px; width: 100%;
+        min-height: 54px; display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
     }
 
-    /* Token alignment matrices mapping inside rockets */
-    .fuel-container {
-        position: absolute; top: 22px; left: 50%; transform: translateX(-50%);
-        display: flex; flex-wrap: wrap; width: 55px; max-height: 55px;
-        justify-content: center; align-items: center; gap: 4px; pointer-events: none;
-    }
-    .fuel-cell { width: 15px; height: 15px; object-fit: contain; }
-    .cell-fallback {
-        width: 14px; height: 14px; border-radius: 50%; background: #fbbf24;
+    /* Baskets and Result Container */
+    .fruit-workspace {
+        display: flex; justify-content: center; gap: 30px; 
+        width: 100%; margin-bottom: 30px; flex-wrap: wrap; align-items: center;
     }
 
-    /* Quantity Label Badges */
-    .pad-label { 
-        position:absolute; bottom: 0px; background: var(--accent-color);
-        padding: 3px 14px; border-radius: 12px; font-size: 14px; 
-        font-weight:bold; color: #0f172a; border: 2px solid white;
-        z-index:3;
+    /* Cartoonish Orchard Elements with Assets */
+    .basket-box {
+        display: flex; flex-direction: column; align-items: center; gap: 5px;
+        transition: transform 0.3s ease-out;
     }
     
-    .instruction { 
-        font-size:21px; margin: 20px 0 15px 0; text-align:center; font-weight: bold;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.5); color: #e2e8f0;
-        background: rgba(15, 23, 42, 0.65); padding: 8px 20px; border-radius: 14px;
-        min-height: 45px; display: flex; align-items: center; justify-content: center;
+    .basket-box img.basket-asset {
+        width: 140px; height: 130px; object-fit: contain;
+        filter: drop-shadow(0 6px 10px rgba(0,0,0,0.3));
     }
     
-    .buttons-container { display:flex; gap:12px; width: 100%; max-width: 480px; flex-direction: column; }
-    
-    .btn { 
-        padding:15px 20px; font-size:17px; border:none; border-radius:12px; 
-        background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); 
-        color:#fff; cursor:pointer; font-weight: bold;
-        box-shadow: 0 4px 0px #034d75, 0 8px 15px rgba(0,0,0,0.3);
-        transition: all 0.1s ease; text-align: center; width: 100%;
-        border: 1px solid rgba(255,255,255,0.1);
+    /* Result Box: Repeated addition equation reveal */
+    .equation-reveal {
+        display: none; background: rgba(254, 240, 138, 0.95); color: #1e293b;
+        padding: 20px 40px; border-radius: 20px; font-size: 36px; font-weight: 900;
+        text-align: center; border: 4px solid #eab308; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0px #034d75, 0 10px 20px rgba(0,0,0,0.4); }
-    .btn:active { transform: translateY(4px); box-shadow: none; }
-    
-    /* Mathematical Reveal Panel Configuration Box */
-    .reveal-box {
-        display: none; background: rgba(15, 23, 42, 0.95); color: #ffffff;
-        padding: 25px 45px; border-radius: 20px; font-size: 26px; font-weight: bold;
-        text-align: center; border: 3px solid var(--primary-color);
-        box-shadow: 0 0 30px rgba(56, 189, 248, 0.3);
-        animation: springPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    @keyframes springPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-    .btn-start { background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); box-shadow: 0 4px 0px #880825; }
-    .btn-start:hover { box-shadow: 0 6px 0px #880825; }
-
-    @media (max-width: 600px) {
-        h1 { font-size: 26px; }
-        .hud-bar { padding: 10px 15px; font-size: 13px; }
-        .progress-container { width: 30%; }
-        .rocket-pad { width: 85px; height: 115px; }
-        .fuel-container { width: 45px; top: 15px; }
-        .fuel-cell { width: 12px; height: 12px; }
-        .instruction { font-size: 15px; }
-        .reveal-box { font-size: 19px; padding: 15px; }
+    .basket-label {
+        background: #0f172a; padding: 4px 14px; border-radius: 12px;
+        font-weight: bold; font-size: 18px; border: 2px solid var(--secondary-gold);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
+
+    /* Multiple Choice Options Zones */
+    .options-grid {
+        display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 500px;
+    }
+    .choice-btn {
+        background: linear-gradient(135deg, #1d4ed8 0%, #172554 100%);
+        box-shadow: 0 5px 0 #1e3a8a; padding: 16px; font-size: 19px;
+    }
+
+    /* Start Screen Mission Button */
+    .btn-mission {
+        background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+        box-shadow: 0 6px 0px #9a3412;
+    }
+    .btn-mission:hover { box-shadow: 0 8px 0px #9a3412; }
+
+    /* Keyframe Animations for "Juice" */
+    @keyframes wiggle { 
+        0%, 100% { transform: rotate(0deg); }
+        25% { transform: rotate(-3deg); }
+        75% { transform: rotate(3deg); }
+    }
+    @keyframes bounce {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+    }
+    @keyframes popIn {
+        from { transform: scale(0.8); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+    
+    /* Dynamic Orchard Tree Visuals - Hidden by default, animated in when correct */
+    #orchard-vis {
+        position: absolute; bottom: 10px; width: 90%; max-width: 800px;
+        display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; z-index: 1;
+    }
+    .orchard-tree {
+        width: 70px; height: 110px; opacity: 0;
+        transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+        transform: translateY(20px);
+    }
+    .orchard-tree.active { opacity: 1; transform: translateY(0); }
 </style>
 </head>
 <body>
 
 <div id="splash-screen">
-    <img src="assets/logo.png" id="splash-img" alt="Logo" onerror="this.style.display='none'; document.getElementById('splash-txt').style.display='block';">
-    <div id="splash-txt" class="splash-fallback" style="display:none;">Loading Mission Core...</div>
+    <img src="assets/logo.png" alt="Orchard Logo">
 </div>
 
-<div id="starfield"></div>
-
-<audio id="sound-correct" src="assets/correct.mp3" preload="auto"></audio>
-<audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
-
-<div id="screen-intro" class="screen active">
-    <div class="title-card">
-        <h1>Cosmic Rocket Fuel: Hyper-Drive Mission 🚀</h1>
-        <p>Our exploratory squadron is trapped on the event horizon of a quantum black hole storm! To activate our escape portals, we must compute and load exact balancing power fuel cells into our rocket fleet.<br><br>
-        Analyze the configurations on the launching pads, link the correct grouping formulas, and spark the engines!</p>
-        <button class="btn btn-start" onclick="navigateToScreen('screen-game'); startGame();">Initiate Launch Code</button>
-    </div>
-</div>
-
-<div id="screen-game" class="screen">
-    <div class="hud-bar">
-        <div id="progress-text">Sector Tracking: 1/10</div>
-        <div class="progress-container">
-            <div id="progress-core-fill" class="progress-fill"></div>
+<div class="game-container">
+    <div id="orchard-vis">
         </div>
-        <div id="score-text">Core Matrix: 0%</div>
-    </div>
-    
-    <div class="rocket-container" id="rocket-zone"></div>
-    <div class="instruction" id="question-prompt">Calculating incoming sector metrics...</div>
-    
-    <div class="buttons-container" id="options-zone"></div>
-    
-    <div class="reveal-box" id="reveal-zone"></div>
-</div>
 
-<div id="screen-end" class="screen">
-    <div class="title-card">
-        <h1>Escape Vector Success! 🌟</h1>
-        <p id="final-score-text">Sensational mathematical sequencing. The fleet broke clear from the cosmic gravity trap!</p>
-        <button class="btn btn-start" onclick="navigateToScreen('screen-game'); startGame();">Re-Fly Mission</button>
+    <audio id="sound-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+    <div id="screen-intro" class="screen active">
+        <div class="card">
+            <h1>Orchard Re-Grow! 🍎</h1>
+            <p><strong>ALERT JUNOR EXPLORER:</strong> A giant windstorm knocked all the fruit off our trees! We need your math brains. Count the groups in the harvest baskets to generate fresh energy, and help us magically **re-grow our vibrant fruit trees!**</p>
+            <button class="btn btn-mission" onclick="goToScreen('screen-game'); startOrchardGame();">Accept the Re-Grow Mission!</button>
+        </div>
     </div>
+
+    <div id="screen-game" class="screen">
+        <div class="hud">
+            <div id="sector-track">Basket Row: 1/10</div>
+            <div id="energy-track" style="color: var(--secondary-gold);">Re-Grow Energy: 0%</div>
+        </div>
+
+        <div class="instruction-box" id="orchard-status">
+            Counting harvests...
+        </div>
+
+        <div class="fruit-workspace">
+            <div id="basket-zone" style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: center;">
+                </div>
+            
+            <div class="equation-reveal" id="reveal-zone"></div>
+        </div>
+
+        <div class="options-grid" id="harvest-options"></div>
+    </div>
+
+    <div id="screen-end" class="screen">
+        <div class="card">
+            <h1>Orchard Fully Restored! 🌟</h1>
+            <p id="final-harvest-text">Sensational calculations! Project Re-Grow is a massive success. The farm fields are full of trees again!</p>
+            <button class="btn btn-mission" onclick="goToScreen('screen-game'); startOrchardGame();">Re-Grow Again</button>
+        </div>
+    </div>
+
 </div>
 
 <script>
-// Safely scoped logic elements
-const itemAssets = [
-    { name: 'crystals', file: 'assets/crystal.png' },
-    { name: 'batteries', file: 'assets/battery.png' },
-    { name: 'stars', file: 'assets/star-token.png' }
+// Resource assets list strictly from your folder
+const fruitAssets = [
+    { name: 'apples', file: 'assets/apple.png', alt: 'apple' },
+    { name: 'mangos', file: 'assets/mango.png', alt: 'mango' },
+    { name: 'oranges', file: 'assets/orange.png', alt: 'orange' }
 ];
 
 let gameQuestions = [];
 let currentQuestionIndex = 0;
 let score = 0;
 const totalQuestionsCount = 10;
+const orchardVis = document.getElementById('orchard-vis');
 
-// FORCED DISMISSAL: Safely clear out the splash screen regardless of window load bindings
-function removeSplash() {
-    const splash = document.getElementById('splash-screen');
-    if(splash && splash.style.display !== 'none') {
-        splash.style.opacity = '0';
-        setTimeout(() => {
-            splash.style.display = 'none';
-        }, 500);
-    }
-}
-// Triggers automatically exactly 3.5 seconds after scripts process
-setTimeout(removeSplash, 3500);
-
-// Initialize background decoration inside a safe block
-try {
-    const starfield = document.getElementById('starfield');
-    if (starfield) {
-        for (let i = 0; i < 30; i++) {
-            const star = document.createElement('div');
-            star.className = 'star';
-            star.style.width = Math.random() * 3 + 1 + 'px';
-            star.style.height = star.style.width;
-            star.style.left = Math.random() * 100 + 'vw';
-            star.style.top = Math.random() * 100 + 'vh';
-            star.style.animationDelay = Math.random() * 4 + 's';
-            star.style.animationDuration = Math.random() * 3 + 2 + 's';
-            starfield.appendChild(star);
+// Controlled 5-Second Splash Handler
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        if(splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => splash.style.display = 'none', 500);
         }
-    }
-} catch(e) { console.log("Background decoration bypassed"); }
+    }, 5000); 
+});
+
+// Clear and initialize dynamic background visual tracks
+function resetOrchardVisuals() {
+    orchardVis.innerHTML = '';
+}
+
+// Dynamically add a tree based on dynamic scoring event
+function growTree() {
+    const tree = document.createElement('img');
+    tree.className = 'orchard-tree';
+    tree.src = 'assets/tree.png';
+    tree.alt = "Fresh Tree";
+    orchardVis.appendChild(tree);
+    setTimeout(() => tree.classList.add('active'), 50);
+}
 
 function navigateToScreen(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    const targeted = document.getElementById(screenId);
-    if(targeted) targeted.classList.add('active');
+    document.getElementById(screenId).classList.add('active');
 }
 
-function startGame() {
+function startOrchardGame() {
     gameQuestions = [];
     currentQuestionIndex = 0;
     score = 0;
+    resetOrchardVisuals();
 
-    const compositionLogs = [];
-    while (compositionLogs.length < totalQuestionsCount) {
-        const groupsCount = Math.floor(Math.random() * 3) + 2;     // 2-4 Rockets
-        const itemsPerGroup = Math.floor(Math.random() * 4) + 2;   // 2-5 Cells
-        const assetIndex = Math.floor(Math.random() * itemAssets.length);
+    // Distinct combinations avoiding repetitive sequences
+    const trackingKeys = [];
+    while (trackingKeys.length < totalQuestionsCount) {
+        const groupsCount = Math.floor(Math.random() * 3) + 2;     // 2 to 4 baskets
+        const itemsPerGroup = Math.floor(Math.random() * 4) + 2;   // 2 to 5 fruits
+        const chosenFruitIdx = Math.floor(Math.random() * fruitAssets.length);
         
-        const generationKey = `${groupsCount}r${itemsPerGroup}c${assetIndex}`;
-        if (!compositionLogs.includes(generationKey)) {
-            compositionLogs.push(generationKey);
+        const compositeKey = `${groupsCount}g${itemsPerGroup}f${chosenFruitIdx}`;
+        if (!trackingKeys.includes(compositeKey)) {
+            trackingKeys.push(compositeKey);
             
-            const targetItem = itemAssets[assetIndex];
-            const correctText = `${groupsCount} groups of ${itemsPerGroup} ${targetItem.name}`;
+            const chosenFruit = fruitAssets[chosenFruitIdx];
+            const correctText = `${groupsCount} groups of ${itemsPerGroup} ${chosenFruit.name}`;
             
-            let wrong1 = (groupsCount !== itemsPerGroup) ? `${itemsPerGroup} groups of ${groupsCount} ${targetItem.name}` : `${groupsCount + 1} groups of ${itemsPerGroup} ${targetItem.name}`;
-            
-            let alternateCount = Math.floor(Math.random() * 3) + 2; 
-            while(alternateCount === groupsCount || alternateCount === itemsPerGroup) {
-                alternateCount = Math.floor(Math.random() * 3) + 2;
-            }
-            let wrong2 = `${alternateCount} groups of ${itemsPerGroup} ${targetItem.name}`;
+            // Generate clever wrong choices (no redundant duplicates)
+            let wrong1 = (groupsCount !== itemsPerGroup) ? `${itemsPerGroup} groups of ${groupsCount} ${chosenFruit.name}` : `${groupsCount + 1} groups of ${itemsPerGroup} ${chosenFruit.name}`;
+            let altGroups = Math.floor(Math.random() * 3) + 2;
+            while(altGroups === groupsCount || altGroups === itemsPerGroup) { altGroups = Math.floor(Math.random() * 3) + 2; }
+            let wrong2 = `${altGroups} groups of ${itemsPerGroup} ${chosenFruit.name}`;
 
             gameQuestions.push({
                 groups: groupsCount,
                 size: itemsPerGroup,
                 total: (groupsCount * itemsPerGroup),
-                item: targetItem,
+                item: chosenFruit,
                 answer: correctText,
                 options: shuffleArray([correctText, wrong1, wrong2])
             });
@@ -316,118 +290,101 @@ function startGame() {
 }
 
 function renderActiveQuestion() {
-    if (currentQuestionIndex >= gameQuestions.length) return;
     const question = gameQuestions[currentQuestionIndex];
+    document.getElementById('sector-track').innerText = `Basket Row: ${currentQuestionIndex + 1}/${totalQuestionsCount}`;
+    document.getElementById('energy-track').innerText = `Re-Grow Energy: ${Math.round((score / totalQuestionsCount) * 100)}%`;
     
-    document.getElementById('progress-text').innerText = `Sector Tracking: ${currentQuestionIndex + 1}/${totalQuestionsCount}`;
-    document.getElementById('score-text').innerText = `Core Matrix: ${Math.round((score / totalQuestionsCount) * 100)}%`;
-    document.getElementById('progress-core-fill').style.width = `${(currentQuestionIndex / totalQuestionsCount) * 100}%`;
-    
-    document.getElementById('options-zone').style.display = 'flex';
+    // UI Reset states
+    document.getElementById('harvest-options').style.display = 'flex';
     const revealZone = document.getElementById('reveal-zone');
     revealZone.style.display = 'none';
     revealZone.innerHTML = '';
-    document.getElementById('question-prompt').innerText = "Link the input matrix to fuel the thruster nodes:";
+    document.getElementById('orchard-status').innerText = "Look closely at the harvest baskets:";
+    document.getElementById('orchard-status').style.animation = ''; // Reset bounce
 
-    const rocketZone = document.getElementById('rocket-zone');
-    const optionsZone = document.getElementById('options-zone');
-    rocketZone.innerHTML = '';
+    const basketZone = document.getElementById('basket-zone');
+    const optionsZone = document.getElementById('harvest-options');
+    basketZone.innerHTML = '';
     optionsZone.innerHTML = '';
 
+    // Render Assets dynamically with custom fault tolerance
     for(let i=0; i < question.groups; i++) {
         const padDiv = document.createElement('div');
-        padDiv.className = 'rocket-pad';
+        padDiv.className = 'basket-box';
         
-        const rocketImg = document.createElement('img');
-        rocketImg.className = 'rocket-img';
-        rocketImg.src = 'assets/rocket.png'; 
-        rocketImg.onerror = function() {
+        const basketImg = document.createElement('img');
+        basketImg.className = 'basket-asset';
+        basketImg.src = 'assets/basket.png'; 
+        basketImg.onerror = function() { // Basic graphic fault tolerance
             this.style.display = 'none';
-            const fallbackNode = document.createElement('div');
-            fallbackNode.className = 'rocket-fallback';
-            fallbackNode.innerText = 'SHIP';
-            padDiv.insertBefore(fallbackNode, padDiv.firstChild);
+            const dot = document.createElement('div');
+            dot.style.cssText = 'width:60px; height:60px; background:#78350f; border-radius:5px;';
+            padDiv.appendChild(dot);
         };
-        padDiv.appendChild(rocketImg);
+        padDiv.appendChild(basketImg);
         
-        const fuelContainer = document.createElement('div');
-        fuelContainer.className = 'fuel-container';
-        
-        for(let j=0; j < question.size; j++) {
-            const cellImg = document.createElement('img');
-            cellImg.className = 'fuel-cell';
-            cellImg.src = question.item.file;
-            cellImg.onerror = function() {
-                this.style.display = 'none';
-                const dot = document.createElement('div');
-                dot.className = 'cell-fallback';
-                fuelContainer.appendChild(dot);
-            };
-            fuelContainer.appendChild(cellImg);
-        }
-        padDiv.appendChild(fuelContainer);
-
         const labelDiv = document.createElement('div');
-        labelDiv.className = 'pad-label';
-        labelDiv.innerText = question.size;
+        labelDiv.className = 'basket-label';
+        labelDiv.innerText = `${question.size} ${question.item.alt}(s)`;
         padDiv.appendChild(labelDiv);
 
-        rocketZone.appendChild(padDiv);
+        basketZone.appendChild(padDiv);
     }
 
     question.options.forEach(optionText => {
         const button = document.createElement('button');
-        button.className = 'btn';
+        button.className = 'btn choice-btn';
         button.innerText = optionText;
-        button.addEventListener('click', () => evaluateAnswer(optionText, button));
+        button.addEventListener('click', () => evaluateHarvestAnswer(optionText, button));
         optionsZone.appendChild(button);
     });
 }
 
-function evaluateAnswer(selectedChoice, selectedButton) {
+function evaluateHarvestAnswer(selectedChoice, selectedButton) {
     const question = gameQuestions[currentQuestionIndex];
-    const buttons = document.querySelectorAll('#options-zone .btn');
+    const buttons = document.querySelectorAll('#harvest-options .btn');
     buttons.forEach(b => b.disabled = true);
 
     const sndCorrect = document.getElementById('sound-correct');
     const sndWrong = document.getElementById('sound-wrong');
-    let dynamicSuccess = false;
+    let correctResponse = false;
 
     if(selectedChoice === question.answer) {
         score++;
-        dynamicSuccess = true;
-        selectedButton.style.background = '#22c55e'; 
-        selectedButton.style.boxShadow = '0 4px 0px #15803d';
-        try { if(sndCorrect) { sndCorrect.currentTime = 0; sndCorrect.play(); } } catch(e){}
+        correctResponse = true;
+        selectedButton.style.background = '#22c55e';
+        selectedButton.style.boxShadow = '0 5px 0 #166534';
+        try { sndCorrect.currentTime = 0; sndCorrect.play(); } catch(e){}
         
-        document.querySelectorAll('.rocket-pad').forEach(rocket => {
-            rocket.classList.add('launching');
-        });
+        // Dynamic Animation Events
+        growTree(); // 1. Animate fresh tree in background visual track
+        document.getElementById('orchard-status').style.animation = 'bounce 0.5s ease-out'; // 2. Instructions bounce
     } else {
-        selectedButton.style.background = '#ef4444'; 
-        selectedButton.style.boxShadow = '0 4px 0px #b91c1c';
-        try { if(sndWrong) { sndWrong.currentTime = 0; sndWrong.play(); } } catch(e){}
+        selectedButton.style.background = '#ef4444';
+        selectedButton.style.boxShadow = '0 5px 0 #991b1b';
+        try { sndWrong.currentTime = 0; sndWrong.play(); } catch(e){}
         
         buttons.forEach(b => {
             if(b.innerText === question.answer) {
                 b.style.background = '#22c55e';
-                b.style.boxShadow = '0 4px 0px #15803d';
+                b.style.boxShadow = '0 5px 0 #166534';
             }
         });
     }
 
+    // Advance to Equation Reveal phase after short 1s delay
     setTimeout(() => {
-        document.getElementById('options-zone').style.display = 'none';
-        document.getElementById('question-prompt').innerText = dynamicSuccess ? "Ignition Synchronized! ⚡" : "Circuit breakdown formula:";
+        document.getElementById('harvest-options').style.display = 'none';
+        document.getElementById('orchard-status').innerText = correctResponse ? "Project Re-Grow Energy Spike! ⚡" : "Let's recalculate the breakdown formula:";
         
-        const additionChain = Array(question.groups).fill(question.size).join(' + ');
+        const calculationChain = Array(question.groups).fill(question.size).join(' + ');
         
         const revealZone = document.getElementById('reveal-zone');
         revealZone.style.display = 'block';
         revealZone.innerHTML = `
-            <div style="color: var(--accent-color); font-size: 21px; margin-bottom: 5px;">${question.answer}</div>
-            <div style="font-size: 19px; color: #94a3b8; margin-bottom: 12px;">${additionChain} = ${question.total}</div>
-            <div style="color: #22c55e; font-size: 38px; font-weight: 900;">${question.groups} &times; ${question.size} = ${question.total}</div>
+            <div>${question.answer}</div>
+            <div style="font-size: 24px; color: #475569; margin: 6px 0;">${calculationChain} = ${question.total}</div>
+            <div style="color: #15803d; font-size: 38px;">${question.groups} &times; ${question.size} = ${question.total}</div>
         `;
 
         setTimeout(() => {
@@ -435,16 +392,16 @@ function evaluateAnswer(selectedChoice, selectedButton) {
             if(currentQuestionIndex < totalQuestionsCount) {
                 renderActiveQuestion();
             } else {
-                showEndGame();
+                showEndOrchardScreen();
             }
         }, 4000); 
-    }, 1100);
+    }, 1000);
 }
 
-function showEndGame() {
+function showEndOrchardScreen() {
     navigateToScreen('screen-end');
-    document.getElementById('progress-core-fill').style.width = '100%';
-    document.getElementById('final-score-text').innerText = `Incredible piloting, Commander! The Hyper-Drive Core reached ${(score / totalQuestionsCount) * 100}% tracking capacity. All fleet branches made the jump safely!`;
+    document.getElementById('orchard-vis').style.opacity = '0.5'; // De-emphasize visuals safely
+    document.getElementById('final-harvest-text').innerText = `Amazing harvesting work, Dynamic Junior Farmer! You reached all field rows and Project Re-Grow concluded with a fantastic accuracy score of ${(score / totalQuestionsCount) * 100}%!`;
 }
 
 function shuffleArray(array) {
