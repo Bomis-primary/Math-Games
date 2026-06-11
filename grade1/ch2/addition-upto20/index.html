@@ -16,7 +16,7 @@
         width: 100%; height: 100%;
         font-family: 'Segoe UI', Arial, sans-serif;
         color: #1e293b; overflow: hidden;
-        background-color: #1e293b;
+        background-color: #38bdf8;
     }
 
     .game-container {
@@ -27,12 +27,12 @@
         flex-direction: column; padding: 20px;
     }
 
-    /* Brand New 5-Second Splash Screen Layout */
+    /* Splash Screen Setup */
     #screen-splash {
-        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-        background: #ffffff; z-index: 100;
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: #ffffff !important; z-index: 9999;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        transition: opacity 0.8s ease-in-out;
+        opacity: 1; transition: opacity 0.5s ease;
     }
     .logo-container {
         display: flex; flex-direction: column; align-items: center; gap: 15px;
@@ -40,7 +40,6 @@
     .logo-img {
         max-width: 220px; max-height: 120px; object-fit: contain;
     }
-    /* Dynamic placeholder icon if logo image asset is offline */
     .logo-fallback {
         width: 100px; height: 100px; background: linear-gradient(135deg, #0284c7, #38bdf8);
         border-radius: 24px; display: flex; align-items: center; justify-content: center;
@@ -68,7 +67,7 @@
         flex-direction: column; align-items: center; text-align: center;
         z-index: 5;
     }
-    .screen.active { display: flex; }
+    .screen.active { display: flex !important; }
 
     .card {
         background: rgba(255, 255, 255, 0.96);
@@ -88,9 +87,11 @@
     .lineup-item img { width: 100%; height: 100%; object-fit: contain; }
     .lineup-item:nth-child(2) { animation-delay: 0.4s; }
     .lineup-item:nth-child(3) { animation-delay: 0.8s; }
+    
     .fallback-avatar-circle {
         width: 80px; height: 80px; background: #f97316; border-radius: 50%;
         display: flex; align-items: center; justify-content: center; font-size: 44px;
+        color: white;
     }
 
     .live-companion-box {
@@ -148,9 +149,7 @@
     }
 
     /* LEVEL 1: Balloons */
-    .balloon-node {
-        display: flex; flex-direction: column; align-items: center; cursor: pointer;
-    }
+    .balloon-node { display: flex; flex-direction: column; align-items: center; cursor: pointer; }
     .balloon-body {
         width: 115px; height: 135px; border-radius: 50% 50% 50% 50% / 42% 42% 58% 58%;
         display: flex; justify-content: center; align-items: center;
@@ -166,15 +165,10 @@
     }
     .balloon-string { width: 3px; height: 55px; background-color: #cbd5e1; margin-top: 6px; }
 
-    /* LEVEL 2: Picnic Baskets */
-    .basket-node {
-        display: flex; flex-direction: column; align-items: center; cursor: pointer;
-        transition: transform 0.2s;
-    }
+    /* LEVEL 2: Baskets */
+    .basket-node { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s; }
     .basket-node:hover { transform: scale(1.08); }
-    .basket-body {
-        font-size: 75px; position: relative; display: flex; justify-content: center; align-items: center;
-    }
+    .basket-body { font-size: 75px; position: relative; display: flex; justify-content: center; align-items: center; }
     .basket-label {
         position: absolute; bottom: 5px; background: #ea580c; color: white;
         font-size: 24px; font-weight: 900; padding: 4px 16px; border-radius: 12px;
@@ -208,4 +202,251 @@
         100% { transform: translateY(220px) scale(1); opacity: 0; }
     }
     @keyframes jump {
-        0%,
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-30px) scaleY(1.05); }
+    }
+    .jump-happy { animation: jump 0.4s 2 ease-out; }
+    @keyframes happyDance {
+        0% { transform: translateY(0) rotate(-5deg); }
+        100% { transform: translateY(-15px) rotate(5deg); }
+    }
+</style>
+</head>
+<body>
+
+<div id="screen-splash">
+    <div class="logo-container">
+        <img class="logo-img" src="assets/logo.png" onerror="this.style.display='none'; document.getElementById('brand-fallback').style.display='flex';" alt="Innovine Logo">
+        <div id="brand-fallback" class="logo-fallback" style="display:none;">I</div>
+        <h2 style="color: #475569; font-weight: 800; font-size: 22px; letter-spacing: 1px; margin-top: 10px;">INNOVINE</h2>
+    </div>
+    <div class="splash-loader">
+        <div class="splash-loader-bar"></div>
+    </div>
+</div>
+
+<div class="game-container">
+    
+    <div class="grass-floor">
+        <span>🌸</span><span>🌼</span><span>🌸</span><span>🌼</span><span>🌸</span><span>🌼</span>
+    </div>
+
+    <div id="live-companion" class="live-companion-box" style="display:none;">
+        <div id="reward-snack" class="falling-snack">🍌</div>
+        <div id="companion-wrapper" class="companion-wrapper">
+            <img id="companion-avatar" class="companion-img" src="assets/rabbit.png" onerror="handleImageError(this, '🐰')" alt="Buddy">
+        </div>
+    </div>
+
+    <div id="screen-welcome" class="screen active">
+        <div class="card">
+            <h1>Animal Snack Quest! 🎈🧺</h1>
+            <p>Help your animal friends find food! Pop balloons in Level 1, then solve story puzzles to pack picnic baskets in Level 2!</p>
+            
+            <div class="animal-lineup">
+                <div class="lineup-item"><img src="assets/rabbit.png" onerror="handleImageError(this, '🐰')"></div>
+                <div class="lineup-item"><img src="assets/lion.png" onerror="handleImageError(this, '🦁')"></div>
+                <div class="lineup-item"><img src="assets/elephant.png" onerror="handleImageError(this, '🐘')"></div>
+            </div>
+
+            <button class="btn btn-red" onclick="initiateSnackGame();">Start Mission</button>
+        </div>
+    </div>
+
+    <div id="screen-game" class="screen">
+        <div class="hud">
+            <div id="round-counter">Round: 1/10</div>
+            <div style="color: #e11d48;" id="pops-counter">Feast Points: 0</div>
+        </div>
+
+        <div class="math-banner" id="challenge-formula">Loading...</div>
+        <p id="instruction-subtext" style="font-weight: bold; margin-bottom: 5px; color: #475569; font-size: 18px;">Pop the correct balloon!</p>
+
+        <div class="interaction-canvas" id="interaction-field"></div>
+    </div>
+
+    <div id="screen-levelup" class="screen">
+        <div class="card">
+            <div class="level-badge">🧺✨</div>
+            <h1>Level 1 Complete!</h1>
+            <p>Awesome balloon popping! You saved the snacks. Now, let's head over to **Level 2: Basket Packing**! Read what your animal friends want, add the numbers together, and pack the matching picnic basket!</p>
+            <button class="btn" onclick="startLevel2();">Enter Level 2</button>
+        </div>
+    </div>
+
+    <div id="screen-end" class="screen">
+        <div class="card">
+            <h1>Snack Party Complete! 🏆</h1>
+            <p id="adventure-outcome-text">Wonderful work! You popped balloons and loaded up picnic baskets perfectly.</p>
+            <button class="btn btn-red" onclick="goToScreen('screen-welcome'); resetStateTrackers();">Play Again</button>
+        </div>
+    </div>
+
+</div>
+
+<audio id="snd-correct" src="assets/correct.mp3" preload="auto"></audio>
+<audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+<script>
+    const activeAnimalFiles = ['assets/rabbit.png', 'assets/lion.png', 'assets/elephant.png'];
+    const backupEmojis = ['🐰', '🦁', '🐘'];
+    const animalNames = ['Bunny 🐰', 'Lion 🦁', 'Elephant 🐘'];
+    const foodItems = ['Apples 🍎', 'Berries 🍓', 'Carrots 🥕', 'Bananas 🍌'];
+    const optionSkinPalettes = ['color-cyan', 'color-purple', 'color-orange'];
+
+    let currentRoundIndex = 1;
+    let totalRoundsCount = 10; 
+    let currentScore = 0;
+    let targetSolutionValue = 0;
+
+    function handleImageError(imgElement, emojiBackup) {
+        const parent = imgElement.parentElement;
+        if(parent) {
+            parent.innerHTML = `<div class="fallback-avatar-circle">${emojiBackup}</div>`;
+        }
+    }
+
+    // Absolute Guaranteed Splash Release Timer (5 Seconds)
+    setTimeout(function() {
+        const splashNode = document.getElementById('screen-splash');
+        if (splashNode) {
+            splashNode.style.opacity = '0';
+            setTimeout(function() {
+                splashNode.style.display = 'none';
+            }, 500);
+        }
+    }, 5000);
+
+    function goToScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        const target = document.getElementById(screenId);
+        if(target) target.classList.add('active');
+    }
+
+    function resetStateTrackers() {
+        document.getElementById('live-companion').style.display = 'none';
+    }
+
+    function initiateSnackGame() {
+        currentRoundIndex = 1;
+        currentScore = 0;
+        goToScreen('screen-game');
+        document.getElementById('live-companion').style.display = 'flex';
+        renderActiveGameRound();
+    }
+
+    function startLevel2() {
+        document.getElementById('live-companion').style.display = 'flex';
+        goToScreen('screen-game');
+        renderActiveGameRound();
+    }
+
+    function renderActiveGameRound() {
+        document.getElementById('round-counter').innerText = `Round: ${currentRoundIndex}/${totalRoundsCount}`;
+        document.getElementById('pops-counter').innerText = `Feast Points: ${currentScore}`;
+        
+        const snackNode = document.getElementById('reward-snack');
+        if (snackNode) snackNode.classList.remove('drop');
+
+        const wrapper = document.getElementById('companion-wrapper');
+        if (wrapper) {
+            const currentImgPath = activeAnimalFiles[(currentRoundIndex - 1) % activeAnimalFiles.length];
+            const currentEmoji = backupEmojis[(currentRoundIndex - 1) % backupEmojis.length];
+            wrapper.className = "companion-wrapper";
+            wrapper.innerHTML = `<img id="companion-avatar" class="companion-img" src="${currentImgPath}" onerror="handleImageError(this, '${currentEmoji}')" alt="Buddy">`;
+        }
+
+        const currentAnimalName = animalNames[(currentRoundIndex - 1) % animalNames.length];
+        const fieldContainer = document.getElementById('interaction-field');
+        if (!fieldContainer) return;
+        fieldContainer.innerHTML = '';
+
+        let primaryValue = Math.floor(Math.random() * 8) + 2; 
+        let secondaryValue = Math.floor(Math.random() * 7) + 2; 
+        targetSolutionValue = primaryValue + secondaryValue;
+
+        let choiceA = targetSolutionValue + (Math.random() > 0.5 ? 2 : -2);
+        let choiceB = targetSolutionValue + (Math.random() > 0.5 ? 3 : -1);
+        if (choiceA === targetSolutionValue || choiceA < 0) choiceA = targetSolutionValue + 1;
+        if (choiceB === targetSolutionValue || choiceB === choiceA || choiceB < 0) choiceB = targetSolutionValue + 4;
+
+        let optionsPool = [targetSolutionValue, choiceA, choiceB];
+        optionsPool.sort(() => Math.random() - 0.5);
+
+        if (currentRoundIndex <= 5) {
+            document.getElementById('challenge-formula').innerText = `${primaryValue} + ${secondaryValue}`;
+            document.getElementById('instruction-subtext').innerText = "Find and pop the balloon with the correct total sum!";
+
+            optionsPool.forEach((val, idx) => {
+                const node = document.createElement('div');
+                node.className = 'balloon-node float-idle';
+                node.innerHTML = `
+                    <div class="balloon-body ${optionSkinPalettes[idx % 3]}">${val}</div>
+                    <div class="balloon-string"></div>
+                `;
+                node.onclick = function() { processPlayerSelection(val, node, 'balloon'); };
+                fieldContainer.appendChild(node);
+            });
+        } else {
+            const itemType1 = foodItems[(currentRoundIndex) % foodItems.length];
+            const itemType2 = foodItems[(currentRoundIndex + 1) % foodItems.length];
+            
+            document.getElementById('challenge-formula').innerHTML = `Pack ${primaryValue} ${itemType1} and ${secondaryValue} ${itemType2}!`;
+            document.getElementById('instruction-subtext').innerText = `Click the correct basket total to pack the ${currentAnimalName}'s order!`;
+
+            optionsPool.forEach((val, idx) => {
+                const node = document.createElement('div');
+                node.className = 'basket-node';
+                node.innerHTML = `
+                    <div class="basket-body">
+                        🧺
+                        <div class="basket-label">${val}</div>
+                    </div>
+                `;
+                node.onclick = function() { processPlayerSelection(val, node, 'basket'); };
+                fieldContainer.appendChild(node);
+            });
+        }
+    }
+
+    function processPlayerSelection(selectedVal, domElement, roundType) {
+        const nodes = document.querySelectorAll(roundType === 'balloon' ? '.balloon-node' : '.basket-node');
+        nodes.forEach(n => n.onclick = null);
+
+        if (selectedVal === targetSolutionValue) {
+            currentScore++;
+            document.getElementById('pops-counter').innerText = `Feast Points: ${currentScore}`;
+            
+            const sndC = document.getElementById('snd-correct');
+            if (sndC) sndC.play().catch(() => {});
+
+            if (roundType === 'balloon') {
+                domElement.classList.remove('float-idle');
+                domElement.classList.add('popped');
+            } else {
+                domElement.classList.add('selected-correct');
+            }
+
+            document.getElementById('challenge-formula').innerText = "SUCCESS! ✨";
+
+            const snackNode = document.getElementById('reward-snack');
+            if (snackNode) {
+                snackNode.innerText = roundType === 'balloon' ? '🎈' : '🧺';
+                snackNode.classList.add('drop');
+            }
+
+            const avatarContainer = document.getElementById('companion-wrapper');
+            if(avatarContainer) avatarContainer.classList.add('jump-happy');
+        } else {
+            const sndW = document.getElementById('snd-wrong');
+            if (sndW) sndW.play().catch(() => {});
+            
+            domElement.style.transform = 'scale(0.8)';
+            domElement.style.opacity = '0.4';
+            document.getElementById('challenge-formula').innerText = `Oops! That equals ${targetSolutionValue}`;
+        }
+
+        setTimeout(() => {
+            currentRoundIndex++;
+            if (currentRoundIndex === 6) {
+                document.getElementById('live-companion').style
