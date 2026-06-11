@@ -26,22 +26,18 @@
         padding: 20px;
     }
     
-    /* Screen 1: Splash Screen holds for 5 Seconds */
-    #splash { background:#fff; z-index:10; display:flex; }
+    #splash { background:#ffffff; z-index:10; display:flex; }
     #splash img { width:220px; max-width: 80%; object-fit: contain; }
     
-    /* Shared Background for Active Gameplay Screens */
     .game-bg { 
         background: linear-gradient(var(--dark-overlay), var(--dark-overlay)), url('assets/orchard-bg.jpg') no-repeat center bottom; 
         background-size:cover; 
     }
     
-    /* Screen 2: Title + Mission */
     #screen2 .title { text-align:center; color:#fff; max-width: 600px; }
     #screen2 .title h1 { font-size:42px; margin:0 0 15px 0; font-weight:bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.6); }
     #screen2 .title p { font-size:24px; margin:0; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
     
-    /* Screen 3: Active Dashboard */
     .top-bar {
         position: absolute;
         top: 20px;
@@ -76,7 +72,6 @@
     }
     .basket img { width:150px; height:150px; object-fit: contain; filter: drop-shadow(0px 8px 6px rgba(0,0,0,0.3)); }
     
-    /* Absolute overlaying item icons inside basket boundaries */
     .item-preview-container {
         position: absolute;
         top: 25px;
@@ -87,11 +82,7 @@
         gap: 4px;
         pointer-events: none;
     }
-    .item-preview {
-        width: 22px;
-        height: 22px;
-        object-fit: contain;
-    }
+    .item-preview { width: 22px; height: 22px; object-fit: contain; }
 
     .basket-label { 
         position:absolute; 
@@ -132,7 +123,6 @@
     .btn:hover { background: var(--primary-hover); transform: translateY(2px); box-shadow: 0 3px 0px #cc7a7a; }
     .btn:active { transform: translateY(5px); box-shadow: none; }
     
-    /* Screen 4: End Game Score Screen */
     #screen4 { background: #f0fdf4; display: none; }
     .card {
         background: white;
@@ -146,4 +136,270 @@
     .card h2 { font-size: 36px; color: #16a34a; margin: 0 0 10px 0; }
     .card p { font-size: 20px; color: #4b5563; margin: 0 0 30px 0; }
     
-    /* Custom
+    .confetti {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        background-color: #f39c12;
+        top: -20px;
+        z-index: 99;
+        border-radius: 50%;
+        animation: fall linear forwards;
+    }
+    @keyframes fall { to { transform: translateY(105vh) rotate(360deg); } }
+
+    @media (max-width: 600px) {
+        .basket img { width: 100px; height: 100px; }
+        .item-preview-container { top: 15px; width: 60px; gap: 2px; }
+        .item-preview { width: 15px; height: 15px; }
+        .basket-label { font-size: 14px; bottom: 5px; }
+        #screen3 .instruction { font-size: 18px; }
+        .btn { font-size: 18px; padding: 12px; }
+        #screen2 .title h1 { font-size: 28px; }
+        #screen2 .title p { font-size: 18px; }
+    }
+</style>
+</head>
+<body>
+
+<audio id="sound-correct" src="assets/correct.mp3" preload="auto"></audio>
+<audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+<audio id="sound-cheer" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
+
+<div id="splash" class="screen">
+    <img src="assets/logo.png" alt="Logo">
+</div>
+
+<div id="screen2" class="screen game-bg">
+    <div class="title">
+        <h1>Orchard Fruit Collector</h1>
+        <p>Mission: Look carefully at the fruits in the orchard, calculate the repeated addition, and group them correctly!</p>
+    </div>
+</div>
+
+<div id="screen3" class="screen game-bg">
+    <div class="top-bar">
+        <div id="progress-text">Question: 1/10</div>
+        <div class="audio-controls">
+            <span>🔊</span>
+            <input type="range" class="vol-slider" id="volume" min="0" max="1" step="0.1" value="0.8">
+        </div>
+    </div>
+    <div class="basket-container" id="basket-zone"></div>
+    <div class="instruction" id="question-prompt">Look at the baskets and click the correct matching statement</div>
+    <div class="buttons" id="options-zone"></div>
+</div>
+
+<div id="screen4" class="screen">
+    <div class="card">
+        <h2>Awesome Job! 🎉</h2>
+        <p id="final-score-text">You successfully grouped all the fruits.</p>
+        <button class="btn" id="btn-restart">Play Again</button>
+    </div>
+</div>
+
+<script>
+const fruitAssets = [
+    { name: 'apples', file: 'assets/apple.png' },
+    { name: 'mangos', file: 'assets/mango.png' },
+    { name: 'oranges', file: 'assets/orange.png' }
+];
+
+const sndCorrect = document.getElementById('sound-correct');
+const sndWrong = document.getElementById('sound-wrong');
+const sndCheer = document.getElementById('sound-cheer');
+const volSlider = document.getElementById('volume');
+
+function setVolume(val) {
+    sndCorrect.volume = val;
+    sndWrong.volume = val;
+    sndCheer.volume = val;
+}
+if(volSlider) {
+    volSlider.addEventListener('input', (e) => setVolume(e.target.value));
+}
+setVolume(0.8);
+
+let gameQuestions = [];
+let currentQuestionIndex = 0;
+let score = 0;
+const totalQuestionsCount = 10;
+
+// Initialize layout visibility explicitly
+document.getElementById('splash').style.display = 'flex';
+
+setTimeout(() => {
+    document.getElementById('splash').style.display = 'none';
+    document.getElementById('screen2').style.display = 'flex';
+    
+    setTimeout(() => {
+        document.getElementById('screen2').style.display = 'none';
+        document.getElementById('screen3').style.display = 'flex';
+        initiateGameEngine();
+    }, 4000);
+}, 5000);
+
+function initiateGameEngine() {
+    gameQuestions = [];
+    currentQuestionIndex = 0;
+    score = 0;
+
+    for(let i=0; i < totalQuestionsCount; i++){
+        const groupsCount = Math.floor(Math.random() * 4) + 2; 
+        const itemsPerGroup = Math.floor(Math.random() * 4) + 2; 
+        const targetFruit = fruitAssets[Math.floor(Math.random() * fruitAssets.length)];
+        
+        const correctText = `${groupsCount} groups of ${itemsPerGroup} ${targetFruit.name}`;
+        const incorrectTextAlternative = `${itemsPerGroup} groups of ${groupsCount} ${targetFruit.name}`;
+        
+        let randomOffset = Math.floor(Math.random() * 4) + 2;
+        while(randomOffset === groupsCount) {
+            randomOffset = Math.floor(Math.random() * 4) + 2;
+        }
+        const falseOptionText = `${randomOffset} groups of ${itemsPerGroup} ${targetFruit.name}`;
+
+        gameQuestions.push({
+            groups: groupsCount,
+            size: itemsPerGroup,
+            fruit: targetFruit,
+            answer: correctText,
+            options: shuffleArray([correctText, incorrectTextAlternative, falseOptionText])
+        });
+    }
+    renderActiveQuestion();
+}
+
+function renderActiveQuestion() {
+    const question = gameQuestions[currentQuestionIndex];
+    document.getElementById('progress-text').innerText = `Question: ${currentQuestionIndex + 1}/${totalQuestionsCount}`;
+    
+    const basketZone = document.getElementById('basket-zone');
+    const optionsZone = document.getElementById('options-zone');
+    basketZone.innerHTML = '';
+    optionsZone.innerHTML = '';
+
+    for(let i=0; i < question.groups; i++) {
+        const basketDiv = document.createElement('div');
+        basketDiv.className = 'basket';
+        
+        const basketImg = document.createElement('img');
+        basketImg.src = 'assets/basket.png';
+        basketDiv.appendChild(basketImg);
+        
+        const itemsContainer = document.createElement('div');
+        itemsContainer.className = 'item-preview-container';
+        
+        for(let j=0; j < question.size; j++) {
+            const itemImg = document.createElement('img');
+            itemImg.className = 'item-preview';
+            itemImg.src = question.fruit.file;
+            itemsContainer.appendChild(itemImg);
+        }
+        basketDiv.appendChild(itemsContainer);
+
+        const labelDiv = document.createElement('div');
+        labelDiv.className = 'basket-label';
+        labelDiv.innerText = question.size;
+        basketDiv.appendChild(labelDiv);
+
+        basketZone.appendChild(basketDiv);
+    }
+
+    question.options.forEach(optionText => {
+        const button = document.createElement('button');
+        button.className = 'btn';
+        button.innerText = optionText;
+        button.addEventListener('click', () => handleAnswerEvaluation(optionText, button));
+        optionsZone.appendChild(button);
+    });
+}
+
+function handleAnswerEvaluation(selectedChoice, selectedButton) {
+    const question = gameQuestions[currentQuestionIndex];
+    const buttons = document.querySelectorAll('#options-zone .btn');
+    
+    buttons.forEach(b => b.disabled = true);
+
+    if(selectedChoice === question.answer) {
+        score++;
+        selectedButton.style.backgroundColor = '#22c55e'; 
+        selectedButton.style.boxShadow = '0 5px 0px #15803d';
+        sndCorrect.currentTime = 0;
+        sndCorrect.play().catch(e => console.log("Audio playing pending user interaction"));
+        triggerBurstConfetti();
+    } else {
+        selectedButton.style.backgroundColor = '#ef4444'; 
+        selectedButton.style.boxShadow = '0 5px 0px #b91c1c';
+        sndWrong.currentTime = 0;
+        sndWrong.play().catch(e => console.log("Audio playing pending user interaction"));
+        
+        buttons.forEach(b => {
+            if(b.innerText === question.answer) {
+                b.style.backgroundColor = '#22c55e';
+                b.style.boxShadow = '0 5px 0px #15803d';
+            }
+        });
+    }
+
+    setTimeout(() => {
+        currentQuestionIndex++;
+        if(currentQuestionIndex < totalQuestionsCount) {
+            renderActiveQuestion();
+        } else {
+            showEndGameDashboard();
+        }
+    }, 2000);
+}
+
+function showEndGameDashboard() {
+    document.getElementById('screen3').style.display = 'none';
+    document.getElementById('screen4').style.display = 'flex';
+    document.getElementById('final-score-text').innerText = `You correctly identified ${score} out of ${totalQuestionsCount} active fruit groups!`;
+    
+    if(score >= 7) {
+        sndCheer.currentTime = 0;
+        sndCheer.play().catch(e => console.log("Audio interaction limitation catch"));
+        triggerLoopingConfetti();
+    }
+}
+
+document.getElementById('btn-restart').addEventListener('click', () => {
+    document.getElementById('screen4').style.display = 'none';
+    document.getElementById('screen3').style.display = 'flex';
+    initiateGameEngine();
+});
+
+function shuffleArray(array) {
+    let arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[arr[j]]] = [arr[arr[j]], arr[i]];
+    }
+    return arr;
+}
+
+function triggerBurstConfetti() {
+    for (let i = 0; i < 30; i++) { createParticle(); }
+}
+
+function triggerLoopingConfetti() {
+    const endTimer = Date.now() + 3000;
+    const interval = setInterval(() => {
+        if (Date.now() > endTimer) return clearInterval(interval);
+        createParticle();
+    }, 50);
+}
+
+function createParticle() {
+    const particle = document.createElement('div');
+    particle.className = 'confetti';
+    particle.style.left = Math.random() * 100 + 'vw';
+    particle.style.backgroundColor = ['#f39c12','#e74c3c','#3498db','#2ecc71','#9b59b6'][Math.floor(Math.random() * 5)];
+    particle.style.transform = `scale(${Math.random() * 0.7 + 0.5})`;
+    particle.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+    document.body.appendChild(particle);
+    setTimeout(() => particle.remove(), 3500);
+}
+</script>
+</body>
+</html>
