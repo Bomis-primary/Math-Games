@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Animal Balloon Pop - Grade 1 Addition</title>
+<title>Animal Balloon Rescue - Grade 1 Addition</title>
 <style>
     :root {
         --sky-blue: #bae6fd;
-        --grass-green: #4ade80;
-        --wood-brown: #a16207;
-        --bubble-gum: #f43f5e;
+        --grass-green: #22c55e;
+        --pop-pink: #f43f5e;
+        --gold: #eab308;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body, html {
@@ -19,22 +19,22 @@
         color: #1e293b; overflow: hidden;
     }
 
-    /* Main Sky Arena Container */
+    /* Immersive Animated Sky Background */
     .game-container {
         position: relative; width: 100%; height: 100%;
-        background: linear-gradient(to bottom, #7dd3fc 0%, #e0f2fe 70%, #dcfce7 100%);
+        background: linear-gradient(to bottom, #38bdf8 0%, #bae6fd 60%, #e0f2fe 100%);
         display: flex; justify-content: center; align-items: center;
         flex-direction: column; padding: 20px;
     }
 
-    /* Green Grass Bottom Layer */
+    /* Layered Cartoon Grass Floor */
     .grass-floor {
-        position: absolute; bottom: 0; left: 0; width: 100%; height: 15%;
-        background: linear-gradient(to bottom, #4ade80 0%, #22c55e 100%);
-        z-index: 1; border-top: 6px solid #86efac;
+        position: absolute; bottom: 0; left: 0; width: 100%; height: 16%;
+        background: linear-gradient(to bottom, #4ade80 0%, var(--grass-green) 100%);
+        z-index: 1; border-top: 8px solid #86efac;
     }
 
-    /* Game Screens Layout */
+    /* Screen Management panels */
     .screen {
         display: none; width: 100%; max-width: 650px;
         flex-direction: column; align-items: center; text-align: center;
@@ -42,106 +42,138 @@
     }
     .screen.active { display: flex; }
 
-    /* Playful Cartoonish Cards */
+    /* Playful Rounded Card Container */
     .card {
-        background: rgba(255, 255, 255, 0.95);
-        padding: 30px; border-radius: 24px;
-        border: 5px solid #38bdf8; box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+        background: rgba(255, 255, 255, 0.96);
+        padding: 35px; border-radius: 32px;
+        border: 6px solid #38bdf8; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
     }
-    h1 { font-size: 36px; color: #0284c7; margin-bottom: 15px; }
-    p { font-size: 18px; line-height: 1.5; color: #475569; margin-bottom: 25px; }
+    h1 { font-size: 38px; color: #0284c7; margin-bottom: 12px; font-weight: 800; }
+    p { font-size: 19px; line-height: 1.5; color: #475569; margin-bottom: 25px; }
 
-    /* Cute Character Welcome Bar */
-    .animal-row {
-        display: flex; justify-content: center; gap: 20px; margin-bottom: 25px;
+    /* Character Lineup Box */
+    .animal-lineup {
+        display: flex; justify-content: center; gap: 25px; margin-bottom: 25px;
     }
-    .animal-row img {
-        width: 75px; height: 75px; object-fit: contain;
+    .animal-lineup img {
+        width: 85px; height: 85px; object-fit: contain;
+        filter: drop-shadow(0 6px 8px rgba(0,0,0,0.1));
         animation: floatAnimation 3s infinite ease-in-out;
     }
-    .animal-row img:nth-child(2) { animation-delay: 0.5s; }
-    .animal-row img:nth-child(3) { animation-delay: 1s; }
+    .animal-lineup img:nth-child(2) { animation-delay: 0.4s; }
+    .animal-lineup img:nth-child(3) { animation-delay: 0.8s; }
 
-    /* Interactive Game Character Anchor */
-    .active-animal-container {
-        position: absolute; bottom: 8%; left: 5%; z-index: 3;
+    /* Bottom-Left Live Active Animal Companion */
+    .live-companion-box {
+        position: absolute; bottom: 8%; left: 6%; z-index: 3;
         display: flex; flex-direction: column; align-items: center;
+        transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
-    .active-animal {
-        width: 110px; height: 110px; object-fit: contain;
+    .companion-img {
+        width: 130px; height: 130px; object-fit: contain;
+        filter: drop-shadow(0 8px 12px rgba(0,0,0,0.15));
+    }
+    
+    /* Food/Snack Floating Alert Bubble */
+    .reward-bubble {
+        position: absolute; top: -45px; background: white; padding: 6px 14px;
+        border-radius: 16px; border: 3px solid var(--gold); font-weight: bold;
+        font-size: 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        display: none; transform: scale(0); transition: transform 0.3s ease;
+    }
+    .reward-bubble.active { display: block; transform: scale(1); }
+
+    /* Oversized Primary Grade 1 Interactive Buttons */
+    .btn {
+        padding: 16px 36px; font-size: 24px; font-weight: 900;
+        color: white; border: none; border-radius: 24px; cursor: pointer;
+        background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+        box-shadow: 0 8px 0px #9f1239, 0 12px 20px rgba(0,0,0,0.2);
+        transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    .btn:hover { transform: translateY(-3px); box-shadow: 0 11px 0px #9f1239, 0 14px 24px rgba(0,0,0,0.25); }
+    .btn:active { transform: translateY(5px); box-shadow: 0 3px 0px #9f1239; }
+
+    /* Status Trackers Dashboard HUD */
+    .hud {
+        width: 100%; max-width: 620px; display: flex; justify-content: space-between; align-items: center;
+        background: white; padding: 14px 28px; border-radius: 24px;
+        margin-bottom: 20px; font-size: 18px; font-weight: bold;
+        border: 4px solid #e2e8f0; box-shadow: 0 6px 12px rgba(0,0,0,0.04);
     }
 
-    /* Big Grade-1 Play Buttons */
-    .btn {
-        padding: 16px 32px; font-size: 22px; font-weight: bold;
-        color: white; border: none; border-radius: 20px; cursor: pointer;
-        background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
-        box-shadow: 0 6px 0px #9f1239, 0 10px 15px rgba(0,0,0,0.15);
+    /* Giant Math Challenge Formula Banner */
+    .math-banner {
+        background: #fef08a; color: #854d0e; font-size: 42px; font-weight: 900;
+        padding: 14px 45px; border-radius: 30px; border: 5px solid #facc15;
+        margin-bottom: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.08);
+        display: inline-block; letter-spacing: 2px;
+    }
+
+    /* Target Field Canvas Space */
+    .balloon-canvas {
+        position: relative; width: 100%; height: 350px;
+        display: flex; justify-content: center; gap: 40px; align-items: center;
+    }
+
+    /* Interactive Vector CSS Balloons */
+    .balloon-node {
+        display: flex; flex-direction: column; align-items: center; cursor: pointer;
+        position: relative; transition: opacity 0.2s ease-out;
+    }
+    
+    .balloon-body {
+        width: 115px; height: 135px; border-radius: 50% 50% 50% 50% / 42% 42% 58% 58%;
+        display: flex; justify-content: center; align-items: center;
+        font-size: 32px; font-weight: 900; color: white; position: relative;
+        text-shadow: 0 2px 5px rgba(0,0,0,0.25);
+        box-shadow: inset -12px -12px 0px rgba(0,0,0,0.12), 0 12px 20px rgba(0,0,0,0.1);
         transition: transform 0.1s ease;
     }
-    .btn:hover { transform: translateY(-3px); }
-    .btn:active { transform: translateY(4px); box-shadow: 0 2px 0px #9f1239; }
-
-    /* Top Score HUD */
-    .hud {
-        width: 100%; max-width: 600px; display: flex; justify-content: space-between;
-        background: white; padding: 12px 24px; border-radius: 20px;
-        margin-bottom: 15px; font-size: 18px; font-weight: bold;
-        border: 3px solid #cbd5e1; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }
-
-    /* Math Target Sum Prompt Banner */
-    .math-bubble {
-        background: #fef08a; color: #854d0e; font-size: 32px; font-weight: 900;
-        padding: 12px 30px; border-radius: 25px; border: 4px solid #facc15;
-        margin-bottom: 30px; box-shadow: 0 8px 16px rgba(0,0,0,0.08);
-        display: inline-block; min-width: 200px;
-    }
-
-    /* Floating Balloons Space Playground */
-    .balloon-yard {
-        position: relative; width: 100%; height: 320px;
-        display: flex; justify-content: center; gap: 30px; align-items: center;
-    }
-
-    /* Stylized CSS Balloon Options */
-    .balloon-wrapper {
-        display: flex; flex-direction: column; align-items: center; cursor: pointer;
-        transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .balloon-wrapper:hover { transform: scale(1.08) translateY(-5px); }
+    .balloon-body:hover { transform: scale(1.06); }
     
-    .balloon {
-        width: 110px; height: 130px; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
-        display: flex; justify-content: center; align-items: center;
-        font-size: 24px; font-weight: 900; color: white; position: relative;
-        text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        box-shadow: inset -10px -10px 0px rgba(0,0,0,0.1), 0 10px 15px rgba(0,0,0,0.1);
+    /* Pop Burst Animation Class */
+    .balloon-node.popped {
+        animation: popBurst 0.25s forwards ease-out;
+        pointer-events: none;
     }
-    /* Balloon Knots */
-    .balloon::after {
-        content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
-        border-left: 7px solid transparent; border-right: 7px solid transparent;
-        border-bottom: 8px solid currentColor; filter: brightness(0.9);
+
+    /* Balloon Tail Knots */
+    .balloon-body::after {
+        content: ''; position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%);
+        border-left: 8px solid transparent; border-right: 8px solid transparent;
+        border-bottom: 9px solid currentColor; filter: brightness(0.85);
     }
-    /* Balloon Strings */
+    /* String assets replacement via pure stylized layout */
     .balloon-string {
-        width: 3px; height: 50px; background-color: #94a3b8; margin-top: 5px;
+        width: 3px; height: 55px; background-color: #cbd5e1; margin-top: 6px;
     }
 
-    /* Color configurations for the options */
-    .b-blue { background-color: #38bdf8; color: white; }
-    .b-purple { background-color: #a855f7; color: white; }
-    .b-orange { background-color: #fb923c; color: white; }
+    /* Distinct Option Skin Variants */
+    .color-cyan { background-color: #0ea5e9; color: white; }
+    .color-purple { background-color: #a855f7; color: white; }
+    .color-orange { background-color: #f97316; color: white; }
 
-    /* Idle Floater Movement Animation */
+    /* Wiggle/Float Idle Animations */
     @keyframes floatAnimation {
         0%, 100% { transform: translateY(0px) rotate(0deg); }
-        50% { transform: translateY(-10px) rotate(2deg); }
+        50% { transform: translateY(-12px) rotate(2deg); }
     }
-    .balloon-float { animation: floatAnimation 4s infinite ease-in-out; }
-    .balloon-float:nth-child(2) { animation-delay: 0.7s; }
-    .balloon-float:nth-child(3) { animation-delay: 1.4s; }
+    .float-idle { animation: floatAnimation 4s infinite ease-in-out; }
+    .float-idle:nth-child(2) { animation-delay: 0.6s; }
+    .float-idle:nth-child(3) { animation-delay: 1.2s; }
+
+    @keyframes popBurst {
+        0% { transform: scale(1); opacity: 1; }
+        50% { transform: scale(1.3); opacity: 0.7; filter: brightness(1.5); }
+        100% { transform: scale(0); opacity: 0; }
+    }
+
+    @keyframes jump {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-25px) scaleY(1.05); }
+    }
+    .jump-happy { animation: jump 0.4s 2 ease-out; }
 </style>
 </head>
 <body>
@@ -150,161 +182,177 @@
     
     <div class="grass-floor"></div>
 
-    <div id="active-buddy-zone" class="active-animal-container" style="display:none;">
-        <img id="current-animal-avatar" class="active-animal" src="assets/rabbit.png" alt="Buddy">
+    <div id="live-companion" class="live-companion-box" style="display:none;">
+        <div id="reward-snack" class="reward-bubble">Yum! 🍌</div>
+        <img id="companion-avatar" class="companion-img" src="image_2f475f.png" alt="Animal Buddy">
     </div>
 
     <div id="screen-welcome" class="screen active">
         <div class="card">
             <h1>Animal Balloon Pop! 🎈</h1>
-            <p>Oh no! The wind carried away our cute animal friends' favorite treats inside giant floating balloons. Help pop the right additions to bring them back down!</p>
+            <p>Help your cute animal friends rescue their delicious snacks! Look at the math problem, find the balloon with the correct total sum up to 20, and pop it!</p>
             
-            <div class="animal-row">
-                <img src="assets/rabbit.png" alt="Rabbit">
-                <img src="assets/lion.png" alt="Lion">
-                <img src="assets/elephant.png" alt="Elephant">
-            </div>
+            <div class="animal-lineup">
+                <img src="image_2f475f.png" alt="Rabbit">
+                <img src="image_2f4782.png" alt="Elephant/Lion Wrapper">
+                </div>
 
-            <button class="btn" onclick="goToScreen('screen-game'); startBalloonGame();">Let's Go Pop!</button>
+            <button class="btn" onclick="goToScreen('screen-game'); initiateRescueGame();">Start Rescue Mission</button>
         </div>
     </div>
 
     <div id="screen-game" class="screen">
         <div class="hud">
-            <div id="level-track">Rescue Match: 1/5</div>
-            <div style="color: #e11d48;" id="score-track">Pops: 0</div>
+            <div id="round-counter">Rescue Round: 1/5</div>
+            <div style="color: #e11d48;" id="pops-counter">Saved Snacks: 0</div>
         </div>
 
-        <div class="math-bubble" id="equation-prompt">
-            5 + 3
-        </div>
+        <div class="math-banner" id="challenge-formula">0 + 0</div>
 
-        <p style="font-weight: bold; margin-bottom: 10px; color: #475569;">Pop the balloon with the correct answer total!</p>
+        <p style="font-weight: bold; margin-bottom: 5px; color: #475569; font-size: 18px;">Pop the correct matching total balloon!</p>
 
-        <div class="balloon-yard" id="balloon-playground">
+        <div class="balloon-canvas" id="balloon-field">
             </div>
     </div>
 
     <div id="screen-end" class="screen">
         <div class="card">
-            <h1>All Items Saved! 🌟</h1>
-            <p id="victory-summary">Incredible adding skills! Your animal friends are completely stuffed with treats and super happy!</p>
-            <button class="btn" onclick="goToScreen('screen-welcome'); hideAnimalBuddy();">Play Again</button>
+            <h1>Mission Accomplished! 🏆</h1>
+            <p id="adventure-outcome-text">Wonderful adding skills! You tracked and popped every target sum up to 20 flawlessly. All your animal friends got their snacks back!</p>
+            <button class="btn" onclick="goToScreen('screen-welcome'); resetStateTrackers();">Play Again</button>
         </div>
     </div>
 
 </div>
 
 <script>
-    const animalFiles = ['assets/rabbit.png', 'assets/lion.png', 'assets/elephant.png'];
-    const balloonColors = ['b-blue', 'b-purple', 'b-orange'];
+    // Asset profile keys pointing directly to your uploaded animal graphic textures
+    const customAnimalAssets = ['image_2f475f.png', 'image_2f4782.png'];
+    const assetFoodPrompts = ['Tasty Apple! 🍎', 'Sweet Berry! 🍓', 'Yummy Carrot! 🥕', 'Fresh Banana! 🍌'];
+    const optionSkinPalettes = ['color-cyan', 'color-purple', 'color-orange'];
 
-    let currentMatch = 1;
-    let totalMatches = 5;
-    let popCount = 0;
-    let targetSum = 0;
+    let currentRoundIndex = 1;
+    let totalRoundsCount = 5;
+    let successfulPopsCount = 0;
+    let targetFormulaSum = 0;
 
     function goToScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(screenId).classList.add('active');
     }
 
-    function hideAnimalBuddy() {
-        document.getElementById('active-buddy-zone').style.display = 'none';
+    function resetStateTrackers() {
+        document.getElementById('live-companion').style.display = 'none';
     }
 
-    function startBalloonGame() {
-        currentMatch = 1;
-        popCount = 0;
-        document.getElementById('active-buddy-zone').style.display = 'flex';
-        generateBalloonRound();
+    function initiateRescueGame() {
+        currentRoundIndex = 1;
+        successfulPopsCount = 0;
+        document.getElementById('live-companion').style.display = 'flex';
+        renderActiveRescueRound();
     }
 
-    function generateBalloonRound() {
-        // Update HUD tracking nodes
-        document.getElementById('level-track').innerText = `Rescue Match: ${currentMatch}/${totalMatches}`;
-        document.getElementById('score-track').innerText = `Pops: ${popCount}`;
+    function renderActiveRescueRound() {
+        // Synchronize display text parameters
+        document.getElementById('round-counter').innerText = `Rescue Round: ${currentRoundIndex}/${totalRoundsCount}`;
+        document.getElementById('pops-counter').innerText = `Saved Snacks: ${successfulPopsCount}`;
+        document.getElementById('reward-snack').classList.remove('active');
 
-        // Pick a random animal buddy to display for this round
-        const randomAnimal = animalFiles[Math.floor(Math.random() * animalFiles.length)];
-        document.getElementById('current-animal-avatar').src = randomAnimal;
+        // Dynamic Avatar Loader Routine cycling your specific animal graphics
+        const companionImgNode = document.getElementById('companion-avatar');
+        companionImgNode.src = customAnimalAssets[(currentRoundIndex - 1) % customAnimalAssets.length];
+        companionImgNode.className = 'companion-img'; // Reset animation state clean
 
-        // Generate Grade 1 friendly numbers (Sum must be <= 20)
-        let num1 = Math.floor(Math.random() * 10) + 1; // 1 to 10
-        let num2 = Math.floor(Math.random() * 9) + 1;  // 1 to 9
-        targetSum = num1 + num2;
+        // Math Logic Core Engine specialized for Grade 1 constraints (Sum ceiling <= 20)
+        let primaryValue = Math.floor(Math.random() * 11); // 0 to 10
+        let secondaryValue = Math.floor(Math.random() * 10); // 0 to 9
+        
+        // Handle Edge Fault Conditions safeguarding learning outcome ceilings
+        if (primaryValue + secondaryValue > 20) {
+            primaryValue = 10;
+            secondaryValue = 7;
+        }
+        if (primaryValue + secondaryValue === 0) {
+            secondaryValue = 4;
+        }
 
-        // Display math formula addition problem
-        document.getElementById('equation-prompt').innerText = `${num1} + ${num2}`;
+        targetFormulaSum = primaryValue + secondaryValue;
+        document.getElementById('challenge-formula').innerText = `${primaryValue} + ${secondaryValue}`;
 
-        // Create close numbers as playful distraction choices
-        let wrong1 = targetSum + (Math.random() > 0.5 ? 2 : -2);
-        let wrong2 = targetSum + (Math.random() > 0.5 ? 5 : -3);
+        // Create close numbers as smart mistake alternatives
+        let errorChoice1 = targetFormulaSum + (Math.random() > 0.5 ? 2 : -2);
+        let errorChoice2 = targetFormulaSum + (Math.random() > 0.5 ? 4 : -3);
 
-        // Safety checks to ensure all options are strictly unique and > 0
-        if (wrong1 === targetSum || wrong1 <= 0) wrong1 = targetSum + 1;
-        if (wrong2 === targetSum || wrong2 === wrong1 || wrong2 <= 0) wrong2 = targetSum + 3;
+        // Filter and safeguard option values to keep selections strictly unique and positive
+        if (errorChoice1 === targetFormulaSum || errorChoice1 < 0) errorChoice1 = targetFormulaSum + 1;
+        if (errorChoice2 === targetFormulaSum || errorChoice2 === errorChoice1 || errorChoice2 < 0) errorChoice2 = targetFormulaSum + 3;
 
-        let puzzleOptions = [targetSum, wrong1, wrong2];
-        puzzleOptions.sort(() => Math.random() - 0.5); // Randomize layout orientation
+        let unifiedOptionsPool = [targetFormulaSum, errorChoice1, errorChoice2];
+        unifiedOptionsPool.sort(() => Math.random() - 0.5); // Shake up positioning order
 
-        // Render dynamic balloons cleanly
-        const playground = document.getElementById('balloon-playground');
-        playground.innerHTML = '';
+        const fieldContainer = document.getElementById('balloon-field');
+        fieldContainer.innerHTML = '';
 
-        puzzleOptions.forEach((val, idx) => {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'balloon-wrapper balloon-float';
+        unifiedOptionsPool.forEach((numericValue, collectionIdx) => {
+            const wrapperNode = document.createElement('div');
+            wrapperNode.className = 'balloon-node float-idle';
             
-            const balloonDiv = document.createElement('div');
-            // Assign custom distinctive coloring classes natively
-            balloonDiv.className = `balloon ${balloonColors[idx % balloonColors.length]}`;
-            balloonDiv.innerText = val;
+            const balloonBodyNode = document.createElement('div');
+            balloonBodyNode.className = `balloon-body ${optionSkinPalettes[collectionIdx % optionSkinPalettes.length]}`;
+            balloonBodyNode.innerText = numericValue;
             
-            const stringDiv = document.createElement('div');
-            stringDiv.className = 'balloon-string';
+            const stringTailNode = document.createElement('div');
+            stringTailNode.className = 'balloon-string';
 
-            wrapper.appendChild(balloonDiv);
-            wrapper.appendChild(stringDiv);
+            wrapperNode.appendChild(balloonBodyNode);
+            wrapperNode.appendChild(stringTailNode);
             
-            // Interaction handler
-            wrapper.onclick = function() { checkBalloonPop(val, wrapper); };
-            
-            playground.appendChild(wrapper);
+            // Register interaction handlers safely
+            wrapperNode.onclick = function() { processBalloonPopAttempt(numericValue, wrapperNode); };
+            fieldContainer.appendChild(wrapperNode);
         });
     }
 
-    function checkBalloonPop(chosenValue, selectedElement) {
-        // Prevent accidental rapid double clicking on same challenge screen
-        const items = document.querySelectorAll('.balloon-wrapper');
-        items.forEach(el => el.onclick = null);
+    function processBalloonPopAttempt(selectedNumericTotal, specificDOMNode) {
+        // Freeze canvas inputs to prevent duplicate multi-clicking exploits
+        const allActiveNodes = document.querySelectorAll('.balloon-node');
+        allActiveNodes.forEach(node => node.onclick = null);
 
-        if (chosenValue === targetSum) {
-            popCount++;
-            document.getElementById('score-track').innerText = `Pops: ${popCount}`;
+        if (selectedNumericTotal === targetFormulaSum) {
+            successfulPopsCount++;
+            document.getElementById('pops-counter').innerText = `Saved Snacks: ${successfulPopsCount}`;
             
-            // Run a cute scale down animation to simulate a popping burst effect!
-            selectedElement.style.transform = 'scale(0)';
-            selectedElement.style.transition = 'transform 0.2s ease-out';
-            
-            document.getElementById('equation-prompt').innerText = "POP! ✨";
+            // Execute visual burst sequences
+            specificDOMNode.classList.remove('float-idle');
+            specificDOMNode.classList.add('popped');
+
+            document.getElementById('challenge-formula').innerText = "POP! ✨";
+
+            // Trigger corresponding active animal animation reactions
+            const animalNode = document.getElementById('companion-avatar');
+            animalNode.classList.add('jump-happy');
+
+            // Float up snack alert text banner over animal head
+            const snackBubble = document.getElementById('reward-snack');
+            snackBubble.innerText = assetFoodPrompts[Math.floor(Math.random() * assetFoodPrompts.length)];
+            snackBubble.classList.add('active');
         } else {
-            // Give visual wobble back indicating incorrect try
-            selectedElement.style.transform = 'translateX(15px)';
-            selectedElement.style.transition = 'transform 0.1s ease';
-            document.getElementById('equation-prompt').innerText = `Oops! ${targetSum}`;
+            // Apply slight tilt offset warning indicating inaccurate selection
+            specificDOMNode.style.transform = 'translateY(15px)';
+            specificDOMNode.style.filter = 'grayscale(0.6)';
+            document.getElementById('challenge-formula').innerText = `Oops! = ${targetFormulaSum}`;
         }
 
-        // Wait 2 seconds to view pop outcome, then advance state
+        // Wait exactly 2.5 seconds, then safely increment round state machine
         setTimeout(() => {
-            currentMatch++;
-            if (currentMatch <= totalMatches) {
-                generateBalloonRound();
+            currentRoundIndex++;
+            if (currentRoundIndex <= totalRoundsCount) {
+                renderActiveRescueRound();
             } else {
                 goToScreen('screen-end');
-                document.getElementById('victory-summary').innerText = `Fantastic job adding! You correctly burst all the target balloons up to 20. Your animal friends are safely reunited with their treats!`;
+                document.getElementById('adventure-outcome-text').innerText = `Incredible work, Junior Explorer! You saved ${successfulPopsCount} snacks for your animal friends by solving all addition totals up to 20!`;
             }
-        }, 2000);
+        }, 2500);
     }
 </script>
 </body>
