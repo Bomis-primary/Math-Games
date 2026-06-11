@@ -6,7 +6,6 @@
 <title>Garden Bee Bloom: Math Quest - Grade 3</title>
 <style>
     :root {
-        --garden-bg: #bae6fd;
         --accent-green: #22c55e;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -14,7 +13,7 @@
         width: 100%; height: 100%;
         font-family: 'Segoe UI', Arial, sans-serif;
         color: #1e293b; overflow: hidden;
-        background-color: #ffffff;
+        background-color: #0f172a;
     }
 
     /* Splash Screen Overlay */
@@ -38,22 +37,23 @@
         left: -100%; animation: loadProgress 5s linear forwards; 
     }
 
-    /* Main Viewport Wrapper */
+    /* Main Viewport Wrapper with Integrated Background Asset */
     #app-viewport-wrapper {
         width: 100%; height: 100%;
         position: relative;
         display: none; 
         justify-content: center; align-items: center;
         flex-direction: column; padding: 15px;
-        background: radial-gradient(circle, #e0f2fe 0%, #bae6fd 100%);
-        transition: background 1s ease;
+        background: url('assets/garden-bg.png') no-repeat center center;
+        background-size: cover;
     }
 
-    .garden-decor {
+    /* Tint Overlay */
+    .garden-tint-overlay {
         position: absolute; width: 100%; height: 100%; top: 0; left: 0;
-        pointer-events: none; z-index: 1; opacity: 0.15;
-        background-image: radial-gradient(#22c55e 2px, transparent 2px);
-        background-size: 32px 32px;
+        pointer-events: none; z-index: 1; 
+        background: rgba(224, 242, 254, 0.45);
+        transition: background 1s ease;
     }
 
     .screen {
@@ -66,7 +66,7 @@
     .card {
         background: rgba(255, 255, 255, 0.96);
         padding: 25px; border-radius: 32px; width: 100%;
-        border: 6px solid #22c55e; box-shadow: 0 15px 35px rgba(34, 197, 94, 0.2);
+        border: 6px solid #22c55e; box-shadow: 0 15px 35px rgba(34, 197, 94, 0.3);
     }
     h1 { font-size: 34px; color: #16a34a; margin-bottom: 10px; font-weight: 800; }
     p { font-size: 17px; line-height: 1.5; color: #475569; margin-bottom: 20px; }
@@ -84,8 +84,8 @@
     /* HUD Bar */
     .hud-header {
         width: 100%; display: flex; justify-content: space-between; font-weight: bold;
-        background: white; padding: 12px 24px; border-radius: 20px; margin-bottom: 15px;
-        font-size: 16px; border: 3px solid #86efac; color: #16a34a;
+        background: rgba(255, 255, 255, 0.95); padding: 12px 24px; border-radius: 20px; margin-bottom: 15px;
+        font-size: 16px; border: 3px solid #86efac; color: #16a34a; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
 
     /* Hanging Blackboard Sign */
@@ -93,20 +93,20 @@
         background: #1e293b; color: #facc15; font-size: 44px; font-weight: 900;
         padding: 18px 45px; border-radius: 24px; border: 6px solid #b45309;
         margin-bottom: 20px; display: inline-block; letter-spacing: 3px;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.2), inset 0 4px 10px rgba(0,0,0,0.4);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.25), inset 0 4px 10px rgba(0,0,0,0.4);
     }
 
-    /* Table & Interaction Setup */
-    .stage-table-container {
+    /* Natural Ground Garden Soil Environment (No Table) */
+    .stage-ground-container {
         position: relative; width: 100%; height: 210px;
         margin-top: 10px; display: flex; justify-content: space-around; align-items: flex-end;
-        padding-bottom: 20px;
+        padding-bottom: 15px;
     }
-    .wooden-table-surface {
-        position: absolute; bottom: 0; left: 0; width: 100%; height: 35px;
-        background: linear-gradient(135deg, #854d0e 0%, #451a03 100%);
-        border-radius: 12px; border-top: 4px solid #ca8a04;
-        box-shadow: 0 10px 15px rgba(0,0,0,0.2);
+    .garden-soil-patch {
+        position: absolute; bottom: 0; left: 0; width: 100%; height: 25px;
+        background: linear-gradient(135deg, #5c2e0b 0%, #3d1e07 100%);
+        border-radius: 12px; border-top: 5px solid #22c55e; /* Grass fringe topper line */
+        box-shadow: 0 8px 12px rgba(0,0,0,0.15);
     }
 
     /* Pots Structural Elements */
@@ -138,10 +138,10 @@
 
     /* Permanent Flowerbed Expansion Collection Shelf */
     .permanent-flowerbed {
-        width: 100%; background: #78350f; border: 4px solid #451a03;
+        width: 100%; background: rgba(120, 53, 15, 0.95); border: 4px solid #451a03;
         border-radius: 20px; min-height: 80px; padding: 10px; margin-top: 15px;
         display: flex; justify-content: center; align-items: center; gap: 8px;
-        flex-wrap: wrap; box-shadow: inset 0 5px 10px rgba(0,0,0,0.4);
+        flex-wrap: wrap; box-shadow: inset 0 5px 10px rgba(0,0,0,0.4), 0 4px 10px rgba(0,0,0,0.1);
     }
     .garden-soil-title {
         color: #fef08a; font-size: 13px; font-weight: 800; width: 100%;
@@ -196,7 +196,7 @@
 </div>
 
 <div id="app-viewport-wrapper">
-    <div class="garden-decor" id="garden-wallpaper-mesh"></div>
+    <div class="garden-tint-overlay" id="garden-tint-mask"></div>
     <canvas id="confetti-canvas-plane"></canvas>
 
     <div id="screen-welcome" class="screen active">
@@ -217,7 +217,7 @@
 
         <div class="wooden-sign-board" id="problem-board-display">0000 - 0000</div>
 
-        <div class="stage-table-container">
+        <div class="stage-ground-container">
             <div class="flower-pot-wrapper pot-terracotta" id="pot-node-0" onclick="handlePotClick(0)">
                 <div class="happy-bee-anchor">🐝</div>
                 <div class="surprise-flower-anchor" id="flower-node-0">🌷</div>
@@ -236,7 +236,7 @@
                 <div class="pot-rim"></div>
                 <div class="pot-body"><div class="choice-tag-label" id="tag-text-2">?</div></div>
             </div>
-            <div class="wooden-table-surface"></div>
+            <div class="garden-soil-patch"></div>
         </div>
 
         <div class="permanent-flowerbed">
@@ -244,7 +244,7 @@
             <div id="flowerbed-collection-tray" style="display: contents;"></div>
         </div>
         
-        <div id="garden-feedback-text" style="font-weight: 800; font-size: 18px; color: #16a34a; margin-top: 10px; min-height: 25px;">
+        <div id="garden-feedback-text" style="font-weight: 800; font-size: 18px; color: #16a34a; margin-top: 10px; min-height: 25px; text-shadow: 0px 1px 2px rgba(255,255,255,0.8);">
             Calculate column values and select the correct flower pot!
         </div>
     </div>
@@ -261,6 +261,7 @@
 
 <audio id="snd-correct" src="assets/correct.mp3" preload="auto"></audio>
 <audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+<audio id="snd-claps" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
 
 <script>
     let currentActiveLevel = 1;
@@ -297,8 +298,8 @@
         userInteractionMutexLocked = false;
         document.getElementById('flowerbed-collection-tray').innerHTML = '';
         
-        const wrapper = document.getElementById('app-viewport-wrapper');
-        if(wrapper) wrapper.style.background = "radial-gradient(circle, #e0f2fe 0%, #bae6fd 100%)";
+        const mask = document.getElementById('garden-tint-mask');
+        if(mask) mask.style.background = "rgba(224, 242, 254, 0.45)"; 
         
         document.getElementById('hud-level-tag').innerText = "Greenhouse: Lvl 1 (No Borrowing) ☀️";
         document.getElementById('hud-level-tag').style.color = "#16a34a";
@@ -314,19 +315,18 @@
     function prepareNextQuestionRound() {
         userInteractionMutexLocked = false;
         document.getElementById('garden-feedback-text').innerText = "Calculate column values and select the correct flower pot!";
-        document.getElementById('garden-feedback-text').style.color = currentActiveLevel === 1 ? "#16a34a" : "#38bdf8";
+        document.getElementById('garden-feedback-text').style.color = currentActiveLevel === 1 ? "#16a34a" : "#0284c7";
 
         for(let i=0; i<3; i++) {
             const pot = document.getElementById(`pot-node-${i}`);
             if(pot) pot.className = pot.className.replace('bloom-open', '').replace('wrong-shake', '').trim();
         }
 
-        // Grade 3 Specialized Math Generator (Up to 9999)
+        // Grade 3 Math Generator
         let numA, numB;
         if (currentActiveLevel === 1) {
-            // Level 1: Subtraction up to 9999 without borrowing/regrouping
-            let thousandsA = Math.floor(Math.random() * 5) + 5; // 5 to 9
-            let hundredsA = Math.floor(Math.random() * 6) + 3;  // 3 to 8
+            let thousandsA = Math.floor(Math.random() * 5) + 5; 
+            let hundredsA = Math.floor(Math.random() * 6) + 3;  
             let tensA = Math.floor(Math.random() * 6) + 3;
             let onesA = Math.floor(Math.random() * 6) + 3;
 
@@ -338,11 +338,9 @@
             numA = (thousandsA * 1000) + (hundredsA * 100) + (tensA * 10) + onesA;
             numB = (thousandsB * 1000) + (hundredsB * 100) + (tensB * 10) + onesB;
         } else {
-            // Level 2: Subtraction up to 9999 WITH structural regrouping/borrowing
-            numA = Math.floor(Math.random() * 4000) + 5000; // 5000 - 9000
-            numB = Math.floor(Math.random() * 3000) + 1500; // 1500 - 4500
+            numA = Math.floor(Math.random() * 4000) + 5000; 
+            numB = Math.floor(Math.random() * 3000) + 1500; 
             
-            // Force values to require regrouping in ones/tens places
             let onesA = numA % 10;
             let onesB = (onesA + 5) % 10 || 7;
             numB = Math.floor(numB / 10) * 10 + onesB;
@@ -351,7 +349,6 @@
         roundTargetSolution = numA - numB;
         document.getElementById('problem-board-display').innerText = `${numA} - ${numB}`;
 
-        // Create Distractor Options
         let choiceA = roundTargetSolution + (Math.random() > 0.5 ? 100 : -100);
         let choiceB = roundTargetSolution + (Math.random() > 0.5 ? 10 : -10);
         if (choiceA === roundTargetSolution || choiceA < 0) choiceA = roundTargetSolution + 250;
@@ -385,7 +382,7 @@
             
             document.getElementById('hud-score-tag').innerText = `Grown: ${productsSolvedScore} / 10`;
             document.getElementById('garden-feedback-text').innerText = "EXCELLENT CALCULATION! WATCH IT BLOOM! 🐝✨";
-            document.getElementById('garden-feedback-text').style.color = "#22c55e";
+            document.getElementById('garden-feedback-text').style.color = "#16a34a";
 
             if(selectedPotNode) selectedPotNode.classList.add('bloom-open');
 
@@ -394,7 +391,6 @@
 
             launchPetalShowerFX();
 
-            // Append newly unlocked flower inside persistent visual bed patch
             setTimeout(() => {
                 const bed = document.getElementById('flowerbed-collection-tray');
                 if(bed) {
@@ -411,6 +407,8 @@
                     triggerLevel2GardenShift();
                     prepareNextQuestionRound();
                 } else if (productsSolvedScore >= 10) {
+                    const audioClaps = document.getElementById('snd-claps');
+                    if(audioClaps) audioClaps.play().catch(() => {});
                     goToScreen('screen-end');
                 } else {
                     prepareNextQuestionRound();
@@ -431,11 +429,13 @@
     }
 
     function triggerLevel2GardenShift() {
-        const wrapper = document.getElementById('app-viewport-wrapper');
-        if(wrapper) wrapper.style.background = "radial-gradient(circle, #022c22 0%, #02141a 100%)";
+        const mask = document.getElementById('garden-tint-mask');
+        if(mask) {
+            mask.style.background = "rgba(4, 30, 66, 0.65)"; 
+        }
         
         document.getElementById('hud-level-tag').innerText = "Midnight Conservatory: Lvl 2 (Regrouping) 🌌";
-        document.getElementById('hud-level-tag').style.color = "#38bdf8";
+        document.getElementById('hud-level-tag').style.color = "#0284c7";
     }
 
     /* Particle Frame Canvas */
