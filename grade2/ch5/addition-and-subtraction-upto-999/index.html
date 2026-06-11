@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Math Climb: Vertical Tower - Grade 2</title>
+<title>Math Climb: 4x4 Tower - Grade 2</title>
 <style>
     :root {
         --sky-blue: #38bdf8;
@@ -16,21 +16,21 @@
         width: 100%; height: 100%;
         font-family: 'Segoe UI', Arial, sans-serif;
         color: #1e293b; overflow: hidden;
-        background-color: #ffffff; /* Default clear pure white background for startup */
+        background-color: #ffffff; /* Locked startup color */
     }
 
-    /* CRITICAL FAILSAPE: Complete 100% Blank Screen Wrapper until Splash finishes */
+    /* 100% Blank Screen Wrapper until Splash finishes */
     #app-viewport-wrapper {
         width: 100%; height: 100%;
         position: relative;
-        display: none; /* Turned ON via JavaScript strictly after splash screen clears */
+        display: none; 
         background: #38bdf8 url('assets/sky-bg.png') no-repeat center center;
         background-size: cover;
         justify-content: center; align-items: center;
         flex-direction: column; padding: 15px;
     }
 
-    /* Pure Isolated Splash Screen Overlay */
+    /* Clear Isolated Splash Screen Overlay */
     #screen-splash {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: #ffffff !important; z-index: 99999;
@@ -39,17 +39,13 @@
     }
     .logo-container {
         display: flex; flex-direction: column; align-items: center; justify-content: center;
+        width: 100%; max-width: 400px; padding: 20px;
     }
     .logo-img {
-        max-width: 260px; max-height: 140px; object-fit: contain;
-    }
-    .logo-fallback {
-        width: 100px; height: 100px; background: linear-gradient(135deg, #0284c7, #38bdf8);
-        border-radius: 24px; display: flex; align-items: center; justify-content: center;
-        color: white; font-size: 50px; font-weight: bold; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        width: 100%; max-width: 280px; height: auto; object-fit: contain;
     }
     .splash-loader {
-        margin-top: 30px; width: 140px; height: 6px; background: #e2e8f0;
+        margin-top: 40px; width: 160px; height: 6px; background: #e2e8f0;
         border-radius: 3px; overflow: hidden; position: relative;
     }
     .splash-loader-bar {
@@ -72,7 +68,7 @@
     h1 { font-size: 34px; color: #0284c7; margin-bottom: 10px; font-weight: 800; }
     p { font-size: 17px; line-height: 1.5; color: #475569; margin-bottom: 20px; }
 
-    /* Character Selection Board */
+    /* Character Selection Setup */
     .character-select-box {
         display: flex; justify-content: center; gap: 15px; margin: 15px 0;
     }
@@ -89,22 +85,22 @@
         display: flex; align-items: center; justify-content: center; font-size: 36px; color: white;
     }
 
-    /* Vertical Tower Board */
+    /* 4x4 Tower Board Layout Grid */
     .board-frame-wrapper {
-        position: relative; width: 100%; max-width: 420px; background: #cbd5e1;
+        position: relative; width: 100%; max-width: 460px; background: #cbd5e1;
         padding: 12px; border-radius: 24px; margin-bottom: 15px; border: 5px solid #94a3b8;
         box-shadow: inset 0 4px 10px rgba(0,0,0,0.1);
     }
     .board-grid-tower {
         display: grid;
         grid-template-columns: repeat(4, 1fr); 
-        grid-template-rows: repeat(2, 1fr);    
-        gap: 10px; width: 100%;
+        grid-template-rows: repeat(4, 1fr);    
+        gap: 8px; width: 100%;
     }
     .board-tile {
         background: white; border: 3px solid #e2e8f0; border-radius: 16px;
-        min-height: 85px; display: flex; flex-direction: column; align-items: center;
-        justify-content: flex-start; padding: 8px 4px; font-weight: bold; font-size: 16px;
+        min-height: 70px; display: flex; flex-direction: column; align-items: center;
+        justify-content: flex-start; padding: 6px 4px; font-weight: bold; font-size: 16px;
         position: relative; transition: background 0.3s;
     }
     .board-tile.ladder-tile { border-color: var(--ladder-gold); background: #fef8e7; color: #b45309; }
@@ -112,26 +108,27 @@
     .board-tile.win-tile { border-color: #22c55e; background: #f0fdf4; color: #16a34a; }
 
     .tile-decor-tag {
-        font-size: 11px; font-weight: 800; background: rgba(0,0,0,0.05);
-        padding: 2px 6px; border-radius: 8px; margin-top: auto; text-transform: uppercase;
+        font-size: 10px; font-weight: 800; background: rgba(0,0,0,0.05);
+        padding: 2px 4px; border-radius: 6px; margin-top: auto; text-transform: uppercase;
+        white-space: nowrap;
     }
 
-    /* Token Movement Character Pawn */
+    /* Token Pawn Engine */
     .pawn-container-anchor {
-        position: absolute; width: 55px; height: 55px;
+        position: absolute; width: 48px; height: 48px;
         transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); 
         z-index: 10; pointer-events: none;
         display: flex; align-items: center; justify-content: center;
     }
     .pawn-avatar-img {
         width: 100%; height: 100%; object-fit: contain;
-        filter: drop-shadow(0 6px 8px rgba(0,0,0,0.25));
+        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.25));
         animation: tokenFloatIdle 2s infinite ease-in-out;
     }
     .pawn-avatar-fallback {
-        width: 50px; height: 50px; background: #f97316; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center; font-size: 30px;
-        color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        width: 44px; height: 44px; background: #f97316; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; font-size: 26px;
+        color: white; box-shadow: 0 3px 6px rgba(0,0,0,0.2);
     }
 
     .hud-bar {
@@ -195,8 +192,7 @@
 
 <div id="screen-splash">
     <div class="logo-container">
-        <img class="logo-img" src="assets/logo.png" onerror="this.style.display='none'; document.getElementById('brand-fallback').style.display='flex';" alt="Innovine Logo">
-        <div id="brand-fallback" class="logo-fallback" style="display:none;">I</div>
+        <img class="logo-img" src="assets/logo.png" alt="Innovine Logo">
     </div>
     <div class="splash-loader">
         <div class="splash-loader-bar"></div>
@@ -209,7 +205,7 @@
 
     <div id="screen-welcome" class="screen active">
         <div class="card">
-            <h1>Math Climb Tower 🎲🪜</h1>
+            <h1>Math Climb 4x4 Tower 🎲🪜</h1>
             <p>Solve addition & subtraction up to 999 to move your character around the grid and climb the majestic tower ladders!</p>
             
             <h3 style="color: #475569;">Select Your Animal Companion:</h3>
@@ -238,7 +234,7 @@
     <div id="screen-game" class="screen">
         <div class="hud-bar">
             <div id="hud-score">Stars: ⭐ 0</div>
-            <div>Goal: Space 8 🏆</div>
+            <div>Goal: Space 16 🏆</div>
             <div id="hud-status" style="color: #0284c7;">Your Turn</div>
         </div>
 
@@ -277,21 +273,25 @@
     
     let activeCharacterIdx = 0;
     let playerCurrentTileSpace = 1;
-    const finalWinningTileSpace = 8;
+    const finalWinningTileSpace = 16;
     let earnedStarsScore = 0;
     let targetSolution = 0;
 
     const specialTilesLayout = {
-        3: { type: 'ladder', target: 5, label: '🪜 Up to 5' },
-        6: { type: 'snake', target: 2, label: '🐍 Down to 2' }
+        3: { type: 'ladder', target: 10, label: '🪜 Up to 10' },
+        6: { type: 'ladder', target: 14, label: '🪜 Up to 14' },
+        9: { type: 'snake', target: 2, label: '🐍 Down to 2' },
+        13: { type: 'snake', target: 5, label: '🐍 Down to 5' }
     };
 
     const architecturalTileOrder = [
-        8, 7, 6, 5,  
-        1, 2, 3, 4   
+        16, 15, 14, 13, 
+        9,  10, 11, 12, 
+        8,  7,  6,  5,  
+        1,  2,  3,  4   
     ];
 
-    // ABSOLUTE 5-SECOND LOCKED TIMEOUT CHANNELS FOR SPLASH ENTRY
+    // Absolute 5-Second Timer Splash Exit Channel
     setTimeout(function() {
         const splash = document.getElementById('screen-splash');
         const mainAppWrapper = document.getElementById('app-viewport-wrapper');
@@ -300,17 +300,15 @@
             splash.style.opacity = '0';
             setTimeout(() => {
                 splash.style.display = 'none';
-                // Strictly turn on game content flex engine layout AFTER the curtain falls away
                 if (mainAppWrapper) {
                     mainAppWrapper.style.display = 'flex';
-                    // Recalculate tracking offset dynamically 
                     if(document.getElementById('screen-game').classList.contains('active')) {
                         positionTokenOnGridSpace(playerCurrentTileSpace);
                     }
                 }
             }, 500);
         }
-    }, 5000); // 5000ms = Exactly 5 Seconds on a blank white backdrop
+    }, 5000); 
 
     function goToScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -366,7 +364,7 @@
         });
 
         setupPlayerTokenGraphic();
-        setTimeout(() => { positionTokenOnGridSpace(playerCurrentTileSpace); }, 50);
+        setTimeout(() => { positionTokenOnGridSpace(playerCurrentTileSpace); }, 60);
     }
 
     function setupPlayerTokenGraphic() {
@@ -388,8 +386,8 @@
             const parentFrameRect = targetTileNode.parentElement.getBoundingClientRect();
             const targetTileRect = targetTileNode.getBoundingClientRect();
 
-            const targetTopPosition = targetTileRect.top - parentFrameRect.top + (targetTileRect.height / 2) - 25;
-            const targetLeftPosition = targetTileRect.left - parentFrameRect.left + (targetTileRect.width / 2) - 27;
+            const targetTopPosition = targetTileRect.top - parentFrameRect.top + (targetTileRect.height / 2) - 24;
+            const targetLeftPosition = targetTileRect.left - parentFrameRect.left + (targetTileRect.width / 2) - 24;
 
             tokenContainer.style.top = `${targetTopPosition}px`;
             tokenContainer.style.left = `${targetLeftPosition}px`;
@@ -464,7 +462,7 @@
             if(diceNode) diceNode.style.display = 'inline-block';
 
             setTimeout(() => {
-                const movementSteps = Math.floor(Math.random() * 2) + 1;
+                const movementSteps = Math.floor(Math.random() * 3) + 1;
                 playerCurrentTileSpace += movementSteps;
                 
                 if (playerCurrentTileSpace >= finalWinningTileSpace) {
@@ -472,7 +470,7 @@
                     positionTokenOnGridSpace(playerCurrentTileSpace);
                     setTimeout(() => {
                         goToScreen('screen-end');
-                        document.getElementById('end-summary-text').innerText = `Magnificent work Tower Conqueror! You climbed all the way to Space 8, amassed ${earnedStarsScore} total Stars, and dominated Grade 2 calculations perfectly!`;
+                        document.getElementById('end-summary-text').innerText = `Magnificent work Tower Conqueror! You climbed all the way to Space 16, amassed ${earnedStarsScore} total Stars, and dominated Grade 2 calculations perfectly!`;
                     }, 1200);
                     return;
                 }
