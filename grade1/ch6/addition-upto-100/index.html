@@ -1,271 +1,545 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Addition Sky Mission</title>
-<style>
-*{box-sizing:border-box}
-body{margin:0;font-family:'Comic Sans MS',Arial,sans-serif;background:#bdeeff;color:#222;overflow-x:hidden}
-.screen{display:none;min-height:100vh;padding:18px;text-align:center}
-.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
-.card{background:rgba(255,255,255,.94);border-radius:24px;padding:22px;max-width:850px;width:95%;box-shadow:0 10px 25px rgba(0,0,0,.18)}
-.logo{max-width:150px;margin-bottom:12px}
-h1{color:#d9307f;font-size:clamp(28px,5vw,48px);margin:10px 0}
-h2{color:#0b8043;font-size:clamp(22px,4vw,34px)}
-button{border:0;border-radius:18px;padding:14px 24px;font-size:20px;font-weight:bold;cursor:pointer;background:#ffbf00;color:#4a2b00;box-shadow:0 5px 0 #c58b00;margin:8px}
-button:active{transform:translateY(3px);box-shadow:0 2px 0 #c58b00}
-.game-area{position:relative;min-height:100vh;background:url("assets/sky-bg.png") center/cover no-repeat;padding:12px;overflow:hidden}
-.cloud{position:absolute;width:150px;opacity:.9;animation:floatCloud 24s linear infinite}
-.cloud.one{top:30px;left:-160px}
-.cloud.two{top:100px;left:-320px;animation-delay:8s}
-@keyframes floatCloud{to{transform:translateX(130vw)}}
-.topbar{display:flex;gap:8px;justify-content:space-between;align-items:center;max-width:950px;margin:0 auto 8px;background:rgba(255,255,255,.92);border-radius:16px;padding:10px;font-weight:bold}
-.timer{color:#d93025}.score{color:#188038}.attempts{color:#174ea6}
-.progress-wrap{height:18px;background:#fff;border-radius:20px;overflow:hidden;max-width:950px;margin:8px auto}
-.progress{height:100%;width:0;background:linear-gradient(90deg,#ff69b4,#fbbc04);transition:.4s}
-.flight-zone{position:relative;max-width:950px;height:220px;margin:5px auto}
-.balloon{position:absolute;bottom:10px;left:5%;width:145px;transition:.6s ease;animation:floatBalloon 3s ease-in-out infinite}
-@keyframes floatBalloon{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
-.question-card{max-width:850px;margin:10px auto;background:rgba(255,255,255,.96);border-radius:24px;padding:18px;box-shadow:0 8px 20px rgba(0,0,0,.2)}
-.qno{font-size:18px;color:#666}
-.question{font-size:clamp(22px,4vw,34px);font-weight:bold;margin:12px 0}
-.options{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.option{background:#fff;border:4px solid #ff9bd2;border-radius:18px;padding:18px;font-size:24px;font-weight:bold;cursor:pointer;min-height:70px}
-.option:hover{background:#fff0fa}
-.feedback{min-height:44px;font-size:20px;font-weight:bold;margin-top:10px}
-.correct{color:#188038}.wrong{color:#d93025}
-.final-badge{background:#ffef99;border:3px dashed #fbbc04;padding:8px 14px;border-radius:14px;display:inline-block;margin-bottom:8px;font-weight:bold}
-.result-stars{font-size:46px}
-@media(max-width:600px){
-.options{grid-template-columns:1fr}
-.balloon{width:115px}
-.flight-zone{height:170px}
-.topbar{font-size:14px;flex-wrap:wrap;justify-content:center}
-}
-.confetti{position:fixed;width:10px;height:10px;top:-10px;animation:fall 1.8s linear forwards;z-index:99}
-@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
-</style>
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 1: Sammy's Acorn Mission!</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary-bg: #F4EBE1; /* Soft forest cream */
+            --card-bg: #FFFFFF;
+            --text-color: #3E2723; /* Deep brown */
+            --forest-green: #4CAF50;
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            background-image: radial-gradient(#D7CCC8 20%, transparent 20%);
+            background-size: 30px 30px;
+        }
+
+        /* --- 5-SECOND SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #FFFFFF;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease-out;
+        }
+
+        .splash-logo {
+            max-width: 250px;
+            height: auto;
+            animation: pulse 2s infinite ease-in-out;
+        }
+
+        /* --- MAIN GAME CONTAINER --- */
+        #game-container {
+            width: 95%;
+            max-width: 650px;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 35px;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+            border: 6px solid #8D6E63;
+            text-align: center;
+            display: none; 
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
+        }
+
+        /* --- MISSION START SCREEN --- */
+        .mission-box h2 {
+            color: #D35400;
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+        }
+        .actor-img {
+            width: 120px;
+            height: auto;
+            margin-bottom: 15px;
+        }
+        .mission-text {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            background: #FFE0B2;
+            padding: 20px;
+            border-radius: 20px;
+            border: 2px dashed #FB8C00;
+        }
+        .start-btn {
+            background: linear-gradient(135deg, #8D6E63, #5D4037);
+            color: white;
+            border: none;
+            padding: 15px 45px;
+            font-size: 1.6rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #3E2723;
+        }
+        .start-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 transparent;
+        }
+
+        /* --- ACTIVE INTERACTIVE GAMEPLAY --- */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .tracker-badge {
+            background: #E8F5E9;
+            padding: 6px 14px;
+            border-radius: 15px;
+            color: #2E7D32;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .tracker-badge img {
+            width: 20px;
+            height: auto;
+        }
+
+        .volume-control {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        #volume-slider {
+            width: 70px;
+            cursor: pointer;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 16px;
+            background-color: #E0E0E0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            border: 2px solid #BCAAA4;
+        }
+
+        #progress {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #A1887F, #8D6E63);
+            transition: width 0.4s ease;
+        }
+
+        /* OUTCOME LO TYPE HEADER */
+        .outcome-banner {
+            font-size: 1.1rem;
+            background: #ECEFF1;
+            padding: 6px 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #546E7A;
+            text-transform: uppercase;
+        }
+
+        /* STORY SUM TEXT FRAME */
+        .story-text-container {
+            font-size: 1.25rem;
+            background: #FFF3E0;
+            padding: 15px;
+            border-radius: 15px;
+            border-left: 5px solid #FF9800;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            text-align: left;
+        }
+
+        /* VISUAL ACORN DISPLAYS */
+        .visual-math-box {
+            background: #FFF8E1;
+            border: 3px dashed #FFB300;
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            min-height: 90px;
+        }
+
+        .item-group {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 42%;
+            gap: 6px;
+        }
+
+        .item-group img {
+            width: 26px;
+            height: auto;
+            animation: popIn 0.3s ease;
+        }
+
+        .math-sign {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #E65100;
+        }
+
+        .equation-text {
+            font-size: 3.5rem;
+            color: #D84315;
+            margin-bottom: 25px;
+            text-shadow: 2px 2px 0px #FFE082;
+            font-weight: bold;
+        }
+
+        /* OPTIONS GRID CONFIG */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+            margin-bottom: 15px;
+        }
+
+        .option-btn {
+            background-color: #FFF;
+            border: 4px solid #8D6E63;
+            border-radius: 25px;
+            padding: 15px;
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #5D4037;
+            cursor: pointer;
+            transition: all 0.1s ease;
+            box-shadow: 0 6px 0 #5D4037;
+        }
+
+        .option-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 transparent;
+        }
+
+        .option-btn.correct {
+            background-color: #4CAF50 !important;
+            border-color: #2E7D32 !important;
+            color: white !important;
+            box-shadow: 0 6px 0 #2E7D32;
+        }
+
+        .option-btn.wrong {
+            background-color: #EF5350 !important;
+            border-color: #C62828 !important;
+            color: white !important;
+            box-shadow: 0 6px 0 #C62828;
+        }
+
+        #restart-btn {
+            background: linear-gradient(135deg, #8D6E63, #5D4037);
+            color: white;
+            border: none;
+            padding: 15px 45px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #3E2723;
+            display: none;
+            margin: 25px auto 0 auto;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        @media (max-width: 480px) {
+            .equation-text { font-size: 2.5rem; }
+            .option-btn { padding: 12px; font-size: 1.7rem; }
+            .story-text-container { font-size: 1.1rem; }
+        }
+    </style>
+</head>
 <body>
 
-<section id="start" class="screen active">
-  <div class="card">
-    <img src="assets/logo.png" class="logo" onerror="this.style.display='none'">
-    <h1>🎈 Addition Sky Mission</h1>
-    <h2>Grade 1 Maths — Addition up to 100</h2>
-    <p>Help the balloon fly across the sky by solving bigger addition challenges.</p>
-    <p><b>Rules:</b> You get 60 seconds and 2 attempts for each question.</p>
-    <button onclick="startGame()">Start Mission</button>
-  </div>
-</section>
+    <div id="splash-screen">
+        <img src="assets/logo.png" alt="Innovine Logo" class="splash-logo" onerror="this.src='https://placehold.co/200?text=Innovine'">
+    </div>
 
-<section id="game" class="screen game-area">
-  <img src="assets/clouds.png" class="cloud one">
-  <img src="assets/clouds.png" class="cloud two">
+    <div id="game-container">
+        
+        <div id="mission-screen" class="mission-box">
+            <img src="assets/squirrel.png" class="actor-img" alt="Sammy the Squirrel" onerror="this.style.display='none'">
+            <h2>Help Sammy the Squirrel!</h2>
+            <p class="mission-text">
+                Winter is near! Sammy must store enough food in his treehouse. 
+                <br><br><strong>Your Mission:</strong> Solve 10 textbook addition challenges correctly to help him secure <strong>10 Acorns</strong>! 
+            </p>
+            <button class="start-btn" onclick="startMission()">Accept Mission! 🚀</button>
+        </div>
 
-  <div class="topbar">
-    <div class="timer">⏱ Time: <span id="time">60</span>s</div>
-    <div class="score">⭐ Score: <span id="score">0</span></div>
-    <div class="attempts">🔁 Attempts Left: <span id="attempts">2</span></div>
-  </div>
+        <div id="play-screen" style="display: none;">
+            <div class="game-header">
+                <span id="question-number">🧩 Problem: 1/10</span>
+                <span class="tracker-badge">
+                    <img src="assets/acorn.png" alt="Acorn" onerror="this.style.display='none'"> 
+                    Acorns Saved: <span id="acorn-count">0</span>
+                </span>
+                <div class="volume-control">
+                    <span>🔊</span>
+                    <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5">
+                </div>
+            </div>
 
-  <div class="progress-wrap"><div id="progress" class="progress"></div></div>
+            <div class="progress-bar">
+                <div id="progress"></div>
+            </div>
 
-  <div class="flight-zone">
-    <img src="assets/balloon.png" id="balloon" class="balloon">
-  </div>
+            <div class="outcome-banner" id="outcome-label">Outcome Practice</div>
 
-  <div class="question-card">
-    <div id="finalBadge" class="final-badge" style="display:none;">Final Challenge</div>
-    <div class="qno">Question <span id="qnum">1</span> of <span id="total"></span></div>
-    <div id="question" class="question"></div>
-    <div id="options" class="options"></div>
-    <div id="feedback" class="feedback"></div>
-  </div>
-</section>
+            <div class="story-text-container" id="story-container" style="display: none;"></div>
 
-<section id="result" class="screen">
-  <div class="card">
-    <img src="assets/stars.png" style="max-width:140px" onerror="this.style.display='none'">
-    <h1>Mission Complete!</h1>
-    <div id="resultStars" class="result-stars"></div>
-    <h2 id="finalScore"></h2>
-    <p id="resultMsg"></p>
-    <button onclick="restartGame()">Play Again</button>
-  </div>
-</section>
+            <div class="visual-math-box" id="visual-box">
+                <div class="item-group" id="items-left"></div>
+                <div class="math-sign">+</div>
+                <div class="item-group" id="items-right"></div>
+            </div>
 
-<audio id="correctSound" src="assets/freesound_community-claps-44774.mp3"></audio>
-<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+            <div class="equation-text" id="equation-display">0 + 0 = ?</div>
+            
+            <div class="options-grid" id="options-container"></div>
+        </div>
 
-<script>
-const questions = [
-  {q:"A basket has 20 mangoes. Another basket has 40 mangoes. How many mangoes are there in all?",options:["50","60","70","80"],answer:"60",hint:"Add the tens: 2 tens + 4 tens = 6 tens."},
-  {q:"Which sum gives the same answer as 5 + 6?",options:["6 + 5","5 + 5","6 + 6","4 + 6"],answer:"6 + 5",hint:"Changing the order in addition gives the same total."},
-  {q:"Add 32 + 20.",options:["34","42","52","62"],answer:"52",hint:"Add tens to tens. The ones stay 2."},
-  {q:"Add 43 + 21.",options:["54","64","74","84"],answer:"64",hint:"Add tens and ones separately."},
-  {q:"Add 23 + 32.",options:["45","55","65","75"],answer:"55",hint:"20 + 30 = 50 and 3 + 2 = 5."},
-  {q:"A class has 28 boys and 37 girls. How many students are there altogether?",options:["55","65","75","85"],answer:"65",hint:"Add 28 and 37. Regroup the ones."},
-  {q:"Add 59 + 33.",options:["82","92","93","99"],answer:"92",hint:"9 + 3 = 12, carry 1 ten."},
-  {q:"Which sum needs carry over?",options:["23 + 12","41 + 20","48 + 39","32 + 14"],answer:"48 + 39",hint:"8 + 9 is more than 9."},
-  {q:"Ambika has ₹50. Her mother gives her ₹35. How much money does she have now?",options:["₹75","₹80","₹85","₹90"],answer:"₹85",hint:"Add ₹50 and ₹35."},
-  {q:"Which answer is wrong?",options:["25 + 7 = 32","43 + 0 = 43","40 + 40 = 80","57 + 26 = 73"],answer:"57 + 26 = 73",hint:"57 + 26 is 83, not 73."},
-  {q:"Final: A zoo has 68 elephants and 23 giraffes. How many animals are there altogether?",options:["81","91","92","99"],answer:"91",hint:"Add 68 and 23.",final:true},
-  {q:"Final: I am a number with 5 tens and 3 ones. Add the greatest 1-digit number. What is the sum?",options:["60","61","62","63"],answer:"62",hint:"53 + 9 = 62.",final:true}
-];
+        <div id="result-screen" style="display:none;">
+            <img src="assets/squirrel.png" class="actor-img" alt="Happy Sammy">
+            <h1 style="font-size: 2.2rem; color: #4CAF50; margin-bottom: 10px;">Mission Complete! 🏆</h1>
+            <p style="font-size: 1.3rem; margin-bottom: 20px; padding: 0 15px;">
+                Wonderful! Sammy's stockpile is fully complete. His family will stay safe and satisfied all winter!
+            </p>
+            <p id="score-display" style="font-size: 2rem; font-weight: bold; color: #EF6C00;"></p>
+        </div>
+        
+        <button id="restart-btn" onclick="resetGame()">Play Mission Again! 🌟</button>
+    </div>
 
-let current = 0, score = 0, attempts = 2, timeLeft = 60, timer;
+    <audio id="audio-correct" src="assets/correct.mp3"></audio>
+    <audio id="audio-wrong" src="assets/wrong.mp3"></audio>
 
-function startGame(){
-  document.getElementById("start").classList.remove("active");
-  document.getElementById("game").classList.add("active");
-  document.getElementById("total").textContent = questions.length;
-  loadQuestion();
-}
+    <script>
+        // Sound Management Subsystem
+        let volumeLevel = 0.5;
+        const sndCorrect = document.getElementById('audio-correct');
+        const sndWrong = document.getElementById('audio-wrong');
 
-function loadQuestion(){
-  clearInterval(timer);
-  attempts = 2;
-  timeLeft = 60;
-  document.getElementById("time").textContent = timeLeft;
-  document.getElementById("attempts").textContent = attempts;
-  document.getElementById("feedback").textContent = "";
-  document.getElementById("feedback").className = "feedback";
-  document.getElementById("qnum").textContent = current + 1;
+        function playSound(type) {
+            if (type === 'correct') {
+                sndCorrect.volume = volumeLevel;
+                sndCorrect.currentTime = 0;
+                sndCorrect.play().catch(() => {});
+            } else if (type === 'wrong') {
+                sndWrong.volume = volumeLevel;
+                sndWrong.currentTime = 0;
+                sndWrong.play().catch(() => {});
+            }
+        }
 
-  const q = questions[current];
-  document.getElementById("question").textContent = q.q;
-  document.getElementById("finalBadge").style.display = q.final ? "inline-block" : "none";
+        document.getElementById('volume-slider').addEventListener('input', (e) => {
+            volumeLevel = e.target.value;
+        });
 
-  const optionsBox = document.getElementById("options");
-  optionsBox.innerHTML = "";
-  const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+        // Question Pools Aligned Explicitly to Uploaded Learning Outcomes
+        const staticQuestionPool = [
+            // 1. Groups of Tens
+            { type: "Groups of Tens", story: "Sammy has 3 boxes of acorns. Each box has exactly 10 acorns inside. How many acorns does he have in total?", num1: 10, num2: 20, answer: 30, options: [3, 13, 30, 40], visual: false },
+            { type: "Groups of Tens", story: "Sammy finds 5 groups of 10 acorns on the ground. How many total acorns did he find?", num1: 20, num2: 30, answer: 50, options: [15, 50, 5, 60], visual: false },
+            
+            // 2. Addition without Carry Over
+            { type: "Addition without Carry Over", story: "", num1: 42, num2: 5, answer: 47, options: [45, 46, 47, 52], visual: true },
+            { type: "Addition without Carry Over", story: "", num1: 21, num2: 34, answer: 55, options: [54, 55, 56, 65], visual: true },
+            
+            // 3. Addition with Carry Over
+            { type: "Addition with Carry Over", story: "", num1: 25, num2: 8, answer: 33, options: [32, 33, 34, 43], visual: true },
+            { type: "Addition with Carry Over", story: "", num1: 48, num2: 15, answer: 63, options: [53, 62, 63, 73], visual: true },
+            { type: "Addition with Carry Over", story: "", num1: 57, num2: 26, answer: 83, options: [83, 73, 84, 93], visual: true },
+            
+            // 4. Story Sums based on Addition up to 100
+            { type: "Story Sums", story: "\"I want to save 70 acorns for winter,\" says Sammy. If he has 60 acorns and finds 10 more, what is his total?", num1: 60, num2: 10, answer: 70, options: [61, 70, 80, 100], visual: false },
+            { type: "Story Sums", story: "Sammy hides 36 acorns near an oak tree and 43 acorns near a pine tree. How many hidden acorns are there altogether?", num1: 36, num2: 43, answer: 79, options: [78, 79, 89, 80], visual: false },
+            { type: "Story Sums", story: "Sammy's backpack holds 75 acorns. He gathers 19 more golden acorns. How many acorns are with him now?", num1: 75, num2: 19, answer: 94, options: [84, 93, 94, 100], visual: false }
+        ];
 
-  shuffledOptions.forEach(opt=>{
-    const div = document.createElement("div");
-    div.className = "option";
-    div.textContent = opt;
-    div.onclick = ()=>checkAnswer(opt, div);
-    optionsBox.appendChild(div);
-  });
+        let currentQuestion = 0;
+        let score = 0;
+        const totalQuestions = 10;
+        let activeQuestions = [];
 
-  updateProgress();
-  moveBalloon();
-  timer = setInterval(updateTimer,1000);
-}
+        function startMission() {
+            document.getElementById('mission-screen').style.display = 'none';
+            document.getElementById('play-screen').style.display = 'block';
+            
+            // Mix up array indices smoothly on startup [cite: 14]
+            activeQuestions = [...staticQuestionPool].sort(() => Math.random() - 0.5);
+            loadQuestion();
+        }
 
-function updateTimer(){
-  timeLeft--;
-  document.getElementById("time").textContent = timeLeft;
-  if(timeLeft<=0){
-    clearInterval(timer);
-    showCorrect("Time is up!");
-  }
-}
+        function loadQuestion() {
+            if (currentQuestion >= totalQuestions) {
+                endGame();
+                return;
+            }
 
-function checkAnswer(selected, element){
-  const q = questions[current];
+            // Sync Header Counters 
+            document.getElementById('question-number').innerText = `🧩 Problem: ${currentQuestion + 1}/${totalQuestions}`;
+            document.getElementById('progress').style.width = `${(currentQuestion / totalQuestions) * 100}%`;
+            document.getElementById('acorn-count').innerText = score;
 
-  if(selected === q.answer){
-    clearInterval(timer);
-    score++;
-    document.getElementById("score").textContent = score;
-    element.style.background = "#d7ffd9";
-    element.style.borderColor = "#34a853";
-    document.getElementById("feedback").textContent = "Correct! The balloon flies higher!";
-    document.getElementById("feedback").className = "feedback correct";
-    playSound("correctSound");
-    confetti();
-    setTimeout(nextQuestion,1200);
-  } else {
-    attempts--;
-    document.getElementById("attempts").textContent = attempts;
-    element.style.background = "#ffe0e0";
-    element.style.borderColor = "#d93025";
-    playSound("wrongSound");
+            let q = activeQuestions[currentQuestion];
+            
+            // Set Textbook Outcome Label Header
+            document.getElementById('outcome-label').innerText = `Target: ${q.type}`;
 
-    if(attempts > 0){
-      document.getElementById("feedback").textContent = "Try again! Hint: " + q.hint;
-      document.getElementById("feedback").className = "feedback wrong";
-    } else {
-      clearInterval(timer);
-      showCorrect("Good try!");
-    }
-  }
-}
+            // Adjust Layout for Story Sums vs Clean Numeric Sums
+            const storyBox = document.getElementById('story-container');
+            const visualBox = document.getElementById('visual-box');
+            
+            if (q.story !== "") {
+                storyBox.style.display = "block";
+                storyBox.innerText = q.story;
+            } else {
+                storyBox.style.display = "none";
+            }
 
-function showCorrect(prefix){
-  const q = questions[current];
-  document.getElementById("feedback").textContent = `${prefix} Correct answer: ${q.answer}`;
-  document.getElementById("feedback").className = "feedback wrong";
-  setTimeout(nextQuestion,1800);
-}
+            // Add counting icons if applicable (Capped at 15 to preserve clean layout boundaries)
+            const leftGroup = document.getElementById('items-left');
+            const rightGroup = document.getElementById('items-right');
+            leftGroup.innerHTML = '';
+            rightGroup.innerHTML = '';
 
-function nextQuestion(){
-  current++;
-  if(current >= questions.length){ endGame(); }
-  else{ loadQuestion(); }
-}
+            if (q.visual) {
+                visualBox.style.display = "flex";
+                let capL = Math.min(q.num1, 15);
+                let capR = Math.min(q.num2, 15);
+                for(let l=0; l<capL; l++) leftGroup.innerHTML += `<img src="assets/acorn.png" onerror="this.src='https://placehold.co/20?text=🌰'">`;
+                for(let r=0; r<capR; r++) rightGroup.innerHTML += `<img src="assets/acorn.png" onerror="this.src='https://placehold.co/20?text=🌰'">`;
+            } else {
+                visualBox.style.display = "none";
+            }
 
-function updateProgress(){
-  document.getElementById("progress").style.width = ((current / questions.length) * 100) + "%";
-}
+            document.getElementById('equation-display').innerText = `${q.num1} + ${q.num2} = ?`;
 
-function moveBalloon(){
-  const percent = current / (questions.length - 1);
-  const left = 5 + percent * 65;
-  const bottom = 10 + percent * 70;
-  const balloon = document.getElementById("balloon");
-  balloon.style.left = left + "%";
-  balloon.style.bottom = bottom + "px";
-}
+            // Clear and Append Option Selections [cite: 14]
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
 
-function endGame(){
-  clearInterval(timer);
-  document.getElementById("game").classList.remove("active");
-  document.getElementById("result").classList.add("active");
-  document.getElementById("finalScore").textContent = `Your Score: ${score} / ${questions.length}`;
+            q.options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = option;
+                btn.onclick = () => checkAnswer(btn, option, q.answer);
+                optionsContainer.appendChild(btn);
+            });
+        }
 
-  const percent = score / questions.length;
-  document.getElementById("resultStars").textContent = percent >= .85 ? "⭐⭐⭐" : percent >= .6 ? "⭐⭐" : "⭐";
-  document.getElementById("resultMsg").textContent =
-    percent >= .85 ? "Excellent! You are an Addition Sky Champion!" :
-    percent >= .6 ? "Good work! Practise a little more and try again." :
-    "Nice try! Replay the mission to strengthen your addition skills.";
-}
+        function checkAnswer(selectedBtn, selectedValue, correctValue) {
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(btn => btn.disabled = true);
 
-function restartGame(){
-  clearInterval(timer);
-  current = 0;
-  score = 0;
-  attempts = 2;
-  document.getElementById("score").textContent = score;
-  document.getElementById("result").classList.remove("active");
-  document.getElementById("game").classList.add("active");
-  loadQuestion();
-}
+            if (selectedValue === correctValue) {
+                selectedBtn.classList.add('correct');
+                playSound('correct'); [cite: 15]
+                score++;
+                document.getElementById('acorn-count').innerText = score;
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); [cite: 15]
+            } else {
+                selectedBtn.classList.add('wrong');
+                playSound('wrong'); [cite: 15]
+                buttons.forEach(btn => {
+                    if (parseInt(btn.innerText) === correctValue) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
 
-function playSound(id){
-  const sound = document.getElementById(id);
-  if(sound){
-    sound.currentTime = 0;
-    sound.play().catch(()=>{});
-  }
-}
+            // Automatic incremental window push 
+            setTimeout(() => {
+                currentQuestion++;
+                loadQuestion();
+            }, 2500);
+        }
 
-function confetti(){
-  for(let i=0;i<25;i++){
-    const c = document.createElement("div");
-    c.className = "confetti";
-    c.style.left = Math.random()*100 + "vw";
-    c.style.background = ["#fbbc04","#34a853","#4285f4","#ea4335","#ff69b4"][Math.floor(Math.random()*5)];
-    c.style.animationDelay = Math.random()*0.3 + "s";
-    document.body.appendChild(c);
-    setTimeout(()=>c.remove(),2000);
-  }
-}
-</script>
+        function endGame() {
+            document.getElementById('play-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            document.getElementById('score-display').innerText = `Stocked: ${score} / ${totalQuestions} Acorns!`;
+            document.getElementById('restart-btn').style.display = 'block'; [cite: 15]
+            
+            if(score >= 7) {
+                let end = Date.now() + (3 * 1000);
+                (function frame() {
+                    confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 } });
+                    confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 } });
+                    if (Date.now() < end) requestAnimationFrame(frame);
+                }());
+            }
+        }
+
+        function resetGame() {
+            currentQuestion = 0;
+            score = 0;
+            document.getElementById('play-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('restart-btn').style.display = 'none';
+            document.getElementById('mission-screen').style.display = 'block';
+        }
+
+        // --- SPLASH ENGINE OVERLAY TIMER (Exactly 5000 Milliseconds) ---
+        window.addEventListener('DOMContentLoaded', () => {
+            const splash = document.getElementById('splash-screen');
+            const game = document.getElementById('game-container');
+
+            setTimeout(() => {
+                splash.style.opacity = '0';
+                game.style.display = 'block';
+                setTimeout(() => { game.style.opacity = '1'; }, 50);
+                setTimeout(() => { splash.remove(); }, 800);
+            }, 5000); 
+        });
+    </script>
 </body>
 </html>
