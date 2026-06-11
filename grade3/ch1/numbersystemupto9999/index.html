@@ -1,1 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 3: Mission Save the Sea Turtles!</title>
+    <style>
+        :root {
+            --text-main: #1A237E;
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #E0F7FA;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #FFFFFF;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+        .splash-logo { max-width: 240px; height: auto; }
+
+        /* --- MAIN CONTAINER --- */
+        #game-container {
+            width: 95%;
+            max-width: 720px;
+            background: #FFFFFF;
+            padding: 25px;
+            border-radius: 30px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+            border: 6px solid #0097A7;
+            text-align: center;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease-in;
+            position: relative;
+        }
+
+        .mission-text {
+            font-size: 1.2rem; line-height: 1.6; margin-bottom: 25px;
+            background: #E0F2F1; padding: 20px; border-radius: 20px; border: 2px dashed #00ACC1;
+        }
+        .start-btn {
+            background: linear-gradient(135deg, #00ACC1, #00796B); color: white;
+            border: none; padding: 15px 45px; font-size: 1.6rem; font-weight: bold;
+            border-radius: 50px; cursor: pointer; box-shadow: 0 6px 0 #004D40;
+        }
+        .start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
+
+        /* --- DYNAMIC ENVIRONMENT HUB --- */
+        #eco-stage {
+            width: 100%;
+            height: 220px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            border: 4px solid #0097A7;
+            background-size: cover;
+            background-position: center;
+            transition: background-image 0.5s ease-in-out;
+        }
+
+        /* Garbage Visual Styling */
+        .trash-item {
+            position: absolute;
+            width: 45px;
+            height: auto;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.25));
+        }
+
+        /* Interactive Turtle & Wrapper Units */
+        .turtle-unit {
+            position: absolute;
+            width: 75px;
+            height: 75px;
+            transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .turtle-img {
+            position: absolute;
+            width: 100%;
+            height: auto;
+            z-index: 1;
+            transition: transform 0.3s;
+        }
+        .wrapper-img {
+            position: absolute;
+            width: 110%;
+            height: auto;
+            z-index: 2;
+            transition: all 0.6s ease-out;
+        }
+
+        /* --- HUD & CONTROL INTERFACE --- */
+        .hud-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 12px; font-weight: bold; font-size: 1.1rem;
+        }
+        .phase-badge { background: #FFECB3; padding: 4px 12px; border-radius: 10px; color: #FF6F00; font-weight: bold;}
+
+        .progress-track {
+            width: 100%; height: 14px; background: #ECEFF1; border-radius: 10px;
+            overflow: hidden; margin-bottom: 20px; border: 1px solid #CFD8DC;
+        }
+        #progress-bar { height: 100%; width: 0%; background: #00BCF2; transition: width 0.3s; }
+
+        .equation-box {
+            font-size: 1.65rem; font-weight: bold; color: #006064;
+            background: #F5F5F5; padding: 18px; border-radius: 15px;
+            margin-bottom: 20px; border-bottom: 4px solid #B0BEC5;
+            min-height: 75px; display: flex; align-items: center; justify-content: center;
+        }
+
+        .grid-matrix { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 10px; }
+        .box-btn {
+            background: #FFFFFF; border: 3px solid #00ACC1; border-radius: 20px;
+            padding: 14px; font-size: 1.45rem; font-weight: bold; color: #006064;
+            cursor: pointer; box-shadow: 0 5px 0 #00796B; transition: all 0.1s;
+        }
+        .box-btn:active { transform: translateY(5px); box-shadow: 0 0 0 transparent; }
+        .box-btn.correct { background: #4CAF50 !important; border-color: #2E7D32 !important; color: white !important; box-shadow: 0 5px 0 #2E7D32; }
+        .box-btn.wrong { background: #EF5350 !important; border-color: #C62828 !important; color: white !important; box-shadow: 0 5px 0 #C62828; }
+
+        .confetti-element {
+            position: absolute; width: 8px; height: 8px; top: 50%; left: 50%;
+            opacity: 0; pointer-events: none; z-index: 99; border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <img src="assets/logo.png" alt="Innovine Logo" class="splash-logo" onerror="this.src='https://placehold.co/200?text=Innovine'">
+    </div>
+
+    <div id="game-container">
+        
+        <div id="intro-card">
+            <div style="font-size: 4rem; margin-bottom: 10px;">🌊🐢</div>
+            <h2 style="color: #00838F; font-size: 2.3rem; margin-bottom: 12px;">Mission: Save the Sea Turtles!</h2>
+            <p class="mission-text">
+                Litter has washed up on the beach, and plastic wrappers are trapping baby turtles in the coral reef!
+                <br><br>
+                <strong>Your Mission:</strong> Solve 13 Place-Value math challenges correctly to clear out the trash and free the sea turtles!
+            </p>
+            <button class="start-btn" onclick="engageMission()">Accept Mission! 🚀</button>
+        </div>
+
+        <div id="active-playfield" style="display: none;">
+            <div class="hud-header">
+                <span id="label-task">Challenge: 1/13</span>
+                <span class="phase-badge" id="label-phase">Phase 1: Beach Clean</span>
+                <span>Score: <span id="label-score">0</span></span>
+            </div>
+
+            <div class="progress-track"><div id="progress-bar"></div></div>
+
+            <div id="eco-stage"></div>
+
+            <div class="equation-box" id="field-question">Loading challenge scenario...</div>
+            <div class="grid-matrix" id="field-options"></div>
+        </div>
+
+        <div id="victory-card" style="display: none;">
+            <div style="font-size: 5rem;">🏆🐢🏆</div>
+            <h1 style="color: #2E7D32; font-size: 2.5rem; margin: 15px 0;">Marine Hero Certified!</h1>
+            <p style="font-size: 1.3rem; margin-bottom: 25px; padding: 0 20px;">
+                Outstanding job! The beach is pristine, and all baby sea turtles are swimming freely in the ocean.
+            </p>
+            <h2 id="final-stats" style="color: #EF6C00; margin-bottom: 20px;"></h2>
+            <button class="start-btn" onclick="resetSimulator()">Play Challenge Again 🔄</button>
+        </div>
+
+    </div>
+
+    <audio id="snd-correct" src="assets/correct.mp3"></audio>
+    <audio id="snd-wrong" src="assets/wrong.mp3"></audio>
+
+    <script>
+        var volumeLevel = 0.5;
+        var audioCorrect = document.getElementById('snd-correct');
+        var audioWrong = document.getElementById('snd-wrong');
+
+        function triggerAudio(mode) {
+            try {
+                if (mode === 'correct' && audioCorrect) {
+                    audioCorrect.volume = volumeLevel; audioCorrect.currentTime = 0; audioCorrect.play().catch(function(){});
+                } else if (mode === 'wrong' && audioWrong) {
+                    audioWrong.volume = volumeLevel; audioWrong.currentTime = 0; audioWrong.play().catch(function(){});
+                }
+            } catch(err) {}
+        }
+
+        function deployConfettiEngine() {
+            var frame = document.getElementById('game-container');
+            if(!frame) return;
+            var palettes = ['#00E5FF', '#FFEA00', '#00E676', '#FF3D00', '#E040FB', '#FFFFFF'];
+            
+            for (var i = 0; i < 45; i++) {
+                var atom = document.createElement('div');
+                atom.className = 'confetti-element';
+                atom.style.backgroundColor = palettes[Math.floor(Math.random() * palettes.length)];
+                frame.appendChild(atom);
+
+                var vectorAngle = Math.random() * Math.PI * 2;
+                var vectorForce = Math.random() * 200 + 70;
+                var shiftX = Math.cos(vectorAngle) * vectorForce;
+                var shiftY = Math.sin(vectorAngle) * vectorForce - 30;
+
+                atom.animate([
+                    { transform: 'translate(-50%, -50%) scale(1) rotate(0deg)', opacity: 1 },
+                    { transform: 'translate(calc(-50% + ' + shiftX + 'px), calc(-50% + ' + shiftY + 'px)) scale(0.3) rotate(' + (Math.random() * 360) + 'deg)', opacity: 0 }
+                ], {
+                    duration: Math.random() * 700 + 800,
+                    easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)',
+                    fill: 'forwards'
+                });
+
+                (function(elementInstance) {
+                    setTimeout(function() { if(elementInstance) elementInstance.remove(); }, 1600);
+                })(atom);
+            }
+        }
+
+        // Mapping Database aligning to Grade 3 Number System LOs
+        var staticDatabase = [
+            // Phase 1: Beach Litter Cleaning (Indices 0 - 7)
+            { question: "What is the place value of 5 in the number 3,524?", answers: ["50", "500", "5", "5000"], correct: "500" },
+            { question: "Express in Standard Form digits: Four thousand, two hundred sixty-one", answers: ["4261", "4026", "4216", "4621"], correct: "4261" },
+            { question: "What is the face value of 7 in the number 8,179?", answers: ["70", "700", "7", "7000"], correct: "7" },
+            { question: "Complete the Expanded Notation: 9000 + 300 + ? + 5 = 9,345", answers: ["4", "40", "400", "45"], correct: "40" },
+            { question: "Identify the number notation that correctly replaces the question mark: 5,612 < ?", answers: ["5609", "4999", "5610", "5620"], correct: "5620" },
+            { question: "What number comes immediately before (Predecessor) 7,000?", answers: ["6999", "7001", "6000", "6990"], correct: "6999" },
+            { question: "What number represents the Successor of 3,459?", answers: ["3458", "3460", "3500", "4459"], correct: "3460" },
+            { question: "Which digit holds the Thousands place value position in 8,214?", answers: ["4", "1", "2", "8"], correct: "8" },
+            
+            // Phase 2: Turtle Release (Indices 8 - 12)
+            { question: "Form the smallest 4-digit number using digits [4, 0, 8, 1] without repeating any digits.", answers: ["0148", "1480", "1048", "4810"], correct: "1048" },
+            { question: "Form the largest 4-digit number using digits [3, 9, 2, 7] without repeating any digits.", answers: ["9732", "9723", "2379", "7932"], correct: "9732" },
+            { question: "Which of the following numbers is an ODD number?", answers: ["4320", "8812", "5674", "7129"], correct: "7129" },
+            { question: "Round off the 4-digit number 4,325 to the nearest HUNDRED.", answers: ["4300", "4400", "4330", "4000"], correct: "4300" },
+            { question: "Perform skip counting by 100s to fill the blank: 1200, 1300, 1400, ____", answers: ["1410", "1500", "2400", "1600"], correct: "1500" }
+        ];
+
+        var structuralIndex = 0;
+        var gameScore = 0;
+        var totalQuestions = 13;
+
+        // Position coordinates mapped across container frame widths
+        var garbageCoordinates = [
+            { asset: "assets/bottle1.png", top: "110px", left: "25px" },
+            { asset: "assets/bottle2.png", top: "145px", left: "115px" },
+            { asset: "assets/bottle1.png", top: "115px", left: "210px" },
+            { asset: "assets/bottle2.png", top: "150px", left: "300px" },
+            { asset: "assets/bottle1.png", top: "120px", left: "410px" },
+            { asset: "assets/bottle2.png", top: "155px", left: "495px" },
+            { asset: "assets/bottle1.png", top: "130px", left: "585px" },
+            { asset: "assets/bottle2.png", top: "140px", left: "645px" }
+        ];
+
+        var turtleCoordinates = [
+            { id: 1, top: "50px", left: "45px", wrap: "assets/wrapper-purple.png" },
+            { id: 2, top: "110px", left: "175px", wrap: "assets/wrapper-red.png" },
+            { id: 3, top: "45px", left: "315px", wrap: "assets/wrapper-yellow.png" },
+            { id: 4, top: "115px", left: "455px", wrap: "assets/wrapper-purple.png" },
+            { id: 5, top: "60px", left: "585px", wrap: "assets/wrapper-red.png" }
+        ];
+
+        function engageMission() {
+            document.getElementById('intro-card').style.display = 'none';
+            document.getElementById('active-playfield').style.display = 'block';
+            buildVisualEnvironment();
+            loadNextChallenge();
+        }
+
+        function buildVisualEnvironment() {
+            var stage = document.getElementById('eco-stage');
+            stage.innerHTML = '';
+            stage.style.backgroundImage = "url('assets/beach-bg.png')";
+
+            // Paint Phase 1 Beach Bottles
+            garbageCoordinates.forEach(function(item, idx) {
+                var img = document.createElement('img');
+                img.className = 'trash-item';
+                img.id = 'trash-' + idx;
+                img.src = item.asset;
+                img.style.top = item.top;
+                img.style.left = item.left;
+                stage.appendChild(img);
+            });
+        }
+
+        function triggerPhaseTwoEnvironment() {
+            var stage = document.getElementById('eco-stage');
+            stage.style.backgroundImage = "url('assets/reef.png')";
+            stage.innerHTML = '';
+
+            // Paint Phase 2 Layered Turtles with wrappers
+            turtleCoordinates.forEach(function(t) {
+                var unit = document.createElement('div');
+                unit.className = 'turtle-unit';
+                unit.id = 'turtle-unit-' + t.id;
+                unit.style.top = t.top;
+                unit.style.left = t.left;
+
+                // Sad Turtle base layer
+                var turtleImg = document.createElement('img');
+                turtleImg.className = 'turtle-img';
+                turtleImg.id = 't-img-' + t.id;
+                turtleImg.src = 'assets/turtle-sad.png';
+
+                // Plastic garbage wrapper top layer
+                var wrapImg = document.createElement('img');
+                wrapImg.className = 'wrapper-img';
+                wrapImg.id = 'w-img-' + t.id;
+                wrapImg.src = t.wrap;
+
+                unit.appendChild(turtleImg);
+                unit.appendChild(wrapImg);
+                stage.appendChild(unit);
+            });
+        }
+
+        function loadNextChallenge() {
+            if (structuralIndex >= totalQuestions) {
+                concludeSimulation();
+                return;
+            }
+
+            document.getElementById('label-task').innerText = "Challenge: " + (structuralIndex + 1) + "/" + totalQuestions;
+            document.getElementById('progress-bar').style.width = ((structuralIndex / totalQuestions) * 100) + "%";
+            document.getElementById('label-score').innerText = gameScore;
+
+            if (structuralIndex < 8) {
+                document.getElementById('label-phase').innerText = "Phase 1: Beach Clean";
+                document.getElementById('label-phase').style.background = "#FFECB3";
+                document.getElementById('label-phase').style.color = "#FF6F00";
+            } else {
+                document.getElementById('label-phase').innerText = "Phase 2: Save Turtles";
+                document.getElementById('label-phase').style.background = "#B2DFDB";
+                document.getElementById('label-phase').style.color = "#004D40";
+                
+                if(structuralIndex === 8 && document.getElementsByClassName('turtle-unit').length === 0) {
+                    triggerPhaseTwoEnvironment();
+                }
+            }
+
+            var currentTargetData = staticDatabase[structuralIndex];
+            document.getElementById('field-question').innerText = currentTargetData.question;
+
+            var choicePanel = document.getElementById('field-options');
+            choicePanel.innerHTML = '';
+
+            currentTargetData.answers.forEach(function(optionText) {
+                var button = document.createElement('button');
+                button.className = 'box-btn';
+                button.innerText = optionText;
+                button.onclick = function() { checkUserSubmission(button, optionText, currentTargetData.correct); };
+                choicePanel.appendChild(button);
+            });
+        }
+
+        function checkUserSubmission(buttonElement, rawValue, correctValue) {
+            var allOptionButtons = document.querySelectorAll('.box-btn');
+            allOptionButtons.forEach(function(btn) { btn.disabled = true; });
+
+            if (rawValue === correctValue) {
+                buttonElement.classList.add('correct');
+                triggerAudio('correct');
+                gameScore++;
+                document.getElementById('label-score').innerText = gameScore;
+                deployConfettiEngine();
+
+                if (structuralIndex < 8) {
+                    // Remove individual trash bottle
+                    var targetTrash = document.getElementById('trash-' + structuralIndex);
+                    if (targetTrash) {
+                        targetTrash.style.transform = "translateY(-50px) scale(0) rotate(45deg)";
+                        targetTrash.style.opacity = "0";
+                    }
+                } else {
+                    // Free individual turtle
+                    var targetTurtleID = (structuralIndex - 8) + 1;
+                    var wrapImg = document.getElementById('w-img-' + targetTurtleID);
+                    var turtleImg = document.getElementById('t-img-' + targetTurtleID);
+                    var fullUnit = document.getElementById('turtle-unit-' + targetTurtleID);
+
+                    // Blast plastic wrapper away
+                    if (wrapImg) {
+                        wrapImg.style.transform = "translateY(-60px) scale(0) rotate(-45deg)";
+                        wrapImg.style.opacity = "0";
+                    }
+                    
+                    // Switch to happy swimming turtle asset and float right
+                    setTimeout(function() {
+                        if (turtleImg) turtleImg.src = 'assets/turtle-happy.png';
+                        if (fullUnit) {
+                            fullUnit.style.transform = "translateX(250px) scale(0.4)";
+                            fullUnit.style.opacity = "0";
+                        }
+                    }, 300);
+                }
+            } else {
+                buttonElement.classList.add('wrong');
+                triggerAudio('wrong');
+                allOptionButtons.forEach(function(btn) {
+                    if (btn.innerText === correctValue) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+
+            setTimeout(function() {
+                structuralIndex++;
+                loadNextChallenge();
+            }, 2400);
+        }
+
+        function concludeSimulation() {
+            document.getElementById('active-playfield').style.display = 'none';
+            document.getElementById('victory-card').style.display = 'block';
+            document.getElementById('final-stats').innerText = "Score Secured: " + gameScore + " / " + totalQuestions;
+            
+            if(gameScore >= 9) {
+                var terminalCount = 0;
+                var finalBurstClock = setInterval(function() {
+                    deployConfettiEngine();
+                    terminalCount++;
+                    if(terminalCount > 5) clearInterval(finalBurstClock);
+                }, 400);
+            }
+        }
+
+        function resetSimulator() {
+            structuralIndex = 0;
+            gameScore = 0;
+            document.getElementById('victory-card').style.display = 'none';
+            document.getElementById('intro-card').style.display = 'block';
+        }
+
+        // --- SAFE INITIAL TRANSITION AUTOMATION ---
+        setTimeout(function() {
+            var splashWindow = document.getElementById('splash-screen');
+            var mainContainerWindow = document.getElementById('game-container');
+            if (splashWindow && mainContainerWindow) {
+                splashWindow.style.opacity = '0';
+                mainContainerWindow.style.display = 'block';
+                setTimeout(function() { 
+                    mainContainerWindow.style.opacity = '1'; 
+                    splashWindow.remove();
+                }, 500);
+            }
+        }, 5000);
+    </script>
+</body>
+</html>
