@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Math Climb: 4x4 Tower - Grade 2</title>
+<title>Math Climb: Balanced 4x4 Tower - Grade 2</title>
 <style>
     :root {
         --sky-blue: #38bdf8;
@@ -16,7 +16,7 @@
         width: 100%; height: 100%;
         font-family: 'Segoe UI', Arial, sans-serif;
         color: #1e293b; overflow: hidden;
-        background-color: #ffffff; /* Locked startup color */
+        background-color: #ffffff;
     }
 
     /* 100% Blank Screen Wrapper until Splash finishes */
@@ -207,6 +207,7 @@
         <div class="card">
             <h1>Math Climb 4x4 Tower 🎲🪜</h1>
             <p>Solve addition & subtraction up to 999 to move your character around the grid and climb the majestic tower ladders!</p>
+            <p style="font-weight: bold; color: #0284c7;">🎯 Rule: Solve at least 10 equations to win! Watch out—climbing up a ladder triggers a snake response next turn!</p>
             
             <h3 style="color: #475569;">Select Your Animal Companion:</h3>
             <div class="character-select-box">
@@ -233,8 +234,8 @@
 
     <div id="screen-game" class="screen">
         <div class="hud-bar">
-            <div id="hud-score">Stars: ⭐ 0</div>
-            <div>Goal: Space 16 🏆</div>
+            <div id="hud-score">Solved: 📝 0 / 10</div>
+            <div id="hud-goal-text">Goal: Active Climb 🧗</div>
             <div id="hud-status" style="color: #0284c7;">Your Turn</div>
         </div>
 
@@ -245,7 +246,7 @@
 
         <div class="card" style="padding: 20px;">
             <div style="margin-bottom: 8px; font-weight: bold; color: #475569; font-size: 15px;">
-                Solve to climb! <span id="dice-graphic" class="dice-cube">🎲</span>
+                Solve to roll! <span id="dice-graphic" class="dice-cube">🎲</span>
             </div>
             
             <div class="math-panel" id="math-problem-display">---</div>
@@ -273,15 +274,19 @@
     
     let activeCharacterIdx = 0;
     let playerCurrentTileSpace = 1;
-    const finalWinningTileSpace = 16;
-    let earnedStarsScore = 0;
+    let finalWinningTileSpace = -1; 
+    let correctAnswersCount = 0;
     let targetSolution = 0;
+    
+    // Balanced System State Tracking Variable
+    let snakeCounterAttackActive = false;
 
+    // Classic stable ladders & structural snakes layout maps
     const specialTilesLayout = {
-        3: { type: 'ladder', target: 10, label: '🪜 Up to 10' },
-        6: { type: 'ladder', target: 14, label: '🪜 Up to 14' },
-        9: { type: 'snake', target: 2, label: '🐍 Down to 2' },
-        13: { type: 'snake', target: 5, label: '🐍 Down to 5' }
+        2: { type: 'ladder', target: 7, label: '🪜 Up to 7' },
+        5: { type: 'ladder', target: 11, label: '🪜 Up to 11' },
+        9: { type: 'snake', target: 3, label: '🐍 Down to 3' },
+        14: { type: 'snake', target: 8, label: '🐍 Down to 8' }
     };
 
     const architecturalTileOrder = [
@@ -325,7 +330,9 @@
 
     function resetBoardState() {
         playerCurrentTileSpace = 1;
-        earnedStarsScore = 0;
+        finalWinningTileSpace = -1;
+        correctAnswersCount = 0;
+        snakeCounterAttackActive = false;
     }
 
     function startBoardClimb() {
@@ -354,9 +361,11 @@
                     tile.classList.add('snake-tile');
                     decorativeLabel = specialTilesLayout[tileNum].label;
                 }
-            } else if (tileNum === finalWinningTileSpace) {
-                tile.classList.add('win-tile');
-                decorativeLabel = '🏆 WIN';
+            }
+            
+            if (finalWinningTileSpace !== -1 && tileNum === finalWinningTileSpace) {
+                tile.className = 'board-tile win-tile';
+                decorativeLabel = '🏆 WIN TILE';
             }
 
             tile.innerHTML = `<div>${tileNum}</div><div class="tile-decor-tag">${decorativeLabel}</div>`;
@@ -398,6 +407,13 @@
         document.getElementById('hud-status').innerText = "Your Turn";
         document.getElementById('hud-status').style.color = "#0284c7";
         document.getElementById('dice-graphic').style.display = 'none';
+        document.getElementById('hud-score').innerText = `Solved: 📝 ${correctAnswersCount} / 10`;
+        
+        if(correctAnswersCount >= 10) {
+            document.getElementById('hud-goal-text').innerText = `Goal: Space ${finalWinningTileSpace} 🏆`;
+        } else {
+            document.getElementById('hud-goal-text').innerText = `Goal: Active Climb 🧗`;
+        }
 
         const isAdditionMode = Math.random() > 0.5;
         let numA, numB;
@@ -448,8 +464,8 @@
         document.querySelectorAll('.btn-choice').forEach(b => b.onclick = null);
 
         if (selectedVal === targetSolution) {
-            earnedStarsScore += 10;
-            document.getElementById('hud-score').innerText = `Stars: ⭐ ${earnedStarsScore}`;
+            correctAnswersCount++;
+            document.getElementById('hud-score').innerText = `Solved: 📝 ${correctAnswersCount} / 10`;
             
             const audioC = document.getElementById('snd-correct');
             if(audioC) audioC.play().catch(() => {});
@@ -465,12 +481,22 @@
                 const movementSteps = Math.floor(Math.random() * 3) + 1;
                 playerCurrentTileSpace += movementSteps;
                 
-                if (playerCurrentTileSpace >= finalWinningTileSpace) {
+                if (playerCurrentTileSpace > 16 && correctAnswersCount < 10) {
+                    playerCurrentTileSpace = (playerCurrentTileSpace % 16) || 1;
+                }
+
+                if (correctAnswersCount === 10 && finalWinningTileSpace === -1) {
+                    finalWinningTileSpace = playerCurrentTileSpace + 1;
+                    if(finalWinningTileSpace > 16) finalWinningTileSpace = 16;
+                    buildTowerGridMatrix();
+                }
+
+                if (correctAnswersCount >= 10 && playerCurrentTileSpace >= finalWinningTileSpace) {
                     playerCurrentTileSpace = finalWinningTileSpace;
                     positionTokenOnGridSpace(playerCurrentTileSpace);
                     setTimeout(() => {
                         goToScreen('screen-end');
-                        document.getElementById('end-summary-text').innerText = `Magnificent work Tower Conqueror! You climbed all the way to Space 16, amassed ${earnedStarsScore} total Stars, and dominated Grade 2 calculations perfectly!`;
+                        document.getElementById('end-summary-text').innerText = `Magnificent work Tower Conqueror! You balanced the paths, handled all the snake falls, solved ${correctAnswersCount} equations, and won!`;
                     }, 1200);
                     return;
                 }
@@ -478,14 +504,15 @@
                 positionTokenOnGridSpace(playerCurrentTileSpace);
 
                 setTimeout(() => {
+                    // Check standard tile event bindings
                     if (specialTilesLayout[playerCurrentTileSpace]) {
                         const gridEvent = specialTilesLayout[playerCurrentTileSpace];
                         playerCurrentTileSpace = gridEvent.target;
                         
                         if (gridEvent.type === 'ladder') {
                             triggerEventOverlay("🪜 LADDER CLIMB!", "#fbbf24");
-                            earnedStarsScore += 15;
-                            document.getElementById('hud-score').innerText = `Stars: ⭐ ${earnedStarsScore}`;
+                            // UP TRIGGER: Flag counterattack snake mechanism for their next upcoming turn
+                            snakeCounterAttackActive = true; 
                         } else {
                             triggerEventOverlay("🐍 SNAKE SLIDE!", "#ef4444");
                         }
@@ -494,6 +521,23 @@
                             positionTokenOnGridSpace(playerCurrentTileSpace);
                             generateEquationRound();
                         }, 1200);
+
+                    // WHAT GOES UP MUST COME DOWN: Dynamic Snake Counter-Attack Engine Execution!
+                    } else if (snakeCounterAttackActive) {
+                        snakeCounterAttackActive = false; // Reset toggle flag immediately
+                        
+                        // Drop player down by random spaces (1-3) to balance out previous ladder climb
+                        const slideDownAmt = Math.floor(Math.random() * 3) + 1;
+                        playerCurrentTileSpace -= slideDownAmt;
+                        if(playerCurrentTileSpace < 1) playerCurrentTileSpace = 1;
+
+                        triggerEventOverlay("🐍 WHAT GOES UP COMES DOWN!", "#ef4444");
+
+                        setTimeout(() => {
+                            positionTokenOnGridSpace(playerCurrentTileSpace);
+                            generateEquationRound();
+                        }, 1200);
+
                     } else {
                         generateEquationRound();
                     }
