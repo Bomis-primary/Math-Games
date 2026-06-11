@@ -69,10 +69,10 @@
         }
         .start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
 
-        /* --- DYNAMIC ENVIRONMENT HUB --- */
+        /* --- DYNAMIC ENVIRONMENT --- */
         #eco-stage {
             width: 100%;
-            height: 220px;
+            height: 240px;
             border-radius: 20px;
             margin-bottom: 20px;
             position: relative;
@@ -80,44 +80,50 @@
             border: 4px solid #0097A7;
             background-size: cover;
             background-position: center;
-            transition: background-image 0.5s ease-in-out;
         }
 
-        /* Garbage Visual Styling */
+        /* Litter Asset Optimization: Removes White Background Box Artifacts */
         .trash-item {
             position: absolute;
-            width: 45px;
+            width: 48px;
             height: auto;
+            mix-blend-mode: multiply; /* Blends away solid white bounding spaces */
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.25));
         }
 
-        /* Interactive Turtle & Wrapper Units */
-        .turtle-unit {
+        /* Phase 2 Interactive Turtles */
+        .turtle-interactive {
             position: absolute;
-            width: 75px;
-            height: 75px;
-            transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            width: 70px;
+            height: 70px;
+            cursor: pointer;
+            transition: transform 0.3s ease, filter 0.3s;
         }
-        .turtle-img {
-            position: absolute;
+        .turtle-interactive img {
             width: 100%;
             height: auto;
-            z-index: 1;
-            transition: transform 0.3s;
+            display: block;
         }
-        .wrapper-img {
-            position: absolute;
-            width: 110%;
-            height: auto;
-            z-index: 2;
-            transition: all 0.6s ease-out;
+        .turtle-interactive.pulse {
+            animation: softPulse 1.5s infinite alternate;
+            filter: drop-shadow(0px 0px 8px #FFEB3B);
+        }
+        .turtle-interactive.saved {
+            cursor: default;
+            pointer-events: none;
+            animation: swimAway 3s forwards ease-in-out;
         }
 
-        /* --- HUD & CONTROL INTERFACE --- */
+        @keyframes softPulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.12); }
+        }
+        @keyframes swimAway {
+            0% { transform: scale(1) translateX(0); opacity: 1; }
+            100% { transform: scale(0.4) translateX(300px); opacity: 0; }
+        }
+
+        /* --- HUD & QUESTIONS --- */
         .hud-header {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 12px; font-weight: bold; font-size: 1.1rem;
@@ -131,10 +137,10 @@
         #progress-bar { height: 100%; width: 0%; background: #00BCF2; transition: width 0.3s; }
 
         .equation-box {
-            font-size: 1.65rem; font-weight: bold; color: #006064;
+            font-size: 1.55rem; font-weight: bold; color: #006064;
             background: #F5F5F5; padding: 18px; border-radius: 15px;
             margin-bottom: 20px; border-bottom: 4px solid #B0BEC5;
-            min-height: 75px; display: flex; align-items: center; justify-content: center;
+            min-height: 85px; display: flex; align-items: center; justify-content: center;
         }
 
         .grid-matrix { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 10px; }
@@ -155,38 +161,43 @@
 </head>
 <body>
 
+    <!-- Splash Loader Screen -->
     <div id="splash-screen">
         <img src="assets/logo.png" alt="Innovine Logo" class="splash-logo" onerror="this.src='https://placehold.co/200?text=Innovine'">
     </div>
 
+    <!-- Main Game Context -->
     <div id="game-container">
         
         <div id="intro-card">
             <div style="font-size: 4rem; margin-bottom: 10px;">🌊🐢</div>
             <h2 style="color: #00838F; font-size: 2.3rem; margin-bottom: 12px;">Mission: Save the Sea Turtles!</h2>
             <p class="mission-text">
-                Litter has washed up on the beach, and plastic wrappers are trapping baby turtles in the coral reef!
+                Litter has washed up on the beach, and baby turtles are stuck out in the coral reef!
                 <br><br>
-                <strong>Your Mission:</strong> Solve 13 Place-Value math challenges correctly to clear out the trash and free the sea turtles!
+                <strong>Your Mission:</strong> Solve place-value math questions to clear the beach litter, then click on trapped turtles in the reef to save them!
             </p>
             <button class="start-btn" onclick="engageMission()">Accept Mission! 🚀</button>
         </div>
 
+        <!-- Playfield Interface -->
         <div id="active-playfield" style="display: none;">
             <div class="hud-header">
-                <span id="label-task">Challenge: 1/13</span>
+                <span id="label-task">Progress Tracker</span>
                 <span class="phase-badge" id="label-phase">Phase 1: Beach Clean</span>
                 <span>Score: <span id="label-score">0</span></span>
             </div>
 
             <div class="progress-track"><div id="progress-bar"></div></div>
 
+            <!-- ANIMATED ENVIROMENT FRAME -->
             <div id="eco-stage"></div>
 
-            <div class="equation-box" id="field-question">Loading challenge scenario...</div>
+            <div class="equation-box" id="field-question">Loading assignment...</div>
             <div class="grid-matrix" id="field-options"></div>
         </div>
 
+        <!-- End Card -->
         <div id="victory-card" style="display: none;">
             <div style="font-size: 5rem;">🏆🐢🏆</div>
             <h1 style="color: #2E7D32; font-size: 2.5rem; margin: 15px 0;">Marine Hero Certified!</h1>
@@ -199,20 +210,20 @@
 
     </div>
 
+    <!-- AUDIO HARDWARE -->
     <audio id="snd-correct" src="assets/correct.mp3"></audio>
     <audio id="snd-wrong" src="assets/wrong.mp3"></audio>
 
     <script>
-        var volumeLevel = 0.5;
         var audioCorrect = document.getElementById('snd-correct');
         var audioWrong = document.getElementById('snd-wrong');
 
         function triggerAudio(mode) {
             try {
                 if (mode === 'correct' && audioCorrect) {
-                    audioCorrect.volume = volumeLevel; audioCorrect.currentTime = 0; audioCorrect.play().catch(function(){});
+                    audioCorrect.volume = 0.4; audioCorrect.currentTime = 0; audioCorrect.play().catch(function(){});
                 } else if (mode === 'wrong' && audioWrong) {
-                    audioWrong.volume = volumeLevel; audioWrong.currentTime = 0; audioWrong.play().catch(function(){});
+                    audioWrong.volume = 0.4; audioWrong.currentTime = 0; audioWrong.play().catch(function(){});
                 }
             } catch(err) {}
         }
@@ -221,36 +232,25 @@
             var frame = document.getElementById('game-container');
             if(!frame) return;
             var palettes = ['#00E5FF', '#FFEA00', '#00E676', '#FF3D00', '#E040FB', '#FFFFFF'];
-            
-            for (var i = 0; i < 45; i++) {
+            for (var i = 0; i < 40; i++) {
                 var atom = document.createElement('div');
                 atom.className = 'confetti-element';
                 atom.style.backgroundColor = palettes[Math.floor(Math.random() * palettes.length)];
                 frame.appendChild(atom);
-
-                var vectorAngle = Math.random() * Math.PI * 2;
-                var vectorForce = Math.random() * 200 + 70;
-                var shiftX = Math.cos(vectorAngle) * vectorForce;
-                var shiftY = Math.sin(vectorAngle) * vectorForce - 30;
-
+                var angle = Math.random() * Math.PI * 2;
+                var force = Math.random() * 180 + 60;
+                var shiftX = Math.cos(angle) * force;
+                var shiftY = Math.sin(angle) * force - 20;
                 atom.animate([
                     { transform: 'translate(-50%, -50%) scale(1) rotate(0deg)', opacity: 1 },
                     { transform: 'translate(calc(-50% + ' + shiftX + 'px), calc(-50% + ' + shiftY + 'px)) scale(0.3) rotate(' + (Math.random() * 360) + 'deg)', opacity: 0 }
-                ], {
-                    duration: Math.random() * 700 + 800,
-                    easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)',
-                    fill: 'forwards'
-                });
-
-                (function(elementInstance) {
-                    setTimeout(function() { if(elementInstance) elementInstance.remove(); }, 1600);
-                })(atom);
+                ], { duration: Math.random() * 600 + 700, easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)', fill: 'forwards' });
+                (function(el) { setTimeout(function() { if(el) el.remove(); }, 1400); })(atom);
             }
         }
 
-        // Mapping Database aligning to Grade 3 Number System LOs
-        var staticDatabase = [
-            // Phase 1: Beach Litter Cleaning (Indices 0 - 7)
+        // Grade 3 Curriculum Database
+        var phase1Pool = [
             { question: "What is the place value of 5 in the number 3,524?", answers: ["50", "500", "5", "5000"], correct: "500" },
             { question: "Express in Standard Form digits: Four thousand, two hundred sixty-one", answers: ["4261", "4026", "4216", "4621"], correct: "4261" },
             { question: "What is the face value of 7 in the number 8,179?", answers: ["70", "700", "7", "7000"], correct: "7" },
@@ -258,223 +258,257 @@
             { question: "Identify the number notation that correctly replaces the question mark: 5,612 < ?", answers: ["5609", "4999", "5610", "5620"], correct: "5620" },
             { question: "What number comes immediately before (Predecessor) 7,000?", answers: ["6999", "7001", "6000", "6990"], correct: "6999" },
             { question: "What number represents the Successor of 3,459?", answers: ["3458", "3460", "3500", "4459"], correct: "3460" },
-            { question: "Which digit holds the Thousands place value position in 8,214?", answers: ["4", "1", "2", "8"], correct: "8" },
-            
-            // Phase 2: Turtle Release (Indices 8 - 12)
-            { question: "Form the smallest 4-digit number using digits [4, 0, 8, 1] without repeating any digits.", answers: ["0148", "1480", "1048", "4810"], correct: "1048" },
-            { question: "Form the largest 4-digit number using digits [3, 9, 2, 7] without repeating any digits.", answers: ["9732", "9723", "2379", "7932"], correct: "9732" },
+            { question: "Which digit holds the Thousands place value position in 8,214?", answers: ["4", "1", "2", "8"], correct: "8" }
+        ];
+
+        var phase2Pool = [
+            { question: "Form the smallest 4-digit number using digits [4, 0, 8, 1] safely.", answers: ["0148", "1480", "1048", "4810"], correct: "1048" },
+            { question: "Form the largest 4-digit number using digits [3, 9, 2, 7] safely.", answers: ["9732", "9723", "2379", "7932"], correct: "9732" },
             { question: "Which of the following numbers is an ODD number?", answers: ["4320", "8812", "5674", "7129"], correct: "7129" },
             { question: "Round off the 4-digit number 4,325 to the nearest HUNDRED.", answers: ["4300", "4400", "4330", "4000"], correct: "4300" },
             { question: "Perform skip counting by 100s to fill the blank: 1200, 1300, 1400, ____", answers: ["1410", "1500", "2400", "1600"], correct: "1500" }
         ];
 
-        var structuralIndex = 0;
+        var currentPhase = 1;
+        var p1Index = 0;
         var gameScore = 0;
-        var totalQuestions = 13;
+        var activeTurtleTarget = null;
 
-        // Position coordinates mapped across container frame widths (including your new tetra asset!)
-        var garbageCoordinates = [
-            { asset: "assets/bottle1.png", top: "110px", left: "25px" },
-            { asset: "assets/bottle2.png", top: "145px", left: "115px" },
-            { asset: "assets/tetra.png", top: "115px", left: "210px" },
-            { asset: "assets/bottle2.png", top: "150px", left: "300px" },
-            { asset: "assets/bottle1.png", top: "120px", left: "410px" },
-            { asset: "assets/tetra.png", top: "155px", left: "495px" },
-            { asset: "assets/bottle1.png", top: "130px", left: "585px" },
-            { asset: "assets/bottle2.png", top: "140px", left: "645px" }
+        // Phase 1: All mixed clutter assets (Bottles, Tetras, and Wrappers together)
+        var beachLitter = [
+            { asset: "assets/bottle1.png", top: "130px", left: "30px" },
+            { asset: "assets/wrapper-purple.png", top: "165px", left: "110px" },
+            { asset: "assets/tetra.png", top: "125px", left: "200px" },
+            { asset: "assets/bottle2.png", top: "160px", left: "290px" },
+            { asset: "assets/wrapper-red.png", top: "135px", left: "390px" },
+            { asset: "assets/tetra.png", top: "170px", left: "480px" },
+            { asset: "assets/wrapper-yellow.png", top: "125px", left: "570px" },
+            { asset: "assets/bottle1.png", top: "155px", left: "640px" }
         ];
 
-        var turtleCoordinates = [
-            { id: 1, top: "50px", left: "45px", wrap: "assets/wrapper-purple.png" },
-            { id: 2, top: "110px", left: "175px", wrap: "assets/wrapper-red.png" },
-            { id: 3, top: "45px", left: "315px", wrap: "assets/wrapper-yellow.png" },
-            { id: 4, top: "115px", left: "455px", wrap: "assets/wrapper-purple.png" },
-            { id: 5, top: "60px", left: "585px", wrap: "assets/wrapper-red.png" }
+        // Phase 2: Reef coordinate spaces tracking individual turtle instances
+        var reefTurtles = [
+            { id: 0, top: "40px", left: "50px", solved: false },
+            { id: 1, top: "120px", left: "180px", solved: false },
+            { id: 2, top: "35px", left: "320px", solved: false },
+            { id: 3, top: "130px", left: "460px", solved: false },
+            { id: 4, top: "50px", left: "590px", solved: false }
         ];
 
         function engageMission() {
             document.getElementById('intro-card').style.display = 'none';
             document.getElementById('active-playfield').style.display = 'block';
-            buildVisualEnvironment();
-            loadNextChallenge();
+            initBeachPhase();
         }
 
-        function buildVisualEnvironment() {
+        /* --- PHASE 1 RUNTIME MECHANICS --- */
+        function initBeachPhase() {
+            currentPhase = 1;
+            p1Index = 0;
             var stage = document.getElementById('eco-stage');
-            stage.innerHTML = '';
             stage.style.backgroundImage = "url('assets/beach-bg.png')";
+            stage.innerHTML = '';
 
-            // Paint Phase 1 Beach Bottles & Tetra items
-            garbageCoordinates.forEach(function(item, idx) {
+            beachLitter.forEach(function(item, idx) {
                 var img = document.createElement('img');
                 img.className = 'trash-item';
-                img.id = 'trash-' + idx;
+                img.id = 'litter-' + idx;
                 img.src = item.asset;
                 img.style.top = item.top;
                 img.style.left = item.left;
                 stage.appendChild(img);
             });
+            executePhase1Challenge();
         }
 
-        function triggerPhaseTwoEnvironment() {
-            var stage = document.getElementById('eco-stage');
-            stage.style.backgroundImage = "url('assets/reef.png')";
-            stage.innerHTML = '';
+        function executePhase1Challenge() {
+            var totalQ = phase1Pool.length + phase2Pool.length;
+            document.getElementById('label-task').innerText = "Challenge: " + (p1Index + 1) + " / " + totalQ;
+            document.getElementById('progress-bar').style.width = ((p1Index / totalQ) * 100) + "%";
 
-            // Paint Phase 2 Layered Turtles with wrappers
-            turtleCoordinates.forEach(function(t) {
-                var unit = document.createElement('div');
-                unit.className = 'turtle-unit';
-                unit.id = 'turtle-unit-' + t.id;
-                unit.style.top = t.top;
-                unit.style.left = t.left;
+            var data = phase1Pool[p1Index];
+            document.getElementById('field-question').innerText = data.question;
+            
+            var optionsBox = document.getElementById('field-options');
+            optionsBox.innerHTML = '';
 
-                // Sad Turtle base layer
-                var turtleImg = document.createElement('img');
-                turtleImg.className = 'turtle-img';
-                turtleImg.id = 't-img-' + t.id;
-                turtleImg.src = 'assets/turtle-sad.png';
-
-                // Plastic garbage wrapper top layer
-                var wrapImg = document.createElement('img');
-                wrapImg.className = 'wrapper-img';
-                wrapImg.id = 'w-img-' + t.id;
-                wrapImg.src = t.wrap;
-
-                unit.appendChild(turtleImg);
-                unit.appendChild(wrapImg);
-                stage.appendChild(unit);
+            data.answers.forEach(function(ans) {
+                var btn = document.createElement('button');
+                btn.className = 'box-btn';
+                btn.innerText = ans;
+                btn.onclick = function() { checkPhase1Answer(btn, ans, data.correct); };
+                optionsBox.appendChild(btn);
             });
         }
 
-        function loadNextChallenge() {
-            if (structuralIndex >= totalQuestions) {
-                concludeSimulation();
-                return;
-            }
+        function checkPhase1Answer(btnElement, chosen, correct) {
+            document.querySelectorAll('.box-btn').forEach(function(b) { b.disabled = true; });
 
-            document.getElementById('label-task').innerText = "Challenge: " + (structuralIndex + 1) + "/" + totalQuestions;
-            document.getElementById('progress-bar').style.width = ((structuralIndex / totalQuestions) * 100) + "%";
-            document.getElementById('label-score').innerText = gameScore;
-
-            if (structuralIndex < 8) {
-                document.getElementById('label-phase').innerText = "Phase 1: Beach Clean";
-                document.getElementById('label-phase').style.background = "#FFECB3";
-                document.getElementById('label-phase').style.color = "#FF6F00";
-            } else {
-                document.getElementById('label-phase').innerText = "Phase 2: Save Turtles";
-                document.getElementById('label-phase').style.background = "#B2DFDB";
-                document.getElementById('label-phase').style.color = "#004D40";
-                
-                if(structuralIndex === 8 && document.getElementsByClassName('turtle-unit').length === 0) {
-                    triggerPhaseTwoEnvironment();
-                }
-            }
-
-            var currentTargetData = staticDatabase[structuralIndex];
-            document.getElementById('field-question').innerText = currentTargetData.question;
-
-            var choicePanel = document.getElementById('field-options');
-            choicePanel.innerHTML = '';
-
-            currentTargetData.answers.forEach(function(optionText) {
-                var button = document.createElement('button');
-                button.className = 'box-btn';
-                button.innerText = optionText;
-                button.onclick = function() { checkUserSubmission(button, optionText, currentTargetData.correct); };
-                choicePanel.appendChild(button);
-            });
-        }
-
-        function checkUserSubmission(buttonElement, rawValue, correctValue) {
-            var allOptionButtons = document.querySelectorAll('.box-btn');
-            allOptionButtons.forEach(function(btn) { btn.disabled = true; });
-
-            if (rawValue === correctValue) {
-                buttonElement.classList.add('correct');
+            if(chosen === correct) {
+                btnElement.classList.add('correct');
                 triggerAudio('correct');
                 gameScore++;
                 document.getElementById('label-score').innerText = gameScore;
                 deployConfettiEngine();
 
-                if (structuralIndex < 8) {
-                    // Remove individual trash bottle
-                    var targetTrash = document.getElementById('trash-' + structuralIndex);
-                    if (targetTrash) {
-                        targetTrash.style.transform = "translateY(-50px) scale(0) rotate(45deg)";
-                        targetTrash.style.opacity = "0";
-                    }
-                } else {
-                    // Free individual turtle
-                    var targetTurtleID = (structuralIndex - 8) + 1;
-                    var wrapImg = document.getElementById('w-img-' + targetTurtleID);
-                    var turtleImg = document.getElementById('t-img-' + targetTurtleID);
-                    var fullUnit = document.getElementById('turtle-unit-' + targetTurtleID);
-
-                    // Blast plastic wrapper away
-                    if (wrapImg) {
-                        wrapImg.style.transform = "translateY(-60px) scale(0) rotate(-45deg)";
-                        wrapImg.style.opacity = "0";
-                    }
-                    
-                    // Switch to happy swimming turtle asset and float right
-                    setTimeout(function() {
-                        if (turtleImg) turtleImg.src = 'assets/turtle-happy.png';
-                        if (fullUnit) {
-                            fullUnit.style.transform = "translateX(250px) scale(0.4)";
-                            fullUnit.style.opacity = "0";
-                        }
-                    }, 300);
+                var piece = document.getElementById('litter-' + p1Index);
+                if(piece) {
+                    piece.style.transform = "translateY(-60px) scale(0) rotate(55deg)";
+                    piece.style.opacity = "0";
                 }
             } else {
-                buttonElement.classList.add('wrong');
+                btnElement.classList.add('wrong');
                 triggerAudio('wrong');
-                allOptionButtons.forEach(function(btn) {
-                    if (btn.innerText === correctValue) {
-                        btn.classList.add('correct');
-                    }
+                document.querySelectorAll('.box-btn').forEach(function(b) {
+                    if(b.innerText === correct) b.classList.add('correct');
                 });
             }
 
             setTimeout(function() {
-                structuralIndex++;
-                loadNextChallenge();
-            }, 2400);
+                p1Index++;
+                if(p1Index < phase1Pool.length) {
+                    executePhase1Challenge();
+                } else {
+                    initReefPhase();
+                }
+            }, 2200);
+        }
+
+        /* --- PHASE 2 RUNTIME MECHANICS (CLICK TURTLE TO INITIATE) --- */
+        function initReefPhase() {
+            currentPhase = 2;
+            var stage = document.getElementById('eco-stage');
+            stage.style.backgroundImage = "url('assets/reef.png')";
+            stage.innerHTML = '';
+
+            document.getElementById('label-phase').innerText = "Phase 2: Coral Rescue";
+            document.getElementById('label-phase').style.background = "#B2DFDB";
+            document.getElementById('label-phase').style.color = "#004D40";
+
+            reefTurtles.forEach(function(t) {
+                t.solved = false;
+                var wrapper = document.createElement('div');
+                wrapper.className = 'turtle-interactive pulse';
+                wrapper.id = 'turtle-node-' + t.id;
+                wrapper.style.top = t.top;
+                wrapper.style.left = t.left;
+
+                var img = document.createElement('img');
+                img.id = 'turtle-img-' + t.id;
+                img.src = 'assets/turtle-sad.png'; // Start as trapped/sad
+
+                wrapper.appendChild(img);
+                wrapper.onclick = function() { chooseTurtleTarget(t.id); };
+                stage.appendChild(wrapper);
+            });
+
+            promptForTurtleTap();
+        }
+
+        function promptForTurtleTap() {
+            var totalQ = phase1Pool.length + phase2Pool.length;
+            var completedCount = phase1Pool.length + getSolvedTurtlesCount();
+            document.getElementById('label-task').innerText = "Challenge: " + (completedCount + 1) + " / " + totalQ;
+            document.getElementById('progress-bar').style.width = ((completedCount / totalQ) * 100) + "%";
+
+            document.getElementById('field-question').innerText = "🐢 Tap or Click any trapped turtle in the coral reef to start their rescue challenge!";
+            document.getElementById('field-options').innerHTML = '';
+        }
+
+        function getSolvedTurtlesCount() {
+            return reefTurtles.filter(function(t){ return t.solved; }).length;
+        }
+
+        function chooseTurtleTarget(id) {
+            if(reefTurtles[id].solved) return;
+            activeTurtleTarget = id;
+
+            // Stop pulse effect on others, focus highlight on selected
+            reefTurtles.forEach(function(t) {
+                var node = document.getElementById('turtle-node-' + t.id);
+                if(node) node.classList.remove('pulse');
+            });
+
+            var qIndex = getSolvedTurtlesCount();
+            var data = phase2Pool[qIndex];
+            document.getElementById('field-question').innerText = data.question;
+            
+            var optionsBox = document.getElementById('field-options');
+            optionsBox.innerHTML = '';
+
+            data.answers.forEach(function(ans) {
+                var btn = document.createElement('button');
+                btn.className = 'box-btn';
+                btn.innerText = ans;
+                btn.onclick = function() { checkPhase2Answer(btn, ans, data.correct); };
+                optionsBox.appendChild(btn);
+            });
+        }
+
+        function checkPhase2Answer(btnElement, chosen, correct) {
+            document.querySelectorAll('.box-btn').forEach(function(b) { b.disabled = true; });
+
+            if(chosen === correct) {
+                btnElement.classList.add('correct');
+                triggerAudio('correct');
+                gameScore++;
+                document.getElementById('label-score').innerText = gameScore;
+                deployConfettiEngine();
+
+                reefTurtles[activeTurtleTarget].solved = true;
+                
+                // Instantly transform texture to happy swimming state
+                var tImg = document.getElementById('turtle-img-' + activeTurtleTarget);
+                if(tImg) tImg.src = 'assets/turtle-happy.png';
+
+                // Triggers structural smooth transition animation moving out of area bounds
+                var node = document.getElementById('turtle-node-' + activeTurtleTarget);
+                if(node) node.classList.add('saved');
+            } else {
+                btnElement.classList.add('wrong');
+                triggerAudio('wrong');
+                document.querySelectorAll('.box-btn').forEach(function(b) {
+                    if(b.innerText === correct) b.classList.add('correct');
+                });
+                
+                // Return selected back to generic state pool if failed so it can be re-attempted
+                var node = document.getElementById('turtle-node-' + activeTurtleTarget);
+                if(node) node.classList.add('pulse');
+            }
+
+            setTimeout(function() {
+                if(getSolvedTurtlesCount() < phase2Pool.length) {
+                    // Make remaining unsolved ones pulse again
+                    reefTurtles.forEach(function(t) {
+                        var n = document.getElementById('turtle-node-' + t.id);
+                        if(n && !t.solved) n.classList.add('pulse');
+                    });
+                    promptForTurtleTap();
+                } else {
+                    concludeSimulation();
+                }
+            }, 2500);
         }
 
         function concludeSimulation() {
             document.getElementById('active-playfield').style.display = 'none';
             document.getElementById('victory-card').style.display = 'block';
-            document.getElementById('final-stats').innerText = "Score Secured: " + gameScore + " / " + totalQuestions;
-            
-            if(gameScore >= 9) {
-                var terminalCount = 0;
-                var finalBurstClock = setInterval(function() {
-                    deployConfettiEngine();
-                    terminalCount++;
-                    if(terminalCount > 5) clearInterval(finalBurstClock);
-                }, 400);
-            }
+            var totalQ = phase1Pool.length + phase2Pool.length;
+            document.getElementById('final-stats').innerText = "Score Secured: " + gameScore + " / " + totalQ;
         }
 
         function resetSimulator() {
-            structuralIndex = 0;
-            gameScore = 0;
-            document.getElementById('victory-card').style.display = 'none';
-            document.getElementById('intro-card').style.display = 'block';
+            location.reload();
         }
 
-        // --- SAFE INITIAL TRANSITION AUTOMATION ---
+        // Loader Screen Dismiss
         setTimeout(function() {
-            var splashWindow = document.getElementById('splash-screen');
-            var mainContainerWindow = document.getElementById('game-container');
-            if (splashWindow && mainContainerWindow) {
-                splashWindow.style.opacity = '0';
-                mainContainerWindow.style.display = 'block';
-                setTimeout(function() { 
-                    mainContainerWindow.style.opacity = '1'; 
-                    splashWindow.remove();
-                }, 500);
+            var splash = document.getElementById('splash-screen');
+            var mainContainer = document.getElementById('game-container');
+            if (splash && mainContainer) {
+                splash.style.opacity = '0';
+                mainContainer.style.display = 'block';
+                setTimeout(function() { splash.remove(); mainContainer.style.opacity = '1'; }, 500);
             }
         }, 5000);
     </script>
