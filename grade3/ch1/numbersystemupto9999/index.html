@@ -38,7 +38,6 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            opacity: 1;
             transition: opacity 0.5s ease-out;
         }
         .splash-logo { max-width: 240px; height: auto; }
@@ -100,37 +99,31 @@
             height: 70px;
             cursor: pointer;
             transition: transform 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            /* Physical crop: cuts off the square corners entirely so no white lines show */
-            clip-path: circle(42% at 50% 50%); 
         }
+        
+        /* 🎯 FIX ONLY: Forces white square backgrounds to blend seamlessly into transparency */
         .turtle-interactive img {
             width: 100%;
             height: auto;
             display: block;
-            background-color: transparent !important;
+            mix-blend-mode: multiply;
+            filter: contrast(1.1) brightness(1.02);
         }
 
-        /* Safe soft pulse glow without utilizing browser filters that conflict with layers */
         .turtle-interactive.pulse {
-            animation: softPulse 1.5s infinite alternate;
-            background-color: rgba(255, 235, 59, 0.5) !important;
+            animation: yellowGlowPulse 1.5s infinite alternate;
         }
         
-        /* Animates forward/right off the playfield screen */
         .turtle-interactive.saved {
             cursor: default;
             pointer-events: none;
-            background-color: transparent !important;
             animation: swimForwardAway 2.5s forwards ease-in-out;
         }
 
-        @keyframes softPulse {
-            0% { transform: scale(1); background-color: rgba(255, 235, 59, 0.3); }
-            100% { transform: scale(1.12); background-color: rgba(255, 235, 59, 0.6); }
+        /* Glowing look that leaves the background multiplication intact */
+        @keyframes yellowGlowPulse {
+            0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(255, 235, 59, 0.5)); }
+            100% { transform: scale(1.12); filter: drop-shadow(0 0 12px rgba(255, 235, 59, 0.9)); }
         }
         
         @keyframes swimForwardAway {
@@ -269,258 +262,4 @@
             { question: "Q6. Which number is the greatest?", answers: ["2,345", "2,435", "2,354", "2,543"], correct: "2,543" },
             { question: "Q7. Arrange these numbers in ascending order: 4,201, 4,021, 4,120", answers: ["4,021, 4,120, 4,201", "4,120, 4,021, 4,201", "4,201, 4,120, 4,021", "4,021, 4,201, 4,120"], correct: "4,021, 4,120, 4,201" },
             { question: "Q8. What is the predecessor of 3,000?", answers: ["2,998", "2,999", "3,001", "3,010"], correct: "2,999" },
-            { question: "Q9. What is the successor of 8,499?", answers: ["8,498", "8,500", "8,490", "8,599"], correct: "8,500" }
-        ];
-
-        // Phase 2 Quiz Pool
-        var phase2Pool = [
-            { question: "Q10. Which is the greatest 4-digit number formed using 1, 4, 6, and 8 without repetition?", answers: ["1468", "8641", "8461", "6841"], correct: "8641" },
-            { question: "Q11. Which number is an odd number?", answers: ["2,348", "5,672", "7,895", "4,120"], correct: "7,895" },
-            { question: "Q12. Round 6,520 to the nearest 1,000.", answers: ["6,000", "6,500", "7,000", "5,000"], correct: "7,000" },
-            { question: "Q13. What comes next in the pattern? 100, 200, 300, 400, ___", answers: ["450", "500", "600", "700"], correct: "500" },
-            { question: "Q14. What Hindu-Arabic number does XL represent?", answers: ["60", "50", "40", "30"], correct: "40" }
-        ];
-
-        var currentPhase = 1;
-        var p1Index = 0;
-        var gameScore = 0;
-        var activeTurtleTarget = null;
-
-        var beachLitter = [
-            { asset: "assets/bottle1.png", top: "135px", left: "25px" },
-            { asset: "assets/wrapper-purple.png", top: "170px", left: "95px" },
-            { asset: "assets/tetra.png", top: "120px", left: "170px" },
-            { asset: "assets/bottle2.png", top: "165px", left: "245px" },
-            { asset: "assets/wrapper-red.png", top: "130px", left: "325px" },
-            { asset: "assets/tetra.png", top: "175px", left: "405px" },
-            { asset: "assets/wrapper-yellow.png", top: "125px", left: "485px" },
-            { asset: "assets/bottle1.png", top: "165px", left: "565px" },
-            { asset: "assets/wrapper-purple.png", top: "135px", left: "640px" }
-        ];
-
-        var reefTurtles = [
-            { id: 0, top: "40px", left: "50px", solved: false },
-            { id: 1, top: "120px", left: "180px", solved: false },
-            { id: 2, top: "35px", left: "320px", solved: false },
-            { id: 3, top: "130px", left: "460px", solved: false },
-            { id: 4, top: "50px", left: "590px", solved: false }
-        ];
-
-        function engageMission() {
-            document.getElementById('intro-card').style.display = 'none';
-            document.getElementById('active-playfield').style.display = 'block';
-            initBeachPhase();
-        }
-
-        function initBeachPhase() {
-            currentPhase = 1;
-            p1Index = 0;
-            var stage = document.getElementById('eco-stage');
-            stage.style.backgroundImage = "url('beach-bg.png')";
-            stage.innerHTML = '';
-
-            beachLitter.forEach(function(item, idx) {
-                var img = document.createElement('img');
-                img.className = 'trash-item';
-                img.id = 'litter-' + idx;
-                img.src = item.asset;
-                img.style.top = item.top;
-                img.style.left = item.left;
-                stage.appendChild(img);
-            });
-            executePhase1Challenge();
-        }
-
-        function executePhase1Challenge() {
-            var totalQ = phase1Pool.length + phase2Pool.length;
-            document.getElementById('label-task').innerText = "Challenge: " + (p1Index + 1) + " / " + totalQ;
-            document.getElementById('progress-bar').style.width = ((p1Index / totalQ) * 100) + "%";
-
-            var data = phase1Pool[p1Index];
-            document.getElementById('field-question').innerText = data.question;
-            
-            var optionsBox = document.getElementById('field-options');
-            optionsBox.innerHTML = '';
-
-            data.answers.forEach(function(ans) {
-                var btn = document.createElement('button');
-                btn.className = 'box-btn';
-                btn.innerText = ans;
-                btn.onclick = function() { checkPhase1Answer(btn, ans, data.correct); };
-                optionsBox.appendChild(btn);
-            });
-        }
-
-        function checkPhase1Answer(btnElement, chosen, correct) {
-            document.querySelectorAll('.box-btn').forEach(function(b) { b.disabled = true; });
-
-            if(chosen === correct) {
-                btnElement.classList.add('correct');
-                triggerAudio('correct');
-                gameScore++;
-                document.getElementById('label-score').innerText = gameScore;
-                deployConfettiEngine();
-
-                var piece = document.getElementById('litter-' + p1Index);
-                if(piece) {
-                    piece.style.transform = "translateY(-60px) scale(0) rotate(55deg)";
-                    piece.style.opacity = "0";
-                }
-            } else {
-                btnElement.classList.add('wrong');
-                triggerAudio('wrong');
-                document.querySelectorAll('.box-btn').forEach(function(b) {
-                    if(b.innerText === correct) b.classList.add('correct');
-                });
-            }
-
-            setTimeout(function() {
-                p1Index++;
-                if(p1Index < phase1Pool.length) {
-                    executePhase1Challenge();
-                } else {
-                    initReefPhase();
-                }
-            }, 2200);
-        }
-
-        function initReefPhase() {
-            currentPhase = 2;
-            var stage = document.getElementById('eco-stage');
-            
-            stage.style.backgroundImage = "url('beach-bg.png')";
-            stage.innerHTML = '';
-
-            document.getElementById('label-phase').innerText = "Phase 2: Coral Rescue";
-            document.getElementById('label-phase').style.background = "#B2DFDB";
-            document.getElementById('label-phase').style.color = "#004D40";
-
-            reefTurtles.forEach(function(t) {
-                t.solved = false;
-                var wrapper = document.createElement('div');
-                wrapper.className = 'turtle-interactive pulse';
-                wrapper.id = 'turtle-node-' + t.id;
-                wrapper.style.top = t.top;
-                wrapper.style.left = t.left;
-
-                var img = document.createElement('img');
-                img.id = 'turtle-img-' + t.id;
-                img.src = 'assets/turtle-sad.png';
-
-                wrapper.appendChild(img);
-                wrapper.onclick = function() { chooseTurtleTarget(t.id); };
-                stage.appendChild(wrapper);
-            });
-
-            promptForTurtleTap();
-        }
-
-        function promptForTurtleTap() {
-            var totalQ = phase1Pool.length + phase2Pool.length;
-            var completedCount = phase1Pool.length + getSolvedTurtlesCount();
-            document.getElementById('label-task').innerText = "Challenge: " + (completedCount + 1) + " / " + totalQ;
-            document.getElementById('progress-bar').style.width = ((completedCount / totalQ) * 100) + "%";
-
-            document.getElementById('field-question').innerText = "🐢 Tap or Click any trapped creature in the coral reef to start their rescue challenge!";
-            document.getElementById('field-options').innerHTML = '';
-        }
-
-        function getSolvedTurtlesCount() {
-            return reefTurtles.filter(function(t){ return t.solved; }).length;
-        }
-
-        function chooseTurtleTarget(id) {
-            if(reefTurtles[id].solved) return;
-            activeTurtleTarget = id;
-
-            reefTurtles.forEach(function(t) {
-                var node = document.getElementById('turtle-node-' + t.id);
-                if(node) node.classList.remove('pulse');
-            });
-
-            var qIndex = getSolvedTurtlesCount();
-            var data = phase2Pool[qIndex];
-            document.getElementById('field-question').innerText = data.question;
-            
-            var optionsBox = document.getElementById('field-options');
-            optionsBox.innerHTML = '';
-
-            data.answers.forEach(function(ans) {
-                var btn = document.createElement('button');
-                btn.className = 'box-btn';
-                btn.innerText = ans;
-                btn.onclick = function() { checkPhase2Answer(btn, ans, data.correct); };
-                optionsBox.appendChild(btn);
-            });
-        }
-
-        function checkPhase2Answer(btnElement, chosen, correct) {
-            document.querySelectorAll('.box-btn').forEach(function(b) { b.disabled = true; });
-
-            if(chosen === correct) {
-                btnElement.classList.add('correct');
-                triggerAudio('correct');
-                gameScore++;
-                document.getElementById('label-score').innerText = gameScore;
-                deployConfettiEngine();
-
-                reefTurtles[activeTurtleTarget].solved = true;
-                
-                var tImg = document.getElementById('turtle-img-' + activeTurtleTarget);
-                if(tImg) tImg.src = 'assets/turtle-happy.png';
-
-                var node = document.getElementById('turtle-node-' + activeTurtleTarget);
-                if(node) node.classList.add('saved');
-            } else {
-                btnElement.classList.add('wrong');
-                triggerAudio('wrong');
-                document.querySelectorAll('.box-btn').forEach(function(b) {
-                    if(b.innerText === correct) b.classList.add('correct');
-                });
-                
-                var node = document.getElementById('turtle-node-' + activeTurtleTarget);
-                if(node) node.classList.add('pulse');
-            }
-
-            setTimeout(function() {
-                if(getSolvedTurtlesCount() < phase2Pool.length) {
-                    reefTurtles.forEach(function(t) {
-                        var n = document.getElementById('turtle-node-' + t.id);
-                        if(n && !t.solved) n.classList.add('pulse');
-                    });
-                    promptForTurtleTap();
-                } else {
-                    concludeSimulation();
-                }
-            }, 2500);
-        }
-
-        function concludeSimulation() {
-            document.getElementById('active-playfield').style.display = 'none';
-            document.getElementById('victory-card').style.display = 'block';
-            var totalQ = phase1Pool.length + phase2Pool.length;
-            document.getElementById('final-stats').innerText = "Score Secured: " + gameScore + " / " + totalQ;
-        }
-
-        function resetSimulator() {
-            location.reload();
-        }
-
-        // Error-free container window initialization loader loop
-        window.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                var splash = document.getElementById('splash-screen');
-                var mainContainer = document.getElementById('game-container');
-                if (splash && mainContainer) {
-                    splash.style.opacity = '0';
-                    mainContainer.style.display = 'block';
-                    setTimeout(function() { 
-                        splash.remove(); 
-                        mainContainer.style.opacity = '1'; 
-                    }, 500);
-                }
-            }, 3000); // Shortened to 3 seconds for faster testing!
-        });
-    </script>
-</body>
-</html>
+            { question: "Q9. What is the successor of 8,499?", answers:
