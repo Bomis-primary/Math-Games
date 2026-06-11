@@ -1,280 +1,480 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Apple Basket Subtraction Mission</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Mystery Box Surprise - Grade 1</title>
 <style>
-*{box-sizing:border-box}
-body{margin:0;font-family:'Comic Sans MS',Arial,sans-serif;background:#d8f8d0;color:#222;overflow-x:hidden}
-.screen{display:none;min-height:100vh;padding:18px;text-align:center}
-.active{display:flex;flex-direction:column;align-items:center;justify-content:center}
-.card{background:rgba(255,255,255,.94);border-radius:24px;padding:22px;max-width:850px;width:95%;box-shadow:0 10px 25px rgba(0,0,0,.18)}
-.logo{max-width:150px;margin-bottom:12px}
-h1{color:#c5221f;font-size:clamp(28px,5vw,48px);margin:10px 0}
-h2{color:#188038;font-size:clamp(22px,4vw,34px)}
-button{border:0;border-radius:18px;padding:14px 24px;font-size:20px;font-weight:bold;cursor:pointer;background:#ffbf00;color:#4a2b00;box-shadow:0 5px 0 #c58b00;margin:8px}
-button:active{transform:translateY(3px);box-shadow:0 2px 0 #c58b00}
-.game-area{position:relative;min-height:100vh;background:url("assets/apples-orchard.png") center/cover no-repeat;padding:12px;overflow:hidden}
-.cloud{position:absolute;width:150px;opacity:.9;animation:floatCloud 24s linear infinite}
-.cloud.one{top:30px;left:-160px}
-.cloud.two{top:100px;left:-320px;animation-delay:8s}
-@keyframes floatCloud{to{transform:translateX(130vw)}}
-.topbar{display:flex;gap:8px;justify-content:space-between;align-items:center;max-width:950px;margin:0 auto 8px;background:rgba(255,255,255,.92);border-radius:16px;padding:10px;font-weight:bold}
-.timer{color:#d93025}.score{color:#188038}.attempts{color:#174ea6}
-.progress-wrap{height:18px;background:#fff;border-radius:20px;overflow:hidden;max-width:950px;margin:8px auto}
-.progress{height:100%;width:0;background:linear-gradient(90deg,#34a853,#fbbc04);transition:.4s}
-.rescue-zone{position:relative;max-width:950px;height:220px;margin:5px auto}
-.basket{position:absolute;bottom:5px;left:5%;width:190px;transition:.6s ease;animation:bounceBasket 2.6s ease-in-out infinite}
-@keyframes bounceBasket{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-.falling-apple{position:absolute;font-size:36px;top:-50px;animation:appleFall 2.4s linear forwards;z-index:3}
-@keyframes appleFall{to{transform:translateY(260px) rotate(360deg);opacity:0}}
-.question-card{max-width:850px;margin:10px auto;background:rgba(255,255,255,.96);border-radius:24px;padding:18px;box-shadow:0 8px 20px rgba(0,0,0,.2)}
-.qno{font-size:18px;color:#666}
-.question{font-size:clamp(22px,4vw,34px);font-weight:bold;margin:12px 0}
-.options{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
-.option{background:#fff;border:4px solid #ff8a80;border-radius:18px;padding:18px;font-size:24px;font-weight:bold;cursor:pointer;min-height:70px}
-.option:hover{background:#fff1f0}
-.feedback{min-height:44px;font-size:20px;font-weight:bold;margin-top:10px}
-.correct{color:#188038}.wrong{color:#d93025}
-.final-badge{background:#ffef99;border:3px dashed #fbbc04;padding:8px 14px;border-radius:14px;display:inline-block;margin-bottom:8px;font-weight:bold}
-.result-stars{font-size:46px}
-@media(max-width:600px){
-.options{grid-template-columns:1fr}
-.basket{width:140px}
-.rescue-zone{height:170px}
-.topbar{font-size:14px;flex-wrap:wrap;justify-content:center}
-}
-.confetti{position:fixed;width:10px;height:10px;top:-10px;animation:fall 1.8s linear forwards;z-index:99}
-@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+    :root {
+        --room-bg: #fef08a; /* Warm sunny yellow room wallpaper */
+        --accent-pink: #f472b6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html {
+        width: 100%; height: 100%;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        color: #1e293b; overflow: hidden;
+        background-color: #ffffff;
+    }
+
+    /* Splash Screen Overlay */
+    #screen-splash {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: #ffffff !important; z-index: 99999;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        opacity: 1; transition: opacity 0.5s ease;
+    }
+    .logo-container {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        width: 100%; max-width: 400px; padding: 20px;
+    }
+    .logo-img { width: 100%; max-width: 280px; height: auto; object-fit: contain; }
+    .splash-loader {
+        margin-top: 40px; width: 160px; height: 6px; background: #e2e8f0;
+        border-radius: 3px; overflow: hidden; position: relative;
+    }
+    .splash-loader-bar {
+        position: absolute; background: #ec4899; width: 100%; height: 100%;
+        left: -100%; animation: loadProgress 5s linear forwards; 
+    }
+
+    /* Main Viewport Wrapper */
+    #app-viewport-wrapper {
+        width: 100%; height: 100%;
+        position: relative;
+        display: none; 
+        justify-content: center; align-items: center;
+        flex-direction: column; padding: 15px;
+        background: radial-gradient(circle, #fef9c3 0%, #fef08a 100%);
+        transition: background 1s ease;
+    }
+
+    /* Game State Rooms */
+    .room-decor {
+        position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+        pointer-events: none; z-index: 1; opacity: 0.3;
+        background-image: radial-gradient(#f472b6 2px, transparent 2px);
+        background-size: 32px 32px;
+    }
+
+    .screen {
+        display: none; width: 100%; max-width: 650px;
+        flex-direction: column; align-items: center; text-align: center;
+        z-index: 5;
+    }
+    .screen.active { display: flex !important; }
+
+    .card {
+        background: rgba(255, 255, 255, 0.96);
+        padding: 25px; border-radius: 32px; width: 100%;
+        border: 6px solid #ec4899; box-shadow: 0 15px 35px rgba(236, 72, 153, 0.2);
+    }
+    h1 { font-size: 34px; color: #db2777; margin-bottom: 10px; font-weight: 800; }
+    p { font-size: 17px; line-height: 1.5; color: #475569; margin-bottom: 20px; }
+
+    .btn {
+        padding: 14px 24px; font-size: 19px; font-weight: 900;
+        color: white; border: none; border-radius: 20px; cursor: pointer;
+        background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
+        box-shadow: 0 6px 0px #be185d, 0 10px 15px rgba(0,0,0,0.15);
+        transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0px #be185d, 0 12px 20px rgba(0,0,0,0.2); }
+    .btn:active { transform: translateY(4px); box-shadow: 0 2px 0px #be185d; }
+
+    /* HUD Bar */
+    .hud-header {
+        width: 100%; display: flex; justify-content: space-between; font-weight: bold;
+        background: white; padding: 12px 24px; border-radius: 20px; margin-bottom: 15px;
+        font-size: 16px; border: 3px solid #f472b6; color: #db2777;
+    }
+
+    /* Hanging Wall Screen Board */
+    .hanging-board {
+        background: #1e293b; color: #38bdf8; font-size: 42px; font-weight: 900;
+        padding: 20px 45px; border-radius: 24px; border: 6px solid #475569;
+        margin-bottom: 30px; display: inline-block; letter-spacing: 2px;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2), inset 0 4px 10px rgba(0,0,0,0.5);
+    }
+
+    /* Interactive Table Environment Setup */
+    .stage-table-container {
+        position: relative; width: 100%; height: 260px;
+        margin-top: 20px; display: flex; justify-content: space-around; align-items: flex-end;
+        padding-bottom: 35px;
+    }
+    .wooden-table-surface {
+        position: absolute; bottom: 0; left: 0; width: 100%; height: 40px;
+        background: linear-gradient(135deg, #b45309 0%, #78350f 100%);
+        border-radius: 12px; border-top: 4px solid #f59e0b;
+        box-shadow: 0 10px 15px rgba(0,0,0,0.2);
+    }
+
+    /* Gift Boxes Structural Layout */
+    .gift-box-wrapper {
+        position: relative; width: 125px; height: 125px;
+        display: flex; flex-direction: column; align-items: center;
+        cursor: pointer; z-index: 10; transition: transform 0.2s ease;
+    }
+    .gift-box-wrapper:hover { transform: scale(1.08) translateY(-5px); }
+
+    /* Box Art Shapes */
+    .box-lid {
+        width: 134px; height: 28px; border-radius: 6px; z-index: 3;
+        box-shadow: 0 4px 5px rgba(0,0,0,0.15); transition: transform 0.5s ease;
+    }
+    .box-body {
+        width: 120px; height: 90px; margin-top: -2px; border-radius: 0 0 12px 12px;
+        position: relative; z-index: 2; display: flex; justify-content: center; align-items: center;
+    }
+    
+    /* Box Color Styles */
+    .box-red .box-lid { background: #ef4444; border: 3px solid #dc2626; }
+    .box-red .box-body { background: #f87171; border: 4px solid #ef4444; }
+    
+    .box-blue .box-lid { background: #3b82f6; border: 3px solid #2563eb; }
+    .box-blue .box-body { background: #60a5fa; border: 4px solid #3b82f6; }
+    
+    .box-yellow .box-lid { background: #eab308; border: 3px solid #ca8a04; }
+    .box-yellow .box-body { background: #fde047; border: 4px solid #eab308; }
+
+    /* Number Label tag on Box fronts */
+    .choice-tag-label {
+        background: white; color: #1e293b; padding: 6px 16px; border-radius: 12px;
+        font-weight: 900; font-size: 26px; border: 3px solid #475569;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1); pointer-events: none;
+    }
+
+    /* Surprise Reveal Element Engine */
+    .surprise-prize-anchor {
+        position: absolute; bottom: 80px; font-size: 55px;
+        opacity: 0; transform: scale(0.2) translateY(0);
+        pointer-events: none; z-index: 1; transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    
+    /* Pop Animations */
+    .gift-box-wrapper.pop-open .box-lid { transform: translateY(-45px) rotate(-15deg); opacity: 0; }
+    .gift-box-wrapper.pop-open .surprise-prize-anchor { opacity: 1; transform: scale(1.2) translateY(-70px); z-index: 20; }
+    .gift-box-wrapper.wrong-shake { animation: shakeW 0.4s ease; }
+
+    @keyframes shakeW {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-10px); }
+        75% { transform: translateX(10px); }
+    }
+
+    /* Canvas Confetti Screen Component Overlay */
+    #confetti-canvas-plane {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        pointer-events: none; z-index: 100;
+    }
+
+    @keyframes loadProgress { 0% { left: -100%; } 100% { left: 0%; } }
 </style>
 </head>
-
 <body>
 
-<section id="start" class="screen active">
-  <div class="card">
-    <img src="assets/logo.png" class="logo" onerror="this.style.display='none'">
-    <h1>🍎 Apple Basket Subtraction Mission</h1>
-    <h2>Grade 1 Maths — Subtraction up to 100</h2>
-    <p>Help save the apple baskets by solving bigger subtraction challenges.</p>
-    <p><b>Rules:</b> You get 60 seconds and 2 attempts for each question.</p>
-    <button onclick="startGame()">Start Mission</button>
-  </div>
-</section>
+<div id="screen-splash">
+    <div class="logo-container">
+        <img class="logo-img" src="assets/logo.png" alt="Innovine Logo">
+    </div>
+    <div class="splash-loader">
+        <div class="splash-loader-bar"></div>
+    </div>
+</div>
 
-<section id="game" class="screen game-area">
-  <img src="assets/clouds.png" class="cloud one">
-  <img src="assets/clouds.png" class="cloud two">
+<div id="app-viewport-wrapper">
+    <div class="room-decor" id="room-wallpaper-mesh"></div>
+    <canvas id="confetti-canvas-plane"></canvas>
 
-  <div class="topbar">
-    <div class="timer">⏱ Time: <span id="time">60</span>s</div>
-    <div class="score">⭐ Score: <span id="score">0</span></div>
-    <div class="attempts">🔁 Attempts Left: <span id="attempts">2</span></div>
-  </div>
+    <div id="screen-welcome" class="screen active">
+        <div class="card">
+            <h1>Math Mystery Box! 🎁✨</h1>
+            <p>Solve the subtraction problems to open the magical gift boxes on the table and collect awesome hidden rewards!</p>
+            <p style="font-weight: bold; color: #e11d48; margin-bottom: 12px;">✏️ Students: Grab your pencils and paper to solve your math calculations!</p>
+            <p style="font-weight: bold; color: #db2777;">🎯 Complete 5 problems to conquer Level 1 and unlock the Neon Arcade Level 2 Room!</p>
+            <button class="btn" onclick="startMysteryGame();">Enter Gift Room</button>
+        </div>
+    </div>
 
-  <div class="progress-wrap"><div id="progress" class="progress"></div></div>
+    <div id="screen-game" class="screen">
+        <div class="hud-header">
+            <div id="hud-level-tag">Room Status: Level 1 🎈</div>
+            <div id="hud-score-tag">Prizes Won: 🧸 0</div>
+        </div>
 
-  <div class="rescue-zone" id="rescueZone">
-    <img src="assets/apples-basket.png" id="basket" class="basket">
-  </div>
+        <div class="hanging-board" id="problem-board-display">0 - 0</div>
 
-  <div class="question-card">
-    <div id="finalBadge" class="final-badge" style="display:none;">Final Challenge</div>
-    <div class="qno">Question <span id="qnum">1</span> of <span id="total"></span></div>
-    <div id="question" class="question"></div>
-    <div id="options" class="options"></div>
-    <div id="feedback" class="feedback"></div>
-  </div>
-</section>
+        <div class="stage-table-container">
+            
+            <div class="gift-box-wrapper box-red" id="box-node-0" onclick="handleBoxClick(0)">
+                <div class="surprise-prize-anchor" id="prize-node-0">🧸</div>
+                <div class="box-lid"></div>
+                <div class="box-body">
+                    <div class="choice-tag-label" id="tag-text-0">?</div>
+                </div>
+            </div>
 
-<section id="result" class="screen">
-  <div class="card">
-    <img src="assets/stars.png" style="max-width:140px" onerror="this.style.display='none'">
-    <h1>Mission Complete!</h1>
-    <div id="resultStars" class="result-stars"></div>
-    <h2 id="finalScore"></h2>
-    <p id="resultMsg"></p>
-    <button onclick="restartGame()">Play Again</button>
-  </div>
-</section>
+            <div class="gift-box-wrapper box-blue" id="box-node-1" onclick="handleBoxClick(1)">
+                <div class="surprise-prize-anchor" id="prize-node-1">🚀</div>
+                <div class="box-lid"></div>
+                <div class="box-body">
+                    <div class="choice-tag-label" id="tag-text-1">?</div>
+                </div>
+            </div>
 
-<audio id="correctSound" src="assets/freesound_community-claps-44774.mp3"></audio>
-<audio id="wrongSound" src="assets/wrong.mp3"></audio>
+            <div class="gift-box-wrapper box-yellow" id="box-node-2" onclick="handleBoxClick(2)">
+                <div class="surprise-prize-anchor" id="prize-node-2">🦄</div>
+                <div class="box-lid"></div>
+                <div class="box-body">
+                    <div class="choice-tag-label" id="tag-text-2">?</div>
+                </div>
+            </div>
+
+            <div class="wooden-table-surface"></div>
+        </div>
+        
+        <div id="room-feedback-text" style="font-weight: 800; font-size: 20px; color: #db2777; margin-top: 15px; min-height: 30px;">
+            Click the gift box with the right answer!
+        </div>
+    </div>
+
+    <div id="screen-end" class="screen">
+        <div class="card">
+            <div style="font-size: 70px; margin-bottom: 15px;">👑🎁🎉</div>
+            <h1>Grand Master Unboxer!</h1>
+            <p>Incredible math subtraction work! You successfully searched all the mystery boxes across both rooms.</p>
+            <button class="btn" onclick="goToScreen('screen-welcome'); resetGameSystemState();">Play Again</button>
+        </div>
+    </div>
+</div>
+
+<audio id="snd-correct" src="assets/correct.mp3" preload="auto"></audio>
+<audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
 <script>
-const questions = [
-  {q:"A basket has 70 apples. 20 apples are sold. How many apples are left?",options:["40","50","60","70"],answer:"50",hint:"Subtract the tens: 7 tens - 2 tens = 5 tens."},
-  {q:"Subtract 64 - 20.",options:["24","34","44","54"],answer:"44",hint:"Subtract 2 tens from 6 tens. Ones stay the same."},
-  {q:"Subtract 58 - 6.",options:["50","51","52","54"],answer:"52",hint:"Subtract the ones: 8 - 6 = 2."},
-  {q:"A shop had 45 pencils. It sold 13 pencils. How many pencils are left?",options:["22","32","33","35"],answer:"32",hint:"Subtract tens and ones separately."},
-  {q:"Which subtraction needs borrowing?",options:["65 - 21","48 - 19","79 - 34","56 - 12"],answer:"48 - 19",hint:"8 - 9 is not possible without borrowing."},
-  {q:"Subtract 72 - 38.",options:["24","34","44","54"],answer:"34",hint:"Borrow from the tens place."},
-  {q:"Riya has ₹90. She spends ₹45. How much money is left?",options:["₹35","₹40","₹45","₹55"],answer:"₹45",hint:"Subtract ₹45 from ₹90."},
-  {q:"Which answer is correct? 83 - 27 =",options:["46","56","66","76"],answer:"56",hint:"Borrow: 13 - 7 = 6, then 7 - 2 = 5."},
-  {q:"Which subtraction statement is wrong?",options:["60 - 30 = 30","75 - 25 = 50","90 - 40 = 60","48 - 18 = 30"],answer:"90 - 40 = 60",hint:"90 - 40 is 50."},
-  {q:"A library had 96 books. 28 books were borrowed. How many books remain?",options:["58","68","72","78"],answer:"68",hint:"Subtract 28 from 96."},
-  {q:"Final: A farmer picked 84 apples. He packed 49 apples. How many are unpacked?",options:["25","35","45","55"],answer:"35",hint:"84 - 49 = 35.",final:true},
-  {q:"Final: Meera had 100 beads. She used 37 beads. How many beads are left?",options:["53","63","73","83"],answer:"63",hint:"100 - 37 = 63.",final:true}
-];
+    let currentActiveLevel = 1;
+    let productsSolvedScore = 0;
+    let roundTargetSolution = 0;
+    let rightAnswerBoxIndex = 0;
+    let userInteractionMutexLocked = false;
 
-let current = 0, score = 0, attempts = 2, timeLeft = 60, timer;
+    const level1PrizesPool = ['🧸', '🚀', '🦄', '🚂', '🦖', '🚗', '✈️', '🎨'];
+    const level2PrizesPool = ['👾', '🛸', '💎', '👑', '🎸', '🔮', '🤖', '⚡'];
 
-function startGame(){
-  document.getElementById("start").classList.remove("active");
-  document.getElementById("game").classList.add("active");
-  document.getElementById("total").textContent = questions.length;
-  loadQuestion();
-}
+    // Absolute 5-Second Splash Exit
+    setTimeout(function() {
+        const splash = document.getElementById('screen-splash');
+        const appWrapper = document.getElementById('app-viewport-wrapper');
+        if (splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => {
+                splash.style.display = 'none';
+                if (appWrapper) appWrapper.style.display = 'flex';
+            }, 500);
+        }
+    }, 5000);
 
-function loadQuestion(){
-  clearInterval(timer);
-  attempts = 2;
-  timeLeft = 60;
-  document.getElementById("time").textContent = timeLeft;
-  document.getElementById("attempts").textContent = attempts;
-  document.getElementById("feedback").textContent = "";
-  document.getElementById("feedback").className = "feedback";
-  document.getElementById("qnum").textContent = current + 1;
-
-  const q = questions[current];
-  document.getElementById("question").textContent = q.q;
-  document.getElementById("finalBadge").style.display = q.final ? "inline-block" : "none";
-
-  const optionsBox = document.getElementById("options");
-  optionsBox.innerHTML = "";
-  const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
-
-  shuffledOptions.forEach(opt=>{
-    const div = document.createElement("div");
-    div.className = "option";
-    div.textContent = opt;
-    div.onclick = ()=>checkAnswer(opt, div);
-    optionsBox.appendChild(div);
-  });
-
-  updateProgress();
-  moveBasket();
-  timer = setInterval(updateTimer,1000);
-}
-
-function updateTimer(){
-  timeLeft--;
-  document.getElementById("time").textContent = timeLeft;
-  if(timeLeft<=0){
-    clearInterval(timer);
-    showCorrect("Time is up!");
-  }
-}
-
-function checkAnswer(selected, element){
-  const q = questions[current];
-
-  if(selected === q.answer){
-    clearInterval(timer);
-    score++;
-    document.getElementById("score").textContent = score;
-    element.style.background = "#d7ffd9";
-    element.style.borderColor = "#34a853";
-    document.getElementById("feedback").textContent = "Correct! The basket is safe!";
-    document.getElementById("feedback").className = "feedback correct";
-    playSound("correctSound");
-    confetti();
-    fallingApple();
-    setTimeout(nextQuestion,1200);
-  } else {
-    attempts--;
-    document.getElementById("attempts").textContent = attempts;
-    element.style.background = "#ffe0e0";
-    element.style.borderColor = "#d93025";
-    playSound("wrongSound");
-
-    if(attempts > 0){
-      document.getElementById("feedback").textContent = "Try again! Hint: " + q.hint;
-      document.getElementById("feedback").className = "feedback wrong";
-    } else {
-      clearInterval(timer);
-      showCorrect("Good try!");
+    function goToScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        const target = document.getElementById(id);
+        if(target) target.classList.add('active');
     }
-  }
-}
 
-function showCorrect(prefix){
-  const q = questions[current];
-  document.getElementById("feedback").textContent = `${prefix} Correct answer: ${q.answer}`;
-  document.getElementById("feedback").className = "feedback wrong";
-  setTimeout(nextQuestion,1800);
-}
+    function resetGameSystemState() {
+        currentActiveLevel = 1;
+        productsSolvedScore = 0;
+        userInteractionMutexLocked = false;
+        
+        const wrapper = document.getElementById('app-viewport-wrapper');
+        if(wrapper) wrapper.style.background = "radial-gradient(circle, #fef9c3 0%, #fef08a 100%)";
+        
+        document.getElementById('hud-level-tag').innerText = "Room Status: Level 1 🎈";
+    }
 
-function nextQuestion(){
-  current++;
-  if(current >= questions.length){ endGame(); }
-  else{ loadQuestion(); }
-}
+    function startMysteryGame() {
+        resetGameSystemState();
+        goToScreen('screen-game');
+        prepareNextQuestionRound();
+    }
 
-function updateProgress(){
-  document.getElementById("progress").style.width = ((current / questions.length) * 100) + "%";
-}
+    function prepareNextQuestionRound() {
+        userInteractionMutexLocked = false;
+        document.getElementById('room-feedback-text').innerText = "Click the gift box with the right answer!";
+        document.getElementById('room-feedback-text').style.color = currentActiveLevel === 1 ? "#db2777" : "#06b6d4";
 
-function moveBasket(){
-  const percent = current / (questions.length - 1);
-  document.getElementById("basket").style.left = (5 + percent * 65) + "%";
-}
+        // Reset Box Visual State Classes safely
+        for(let i=0; i<3; i++) {
+            const box = document.getElementById(`box-node-${i}`);
+            if(box) box.className = box.className.replace('pop-open', '').replace('wrong-shake', '').trim();
+        }
 
-function endGame(){
-  clearInterval(timer);
-  document.getElementById("game").classList.remove("active");
-  document.getElementById("result").classList.add("active");
-  document.getElementById("finalScore").textContent = `Your Score: ${score} / ${questions.length}`;
+        // Setup Level Architecture
+        let numA, numB;
+        if (currentActiveLevel === 1) {
+            // Level 1: Multiples of 10 or Simple Subtraction without Borrowing
+            if (Math.random() > 0.5) {
+                let tensA = Math.floor(Math.random() * 7) + 3; // 30 - 90
+                let tensB = Math.floor(Math.random() * (tensA - 1)) + 1;
+                numA = tensA * 10; numB = tensB * 10;
+            } else {
+                numA = Math.floor(Math.random() * 40) + 20; // 20 - 60
+                let ones = numA % 10;
+                numB = ones > 1 ? Math.floor(Math.random() * ones) + 1 : 1;
+            }
+        } else {
+            // Level 2: Advanced Grade 1 Subtraction up to 100 (Slightly larger values)
+            numA = Math.floor(Math.random() * 41) + 59; // 59 - 100
+            numB = Math.floor(Math.random() * 25) + 5;  // 5 - 30
+            if(numA - numB < 0) numB = 4;
+        }
 
-  const percent = score / questions.length;
-  document.getElementById("resultStars").textContent = percent >= .85 ? "⭐⭐⭐" : percent >= .6 ? "⭐⭐" : "⭐";
-  document.getElementById("resultMsg").textContent =
-    percent >= .85 ? "Excellent! You are a Subtraction Mission Champion!" :
-    percent >= .6 ? "Good work! Practise a little more and try again." :
-    "Nice try! Replay the mission to strengthen your subtraction skills.";
-}
+        roundTargetSolution = numA - numB;
+        document.getElementById('problem-board-display').innerText = `${numA} - ${numB}`;
 
-function restartGame(){
-  clearInterval(timer);
-  current = 0;
-  score = 0;
-  attempts = 2;
-  document.getElementById("score").textContent = score;
-  document.getElementById("result").classList.remove("active");
-  document.getElementById("game").classList.add("active");
-  loadQuestion();
-}
+        // Create Choices
+        let choiceA = roundTargetSolution + (Math.random() > 0.5 ? 10 : -10);
+        let choiceB = roundTargetSolution + (Math.random() > 0.5 ? 3 : -3);
+        if (choiceA === roundTargetSolution || choiceA < 0) choiceA = roundTargetSolution + 5;
+        if (choiceB === roundTargetSolution || choiceB === choiceA || choiceB < 0) choiceB = roundTargetSolution + 2;
 
-function playSound(id){
-  const sound = document.getElementById(id);
-  if(sound){
-    sound.currentTime = 0;
-    sound.play().catch(()=>{});
-  }
-}
+        let itemsList = [roundTargetSolution, choiceA, choiceB];
+        itemsList.sort(() => Math.random() - 0.5);
 
-function confetti(){
-  for(let i=0;i<25;i++){
-    const c = document.createElement("div");
-    c.className = "confetti";
-    c.style.left = Math.random()*100 + "vw";
-    c.style.background = ["#fbbc04","#34a853","#4285f4","#ea4335","#ff69b4"][Math.floor(Math.random()*5)];
-    c.style.animationDelay = Math.random()*0.3 + "s";
-    document.body.appendChild(c);
-    setTimeout(()=>c.remove(),2000);
-  }
-}
+        rightAnswerBoxIndex = itemsList.indexOf(roundTargetSolution);
 
-function fallingApple(){
-  const zone = document.getElementById("rescueZone");
-  const apple = document.createElement("div");
-  apple.className = "falling-apple";
-  apple.textContent = "🍎";
-  apple.style.left = Math.random() * 85 + "%";
-  zone.appendChild(apple);
-  setTimeout(()=>apple.remove(),2500);
-}
+        // Map Choices & Assign Random Prize Elements inside the box buffers
+        const targetedPool = currentActiveLevel === 1 ? level1PrizesPool : level2PrizesPool;
+        
+        for (let i = 0; i < 3; i++) {
+            document.getElementById(`tag-text-${i}`).innerText = itemsList[i];
+            const randomPrize = targetedPool[Math.floor(Math.random() * targetedPool.length)];
+            document.getElementById(`prize-node-${i}`).innerText = randomPrize;
+        }
+    }
+
+    function handleBoxClick(boxIndex) {
+        if (userInteractionMutexLocked) return;
+
+        const selectedBoxNode = document.getElementById(`box-node-${boxIndex}`);
+
+        if (boxIndex === rightAnswerBoxIndex) {
+            userInteractionMutexLocked = true;
+            productsSolvedScore++;
+            
+            document.getElementById('hud-score-tag').innerText = `Prizes Won: 🧸 ${productsSolvedScore}`;
+            document.getElementById('room-feedback-text').innerText = "WOW! YOU OPENED IT! ✨🎁";
+            document.getElementById('room-feedback-text').style.color = "#22c55e";
+
+            // Trigger Pop Animation
+            if(selectedBoxNode) selectedBoxNode.classList.add('pop-open');
+
+            const audioC = document.getElementById('snd-correct');
+            if(audioC) audioC.play().catch(() => {});
+
+            // Run Confetti Sparks Flight Sequence
+            launchConfettiBurstFX();
+
+            // Handle Room Transitions or Game Completion Loop
+            setTimeout(() => {
+                if (productsSolvedScore === 5 && currentActiveLevel === 1) {
+                    // Unlock Level 2 Room State
+                    currentActiveLevel = 2;
+                    triggerLevel2TransitionEffects();
+                    prepareNextQuestionRound();
+                } else if (productsSolvedScore >= 10) {
+                    // Win Final Game View
+                    goToScreen('screen-end');
+                } else {
+                    prepareNextQuestionRound();
+                }
+            }, 2500);
+
+        } else {
+            // Wrong Box Click Action
+            const audioW = document.getElementById('snd-wrong');
+            if(audioW) audioW.play().catch(() => {});
+
+            if(selectedBoxNode) {
+                selectedBoxNode.classList.add('wrong-shake');
+                setTimeout(() => selectedBoxNode.classList.remove('wrong-shake'), 450);
+            }
+            document.getElementById('room-feedback-text').innerText = "Locked! Try a different box tag!";
+            document.getElementById('room-feedback-text').style.color = "#ef4444";
+        }
+    }
+
+    function triggerLevel2TransitionEffects() {
+        const wrapper = document.getElementById('app-viewport-wrapper');
+        if(wrapper) {
+            // Transform Room Wallpaper into Neon Cyber Arcade Room Theme
+            wrapper.style.background = "radial-gradient(circle, #1e1b4b 0%, #0f172a 100%)";
+        }
+        document.getElementById('hud-level-tag').innerText = "Room Status: Level 2 ⚡";
+        document.getElementById('hud-level-tag').style.color = "#06b6d4";
+        
+        const board = document.getElementById('problem-board-display');
+        if(board) {
+            board.style.borderColor = "#06b6d4";
+            board.style.color = "#a855f7";
+        }
+    }
+
+    /* Simple native HTML5 Particle Canvas Confetti Framework */
+    let confettiSystemActiveParticles = [];
+    const canvasNode = document.getElementById('confetti-canvas-plane');
+    const ctxEngine = canvasNode.getContext('2d');
+
+    function resizeConfettiCanvas() {
+        canvasNode.width = window.innerWidth;
+        canvasNode.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeConfettiCanvas);
+    resizeConfettiCanvas();
+
+    function launchConfettiBurstFX() {
+        confettiSystemActiveParticles = [];
+        for (let i = 0; i < 85; i++) {
+            confettiSystemActiveParticles.push({
+                x: canvasNode.width / 2,
+                y: canvasNode.height / 2 + 50,
+                radius: Math.random() * 5 + 4,
+                color: `hsl(${Math.random() * 360}, 100%, 60%)`,
+                vx: (Math.random() - 0.5) * 14,
+                vy: (Math.random() - 0.8) * 16,
+                opacity: 1
+            });
+        }
+        requestAnimationFrame(renderConfettiLoopFrame);
+    }
+
+    function renderConfettiLoopFrame() {
+        ctxEngine.clearRect(0, 0, canvasNode.width, canvasNode.height);
+        let continuingParticlesLeft = false;
+
+        confettiSystemActiveParticles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.35; // Gravity
+            p.opacity -= 0.012;
+
+            if (p.opacity > 0) {
+                continuingParticlesLeft = true;
+                ctxEngine.beginPath();
+                ctxEngine.fillStyle = p.color;
+                ctxEngine.globalAlpha = p.opacity;
+                ctxEngine.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctxEngine.fill();
+            }
+        });
+
+        ctxEngine.globalAlpha = 1.0;
+        if (continuingParticlesLeft) {
+            requestAnimationFrame(renderConfettiLoopFrame);
+        } else {
+            ctxEngine.clearRect(0, 0, canvasNode.width, canvasNode.height);
+        }
+    }
 </script>
 </body>
 </html>
