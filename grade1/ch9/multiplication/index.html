@@ -5,87 +5,145 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Orchard Fruit Game</title>
 <style>
-body, html { margin:0; padding:0; width:100%; height:100%; font-family:Arial, sans-serif; overflow:hidden; }
-#splash, .screen { width:100%; height:100%; position:absolute; top:0; left:0; display:flex; justify-content:center; align-items:center; flex-direction:column; }
-#splash { background:#fff; z-index:10; }
-#splash img { width:200px; }
-.screen { display:none; position:relative; flex-direction:column; justify-content:flex-start; align-items:center; }
-#screen2 { background:url('assets/orchard-bg.jpg') no-repeat center bottom; background-size:cover; }
-#screen2 .title { position:absolute; top:50px; text-align:center; color:#fff; }
-#screen2 .title h1 { font-size:36px; margin:0; font-weight:bold; }
-#screen2 .title p { font-size:24px; margin-top:10px; }
-#screen3 { background:url('assets/orchard-bg.jpg') no-repeat center bottom; background-size:cover; }
-.basket-container { display:flex; gap:30px; margin-top:200px; }
-.basket { position:relative; }
-.basket img { width:202px; height:202px; }
-.basket-label { position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); font-size:32px; font-weight:bold; color:white; pointer-events:none; }
-#screen3 .instruction { color:#fff; font-size:22px; margin-top:20px; text-align:center; }
-#screen3 .buttons { display:flex; gap:20px; margin-top:20px; }
-.btn { padding:14px 28px; font-size:25px; border:none; border-radius:8px; background:#ff9999; color:#fff; cursor:pointer; }
-.btn:disabled { opacity:0.5; cursor:not-allowed; }
-</style>
-</head>
-<body>
+    :root {
+        --primary-color: #ff9999;
+        --primary-hover: #ff7777;
+        --dark-overlay: rgba(0, 0, 0, 0.4);
+    }
+    * { box-sizing: border-box; }
+    body, html { margin:0; padding:0; width:100%; height:100%; font-family: 'Segoe UI', Arial, sans-serif; overflow:hidden; background-color: #f0fdf4; }
+    
+    .screen { 
+        width:100%; 
+        height:100%; 
+        position:absolute; 
+        top:0; 
+        left:0; 
+        display:none; 
+        justify-content:center; 
+        align-items:center; 
+        flex-direction:column; 
+        padding: 20px;
+    }
+    
+    /* Screen 1: Splash Screen holds for 5 Seconds */
+    #splash { background:#fff; z-index:10; display:flex; }
+    #splash img { width:220px; max-width: 80%; object-fit: contain; }
+    
+    /* Shared Background for Active Gameplay Screens */
+    .game-bg { 
+        background: linear-gradient(var(--dark-overlay), var(--dark-overlay)), url('assets/orchard-bg.jpg') no-repeat center bottom; 
+        background-size:cover; 
+    }
+    
+    /* Screen 2: Title + Mission */
+    #screen2 .title { text-align:center; color:#fff; max-width: 600px; }
+    #screen2 .title h1 { font-size:42px; margin:0 0 15px 0; font-weight:bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.6); }
+    #screen2 .title p { font-size:24px; margin:0; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
+    
+    /* Screen 3: Active Dashboard */
+    .top-bar {
+        position: absolute;
+        top: 20px;
+        width: 90%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: white;
+        background: rgba(0,0,0,0.5);
+        padding: 10px 20px;
+        border-radius: 30px;
+        font-size: 18px;
+        font-weight: bold;
+    }
+    .audio-controls { display: flex; align-items: center; gap: 8px; }
+    .vol-slider { width: 80px; cursor: pointer; accent-color: var(--primary-color); }
 
-<!-- Screen 1: Splash -->
-<div id="splash">
-    <img src="assets/logo.png" alt="Innovine Logo">
-</div>
+    .basket-container { 
+        display:flex; 
+        gap:20px; 
+        margin-top:100px; 
+        flex-wrap: wrap; 
+        justify-content: center; 
+        align-items: center;
+        max-width: 95%;
+    }
+    .basket { 
+        position:relative; 
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .basket img { width:150px; height:150px; object-fit: contain; filter: drop-shadow(0px 8px 6px rgba(0,0,0,0.3)); }
+    
+    /* Absolute overlaying item icons inside basket boundaries */
+    .item-preview-container {
+        position: absolute;
+        top: 25px;
+        display: flex;
+        flex-wrap: wrap;
+        width: 80px;
+        justify-content: center;
+        gap: 4px;
+        pointer-events: none;
+    }
+    .item-preview {
+        width: 22px;
+        height: 22px;
+        object-fit: contain;
+    }
 
-<!-- Screen 2: Title + Mission -->
-<div id="screen2" class="screen">
-    <div class="title">
-        <h1>Orchard Fruit Collector</h1>
-        <p>Mission: Collect the fruits into the baskets and complete the challenge!</p>
-    </div>
-</div>
-
-<!-- Screen 3: 3 baskets with buttons -->
-<div id="screen3" class="screen">
-    <div class="basket-container">
-        <div class="basket">
-            <img src="assets/basket.png">
-            <div class="basket-label">2</div>
-        </div>
-        <div class="basket">
-            <img src="assets/basket.png">
-            <div class="basket-label">2</div>
-        </div>
-        <div class="basket">
-            <img src="assets/basket.png">
-            <div class="basket-label">2</div>
-        </div>
-    </div>
-    <div class="instruction">Look at the baskets and click the correct button to continue</div>
-    <div class="buttons">
-        <button class="btn" id="btn1">2 groups of 3 apples</button>
-        <button class="btn" id="btn2">3 groups of 2 apples</button>
-    </div>
-</div>
-
-<script>
-// Show splash screen then move to screen2
-setTimeout(()=>{
-    document.getElementById('splash').style.display='none';
-    document.getElementById('screen2').style.display='flex';
-},2000);
-
-// After 2 seconds on screen2, show screen3
-setTimeout(()=>{
-    document.getElementById('screen2').style.display='none';
-    document.getElementById('screen3').style.display='flex';
-},4000);
-
-// Button logic on screen3
-document.getElementById('btn1').addEventListener('click', ()=>{
-    alert("Wrong! Try again.");
-});
-document.getElementById('btn2').addEventListener('click', ()=>{
-    // Move to next screen (screen4, or drag-and-drop in main game)
-    alert("Correct! Moving to the next screen.");
-    // Replace with: showScreen('screen4'); when next screen is ready
-});
-</script>
-
-</body>
-</html>
+    .basket-label { 
+        position:absolute; 
+        bottom:10px; 
+        background: rgba(0, 0, 0, 0.7);
+        padding: 2px 12px;
+        border-radius: 12px;
+        font-size:20px; 
+        font-weight:bold; 
+        color:white; 
+        pointer-events:none; 
+    }
+    
+    #screen3 .instruction { 
+        color:#fff; 
+        font-size:24px; 
+        margin: 30px 0 15px 0; 
+        text-align:center; 
+        font-weight: bold;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+    }
+    #screen3 .buttons { display:flex; gap:20px; margin-top:10px; width: 100%; max-width: 550px; flex-direction: column; }
+    
+    .btn { 
+        padding:16px 24px; 
+        font-size:20px; 
+        border:none; 
+        border-radius:12px; 
+        background: var(--primary-color); 
+        color:#fff; 
+        cursor:pointer; 
+        font-weight: bold;
+        box-shadow: 0 5px 0px #cc7a7a;
+        transition: all 0.1s ease;
+        text-align: center;
+        width: 100%;
+    }
+    .btn:hover { background: var(--primary-hover); transform: translateY(2px); box-shadow: 0 3px 0px #cc7a7a; }
+    .btn:active { transform: translateY(5px); box-shadow: none; }
+    
+    /* Screen 4: End Game Score Screen */
+    #screen4 { background: #f0fdf4; display: none; }
+    .card {
+        background: white;
+        padding: 40px;
+        border-radius: 24px;
+        text-align: center;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        max-width: 450px;
+        width: 90%;
+    }
+    .card h2 { font-size: 36px; color: #16a34a; margin: 0 0 10px 0; }
+    .card p { font-size: 20px; color: #4b5563; margin: 0 0 30px 0; }
+    
+    /* Custom
