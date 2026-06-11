@@ -21,11 +21,14 @@
         color: white;
     }
     
-    /* Splash Screen Overlay */
+    /* Splash Screen Overlay - Starts visible, hidden via JavaScript safety timers */
     #splash-screen {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background-color: #ffffff; display: flex; justify-content: center; align-items: center;
         z-index: 9999; opacity: 1; transition: opacity 0.5s ease-out;
+    }
+    #splash-screen .splash-fallback {
+        color: #0f172a; font-size: 32px; font-weight: bold;
     }
     #splash-screen img { max-width: 60%; max-height: 50%; object-fit: contain; }
 
@@ -40,7 +43,7 @@
         animation: flyForward 4s infinite linear; opacity: 0;
     }
     @keyframes flyForward {
-        0% { transform: scale(0.2) translateZ(0); opacity: 0; }
+        0% { transform: scale(0.2) translateY(0); opacity: 0; }
         10% { opacity: 0.8; }
         90% { opacity: 0.8; }
         100% { transform: scale(1.5) translateY(100vh); opacity: 0; }
@@ -62,7 +65,7 @@
     @keyframes panelFade { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
 
     h1 { font-size: 36px; margin: 0 0 15px 0; color: var(--primary-color); text-shadow: 0 0 15px rgba(56,189,248,0.4); }
-    p { font-size: 17px; line-height: 1.6; color: #cbd5e1; margin: 0 0 25px 0; text-align: left; }
+    p { font-size: 17px; line-height: 1.6; color: #cbd5e1; margin: 0 0 25px 0; }
 
     /* Top HUD Dashboard */
     .hud-bar {
@@ -91,6 +94,13 @@
         position:relative; display: flex; flex-direction: column; align-items: center;
         width: 120px; height: 160px; transition: transform 0.3s ease;
     }
+    
+    /* Visual Placeholder fallback if graphics fail */
+    .rocket-fallback {
+        width: 70px; height: 100px; background: #38bdf8; 
+        border-radius: 50% 50% 10px 10px; display:flex; align-items:center; justify-content:center;
+        font-weight: bold; color: #0f172a; border: 2px solid white;
+    }
     .rocket-pad .rocket-img { 
         width: 100%; height: 85%; object-fit: contain; 
         filter: drop-shadow(0px 8px 12px rgba(56,189,248,0.25));
@@ -113,12 +123,16 @@
         justify-content: center; align-items: center; gap: 4px; pointer-events: none;
     }
     .fuel-cell { width: 15px; height: 15px; object-fit: contain; }
+    .cell-fallback {
+        width: 14px; height: 14px; border-radius: 50%; background: #fbbf24;
+    }
 
     /* Quantity Label Badges */
     .pad-label { 
         position:absolute; bottom: 0px; background: var(--accent-color);
         padding: 3px 14px; border-radius: 12px; font-size: 14px; 
         font-weight:bold; color: #0f172a; border: 2px solid white;
+        z-index:3;
     }
     
     .instruction { 
@@ -169,7 +183,8 @@
 <body>
 
 <div id="splash-screen">
-    <img src="assets/logo.png" alt="Logo">
+    <img src="assets/logo.png" id="splash-img" alt="Logo" onerror="this.style.display='none'; document.getElementById('splash-txt').style.display='block';">
+    <div id="splash-txt" class="splash-fallback" style="display:none;">Loading Mission Core...</div>
 </div>
 
 <div id="starfield"></div>
@@ -180,8 +195,8 @@
 <div id="screen-intro" class="screen active">
     <div class="title-card">
         <h1>Cosmic Rocket Fuel: Hyper-Drive Mission 🚀</h1>
-        <p><strong>ALERT CAPTAIN:</strong> Our exploratory squadron is trapped on the event horizon of a quantum black hole storm! To activate our escape portals, we must compute and load exact balancing power fuel cells into our rocket fleet.<br><br>
-        Analyze the configurations on the launching pads, link the correct grouping formulas, and spark the engines before energy drops to zero!</p>
+        <p>Our exploratory squadron is trapped on the event horizon of a quantum black hole storm! To activate our escape portals, we must compute and load exact balancing power fuel cells into our rocket fleet.<br><br>
+        Analyze the configurations on the launching pads, link the correct grouping formulas, and spark the engines!</p>
         <button class="btn btn-start" onclick="navigateToScreen('screen-game'); startGame();">Initiate Launch Code</button>
     </div>
 </div>
@@ -203,4 +218,243 @@
     <div class="reveal-box" id="reveal-zone"></div>
 </div>
 
-<div id="
+<div id="screen-end" class="screen">
+    <div class="title-card">
+        <h1>Escape Vector Success! 🌟</h1>
+        <p id="final-score-text">Sensational mathematical sequencing. The fleet broke clear from the cosmic gravity trap!</p>
+        <button class="btn btn-start" onclick="navigateToScreen('screen-game'); startGame();">Re-Fly Mission</button>
+    </div>
+</div>
+
+<script>
+// Safely scoped logic elements
+const itemAssets = [
+    { name: 'crystals', file: 'assets/crystal.png' },
+    { name: 'batteries', file: 'assets/battery.png' },
+    { name: 'stars', file: 'assets/star-token.png' }
+];
+
+let gameQuestions = [];
+let currentQuestionIndex = 0;
+let score = 0;
+const totalQuestionsCount = 10;
+
+// FORCED DISMISSAL: Safely clear out the splash screen regardless of window load bindings
+function removeSplash() {
+    const splash = document.getElementById('splash-screen');
+    if(splash && splash.style.display !== 'none') {
+        splash.style.opacity = '0';
+        setTimeout(() => {
+            splash.style.display = 'none';
+        }, 500);
+    }
+}
+// Triggers automatically exactly 3.5 seconds after scripts process
+setTimeout(removeSplash, 3500);
+
+// Initialize background decoration inside a safe block
+try {
+    const starfield = document.getElementById('starfield');
+    if (starfield) {
+        for (let i = 0; i < 30; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.width = Math.random() * 3 + 1 + 'px';
+            star.style.height = star.style.width;
+            star.style.left = Math.random() * 100 + 'vw';
+            star.style.top = Math.random() * 100 + 'vh';
+            star.style.animationDelay = Math.random() * 4 + 's';
+            star.style.animationDuration = Math.random() * 3 + 2 + 's';
+            starfield.appendChild(star);
+        }
+    }
+} catch(e) { console.log("Background decoration bypassed"); }
+
+function navigateToScreen(screenId) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const targeted = document.getElementById(screenId);
+    if(targeted) targeted.classList.add('active');
+}
+
+function startGame() {
+    gameQuestions = [];
+    currentQuestionIndex = 0;
+    score = 0;
+
+    const compositionLogs = [];
+    while (compositionLogs.length < totalQuestionsCount) {
+        const groupsCount = Math.floor(Math.random() * 3) + 2;     // 2-4 Rockets
+        const itemsPerGroup = Math.floor(Math.random() * 4) + 2;   // 2-5 Cells
+        const assetIndex = Math.floor(Math.random() * itemAssets.length);
+        
+        const generationKey = `${groupsCount}r${itemsPerGroup}c${assetIndex}`;
+        if (!compositionLogs.includes(generationKey)) {
+            compositionLogs.push(generationKey);
+            
+            const targetItem = itemAssets[assetIndex];
+            const correctText = `${groupsCount} groups of ${itemsPerGroup} ${targetItem.name}`;
+            
+            let wrong1 = (groupsCount !== itemsPerGroup) ? `${itemsPerGroup} groups of ${groupsCount} ${targetItem.name}` : `${groupsCount + 1} groups of ${itemsPerGroup} ${targetItem.name}`;
+            
+            let alternateCount = Math.floor(Math.random() * 3) + 2; 
+            while(alternateCount === groupsCount || alternateCount === itemsPerGroup) {
+                alternateCount = Math.floor(Math.random() * 3) + 2;
+            }
+            let wrong2 = `${alternateCount} groups of ${itemsPerGroup} ${targetItem.name}`;
+
+            gameQuestions.push({
+                groups: groupsCount,
+                size: itemsPerGroup,
+                total: (groupsCount * itemsPerGroup),
+                item: targetItem,
+                answer: correctText,
+                options: shuffleArray([correctText, wrong1, wrong2])
+            });
+        }
+    }
+    renderActiveQuestion();
+}
+
+function renderActiveQuestion() {
+    if (currentQuestionIndex >= gameQuestions.length) return;
+    const question = gameQuestions[currentQuestionIndex];
+    
+    document.getElementById('progress-text').innerText = `Sector Tracking: ${currentQuestionIndex + 1}/${totalQuestionsCount}`;
+    document.getElementById('score-text').innerText = `Core Matrix: ${Math.round((score / totalQuestionsCount) * 100)}%`;
+    document.getElementById('progress-core-fill').style.width = `${(currentQuestionIndex / totalQuestionsCount) * 100}%`;
+    
+    document.getElementById('options-zone').style.display = 'flex';
+    const revealZone = document.getElementById('reveal-zone');
+    revealZone.style.display = 'none';
+    revealZone.innerHTML = '';
+    document.getElementById('question-prompt').innerText = "Link the input matrix to fuel the thruster nodes:";
+
+    const rocketZone = document.getElementById('rocket-zone');
+    const optionsZone = document.getElementById('options-zone');
+    rocketZone.innerHTML = '';
+    optionsZone.innerHTML = '';
+
+    for(let i=0; i < question.groups; i++) {
+        const padDiv = document.createElement('div');
+        padDiv.className = 'rocket-pad';
+        
+        const rocketImg = document.createElement('img');
+        rocketImg.className = 'rocket-img';
+        rocketImg.src = 'assets/rocket.png'; 
+        rocketImg.onerror = function() {
+            this.style.display = 'none';
+            const fallbackNode = document.createElement('div');
+            fallbackNode.className = 'rocket-fallback';
+            fallbackNode.innerText = 'SHIP';
+            padDiv.insertBefore(fallbackNode, padDiv.firstChild);
+        };
+        padDiv.appendChild(rocketImg);
+        
+        const fuelContainer = document.createElement('div');
+        fuelContainer.className = 'fuel-container';
+        
+        for(let j=0; j < question.size; j++) {
+            const cellImg = document.createElement('img');
+            cellImg.className = 'fuel-cell';
+            cellImg.src = question.item.file;
+            cellImg.onerror = function() {
+                this.style.display = 'none';
+                const dot = document.createElement('div');
+                dot.className = 'cell-fallback';
+                fuelContainer.appendChild(dot);
+            };
+            fuelContainer.appendChild(cellImg);
+        }
+        padDiv.appendChild(fuelContainer);
+
+        const labelDiv = document.createElement('div');
+        labelDiv.className = 'pad-label';
+        labelDiv.innerText = question.size;
+        padDiv.appendChild(labelDiv);
+
+        rocketZone.appendChild(padDiv);
+    }
+
+    question.options.forEach(optionText => {
+        const button = document.createElement('button');
+        button.className = 'btn';
+        button.innerText = optionText;
+        button.addEventListener('click', () => evaluateAnswer(optionText, button));
+        optionsZone.appendChild(button);
+    });
+}
+
+function evaluateAnswer(selectedChoice, selectedButton) {
+    const question = gameQuestions[currentQuestionIndex];
+    const buttons = document.querySelectorAll('#options-zone .btn');
+    buttons.forEach(b => b.disabled = true);
+
+    const sndCorrect = document.getElementById('sound-correct');
+    const sndWrong = document.getElementById('sound-wrong');
+    let dynamicSuccess = false;
+
+    if(selectedChoice === question.answer) {
+        score++;
+        dynamicSuccess = true;
+        selectedButton.style.background = '#22c55e'; 
+        selectedButton.style.boxShadow = '0 4px 0px #15803d';
+        try { if(sndCorrect) { sndCorrect.currentTime = 0; sndCorrect.play(); } } catch(e){}
+        
+        document.querySelectorAll('.rocket-pad').forEach(rocket => {
+            rocket.classList.add('launching');
+        });
+    } else {
+        selectedButton.style.background = '#ef4444'; 
+        selectedButton.style.boxShadow = '0 4px 0px #b91c1c';
+        try { if(sndWrong) { sndWrong.currentTime = 0; sndWrong.play(); } } catch(e){}
+        
+        buttons.forEach(b => {
+            if(b.innerText === question.answer) {
+                b.style.background = '#22c55e';
+                b.style.boxShadow = '0 4px 0px #15803d';
+            }
+        });
+    }
+
+    setTimeout(() => {
+        document.getElementById('options-zone').style.display = 'none';
+        document.getElementById('question-prompt').innerText = dynamicSuccess ? "Ignition Synchronized! ⚡" : "Circuit breakdown formula:";
+        
+        const additionChain = Array(question.groups).fill(question.size).join(' + ');
+        
+        const revealZone = document.getElementById('reveal-zone');
+        revealZone.style.display = 'block';
+        revealZone.innerHTML = `
+            <div style="color: var(--accent-color); font-size: 21px; margin-bottom: 5px;">${question.answer}</div>
+            <div style="font-size: 19px; color: #94a3b8; margin-bottom: 12px;">${additionChain} = ${question.total}</div>
+            <div style="color: #22c55e; font-size: 38px; font-weight: 900;">${question.groups} &times; ${question.size} = ${question.total}</div>
+        `;
+
+        setTimeout(() => {
+            currentQuestionIndex++;
+            if(currentQuestionIndex < totalQuestionsCount) {
+                renderActiveQuestion();
+            } else {
+                showEndGame();
+            }
+        }, 4000); 
+    }, 1100);
+}
+
+function showEndGame() {
+    navigateToScreen('screen-end');
+    document.getElementById('progress-core-fill').style.width = '100%';
+    document.getElementById('final-score-text').innerText = `Incredible piloting, Commander! The Hyper-Drive Core reached ${(score / totalQuestionsCount) * 100}% tracking capacity. All fleet branches made the jump safely!`;
+}
+
+function shuffleArray(array) {
+    let arr = [...array];
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[arr[j]]] = [arr[arr[j]], arr[i]];
+    }
+    return arr;
+}
+</script>
+</body>
+</html>
