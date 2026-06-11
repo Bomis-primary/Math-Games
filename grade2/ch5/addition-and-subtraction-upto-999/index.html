@@ -1,1 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Climb: Snakes, Ladders & Sums - Grade 2</title>
+<style>
+    :root {
+        --sky-blue: #38bdf8;
+        --ladder-gold: #fbbf24;
+        --snake-red: #ef4444;
+        --board-bg: #f8fafc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html {
+        width: 100%; height: 100%;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        color: #1e293b; overflow: hidden;
+        background-color: var(--sky-blue);
+    }
 
+    .game-container {
+        position: relative; width: 100%; height: 100%;
+        background: #38bdf8 url('assets/sky-bg.png') no-repeat center center;
+        background-size: cover;
+        display: flex; justify-content: center; align-items: center;
+        flex-direction: column; padding: 20px;
+    }
+
+    /* Brand Splash Overlay */
+    #screen-splash {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: #ffffff !important; z-index: 9999;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        opacity: 1; transition: opacity 0.5s ease;
+    }
+    .logo-container {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .logo-img {
+        max-width: 260px; max-height: 140px; object-fit: contain;
+    }
+    .logo-fallback {
+        width: 100px; height: 100px; background: linear-gradient(135deg, #0284c7, #38bdf8);
+        border-radius: 24px; display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 50px; font-weight: bold; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    }
+    .splash-loader {
+        margin-top: 30px; width: 140px; height: 6px; background: #e2e8f0;
+        border-radius: 3px; overflow: hidden; position: relative;
+    }
+    .splash-loader-bar {
+        position: absolute; background: #0284c7; width: 100%; height: 100%;
+        left: -100%; animation: loadProgress 5s linear forwards;
+    }
+
+    .screen {
+        display: none; width: 100%; max-width: 700px;
+        flex-direction: column; align-items: center; text-align: center;
+        z-index: 5;
+    }
+    .screen.active { display: flex !important; }
+
+    .card {
+        background: rgba(255, 255, 255, 0.98);
+        padding: 30px; border-radius: 32px; width: 100%;
+        border: 6px solid #0284c7; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.2);
+    }
+    h1 { font-size: 36px; color: #0284c7; margin-bottom: 12px; font-weight: 800; }
+    p { font-size: 18px; line-height: 1.5; color: #475569; margin-bottom: 20px; }
+
+    /* Character Selection Lineup */
+    .character-select-box {
+        display: flex; justify-content: center; gap: 20px; margin: 20px 0;
+    }
+    .char-card {
+        background: white; border: 4px solid #cbd5e1; border-radius: 20px;
+        padding: 15px; cursor: pointer; transition: all 0.2s ease; width: 120px;
+    }
+    .char-card:hover { transform: translateY(-5px); border-color: #38bdf8; }
+    .char-card.selected { border-color: #22c55e; background: #f0fdf4; transform: scale(1.05); }
+    .char-card img { width: 80px; height: 80px; object-fit: contain; }
+    
+    .fallback-avatar {
+        width: 80px; height: 80px; background: #f97316; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; font-size: 40px; color: white;
+    }
+
+    /* Board Map Track View */
+    .board-track {
+        display: flex; width: 100%; justify-content: space-between; background: #e2e8f0;
+        padding: 12px; border-radius: 20px; margin-bottom: 20px; border: 4px solid #cbd5e1;
+        position: relative; overflow: hidden;
+    }
+    .board-tile {
+        flex: 1; min-height: 75px; background: white; border: 2px solid #cbd5e1;
+        border-radius: 12px; display: flex; flex-direction: column; align-items: center;
+        justify-content: center; font-weight: bold; position: relative; font-size: 14px;
+        margin: 0 3px; transition: background 0.3s;
+    }
+    .board-tile.ladder-tile { background: #fef8e7; border-color: var(--ladder-gold); color: #b45309; }
+    .board-tile.snake-tile { background: #fef2f2; border-color: var(--snake-red); color: #b91c1c; }
+    .board-tile.active-player-here { background: #dcfce7 !important; }
+
+    .tile-badge { font-size: 11px; margin-top: 2px; text-transform: uppercase; }
+
+    .token-pawn {
+        width: 38px; height: 38px; object-fit: contain;
+        position: absolute; bottom: 4px; animation: bounceToken 2s infinite ease-in-out;
+        filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+    }
+
+    /* Layout Components */
+    .hud-bar {
+        width: 100%; display: flex; justify-content: space-between; font-weight: bold;
+        background: #f1f5f9; padding: 12px 20px; border-radius: 16px; margin-bottom: 15px;
+    }
+
+    .math-panel {
+        background: #fef08a; color: #854d0e; font-size: 36px; font-weight: 900;
+        padding: 15px 40px; border-radius: 24px; border: 5px solid #facc15;
+        margin-bottom: 20px; display: inline-block; letter-spacing: 1px;
+    }
+
+    .options-grid {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; width: 100%;
+    }
+
+    .btn {
+        padding: 14px 28px; font-size: 20px; font-weight: 900;
+        color: white; border: none; border-radius: 20px; cursor: pointer;
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        box-shadow: 0 6px 0px #15803d, 0 10px 15px rgba(0,0,0,0.15);
+        transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0px #15803d, 0 12px 20px rgba(0,0,0,0.2); }
+    .btn:active { transform: translateY(4px); box-shadow: 0 2px 0px #15803d; }
+    
+    .btn-blue {
+        background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        box-shadow: 0 6px 0px #0369a1, 0 10px 15px rgba(0,0,0,0.15);
+    }
+    .btn-blue:hover { box-shadow: 0 8px 0px #0369a1, 0 12px 20px rgba(0,0,0,0.2); }
+    .btn-blue:active { box-shadow: 0 2px 0px #0369a1; }
+
+    .btn-choice {
+        background: white; color: #1e293b; border: 4px solid #cbd5e1;
+        box-shadow: 0 6px 0px #94a3b8, 0 8px 12px rgba(0,0,0,0.1); font-size: 26px;
+    }
+    .btn-choice:hover { border-color: #38bdf8; background: #f8fafc; box-shadow: 0 8px 0px #94a3b8; }
+
+    /* Event Banner Message */
+    #event-banner {
+        position: fixed; top: 25%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
+        background: rgba(255, 255, 255, 0.95); border: 6px solid var(--ladder-gold);
+        padding: 20px 40px; border-radius: 24px; font-size: 32px; font-weight: 900;
+        z-index: 100; display: none; opacity: 0; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        box-shadow: 0 20px 30px rgba(0,0,0,0.3);
+    }
+    #event-banner.pop-show { display: block; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+    @keyframes loadProgress { 0% { left: -100%; } 100% { left: 0%; } }
+    @keyframes bounceToken {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-8px); }
+    }
+    
+    /* Dice Roll Animation */
+    .dice-cube {
+        font-size: 45px; display: inline-block; margin-left: 10px;
+        animation: spinDice 0.4s ease infinite alternate; display: none;
+    }
+    @keyframes spinDice { 0% { transform: rotate(0deg); } 100% { transform: rotate(180deg); } }
+</style>
+</head>
+<body>
+
+<div id="screen-splash">
+    <div class="logo-container">
+        <img class="logo-img" src="assets/logo.png" onerror="this.style.display='none'; document.getElementById('brand-fallback').style.display='flex';" alt="Innovine Logo">
+        <div id="brand-fallback" class="logo-fallback" style="display:none;">I</div>
+    </div>
+    <div class="splash-loader">
+        <div class="splash-loader-bar"></div>
+    </div>
+</div>
+
+<div id="event-banner">🚀 LADDER CLIMB!</div>
+
+<div class="game-container">
+
+    <div id="screen-welcome" class="screen active">
+        <div class="card">
+            <h1>Math Climb: Snakes & Ladders 🎲</h1>
+            <p>Solve addition and subtraction up to 999 to roll the dice, climb magnificent ladders, and outsmart the snakes!</p>
+            
+            <h3 style="color: #475569;">Choose Your Hero Token:</h3>
+            <div class="character-select-box">
+                <div class="char-card selected" id="c-0" onclick="pickCharacter(0)">
+                    <img src="assets/rabbit.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="fallback-avatar" style="display:none;">🐰</div>
+                    <div style="font-weight:bold; margin-top:5px;">Bunny</div>
+                </div>
+                <div class="char-card" id="c-1" onclick="pickCharacter(1)">
+                    <img src="assets/lion.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="fallback-avatar" style="display:none;">🦁</div>
+                    <div style="font-weight:bold; margin-top:5px;">Lion</div>
+                </div>
+                <div class="char-card" id="c-2" onclick="pickCharacter(2)">
+                    <img src="assets/elephant.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <div class="fallback-avatar" style="display:none;">🐘</div>
+                    <div style="font-weight:bold; margin-top:5px;">Elephant</div>
+                </div>
+            </div>
+
+            <button class="btn btn-blue" style="margin-top: 10px;" onclick="startBoardClimb();">Enter Board Arena</button>
+        </div>
+    </div>
+
+    <div id="screen-game" class="screen">
+        <div class="hud-bar">
+            <div id="hud-score">Stars: ⭐ 0</div>
+            <div>Target: Space 8 🏆</div>
+            <div id="hud-status" style="color: #0284c7;">Your Turn</div>
+        </div>
+
+        <div class="board-track" id="board-line-container">
+            </div>
+
+        <div class="card">
+            <div style="margin-bottom: 10px; font-weight: bold; color: #475569;">
+                Solve to roll the die! <span id="dice-graphic" class="dice-cube">🎲</span>
+            </div>
+            
+            <div class="math-panel" id="math-problem-display">---</div>
+            
+            <div class="options-grid" id="choices-btn-grid"></div>
+        </div>
+    </div>
+
+    <div id="screen-end" class="screen">
+        <div class="card">
+            <div style="font-size: 70px; margin-bottom: 10px;">🏆✨</div>
+            <h1>Board Mastered!</h1>
+            <p id="end-summary-text">Fantastic counting! You climbed vectors and mastered calculations expertly.</p>
+            <button class="btn" onclick="goToScreen('screen-welcome'); resetBoardState();">Play Again</button>
+        </div>
+    </div>
+
+</div>
+
+<audio id="snd-correct" src="assets/correct.mp3" preload="auto"></audio>
+<audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+<script>
+    const characterFilePaths = ['assets/rabbit.png', 'assets/lion.png', 'assets/elephant.png'];
+    const fallbackEmojis = ['🐰', '🦁', '🐘'];
+    
+    let activeCharacterIdx = 0;
+    let playerCurrentTileSpace = 1;
+    const finalWinningTileSpace = 8;
+    let earnedStarsScore = 0;
+    let targetSolution = 0;
+
+    // Layout configuration map for specialized board tiles
+    const specialTilesLayout = {
+        3: { type: 'ladder', target: 5, label: 'Ladder 🪜' },
+        6: { type: 'snake', target: 2, label: 'Snake 🐍' }
+    };
+
+    // Auto Release Splash Curtain (Guaranteed after 5 Seconds)
+    setTimeout(function() {
+        const splash = document.getElementById('screen-splash');
+        if (splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => splash.style.display = 'none', 500);
+        }
+    }, 5000);
+
+    function goToScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        const screenNode = document.getElementById(screenId);
+        if(screenNode) screenNode.classList.add('active');
+    }
+
+    function pickCharacter(index) {
+        activeCharacterIdx = index;
+        document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
+        const activeCard = document.getElementById(`c-${index}`);
+        if(activeCard) activeCard.classList.add('selected');
+    }
+
+    function resetBoardState() {
+        playerCurrentTileSpace = 1;
+        earnedStarsScore = 0;
+    }
+
+    function startBoardClimb() {
+        resetBoardState();
+        goToScreen('screen-game');
+        buildBoardUIElements();
+        generateEquationRound();
+    }
+
+    function buildBoardUIElements() {
+        const container = document.getElementById('board-line-container');
+        if(!container) return;
+        container.innerHTML = '';
+
+        for (let i = 1; i <= finalWinningTileSpace; i++) {
+            const tile = document.createElement('div');
+            tile.className = 'board-tile';
+            tile.id = `board-tile-${i}`;
+            
+            let labelText = `Space ${i}`;
+            if (specialTilesLayout[i]) {
+                if (specialTilesLayout[i].type === 'ladder') {
+                    tile.classList.add('ladder-tile');
+                    labelText = `🪜 Up to 5`;
+                } else if (specialTilesLayout[i].type === 'snake') {
+                    tile.classList.add('snake-tile');
+                    labelText = `🐍 Down to 2`;
+                }
+            } else if (i === finalWinningTileSpace) {
+                labelText = `🏆 WIN`;
+                tile.style.background = '#f0fdf4';
+                tile.style.borderColor = '#22c55e';
+            }
+            
+            tile.innerHTML = `<div>${i}</div><div class="tile-badge">${labelText}</div>`;
+            container.appendChild(tile);
+        }
+        renderPlayerTokenOnTile();
+    }
+
+    function renderPlayerTokenOnTile() {
+        document.querySelectorAll('.board-tile').forEach(t => t.classList.remove('active-player-here'));
+        const oldToken = document.getElementById('active-pawn-token');
+        if (oldToken) oldToken.remove();
+
+        const currentTileNode = document.getElementById(`board-tile-${playerCurrentTileSpace}`);
+        if(currentTileNode) {
+            currentTileNode.classList.add('active-player-here');
+            
+            const img = document.createElement('img');
+            img.id = 'active-pawn-token';
+            img.className = 'token-pawn';
+            img.src = characterFilePaths[activeCharacterIdx];
+            img.setAttribute('onerror', `this.style.display='none'; this.outerHTML='<div class="token-pawn" style="font-size:30px; text-align:center;">${fallbackEmojis[activeCharacterIdx]}</div>'`);
+            
+            currentTileNode.appendChild(img);
+        }
+    }
+
+    function generateEquationRound() {
+        document.getElementById('hud-status').innerText = "Your Turn";
+        document.getElementById('hud-status').style.color = "#0284c7";
+        document.getElementById('dice-graphic').style.display = 'none';
+
+        // Mix 50/50 addition and subtraction operations up to 999
+        const isAdditionMode = Math.random() > 0.5;
+        let numA, numB;
+
+        if (isAdditionMode) {
+            // Addition without complex carryover to align with lesson outcomes safely
+            numA = Math.floor(Math.random() * 500) + 100; // 100-599
+            numB = Math.floor(Math.random() * 300) + 50;  // 50-349
+            targetSolution = numA + numB;
+            document.getElementById('math-problem-display').innerText = `${numA} + ${numB}`;
+        } else {
+            // Subtraction up to 999 without complex borrowing
+            numA = Math.floor(Math.random() * 500) + 400; // 400-899
+            numB = Math.floor(Math.random() * 300) + 50;  // 50-349
+            targetSolution = numA - numB;
+            document.getElementById('math-problem-display').innerText = `${numA} - ${numB}`;
+        }
+
+        // Generate choices pool
+        let choiceA = targetSolution + (Math.random() > 0.5 ? 10 : -10);
+        let choiceB = targetSolution + (Math.random() > 0.5 ? 5 : -5);
+        if (choiceA === targetSolution) choiceA += 20;
+        if (choiceB === targetSolution || choiceB === choiceA) choiceB += 15;
+
+        let optionsPool = [targetSolution, choiceA, choiceB];
+        optionsPool.sort(() => Math.random() - 0.5);
+
+        const btnContainer = document.getElementById('choices-btn-grid');
+        if(!btnContainer) return;
+        btnContainer.innerHTML = '';
+
+        optionsPool.forEach(val => {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-choice';
+            btn.innerText = val;
+            btn.onclick = function() { checkPlayerAnswer(val); };
+            btnContainer.appendChild(btn);
+        });
+    }
+
+    function triggerEventOverlay(text, color) {
+        const banner = document.getElementById('event-banner');
+        if(!banner) return;
+        banner.innerText = text;
+        banner.style.borderColor = color;
+        banner.classList.add('pop-show');
+        setTimeout(() => banner.classList.remove('pop-show'), 1800);
+    }
+
+    function checkPlayerAnswer(selectedVal) {
+        // Disabling button actions to prevent multiple click events during transitions
+        document.querySelectorAll('.btn-choice').forEach(b => b.onclick = null);
+
+        if (selectedVal === targetSolution) {
+            earnedStarsScore += 10;
+            document.getElementById('hud-score').innerText = `Stars: ⭐ ${earnedStarsScore}`;
+            
+            const audioC = document.getElementById('snd-correct');
+            if(audioC) audioC.play().catch(() => {});
+
+            document.getElementById('math-problem-display').innerText = "CORRECT! ✨";
+            document.getElementById('hud-status').innerText = "Rolling Die...";
+            document.getElementById('hud-status').style.color = "#22c55e";
+            
+            const diceNode = document.getElementById('dice-graphic');
+            if(diceNode) diceNode.style.display = 'inline-block';
+
+            setTimeout(() => {
+                // Grade 2 dynamic movement step length (1 to 2 spaces for crisp track mapping)
+                const movementSteps = Math.floor(Math.random() * 2) + 1;
+                playerCurrentTileSpace += movementSteps;
+                
+                if (playerCurrentTileSpace >= finalWinningTileSpace) {
+                    playerCurrentTileSpace = finalWinningTileSpace;
+                    renderPlayerTokenOnTile();
+                    setTimeout(() => {
+                        goToScreen('screen-end');
+                        document.getElementById('end-summary-text').innerText = `Magnificent work! You climbed all the way to space 8, collected ${earnedStarsScore} Stars, and perfectly solved math problems up to 999!`;
+                    }, 1200);
+                    return;
+                }
+
+                renderPlayerTokenOnTile();
+
+                // Checking if current board tile triggers a snake or ladder event condition
+                setTimeout(() => {
+                    if (specialTilesLayout[playerCurrentTileSpace]) {
+                        const cellEvent = specialTilesLayout[playerCurrentTileSpace];
+                        playerCurrentTileSpace = cellEvent.target;
+                        
+                        if (cellEvent.type === 'ladder') {
+                            triggerEventOverlay("🪜 LADDER LEAP!", "#fbbf24");
+                            earnedStarsScore += 15;
+                            document.getElementById('hud-score').innerText = `Stars: ⭐ ${earnedStarsScore}`;
+                        } else {
+                            triggerEventOverlay("🐍 SNAKE SLIDE!", "#ef4444");
+                        }
+                        
+                        setTimeout(() => {
+                            renderPlayerTokenOnTile();
+                            generateEquationRound();
+                        }, 1500);
+                    } else {
+                        generateEquationRound();
+                    }
+                }, 1000);
+
+            }, 1500);
+
+        } else {
+            const audioW = document.getElementById('snd-wrong');
+            if(audioW) audioW.play().catch(() => {});
+
+            document.getElementById('math-problem-display').innerText = `Oops! Solved: ${targetSolution}`;
+            document.getElementById('hud-status').innerText = "Try Again Next Round!";
+            document.getElementById('hud-status').style.color = "#ef4444";
+
+            setTimeout(() => {
+                generateEquationRound();
+            }, 2500);
+        }
+    }
+</script>
+</body>
+</html>
