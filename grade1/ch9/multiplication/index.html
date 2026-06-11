@@ -3,415 +3,237 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Orchard Re-Grow Multiplication</title>
+<title>The Great Treasure Vault - Grade 2 Addition</title>
 <style>
     :root {
-        --primary-vibrant: #22c55e;
-        --secondary-gold: #facc15;
-        --text-dark: #1e293b;
+        --vault-bg: #1e1b4b;
+        --gold: #facc15;
+        --chest-brown: #78350f;
+        --text-light: #f8fafc;
+        --success: #22c55e;
+        --danger: #ef4444;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body, html {
         width: 100%; height: 100%;
         font-family: 'Segoe UI', Arial, sans-serif;
-        background-color: #65a30d; /* Base green backup */
-        color: white; overflow: hidden;
+        background-color: #0f172a;
+        color: var(--text-light);
+        overflow: hidden;
     }
 
-    /* Main Container with vibrant Orchard background image */
     .game-container {
         position: relative; width: 100%; height: 100%;
-        background: url('assets/orchard-bg.jpg') no-repeat center center;
-        background-size: cover;
+        background: radial-gradient(circle at 50% 50%, var(--vault-bg) 0%, #090d16 100%);
         display: flex; justify-content: center; align-items: center;
         flex-direction: column; padding: 20px;
     }
 
-    /* Splash Screen with Logo, fades out after 5 seconds */
-    #splash-screen {
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background-color: #ffffff; display: flex; justify-content: center; align-items: center;
-        z-index: 9999; opacity: 1; transition: opacity 0.5s ease-out;
-    }
-    #splash-screen img { max-width: 60%; max-height: 50%; object-fit: contain; }
-
-    /* Game Screens Base Layout */
     .screen {
-        display: none; width: 100%; max-width: 750px;
+        display: none; width: 100%; max-width: 700px;
         flex-direction: column; align-items: center; text-align: center;
-        z-index: 2;
     }
     .screen.active { display: flex; }
 
-    /* Cartoonish Mission Title Card */
     .card {
-        background: rgba(15, 23, 42, 0.9); backdrop-filter: blur(8px);
-        padding: 40px; border-radius: 24px;
-        border: 4px solid var(--primary-vibrant); box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+        background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(8px);
+        padding: 35px; border-radius: 20px;
+        border: 3px solid #3b82f6; box-shadow: 0 15px 30px rgba(0,0,0,0.5);
     }
-    h1 { font-size: 38px; color: var(--secondary-gold); margin-bottom: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-    p { font-size: 19px; line-height: 1.6; color: #f1f5f9; margin-bottom: 25px; }
+    h1 { font-size: 32px; color: var(--gold); margin-bottom: 15px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+    p { font-size: 18px; line-height: 1.5; color: #cbd5e1; margin-bottom: 25px; }
 
-    /* Playful Cartoonish Buttons */
     .btn {
-        padding: 16px 32px; font-size: 20px; font-weight: bold;
-        color: white; border: none; border-radius: 16px; cursor: pointer;
-        background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
-        box-shadow: 0 6px 0px #166534, 0 10px 20px rgba(0,0,0,0.3);
-        transition: transform 0.1s ease, box-shadow 0.1s ease;
-        text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        padding: 14px 28px; font-size: 18px; font-weight: bold;
+        color: white; border: none; border-radius: 12px; cursor: pointer;
+        background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+        box-shadow: 0 5px 0 #880825, 0 8px 15px rgba(0,0,0,0.3);
+        transition: transform 0.1s ease, background 0.2s ease;
     }
-    .btn:hover { transform: translateY(-3px); box-shadow: 0 8px 0px #166534, 0 12px 25px rgba(0,0,0,0.4); }
-    .btn:active { transform: translateY(4px); box-shadow: 0 2px 0px #166534; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #880825; }
 
-    /* Top HUD Dashboard */
     .hud {
-        width: 100%; max-width: 700px; display: flex; justify-content: space-between; align-items: center;
-        background: rgba(15, 23, 42, 0.85); padding: 14px 28px;
-        border-radius: 30px; margin-bottom: 20px; font-size: 17px; font-weight: bold;
+        width: 100%; max-width: 650px; display: flex; justify-content: space-between;
+        background: rgba(15, 23, 42, 0.7); padding: 12px 20px;
+        border-radius: 12px; margin-bottom: 20px; font-size: 16px; font-weight: bold;
     }
 
-    /* Core Instructional Message Box */
     .instruction-box {
-        font-size: 24px; font-weight: bold; background: rgba(15, 23, 42, 0.8);
-        padding: 10px 25px; border-radius: 20px; margin-bottom: 25px; width: 100%;
-        min-height: 54px; display: flex; align-items: center; justify-content: center;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        font-size: 20px; font-weight: bold; background: rgba(255,255,255,0.1);
+        padding: 10px 20px; border-radius: 10px; margin-bottom: 25px; width: 100%;
+        min-height: 48px; display: flex; align-items: center; justify-content: center;
     }
 
-    /* Baskets and Result Container */
-    .fruit-workspace {
-        display: flex; justify-content: center; gap: 30px; 
-        width: 100%; margin-bottom: 30px; flex-wrap: wrap; align-items: center;
+    .vault-room {
+        display: flex; justify-content: center; gap: 40px; 
+        width: 100%; margin-bottom: 30px; flex-wrap: wrap;
     }
 
-    /* Cartoonish Orchard Elements with Assets */
-    .basket-box {
-        display: flex; flex-direction: column; align-items: center; gap: 5px;
-        transition: transform 0.3s ease-out;
+    .chest-box {
+        display: flex; flex-direction: column; align-items: center; gap: 10px;
     }
-    
-    .basket-box img.basket-asset {
-        width: 140px; height: 130px; object-fit: contain;
-        filter: drop-shadow(0 6px 10px rgba(0,0,0,0.3));
+    .visual-chest {
+        width: 120px; height: 90px; background: var(--chest-brown);
+        border: 4px solid #f59e0b; border-radius: 10px 10px 5px 5px;
+        position: relative; box-shadow: 0 8px 0 #451a03;
     }
-    
-    /* Result Box: Repeated addition equation reveal */
-    .equation-reveal {
-        display: none; background: rgba(254, 240, 138, 0.95); color: #1e293b;
-        padding: 20px 40px; border-radius: 20px; font-size: 36px; font-weight: 900;
-        text-align: center; border: 4px solid #eab308; box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    .visual-chest::after {
+        content: ''; position: absolute; top: 35px; left: 50%; transform: translateX(-50%);
+        width: 20px; height: 15px; background: var(--gold); border-radius: 3px;
     }
-
-    .basket-label {
-        background: #0f172a; padding: 4px 14px; border-radius: 12px;
-        font-weight: bold; font-size: 18px; border: 2px solid var(--secondary-gold);
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    .chest-label {
+        background: #0f172a; padding: 4px 12px; border-radius: 8px;
+        font-weight: bold; font-size: 18px; border: 2px solid var(--gold);
+        min-width: 110px;
     }
 
-    /* Multiple Choice Options Zones */
     .options-grid {
-        display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 500px;
+        display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 400px;
     }
     .choice-btn {
-        background: linear-gradient(135deg, #1d4ed8 0%, #172554 100%);
-        box-shadow: 0 5px 0 #1e3a8a; padding: 16px; font-size: 19px;
+        background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        box-shadow: 0 4px 0 #1e40af; padding: 14px; font-size: 18px;
     }
-
-    /* Start Screen Mission Button */
-    .btn-mission {
-        background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
-        box-shadow: 0 6px 0px #9a3412;
-    }
-    .btn-mission:hover { box-shadow: 0 8px 0px #9a3412; }
-
-    /* Keyframe Animations for "Juice" */
-    @keyframes wiggle { 
-        0%, 100% { transform: rotate(0deg); }
-        25% { transform: rotate(-3deg); }
-        75% { transform: rotate(3deg); }
-    }
-    @keyframes bounce {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-    }
-    @keyframes popIn {
-        from { transform: scale(0.8); opacity: 0; }
-        to { transform: scale(1); opacity: 1; }
-    }
-    
-    /* Dynamic Orchard Tree Visuals - Hidden by default, animated in when correct */
-    #orchard-vis {
-        position: absolute; bottom: 10px; width: 90%; max-width: 800px;
-        display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; z-index: 1;
-    }
-    .orchard-tree {
-        width: 70px; height: 110px; opacity: 0;
-        transition: opacity 0.5s ease-out, transform 0.5s ease-out;
-        transform: translateY(20px);
-    }
-    .orchard-tree.active { opacity: 1; transform: translateY(0); }
 </style>
 </head>
 <body>
 
-<div id="splash-screen">
-    <img src="assets/logo.png" alt="Orchard Logo">
-</div>
-
 <div class="game-container">
-    <div id="orchard-vis">
-        </div>
 
-    <audio id="sound-correct" src="assets/correct.mp3" preload="auto"></audio>
-    <audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
-
-    <div id="screen-intro" class="screen active">
+    <div id="screen-welcome" class="screen active">
         <div class="card">
-            <h1>Orchard Re-Grow! 🍎</h1>
-            <p><strong>ALERT JUNOR EXPLORER:</strong> A giant windstorm knocked all the fruit off our trees! We need your math brains. Count the groups in the harvest baskets to generate fresh energy, and help us magically **re-grow our vibrant fruit trees!**</p>
-            <button class="btn btn-mission" onclick="goToScreen('screen-game'); startOrchardGame();">Accept the Re-Grow Mission!</button>
+            <h1>The Great Treasure Vault 🪙</h1>
+            <p>Welcome, Junior Explorer! The ancient dragon left behind chests of gold coins. Help count the total number of coins to open the magic vault door!</p>
+            <button class="btn" onclick="goToScreen('screen-game'); startNewGame();">Start Exploring</button>
         </div>
     </div>
 
     <div id="screen-game" class="screen">
         <div class="hud">
-            <div id="sector-track">Basket Row: 1/10</div>
-            <div id="energy-track" style="color: var(--secondary-gold);">Re-Grow Energy: 0%</div>
+            <div id="question-track">Chest Combo: 1/5</div>
+            <div id="score-track" style="color: var(--gold);">Vault Score: 0</div>
         </div>
 
-        <div class="instruction-box" id="orchard-status">
-            Counting harvests...
+        <div class="instruction-box" id="game-instruction">
+            How many gold coins did we find in total?
         </div>
 
-        <div class="fruit-workspace">
-            <div id="basket-zone" style="display: flex; gap: 30px; flex-wrap: wrap; justify-content: center;">
-                </div>
-            
-            <div class="equation-reveal" id="reveal-zone"></div>
+        <div class="vault-room">
+            <div class="chest-box">
+                <div class="visual-chest"></div>
+                <div class="chest-label" id="chest-left-label">0 Coins</div>
+            </div>
+            <span style="font-size: 48px; font-weight: bold; align-self: center; color: var(--gold);">+</span>
+            <div class="chest-box">
+                <div class="visual-chest"></div>
+                <div class="chest-label" id="chest-right-label">0 Coins</div>
+            </div>
         </div>
 
-        <div class="options-grid" id="harvest-options"></div>
+        <div class="options-grid" id="options-box"></div>
     </div>
 
     <div id="screen-end" class="screen">
         <div class="card">
-            <h1>Orchard Fully Restored! 🌟</h1>
-            <p id="final-harvest-text">Sensational calculations! Project Re-Grow is a massive success. The farm fields are full of trees again!</p>
-            <button class="btn btn-mission" onclick="goToScreen('screen-game'); startOrchardGame();">Re-Grow Again</button>
+            <h1>Vault Unlocked! 🌟</h1>
+            <p id="final-results">Incredible math work! You counted all the coins beautifully.</p>
+            <button class="btn" onclick="goToScreen('screen-game'); startNewGame();">Play Again</button>
         </div>
     </div>
 
 </div>
 
 <script>
-// Resource assets list strictly from your folder
-const fruitAssets = [
-    { name: 'apples', file: 'assets/apple.png', alt: 'apple' },
-    { name: 'mangos', file: 'assets/mango.png', alt: 'mango' },
-    { name: 'oranges', file: 'assets/orange.png', alt: 'orange' }
-];
+    let currentQuestion = 1;
+    let totalQuestions = 5;
+    let score = 0;
+    let correctAnswer = 0;
 
-let gameQuestions = [];
-let currentQuestionIndex = 0;
-let score = 0;
-const totalQuestionsCount = 10;
-const orchardVis = document.getElementById('orchard-vis');
-
-// Controlled 5-Second Splash Handler
-window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        const splash = document.getElementById('splash-screen');
-        if(splash) {
-            splash.style.opacity = '0';
-            setTimeout(() => splash.style.display = 'none', 500);
-        }
-    }, 5000); 
-});
-
-// Clear and initialize dynamic background visual tracks
-function resetOrchardVisuals() {
-    orchardVis.innerHTML = '';
-}
-
-// Dynamically add a tree based on dynamic scoring event
-function growTree() {
-    const tree = document.createElement('img');
-    tree.className = 'orchard-tree';
-    tree.src = 'assets/tree.png';
-    tree.alt = "Fresh Tree";
-    orchardVis.appendChild(tree);
-    setTimeout(() => tree.classList.add('active'), 50);
-}
-
-function navigateToScreen(screenId) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(screenId).classList.add('active');
-}
-
-function startOrchardGame() {
-    gameQuestions = [];
-    currentQuestionIndex = 0;
-    score = 0;
-    resetOrchardVisuals();
-
-    // Distinct combinations avoiding repetitive sequences
-    const trackingKeys = [];
-    while (trackingKeys.length < totalQuestionsCount) {
-        const groupsCount = Math.floor(Math.random() * 3) + 2;     // 2 to 4 baskets
-        const itemsPerGroup = Math.floor(Math.random() * 4) + 2;   // 2 to 5 fruits
-        const chosenFruitIdx = Math.floor(Math.random() * fruitAssets.length);
-        
-        const compositeKey = `${groupsCount}g${itemsPerGroup}f${chosenFruitIdx}`;
-        if (!trackingKeys.includes(compositeKey)) {
-            trackingKeys.push(compositeKey);
-            
-            const chosenFruit = fruitAssets[chosenFruitIdx];
-            const correctText = `${groupsCount} groups of ${itemsPerGroup} ${chosenFruit.name}`;
-            
-            // Generate clever wrong choices (no redundant duplicates)
-            let wrong1 = (groupsCount !== itemsPerGroup) ? `${itemsPerGroup} groups of ${groupsCount} ${chosenFruit.name}` : `${groupsCount + 1} groups of ${itemsPerGroup} ${chosenFruit.name}`;
-            let altGroups = Math.floor(Math.random() * 3) + 2;
-            while(altGroups === groupsCount || altGroups === itemsPerGroup) { altGroups = Math.floor(Math.random() * 3) + 2; }
-            let wrong2 = `${altGroups} groups of ${itemsPerGroup} ${chosenFruit.name}`;
-
-            gameQuestions.push({
-                groups: groupsCount,
-                size: itemsPerGroup,
-                total: (groupsCount * itemsPerGroup),
-                item: chosenFruit,
-                answer: correctText,
-                options: shuffleArray([correctText, wrong1, wrong2])
-            });
-        }
-    }
-    renderActiveQuestion();
-}
-
-function renderActiveQuestion() {
-    const question = gameQuestions[currentQuestionIndex];
-    document.getElementById('sector-track').innerText = `Basket Row: ${currentQuestionIndex + 1}/${totalQuestionsCount}`;
-    document.getElementById('energy-track').innerText = `Re-Grow Energy: ${Math.round((score / totalQuestionsCount) * 100)}%`;
-    
-    // UI Reset states
-    document.getElementById('harvest-options').style.display = 'flex';
-    const revealZone = document.getElementById('reveal-zone');
-    revealZone.style.display = 'none';
-    revealZone.innerHTML = '';
-    document.getElementById('orchard-status').innerText = "Look closely at the harvest baskets:";
-    document.getElementById('orchard-status').style.animation = ''; // Reset bounce
-
-    const basketZone = document.getElementById('basket-zone');
-    const optionsZone = document.getElementById('harvest-options');
-    basketZone.innerHTML = '';
-    optionsZone.innerHTML = '';
-
-    // Render Assets dynamically with custom fault tolerance
-    for(let i=0; i < question.groups; i++) {
-        const padDiv = document.createElement('div');
-        padDiv.className = 'basket-box';
-        
-        const basketImg = document.createElement('img');
-        basketImg.className = 'basket-asset';
-        basketImg.src = 'assets/basket.png'; 
-        basketImg.onerror = function() { // Basic graphic fault tolerance
-            this.style.display = 'none';
-            const dot = document.createElement('div');
-            dot.style.cssText = 'width:60px; height:60px; background:#78350f; border-radius:5px;';
-            padDiv.appendChild(dot);
-        };
-        padDiv.appendChild(basketImg);
-        
-        const labelDiv = document.createElement('div');
-        labelDiv.className = 'basket-label';
-        labelDiv.innerText = `${question.size} ${question.item.alt}(s)`;
-        padDiv.appendChild(labelDiv);
-
-        basketZone.appendChild(padDiv);
+    function goToScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
     }
 
-    question.options.forEach(optionText => {
-        const button = document.createElement('button');
-        button.className = 'btn choice-btn';
-        button.innerText = optionText;
-        button.addEventListener('click', () => evaluateHarvestAnswer(optionText, button));
-        optionsZone.appendChild(button);
-    });
-}
+    function startNewGame() {
+        currentQuestion = 1;
+        score = 0;
+        generateQuestion();
+    }
 
-function evaluateHarvestAnswer(selectedChoice, selectedButton) {
-    const question = gameQuestions[currentQuestionIndex];
-    const buttons = document.querySelectorAll('#harvest-options .btn');
-    buttons.forEach(b => b.disabled = true);
+    function generateQuestion() {
+        document.getElementById('question-track').innerText = `Chest Combo: ${currentQuestion}/${totalQuestions}`;
+        document.getElementById('score-track').innerText = `Vault Score: ${score}`;
+        document.getElementById('game-instruction').innerText = "How many gold coins did we find in total?";
 
-    const sndCorrect = document.getElementById('sound-correct');
-    const sndWrong = document.getElementById('sound-wrong');
-    let correctResponse = false;
+        let num1, num2;
+        if (currentQuestion <= 2) {
+            num1 = Math.floor(Math.random() * 60) + 15;
+            num2 = Math.floor(Math.random() * 60) + 15;
+        } else {
+            num1 = Math.floor(Math.random() * 200) + 100;
+            num2 = Math.floor(Math.random() * 150) + 100;
+        }
 
-    if(selectedChoice === question.answer) {
-        score++;
-        correctResponse = true;
-        selectedButton.style.background = '#22c55e';
-        selectedButton.style.boxShadow = '0 5px 0 #166534';
-        try { sndCorrect.currentTime = 0; sndCorrect.play(); } catch(e){}
+        correctAnswer = num1 + num2;
+
+        document.getElementById('chest-left-label').innerText = `${num1} Coins`;
+        document.getElementById('chest-right-label').innerText = `${num2} Coins`;
+
+        let wrong1 = correctAnswer + (Math.random() > 0.5 ? 10 : -10);
+        let wrong2 = correctAnswer + (Math.random() > 0.5 ? 2 : -2);
         
-        // Dynamic Animation Events
-        growTree(); // 1. Animate fresh tree in background visual track
-        document.getElementById('orchard-status').style.animation = 'bounce 0.5s ease-out'; // 2. Instructions bounce
-    } else {
-        selectedButton.style.background = '#ef4444';
-        selectedButton.style.boxShadow = '0 5px 0 #991b1b';
-        try { sndWrong.currentTime = 0; sndWrong.play(); } catch(e){}
-        
-        buttons.forEach(b => {
-            if(b.innerText === question.answer) {
-                b.style.background = '#22c55e';
-                b.style.boxShadow = '0 5px 0 #166534';
-            }
+        if (wrong1 === correctAnswer) wrong1 += 5;
+        if (wrong2 === correctAnswer || wrong2 === wrong1) wrong2 -= 4;
+
+        let optionsList = [correctAnswer, wrong1, wrong2];
+        optionsList.sort(() => Math.random() - 0.5);
+
+        const optionsContainer = document.getElementById('options-box');
+        optionsContainer.innerHTML = '';
+
+        optionsList.forEach(option => {
+            const button = document.createElement('button');
+            button.className = 'btn choice-btn';
+            button.innerText = `${option} Total Coins`;
+            button.onclick = function() { checkPlayerAnswer(option, button); };
+            optionsContainer.appendChild(button);
         });
     }
 
-    // Advance to Equation Reveal phase after short 1s delay
-    setTimeout(() => {
-        document.getElementById('harvest-options').style.display = 'none';
-        document.getElementById('orchard-status').innerText = correctResponse ? "Project Re-Grow Energy Spike! ⚡" : "Let's recalculate the breakdown formula:";
-        
-        const calculationChain = Array(question.groups).fill(question.size).join(' + ');
-        
-        const revealZone = document.getElementById('reveal-zone');
-        revealZone.style.display = 'block';
-        revealZone.innerHTML = `
-            <div>${question.answer}</div>
-            <div style="font-size: 24px; color: #475569; margin: 6px 0;">${calculationChain} = ${question.total}</div>
-            <div style="color: #15803d; font-size: 38px;">${question.groups} &times; ${question.size} = ${question.total}</div>
-        `;
+    function checkPlayerAnswer(selectedAnswer, clickedButton) {
+        const allButtons = document.querySelectorAll('.choice-btn');
+        allButtons.forEach(btn => btn.disabled = true);
+
+        if (selectedAnswer === correctAnswer) {
+            score += 10;
+            document.getElementById('score-track').innerText = `Vault Score: ${score}`;
+            clickedButton.style.background = "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)";
+            clickedButton.style.boxShadow = "0 4px 0 #15803d";
+            document.getElementById('game-instruction').innerText = "Correct! The vault lights up! ✨";
+        } else {
+            clickedButton.style.background = "linear-gradient(135deg, #ef4444 0%, #dc2626 100%)";
+            clickedButton.style.boxShadow = "0 4px 0 #b91c1c";
+            document.getElementById('game-instruction').innerText = `Oops! The correct total was ${correctAnswer}.`;
+            
+            allButtons.forEach(btn => {
+                if (btn.innerText.includes(correctAnswer)) {
+                    btn.style.background = "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)";
+                    btn.style.boxShadow = "0 4px 0 #15803d";
+                }
+            });
+        }
 
         setTimeout(() => {
-            currentQuestionIndex++;
-            if(currentQuestionIndex < totalQuestionsCount) {
-                renderActiveQuestion();
+            currentQuestion++;
+            if (currentQuestion <= totalQuestions) {
+                generateQuestion();
             } else {
-                showEndOrchardScreen();
+                goToScreen('screen-end');
+                document.getElementById('final-results').innerText = `Sensational exploring! You calculated numbers all the way up to 500 and finished with a final score of ${score} points!`;
             }
-        }, 4000); 
-    }, 1000);
-}
-
-function showEndOrchardScreen() {
-    navigateToScreen('screen-end');
-    document.getElementById('orchard-vis').style.opacity = '0.5'; // De-emphasize visuals safely
-    document.getElementById('final-harvest-text').innerText = `Amazing harvesting work, Dynamic Junior Farmer! You reached all field rows and Project Re-Grow concluded with a fantastic accuracy score of ${(score / totalQuestionsCount) * 100}%!`;
-}
-
-function shuffleArray(array) {
-    let arr = [...array];
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[arr[j]]] = [arr[arr[j]], arr[i]];
+        }, 2500);
     }
-    return arr;
-}
 </script>
 </body>
 </html>
