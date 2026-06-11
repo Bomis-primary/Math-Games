@@ -3,161 +3,173 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Cosmic Rocket Fuel</title>
+<title>Cosmic Rocket Fuel: Hyper-Drive Mission</title>
 <style>
     :root {
         --primary-color: #38bdf8;
-        --primary-hover: #0ea5e9;
-        --accent-color: #fbbf24;
+        --accent-color: #facc15;
         --bg-dark: #0f172a;
+        --success: #22c55e;
+        --danger: #ef4444;
     }
     * { box-sizing: border-box; }
     body, html { 
         margin:0; padding:0; width:100%; height:100%; 
         font-family: 'Segoe UI', Arial, sans-serif; 
         overflow:hidden; 
-        background-color: #0f172a;
+        background-color: #0b0f19;
         color: white;
     }
     
-    /* Splash Screen: Centered Logo on Pure White for 5 Seconds */
+    /* Splash Screen Overlay */
     #splash-screen {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background-color: #ffffff;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-        opacity: 1;
-        transition: opacity 0.5s ease-out;
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background-color: #ffffff; display: flex; justify-content: center; align-items: center;
+        z-index: 9999; opacity: 1; transition: opacity 0.5s ease-out;
     }
-    #splash-screen img {
-        max-width: 60%;
-        max-height: 50%;
-        object-fit: contain;
+    #splash-screen img { max-width: 60%; max-height: 50%; object-fit: contain; }
+
+    /* Moving Space Nebula Background Layer */
+    #starfield {
+        position: absolute; width: 100%; height: 100%; top: 0; left: 0;
+        background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #090d16 100%); 
+        z-index: 1; overflow: hidden;
+    }
+    .star {
+        position: absolute; background-color: white; border-radius: 50%;
+        animation: flyForward 4s infinite linear; opacity: 0;
+    }
+    @keyframes flyForward {
+        0% { transform: scale(0.2) translateZ(0); opacity: 0; }
+        10% { opacity: 0.8; }
+        90% { opacity: 0.8; }
+        100% { transform: scale(1.5) translateY(100vh); opacity: 0; }
     }
 
     .screen { 
-        width:100%; height:100%; 
-        position:absolute; top:0; left:0; 
+        width:100%; height:100%; position:absolute; top:0; left:0; 
         display:none; justify-content:center; align-items:center; 
-        flex-direction:column; padding: 20px;
-        z-index: 2;
+        flex-direction:column; padding: 20px; z-index: 2;
     }
-    
     .screen.active { display: flex; }
     
     .title-card {
-        text-align: center;
-        background: rgba(15, 23, 42, 0.85);
-        backdrop-filter: blur(10px);
-        padding: 40px;
-        border-radius: 24px;
-        border: 2px solid rgba(56, 189, 248, 0.3);
-        max-width: 600px;
-        width: 90%;
-        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        text-align: center; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px);
+        padding: 40px; border-radius: 24px; border: 2px solid rgba(56, 189, 248, 0.4);
+        max-width: 620px; width: 90%; box-shadow: 0 25px 50px rgba(0,0,0,0.6);
+        animation: panelFade 0.5s ease-out;
     }
-    h1 { font-size: 38px; margin: 0 0 15px 0; color: var(--primary-color); text-shadow: 0 0 10px rgba(56,189,248,0.5); }
-    p { font-size: 18px; line-height: 1.6; color: #cbd5e1; margin: 0 0 25px 0; }
+    @keyframes panelFade { from { opacity:0; transform: translateY(20px); } to { opacity:1; transform: translateY(0); } }
 
-    /* HUD Bar Dashboard */
+    h1 { font-size: 36px; margin: 0 0 15px 0; color: var(--primary-color); text-shadow: 0 0 15px rgba(56,189,248,0.4); }
+    p { font-size: 17px; line-height: 1.6; color: #cbd5e1; margin: 0 0 25px 0; text-align: left; }
+
+    /* Top HUD Dashboard */
     .hud-bar {
         position: absolute; top: 20px; width: 90%;
         display: flex; justify-content: space-between; align-items: center;
-        background: rgba(15, 23, 42, 0.9);
-        border: 1px solid rgba(255,255,255,0.15);
-        padding: 12px 24px; border-radius: 30px;
-        font-size: 18px; font-weight: bold; z-index: 5;
+        background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(56, 189, 248, 0.2);
+        padding: 14px 28px; border-radius: 30px; font-size: 16px; font-weight: bold; z-index: 5;
+    }
+    
+    /* Core Energy Progress Bar Container */
+    .progress-container {
+        width: 40%; background: #334155; height: 16px; border-radius: 8px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);
+    }
+    .progress-fill {
+        width: 0%; height: 100%; background: linear-gradient(90deg, #06b6d4, #22c55e);
+        transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    /* Rockets Container Display */
+    /* Rockets Space Arena Grid */
     .rocket-container { 
-        display:flex; gap:25px; margin-top:80px; flex-wrap: wrap; 
-        justify-content: center; align-items: center;
-        max-width: 95%; min-height: 180px;
+        display:flex; gap:35px; margin-top:90px; flex-wrap: wrap; 
+        justify-content: center; align-items: center; max-width: 95%; min-height: 200px;
     }
     
     .rocket-pad { 
         position:relative; display: flex; flex-direction: column; align-items: center;
-        width: 120px; height: 150px;
+        width: 120px; height: 160px; transition: transform 0.3s ease;
     }
     .rocket-pad .rocket-img { 
-        width: 100%; height: 80%; object-fit: contain; 
-        filter: drop-shadow(0px 8px 10px rgba(56,189,248,0.3));
+        width: 100%; height: 85%; object-fit: contain; 
+        filter: drop-shadow(0px 8px 12px rgba(56,189,248,0.25));
     }
     
-    /* Tokens positioned inside the rocket body */
+    /* Custom Physics Rocket Liftoff Blast Animation */
+    .rocket-pad.launching {
+        animation: launchSequence 1.2s cubic-bezier(0.55, 0.055, 0.675, 0.19) forwards;
+    }
+    @keyframes launchSequence {
+        0% { transform: translateY(0) scale(1); filter: drop-shadow(0 0 5px #f97316); }
+        15% { transform: translateY(8px) scale(0.98); filter: drop-shadow(0 0 20px #ef4444); }
+        100% { transform: translateY(-100vh) scale(0.5); opacity: 0; filter: drop-shadow(0 0 40px #eab308); }
+    }
+
+    /* Token alignment matrices mapping inside rockets */
     .fuel-container {
-        position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-        display: flex; flex-wrap: wrap; width: 60px; max-height: 55px;
+        position: absolute; top: 22px; left: 50%; transform: translateX(-50%);
+        display: flex; flex-wrap: wrap; width: 55px; max-height: 55px;
         justify-content: center; align-items: center; gap: 4px; pointer-events: none;
     }
-    .fuel-cell { width: 16px; height: 16px; object-fit: contain; }
+    .fuel-cell { width: 15px; height: 15px; object-fit: contain; }
 
-    /* Quantity Badge counter display */
+    /* Quantity Label Badges */
     .pad-label { 
         position:absolute; bottom: 0px; background: var(--accent-color);
-        padding: 2px 12px; border-radius: 12px; font-size: 15px; 
+        padding: 3px 14px; border-radius: 12px; font-size: 14px; 
         font-weight:bold; color: #0f172a; border: 2px solid white;
     }
     
     .instruction { 
-        font-size:22px; margin: 25px 0 15px 0; text-align:center; font-weight: bold;
+        font-size:21px; margin: 20px 0 15px 0; text-align:center; font-weight: bold;
         text-shadow: 0 2px 4px rgba(0,0,0,0.5); color: #e2e8f0;
-        background: rgba(15, 23, 42, 0.6); padding: 6px 16px; border-radius: 12px;
+        background: rgba(15, 23, 42, 0.65); padding: 8px 20px; border-radius: 14px;
+        min-height: 45px; display: flex; align-items: center; justify-content: center;
     }
     
-    .buttons-container { 
-        display:flex; gap:12px; width: 100%; max-width: 480px; 
-        flex-direction: column;
-    }
+    .buttons-container { display:flex; gap:12px; width: 100%; max-width: 480px; flex-direction: column; }
     
     .btn { 
-        padding:14px 20px; font-size:18px; border:none; border-radius:12px; 
+        padding:15px 20px; font-size:17px; border:none; border-radius:12px; 
         background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); 
         color:#fff; cursor:pointer; font-weight: bold;
-        box-shadow: 0 4px 0px #034d75, 0 10px 20px rgba(0,0,0,0.3);
+        box-shadow: 0 4px 0px #034d75, 0 8px 15px rgba(0,0,0,0.3);
         transition: all 0.1s ease; text-align: center; width: 100%;
         border: 1px solid rgba(255,255,255,0.1);
     }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0px #034d75, 0 12px 24px rgba(0,0,0,0.4); }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0px #034d75, 0 10px 20px rgba(0,0,0,0.4); }
     .btn:active { transform: translateY(4px); box-shadow: none; }
     
-    .btn-start {
-        background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
-        box-shadow: 0 4px 0px #880825;
+    /* Mathematical Reveal Panel Configuration Box */
+    .reveal-box {
+        display: none; background: rgba(15, 23, 42, 0.95); color: #ffffff;
+        padding: 25px 45px; border-radius: 20px; font-size: 26px; font-weight: bold;
+        text-align: center; border: 3px solid var(--primary-color);
+        box-shadow: 0 0 30px rgba(56, 189, 248, 0.3);
+        animation: springPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
+    @keyframes springPop { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .btn-start { background: linear-gradient(135deg, #e11d48 0%, #be123c 100%); box-shadow: 0 4px 0px #880825; }
     .btn-start:hover { box-shadow: 0 6px 0px #880825; }
 
-    /* CSS Twinkling Starfield layer */
-    #starfield {
-        position: absolute; width: 100%; height: 100%; top: 0; left: 0;
-        background: radial-gradient(circle at center, #1e1b4b 0%, #0f172a 100%);
-        z-index: 1;
-    }
-    .star {
-        position: absolute; background-color: white; border-radius: 50%;
-        animation: twinkle 2s infinite ease-in-out; opacity: 0.5;
-    }
-    @keyframes twinkle { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-
     @media (max-width: 600px) {
-        h1 { font-size: 28px; }
-        .rocket-pad { width: 90px; height: 120px; }
+        h1 { font-size: 26px; }
+        .hud-bar { padding: 10px 15px; font-size: 13px; }
+        .progress-container { width: 30%; }
+        .rocket-pad { width: 85px; height: 115px; }
         .fuel-container { width: 45px; top: 15px; }
         .fuel-cell { width: 12px; height: 12px; }
-        .instruction { font-size: 16px; }
-        .btn { font-size: 15px; padding: 12px; }
+        .instruction { font-size: 15px; }
+        .reveal-box { font-size: 19px; padding: 15px; }
     }
 </style>
 </head>
 <body>
 
 <div id="splash-screen">
-    <img src="assets/logo.png" alt="Innovine Logo">
+    <img src="assets/logo.png" alt="Logo">
 </div>
 
 <div id="starfield"></div>
@@ -167,206 +179,28 @@
 
 <div id="screen-intro" class="screen active">
     <div class="title-card">
-        <h1>Cosmic Rocket Fuel 🚀</h1>
-        <p>Captain! Our fleet is ready to explore the galaxy, but we need to load the correct power modules. Look at the ships, solve the repeated addition equations, and safely fuel the fleet!</p>
-        <button class="btn btn-start" onclick="navigateToScreen('screen-game'); startGame();">Launch Mission</button>
+        <h1>Cosmic Rocket Fuel: Hyper-Drive Mission 🚀</h1>
+        <p><strong>ALERT CAPTAIN:</strong> Our exploratory squadron is trapped on the event horizon of a quantum black hole storm! To activate our escape portals, we must compute and load exact balancing power fuel cells into our rocket fleet.<br><br>
+        Analyze the configurations on the launching pads, link the correct grouping formulas, and spark the engines before energy drops to zero!</p>
+        <button class="btn btn-start" onclick="navigateToScreen('screen-game'); startGame();">Initiate Launch Code</button>
     </div>
 </div>
 
 <div id="screen-game" class="screen">
     <div class="hud-bar">
-        <div id="progress-text">Sector: 1/10</div>
-        <div id="score-text">Fuel Level: 100%</div>
+        <div id="progress-text">Sector Tracking: 1/10</div>
+        <div class="progress-container">
+            <div id="progress-core-fill" class="progress-fill"></div>
+        </div>
+        <div id="score-text">Core Matrix: 0%</div>
     </div>
     
     <div class="rocket-container" id="rocket-zone"></div>
-    <div class="instruction" id="question-prompt">Count the clusters and prepare ignition sequence...</div>
-    <div class="buttons-container" id="options-zone"></div>
-</div>
-
-<div id="screen-end" class="screen">
-    <div class="title-card">
-        <h1>Mission Accomplished! 🌟</h1>
-        <p id="final-score-text">You successfully powered up the planetary defense grid.</p>
-        <button class="btn btn-start" onclick="navigateToScreen('screen-game'); startGame();">Fly Again</button>
-    </div>
-</div>
-
-<script>
-const itemAssets = [
-    { name: 'crystals', file: 'assets/crystal.png' },
-    { name: 'batteries', file: 'assets/battery.png' },
-    { name: 'stars', file: 'assets/star-token.png' }
-];
-
-let gameQuestions = [];
-let currentQuestionIndex = 0;
-let score = 0;
-const totalQuestionsCount = 10;
-
-// Automatic 5-Second Fade Animation Tracker
-window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        const splash = document.getElementById('splash-screen');
-        if(splash) {
-            splash.style.opacity = '0';
-            setTimeout(() => {
-                splash.style.display = 'none';
-            }, 500); 
-        }
-    }, 5000); 
-});
-
-// Generated Starfield
-const starfield = document.getElementById('starfield');
-for (let i = 0; i < 40; i++) {
-    const star = document.createElement('div');
-    star.className = 'star';
-    star.style.width = Math.random() * 3 + 'px';
-    star.style.height = star.style.width;
-    star.style.left = Math.random() * 100 + 'vw';
-    star.style.top = Math.random() * 100 + 'vh';
-    star.style.animationDelay = Math.random() * 2 + 's';
-    starfield.appendChild(star);
-}
-
-function navigateToScreen(screenId) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    document.getElementById(screenId).classList.add('active');
-}
-
-function startGame() {
-    gameQuestions = [];
-    currentQuestionIndex = 0;
-    score = 0;
-
-    for(let i=0; i < totalQuestionsCount; i++){
-        const groupsCount = Math.floor(Math.random() * 3) + 2; // 2-4 rockets
-        const itemsPerGroup = Math.floor(Math.random() * 4) + 2; // 2-5 power tokens
-        const targetItem = itemAssets[Math.floor(Math.random() * itemAssets.length)];
-        
-        const correctText = `${groupsCount} groups of ${itemsPerGroup} ${targetItem.name}`;
-        
-        let invertedGroups = itemsPerGroup;
-        let invertedSize = groupsCount;
-        if (invertedGroups === groupsCount && invertedSize === itemsPerGroup) {
-            invertedGroups = groupsCount + 1;
-        }
-        const incorrectInvertedText = `${invertedGroups} groups of ${invertedSize} ${targetItem.name}`;
-        
-        let randomOffset = Math.floor(Math.random() * 4) + 2;
-        while(randomOffset === groupsCount || randomOffset === itemsPerGroup || randomOffset === invertedGroups) {
-            randomOffset = Math.floor(Math.random() * 4) + 2;
-        }
-        const falseOptionText = `${randomOffset} groups of ${itemsPerGroup} ${targetItem.name}`;
-
-        gameQuestions.push({
-            groups: groupsCount,
-            size: itemsPerGroup,
-            item: targetItem,
-            answer: correctText,
-            options: shuffleArray([correctText, incorrectInvertedText, falseOptionText])
-        });
-    }
-    renderActiveQuestion();
-}
-
-function renderActiveQuestion() {
-    const question = gameQuestions[currentQuestionIndex];
-    document.getElementById('progress-text').innerText = `Sector: ${currentQuestionIndex + 1}/${totalQuestionsCount}`;
-    document.getElementById('score-text').innerText = `Score: ${score * 10}`;
+    <div class="instruction" id="question-prompt">Calculating incoming sector metrics...</div>
     
-    const rocketZone = document.getElementById('rocket-zone');
-    const optionsZone = document.getElementById('options-zone');
-    rocketZone.innerHTML = '';
-    optionsZone.innerHTML = '';
+    <div class="buttons-container" id="options-zone"></div>
+    
+    <div class="reveal-box" id="reveal-zone"></div>
+</div>
 
-    for(let i=0; i < question.groups; i++) {
-        const padDiv = document.createElement('div');
-        padDiv.className = 'rocket-pad';
-        
-        const rocketImg = document.createElement('img');
-        rocketImg.className = 'rocket-img';
-        rocketImg.src = 'assets/rocket.png'; 
-        padDiv.appendChild(rocketImg);
-        
-        const fuelContainer = document.createElement('div');
-        fuelContainer.className = 'fuel-container';
-        
-        for(let j=0; j < question.size; j++) {
-            const cellImg = document.createElement('img');
-            cellImg.className = 'fuel-cell';
-            cellImg.src = question.item.file;
-            fuelContainer.appendChild(cellImg);
-        }
-        padDiv.appendChild(fuelContainer);
-
-        const labelDiv = document.createElement('div');
-        labelDiv.className = 'pad-label';
-        labelDiv.innerText = question.size;
-        padDiv.appendChild(labelDiv);
-
-        rocketZone.appendChild(padDiv);
-    }
-
-    question.options.forEach(optionText => {
-        const button = document.createElement('button');
-        button.className = 'btn';
-        button.innerText = optionText;
-        button.addEventListener('click', () => evaluateAnswer(optionText, button));
-        optionsZone.appendChild(button);
-    });
-}
-
-function evaluateAnswer(selectedChoice, selectedButton) {
-    const question = gameQuestions[currentQuestionIndex];
-    const buttons = document.querySelectorAll('#options-zone .btn');
-    buttons.forEach(b => b.disabled = true);
-
-    const sndCorrect = document.getElementById('sound-correct');
-    const sndWrong = document.getElementById('sound-wrong');
-
-    if(selectedChoice === question.answer) {
-        score++;
-        selectedButton.style.background = '#22c55e'; 
-        selectedButton.style.boxShadow = '0 4px 0px #15803d';
-        try { sndCorrect.currentTime = 0; sndCorrect.play(); } catch(e){}
-    } else {
-        selectedButton.style.background = '#ef4444'; 
-        selectedButton.style.boxShadow = '0 4px 0px #b91c1c';
-        try { sndWrong.currentTime = 0; sndWrong.play(); } catch(e){}
-        
-        buttons.forEach(b => {
-            if(b.innerText === question.answer) {
-                b.style.background = '#22c55e';
-                b.style.boxShadow = '0 4px 0px #15803d';
-            }
-        });
-    }
-
-    setTimeout(() => {
-        currentQuestionIndex++;
-        if(currentQuestionIndex < totalQuestionsCount) {
-            renderActiveQuestion();
-        } else {
-            showEndGame();
-        }
-    }, 2000);
-}
-
-function showEndGame() {
-    navigateToScreen('screen-end');
-    document.getElementById('final-score-text').innerText = `Phenomenal piloting! You navigated all sectors and finished with an accuracy score of ${(score / totalQuestionsCount) * 100}%!`;
-}
-
-function shuffleArray(array) {
-    let arr = [...array];
-    for (let i = arr.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [arr[i], arr[arr[j]]] = [arr[arr[j]], arr[i]];
-    }
-    return arr;
-}
-</script>
-</body>
-</html>
+<div id="
