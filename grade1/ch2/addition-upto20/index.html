@@ -79,12 +79,19 @@
     .btn {
         padding: 16px 36px; font-size: 24px; font-weight: 900;
         color: white; border: none; border-radius: 24px; cursor: pointer;
-        background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
-        box-shadow: 0 8px 0px #9f1239, 0 12px 20px rgba(0,0,0,0.2);
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        box-shadow: 0 8px 0px #15803d, 0 12px 20px rgba(0,0,0,0.2);
         transition: transform 0.1s ease, box-shadow 0.1s ease;
     }
-    .btn:hover { transform: translateY(-3px); box-shadow: 0 11px 0px #9f1239, 0 14px 24px rgba(0,0,0,0.25); }
-    .btn:active { transform: translateY(5px); box-shadow: 0 3px 0px #9f1239; }
+    .btn:hover { transform: translateY(-3px); box-shadow: 0 11px 0px #15803d, 0 14px 24px rgba(0,0,0,0.25); }
+    .btn:active { transform: translateY(5px); box-shadow: 0 3px 0px #15803d; }
+    
+    .btn-red {
+        background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+        box-shadow: 0 8px 0px #9f1239, 0 12px 20px rgba(0,0,0,0.2);
+    }
+    .btn-red:hover { box-shadow: 0 11px 0px #9f1239, 0 14px 24px rgba(0,0,0,0.25); }
+    .btn-red:active { box-shadow: 0 3px 0px #9f1239; }
 
     .hud {
         width: 100%; max-width: 620px; display: flex; justify-content: space-between; align-items: center;
@@ -100,13 +107,12 @@
         display: inline-block; letter-spacing: 1px; max-width: 100%;
     }
 
-    /* Target Interactive Field Canvas */
     .interaction-canvas {
         position: relative; width: 100%; height: 350px;
         display: flex; justify-content: center; gap: 40px; align-items: center;
     }
 
-    /* STAGE 1: Balloon Styles */
+    /* LEVEL 1: Balloons */
     .balloon-node {
         display: flex; flex-direction: column; align-items: center; cursor: pointer;
     }
@@ -125,7 +131,7 @@
     }
     .balloon-string { width: 3px; height: 55px; background-color: #cbd5e1; margin-top: 6px; }
 
-    /* STAGE 2: Interactive Picnic Baskets */
+    /* LEVEL 2: Picnic Baskets */
     .basket-node {
         display: flex; flex-direction: column; align-items: center; cursor: pointer;
         transition: transform 0.2s;
@@ -136,237 +142,4 @@
     }
     .basket-label {
         position: absolute; bottom: 5px; background: #ea580c; color: white;
-        font-size: 24px; font-weight: 900; padding: 4px 16px; border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.15); border: 2px solid white;
-    }
-    .basket-node.selected-correct { animation: happyDance 0.5s ease infinite alternate; pointer-events: none; }
-
-    /* Color configurations */
-    .color-cyan { background-color: #0ea5e9; }
-    .color-purple { background-color: #a855f7; }
-    .color-orange { background-color: #f97316; }
-
-    /* Keyframes Framework */
-    @keyframes floatAnimation {
-        0%, 100% { transform: translateY(0px) rotate(0deg); }
-        50% { transform: translateY(-12px) rotate(2deg); }
-    }
-    .float-idle { animation: floatAnimation 4s infinite ease-in-out; }
-    .float-idle:nth-child(2) { animation-delay: 0.6s; }
-    .float-idle:nth-child(3) { animation-delay: 1.2s; }
-
-    @keyframes popBurst {
-        0% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.3); opacity: 0.7; }
-        100% { transform: scale(0); opacity: 0; }
-    }
-    @keyframes dropDown {
-        0% { transform: translateY(0) scale(0.5); opacity: 0; }
-        20% { opacity: 1; transform: translateY(-20px) scale(1.2); }
-        100% { transform: translateY(220px) scale(1); opacity: 0; }
-    }
-    @keyframes jump {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-30px) scaleY(1.05); }
-    }
-    .jump-happy { animation: jump 0.4s 2 ease-out; }
-    @keyframes happyDance {
-        0% { transform: translateY(0) rotate(-5deg); }
-        100% { transform: translateY(-15px) rotate(5deg); }
-    }
-</style>
-</head>
-<body>
-
-<div class="game-container">
-    
-    <div class="grass-floor">
-        <span>🌸</span><span>🌼</span><span>🌸</span><span>🌼</span><span>🌸</span><span>🌼</span>
-    </div>
-
-    <div id="live-companion" class="live-companion-box" style="display:none;">
-        <div id="reward-snack" class="falling-snack">🍌</div>
-        <img id="companion-avatar" class="companion-img" src="assets/rabbit.png" alt="Buddy">
-    </div>
-
-    <div id="screen-welcome" class="screen active">
-        <div class="card">
-            <h1>Animal Snack Quest! 🎈🧺</h1>
-            <p>Help your friends look for food! Pop the balloons in Stage 1, then pack the correct matching picnic baskets in Stage 2!</p>
-            
-            <div class="animal-lineup">
-                <img src="assets/rabbit.png" alt="Rabbit">
-                <img src="assets/lion.png" alt="Lion">
-                <img src="assets/elephant.png" alt="Elephant">
-            </div>
-
-            <button class="btn" onclick="initiateSnackGame();">Start Mission</button>
-        </div>
-    </div>
-
-    <div id="screen-game" class="screen">
-        <div class="hud">
-            <div id="round-counter">Round: 1/6</div>
-            <div style="color: #e11d48;" id="pops-counter">Feast Points: 0</div>
-        </div>
-
-        <div class="math-banner" id="challenge-formula">Loading...</div>
-        <p id="instruction-subtext" style="font-weight: bold; margin-bottom: 5px; color: #475569; font-size: 18px;">Pop the correct balloon!</p>
-
-        <div class="interaction-canvas" id="interaction-field"></div>
-    </div>
-
-    <div id="screen-end" class="screen">
-        <div class="card">
-            <h1>Snack Party Complete! 🏆</h1>
-            <p id="adventure-outcome-text">Wonderful work! You popped balloons and loaded up picnic baskets perfectly.</p>
-            <button class="btn" onclick="goToScreen('screen-welcome'); resetStateTrackers();">Play Again</button>
-        </div>
-    </div>
-
-</div>
-
-<audio id="snd-correct" src="assets/correct.mp3" preload="auto"></audio>
-<audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
-
-<script>
-    const activeAnimalFiles = ['assets/rabbit.png', 'assets/lion.png', 'assets/elephant.png'];
-    const animalNames = ['Bunny 🐰', 'Lion 🦁', 'Elephant 🐘'];
-    const foodItems = ['Apples 🍎', 'Berries 🍓', 'Carrots 🥕', 'Bananas 🍌'];
-    const optionSkinPalettes = ['color-cyan', 'color-purple', 'color-orange'];
-
-    let currentRoundIndex = 1;
-    let totalRoundsCount = 6; // Expanded to accommodate both stages
-    let currentScore = 0;
-    let targetSolutionValue = 0;
-
-    function goToScreen(screenId) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(screenId).classList.add('active');
-    }
-
-    function resetStateTrackers() {
-        document.getElementById('live-companion').style.display = 'none';
-    }
-
-    function initiateSnackGame() {
-        currentRoundIndex = 1;
-        currentScore = 0;
-        goToScreen('screen-game');
-        document.getElementById('live-companion').style.display = 'flex';
-        renderActiveGameRound();
-    }
-
-    function renderActiveGameRound() {
-        document.getElementById('round-counter').innerText = `Round: ${currentRoundIndex}/${totalRoundsCount}`;
-        document.getElementById('pops-counter').innerText = `Feast Points: ${currentScore}`;
-        
-        const snackNode = document.getElementById('reward-snack');
-        snackNode.classList.remove('drop');
-
-        const companionAvatar = document.getElementById('companion-avatar');
-        companionAvatar.src = activeAnimalFiles[(currentRoundIndex - 1) % activeAnimalFiles.length];
-        companionAvatar.className = 'companion-img'; 
-
-        const currentAnimalName = animalNames[(currentRoundIndex - 1) % animalNames.length];
-        const fieldContainer = document.getElementById('interaction-field');
-        fieldContainer.innerHTML = '';
-
-        // Generate dynamic puzzle integers (Sum <= 20)
-        let primaryValue = Math.floor(Math.random() * 8) + 2; 
-        let secondaryValue = Math.floor(Math.random() * 7) + 2; 
-        targetSolutionValue = primaryValue + secondaryValue;
-
-        // Build option pool variants
-        let choiceA = targetSolutionValue + (Math.random() > 0.5 ? 2 : -2);
-        let choiceB = targetSolutionValue + (Math.random() > 0.5 ? 3 : -1);
-        if (choiceA === targetSolutionValue || choiceA < 0) choiceA = targetSolutionValue + 1;
-        if (choiceB === targetSolutionValue || choiceB === choiceA || choiceB < 0) choiceB = targetSolutionValue + 4;
-
-        let optionsPool = [targetSolutionValue, choiceA, choiceB];
-        optionsPool.sort(() => Math.random() - 0.5);
-
-        // STAGE SPLITTING BRANCH MECHANICS
-        if (currentRoundIndex <= 3) {
-            // STAGE 1: Balloon UI
-            document.getElementById('challenge-formula').innerText = `${primaryValue} + ${secondaryValue}`;
-            document.getElementById('instruction-subtext').innerText = "Find and pop the balloon with the correct total sum!";
-
-            optionsPool.forEach((val, idx) => {
-                const node = document.createElement('div');
-                node.className = 'balloon-node float-idle';
-                node.innerHTML = `
-                    <div class="balloon-body ${optionSkinPalettes[idx % 3]}">${val}</div>
-                    <div class="balloon-string"></div>
-                `;
-                node.onclick = function() { processPlayerSelection(val, node, 'balloon'); };
-                fieldContainer.appendChild(node);
-            });
-        } else {
-            // STAGE 2: Basket Word Problem Comprehension UI
-            const itemType1 = foodItems[(currentRoundIndex) % foodItems.length];
-            const itemType2 = foodItems[(currentRoundIndex + 1) % foodItems.length];
-            
-            document.getElementById('challenge-formula').innerHTML = `Pack ${primaryValue} ${itemType1} and ${secondaryValue} ${itemType2}!`;
-            document.getElementById('instruction-subtext').innerText = `Click the correct basket total to pack the ${currentAnimalName}'s order!`;
-
-            optionsPool.forEach((val, idx) => {
-                const node = document.createElement('div');
-                node.className = 'basket-node';
-                node.innerHTML = `
-                    <div class="basket-body">
-                        🧺
-                        <div class="basket-label">${val}</div>
-                    </div>
-                `;
-                node.onclick = function() { processPlayerSelection(val, node, 'basket'); };
-                fieldContainer.appendChild(node);
-            });
-        }
-    }
-
-    function processPlayerSelection(selectedVal, domElement, roundType) {
-        // Freeze inputs immediately
-        const nodes = document.querySelectorAll(roundType === 'balloon' ? '.balloon-node' : '.basket-node');
-        nodes.forEach(n => n.onclick = null);
-
-        if (selectedVal === targetSolutionValue) {
-            currentScore++;
-            document.getElementById('pops-counter').innerText = `Feast Points: ${currentScore}`;
-            document.getElementById('snd-correct').play().catch(() => {});
-
-            if (roundType === 'balloon') {
-                domElement.classList.remove('float-idle');
-                domElement.classList.add('popped');
-            } else {
-                domElement.classList.add('selected-correct');
-            }
-
-            document.getElementById('challenge-formula').innerText = "SUCCESS! ✨";
-
-            // Trigger reward snack drop & jump loop
-            const snackNode = document.getElementById('reward-snack');
-            snackNode.innerText = roundType === 'balloon' ? '🎈' : '🧺';
-            snackNode.classList.add('drop');
-
-            document.getElementById('companion-avatar').classList.add('jump-happy');
-        } else {
-            document.getElementById('snd-wrong').play().catch(() => {});
-            domElement.style.transform = 'scale(0.8)';
-            domElement.style.opacity = '0.4';
-            document.getElementById('challenge-formula').innerText = `Oops! That equals ${targetSolutionValue}`;
-        }
-
-        setTimeout(() => {
-            currentRoundIndex++;
-            if (currentRoundIndex <= totalRoundsCount) {
-                renderActiveGameRound();
-            } else {
-                goToScreen('screen-end');
-                document.getElementById('adventure-outcome-text').innerText = `Fantastic Job, Snack Master! You earned a perfect ${currentScore}/${totalRoundsCount} points while managing your addition sums up to 20!`;
-            }
-        }, 2500);
-    }
-</script>
-</body>
-</html>
+        font-size: 24px; font-weight: 900; padding: 4px 16px;
