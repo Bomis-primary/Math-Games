@@ -207,7 +207,8 @@
         <div class="card">
             <h1>Math Climb 4x4 Tower 🎲🪜</h1>
             <p>Solve addition & subtraction up to 999 to move your character around the grid and climb the majestic tower ladders!</p>
-            <p style="font-weight: bold; color: #0284c7;">🎯 Rule: Solve at least 10 equations to win! Watch out—climbing up a ladder triggers a snake response next turn!</p>
+            <p style="font-weight: bold; color: #e11d48; margin-bottom: 12px;">✏️ Students: Grab your pencils and paper to help solve these big numbers!</p>
+            <p style="font-weight: bold; color: #0284c7;">🎯 Rule: Solve at least 10 equations and make your way to Space 16 to win the game!</p>
             
             <h3 style="color: #475569;">Select Your Animal Companion:</h3>
             <div class="character-select-box">
@@ -274,12 +275,9 @@
     
     let activeCharacterIdx = 0;
     let playerCurrentTileSpace = 1;
-    let finalWinningTileSpace = -1; 
+    let finalWinningTileSpace = 16; // Stable, fixed target space on the grid layout
     let correctAnswersCount = 0;
     let targetSolution = 0;
-    
-    // Balanced System State Tracking Variable
-    let snakeCounterAttackActive = false;
 
     // Classic stable ladders & structural snakes layout maps
     const specialTilesLayout = {
@@ -330,9 +328,7 @@
 
     function resetBoardState() {
         playerCurrentTileSpace = 1;
-        finalWinningTileSpace = -1;
         correctAnswersCount = 0;
-        snakeCounterAttackActive = false;
     }
 
     function startBoardClimb() {
@@ -363,7 +359,7 @@
                 }
             }
             
-            if (finalWinningTileSpace !== -1 && tileNum === finalWinningTileSpace) {
+            if (tileNum === finalWinningTileSpace) {
                 tile.className = 'board-tile win-tile';
                 decorativeLabel = '🏆 WIN TILE';
             }
@@ -410,7 +406,7 @@
         document.getElementById('hud-score').innerText = `Solved: 📝 ${correctAnswersCount} / 10`;
         
         if(correctAnswersCount >= 10) {
-            document.getElementById('hud-goal-text').innerText = `Goal: Space ${finalWinningTileSpace} 🏆`;
+            document.getElementById('hud-goal-text').innerText = `Goal: Head to Space 16! 🏆`;
         } else {
             document.getElementById('hud-goal-text').innerText = `Goal: Active Climb 🧗`;
         }
@@ -477,62 +473,41 @@
             const diceNode = document.getElementById('dice-graphic');
             if(diceNode) diceNode.style.display = 'inline-block';
 
+            // PAWN ONLY MOVES AFTER DICE STOPS ROLLING ANIMATION
             setTimeout(() => {
                 const movementSteps = Math.floor(Math.random() * 3) + 1;
                 playerCurrentTileSpace += movementSteps;
                 
+                // Keep looping board naturally if they haven't finished their 10 equations yet
                 if (playerCurrentTileSpace > 16 && correctAnswersCount < 10) {
                     playerCurrentTileSpace = (playerCurrentTileSpace % 16) || 1;
                 }
 
-                if (correctAnswersCount === 10 && finalWinningTileSpace === -1) {
-                    finalWinningTileSpace = playerCurrentTileSpace + 1;
-                    if(finalWinningTileSpace > 16) finalWinningTileSpace = 16;
-                    buildTowerGridMatrix();
-                }
-
+                // Check Victory Conditions safely
                 if (correctAnswersCount >= 10 && playerCurrentTileSpace >= finalWinningTileSpace) {
                     playerCurrentTileSpace = finalWinningTileSpace;
                     positionTokenOnGridSpace(playerCurrentTileSpace);
                     setTimeout(() => {
                         goToScreen('screen-end');
-                        document.getElementById('end-summary-text').innerText = `Magnificent work Tower Conqueror! You balanced the paths, handled all the snake falls, solved ${correctAnswersCount} equations, and won!`;
+                        document.getElementById('end-summary-text').innerText = `Magnificent work Tower Conqueror! You handled all the falls, solved ${correctAnswersCount} equations perfectly, reached Space 16, and won!`;
                     }, 1200);
                     return;
                 }
 
+                // Move pawn visually on the board map
                 positionTokenOnGridSpace(playerCurrentTileSpace);
 
                 setTimeout(() => {
-                    // Check standard tile event bindings
                     if (specialTilesLayout[playerCurrentTileSpace]) {
                         const gridEvent = specialTilesLayout[playerCurrentTileSpace];
                         playerCurrentTileSpace = gridEvent.target;
                         
                         if (gridEvent.type === 'ladder') {
                             triggerEventOverlay("🪜 LADDER CLIMB!", "#fbbf24");
-                            // UP TRIGGER: Flag counterattack snake mechanism for their next upcoming turn
-                            snakeCounterAttackActive = true; 
                         } else {
                             triggerEventOverlay("🐍 SNAKE SLIDE!", "#ef4444");
                         }
                         
-                        setTimeout(() => {
-                            positionTokenOnGridSpace(playerCurrentTileSpace);
-                            generateEquationRound();
-                        }, 1200);
-
-                    // WHAT GOES UP MUST COME DOWN: Dynamic Snake Counter-Attack Engine Execution!
-                    } else if (snakeCounterAttackActive) {
-                        snakeCounterAttackActive = false; // Reset toggle flag immediately
-                        
-                        // Drop player down by random spaces (1-3) to balance out previous ladder climb
-                        const slideDownAmt = Math.floor(Math.random() * 3) + 1;
-                        playerCurrentTileSpace -= slideDownAmt;
-                        if(playerCurrentTileSpace < 1) playerCurrentTileSpace = 1;
-
-                        triggerEventOverlay("🐍 WHAT GOES UP COMES DOWN!", "#ef4444");
-
                         setTimeout(() => {
                             positionTokenOnGridSpace(playerCurrentTileSpace);
                             generateEquationRound();
