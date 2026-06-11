@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grade 1: Sammy's Acorn Mission!</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
             --primary-bg: #F4EBE1; /* Soft forest cream */
@@ -45,6 +44,7 @@
             align-items: center;
             z-index: 9999;
             transition: opacity 0.8s ease-out;
+            opacity: 1;
         }
 
         .splash-logo {
@@ -66,6 +66,7 @@
             display: none; 
             opacity: 0;
             transition: opacity 0.5s ease-in;
+            position: relative;
         }
 
         /* --- MISSION START SCREEN --- */
@@ -157,7 +158,6 @@
             transition: width 0.4s ease;
         }
 
-        /* OUTCOME LO TYPE HEADER */
         .outcome-banner {
             font-size: 1.1rem;
             background: #ECEFF1;
@@ -169,7 +169,6 @@
             text-transform: uppercase;
         }
 
-        /* STORY SUM TEXT FRAME */
         .story-text-container {
             font-size: 1.25rem;
             background: #FFF3E0;
@@ -181,7 +180,6 @@
             text-align: left;
         }
 
-        /* VISUAL ACORN DISPLAYS */
         .visual-math-box {
             background: #FFF8E1;
             border: 3px dashed #FFB300;
@@ -207,7 +205,6 @@
         .item-group img {
             width: 26px;
             height: auto;
-            animation: popIn 0.3s ease;
         }
 
         .math-sign {
@@ -278,15 +275,23 @@
             margin: 25px auto 0 auto;
         }
 
-        /* --- ANIMATIONS --- */
+        /* --- CUSTOM CONFETTI STYLES --- */
+        .confetti-piece {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ffd700;
+            top: 50%;
+            left: 50%;
+            opacity: 0;
+            border-radius: 3px;
+            pointer-events: none;
+            z-index: 999;
+        }
+
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.05); }
-        }
-
-        @keyframes popIn {
-            0% { transform: scale(0); }
-            100% { transform: scale(1); }
         }
 
         @media (max-width: 480px) {
@@ -304,12 +309,12 @@
 
     <div id="game-container">
         
-        <div id="mission-screen" class="mission-box">
+        <div id="mission-screen">
             <img src="assets/squirrel.png" class="actor-img" alt="Sammy the Squirrel" onerror="this.style.display='none'">
             <h2>Help Sammy the Squirrel!</h2>
             <p class="mission-text">
                 Winter is near! Sammy must store enough food in his treehouse. 
-                <br><br><strong>Your Mission:</strong> Solve 10 textbook addition challenges correctly to help him secure <strong>10 Acorns</strong>! 
+                <br><br><strong>Your Mission:</strong> Solve 10 textbook addition challenges correctly to help him secure <strong>10 Acorns</strong>!
             </p>
             <button class="start-btn" onclick="startMission()">Accept Mission! 🚀</button>
         </div>
@@ -332,7 +337,6 @@
             </div>
 
             <div class="outcome-banner" id="outcome-label">Outcome Practice</div>
-
             <div class="story-text-container" id="story-container" style="display: none;"></div>
 
             <div class="visual-math-box" id="visual-box">
@@ -342,7 +346,6 @@
             </div>
 
             <div class="equation-text" id="equation-display">0 + 0 = ?</div>
-            
             <div class="options-grid" id="options-container"></div>
         </div>
 
@@ -362,7 +365,6 @@
     <audio id="audio-wrong" src="assets/wrong.mp3"></audio>
 
     <script>
-        // Sound Management Subsystem
         let volumeLevel = 0.5;
         const sndCorrect = document.getElementById('audio-correct');
         const sndWrong = document.getElementById('audio-wrong');
@@ -371,34 +373,57 @@
             if (type === 'correct') {
                 sndCorrect.volume = volumeLevel;
                 sndCorrect.currentTime = 0;
-                sndCorrect.play().catch(() => {});
+                sndCorrect.play().catch(function(){});
             } else if (type === 'wrong') {
                 sndWrong.volume = volumeLevel;
                 sndWrong.currentTime = 0;
-                sndWrong.play().catch(() => {});
+                sndWrong.play().catch(function(){});
             }
         }
 
-        document.getElementById('volume-slider').addEventListener('input', (e) => {
+        document.getElementById('volume-slider').addEventListener('input', function(e) {
             volumeLevel = e.target.value;
         });
 
-        // Question Pools Aligned Explicitly to Uploaded Learning Outcomes
+        // Custom Local Confetti Burst Engine (Does not require external links)
+        function launchLocalConfetti() {
+            const container = document.getElementById('game-container');
+            const colors = ['#FFD700', '#FF5722', '#4CAF50', '#00BCD4', '#E91E63', '#9C27B0'];
+            
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti-piece';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                container.appendChild(confetti);
+
+                // Calculate random outward explosion vectors
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = Math.random() * 200 + 100; 
+                const destX = Math.cos(angle) * velocity;
+                const destY = Math.sin(angle) * velocity - 50; // Tendency to pop upwards slightly
+
+                confetti.animate([
+                    { transform: 'translate(-50%, -50%) scale(1) rotate(0deg)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${destX}px), calc(-50% + ${destY}px)) scale(0.4) rotate(${Math.random() * 360}deg)`, opacity: 0 }
+                ], {
+                    duration: Math.random() * 1000 + 800,
+                    easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)',
+                    fill: 'forwards'
+                });
+
+                // Clear element out of memory when done tracking
+                setTimeout(function() { confetti.remove(); }, 1800);
+            }
+        }
+
         const staticQuestionPool = [
-            // 1. Groups of Tens
             { type: "Groups of Tens", story: "Sammy has 3 boxes of acorns. Each box has exactly 10 acorns inside. How many acorns does he have in total?", num1: 10, num2: 20, answer: 30, options: [3, 13, 30, 40], visual: false },
             { type: "Groups of Tens", story: "Sammy finds 5 groups of 10 acorns on the ground. How many total acorns did he find?", num1: 20, num2: 30, answer: 50, options: [15, 50, 5, 60], visual: false },
-            
-            // 2. Addition without Carry Over
             { type: "Addition without Carry Over", story: "", num1: 42, num2: 5, answer: 47, options: [45, 46, 47, 52], visual: true },
             { type: "Addition without Carry Over", story: "", num1: 21, num2: 34, answer: 55, options: [54, 55, 56, 65], visual: true },
-            
-            // 3. Addition with Carry Over
             { type: "Addition with Carry Over", story: "", num1: 25, num2: 8, answer: 33, options: [32, 33, 34, 43], visual: true },
             { type: "Addition with Carry Over", story: "", num1: 48, num2: 15, answer: 63, options: [53, 62, 63, 73], visual: true },
             { type: "Addition with Carry Over", story: "", num1: 57, num2: 26, answer: 83, options: [83, 73, 84, 93], visual: true },
-            
-            // 4. Story Sums based on Addition up to 100
             { type: "Story Sums", story: "\"I want to save 70 acorns for winter,\" says Sammy. If he has 60 acorns and finds 10 more, what is his total?", num1: 60, num2: 10, answer: 70, options: [61, 70, 80, 100], visual: false },
             { type: "Story Sums", story: "Sammy hides 36 acorns near an oak tree and 43 acorns near a pine tree. How many hidden acorns are there altogether?", num1: 36, num2: 43, answer: 79, options: [78, 79, 89, 80], visual: false },
             { type: "Story Sums", story: "Sammy's backpack holds 75 acorns. He gathers 19 more golden acorns. How many acorns are with him now?", num1: 75, num2: 19, answer: 94, options: [84, 93, 94, 100], visual: false }
@@ -412,9 +437,7 @@
         function startMission() {
             document.getElementById('mission-screen').style.display = 'none';
             document.getElementById('play-screen').style.display = 'block';
-            
-            // Mix up array indices smoothly on startup [cite: 14]
-            activeQuestions = [...staticQuestionPool].sort(() => Math.random() - 0.5);
+            activeQuestions = [...staticQuestionPool].sort(function() { return Math.random() - 0.5; });
             loadQuestion();
         }
 
@@ -424,17 +447,13 @@
                 return;
             }
 
-            // Sync Header Counters 
             document.getElementById('question-number').innerText = `🧩 Problem: ${currentQuestion + 1}/${totalQuestions}`;
             document.getElementById('progress').style.width = `${(currentQuestion / totalQuestions) * 100}%`;
             document.getElementById('acorn-count').innerText = score;
 
             let q = activeQuestions[currentQuestion];
-            
-            // Set Textbook Outcome Label Header
             document.getElementById('outcome-label').innerText = `Target: ${q.type}`;
 
-            // Adjust Layout for Story Sums vs Clean Numeric Sums
             const storyBox = document.getElementById('story-container');
             const visualBox = document.getElementById('visual-box');
             
@@ -445,7 +464,6 @@
                 storyBox.style.display = "none";
             }
 
-            // Add counting icons if applicable (Capped at 15 to preserve clean layout boundaries)
             const leftGroup = document.getElementById('items-left');
             const rightGroup = document.getElementById('items-right');
             leftGroup.innerHTML = '';
@@ -463,41 +481,39 @@
 
             document.getElementById('equation-display').innerText = `${q.num1} + ${q.num2} = ?`;
 
-            // Clear and Append Option Selections [cite: 14]
             const optionsContainer = document.getElementById('options-container');
             optionsContainer.innerHTML = '';
 
-            q.options.forEach(option => {
+            q.options.forEach(function(option) {
                 const btn = document.createElement('button');
                 btn.className = 'option-btn';
                 btn.innerText = option;
-                btn.onclick = () => checkAnswer(btn, option, q.answer);
+                btn.onclick = function() { checkAnswer(btn, option, q.answer); };
                 optionsContainer.appendChild(btn);
             });
         }
 
         function checkAnswer(selectedBtn, selectedValue, correctValue) {
             const buttons = document.querySelectorAll('.option-btn');
-            buttons.forEach(btn => btn.disabled = true);
+            buttons.forEach(function(btn) { btn.disabled = true; });
 
             if (selectedValue === correctValue) {
                 selectedBtn.classList.add('correct');
-                playSound('correct'); [cite: 15]
+                playSound('correct');
                 score++;
                 document.getElementById('acorn-count').innerText = score;
-                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }); [cite: 15]
+                launchLocalConfetti(); // Triggers built-in confetti explosion immediately
             } else {
                 selectedBtn.classList.add('wrong');
-                playSound('wrong'); [cite: 15]
-                buttons.forEach(btn => {
+                playSound('wrong');
+                buttons.forEach(function(btn) {
                     if (parseInt(btn.innerText) === correctValue) {
                         btn.classList.add('correct');
                     }
                 });
             }
 
-            // Automatic incremental window push 
-            setTimeout(() => {
+            setTimeout(function() {
                 currentQuestion++;
                 loadQuestion();
             }, 2500);
@@ -507,15 +523,15 @@
             document.getElementById('play-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
             document.getElementById('score-display').innerText = `Stocked: ${score} / ${totalQuestions} Acorns!`;
-            document.getElementById('restart-btn').style.display = 'block'; [cite: 15]
+            document.getElementById('restart-btn').style.display = 'block';
             
             if(score >= 7) {
-                let end = Date.now() + (3 * 1000);
-                (function frame() {
-                    confetti({ particleCount: 6, angle: 60, spread: 55, origin: { x: 0 } });
-                    confetti({ particleCount: 6, angle: 120, spread: 55, origin: { x: 1 } });
-                    if (Date.now() < end) requestAnimationFrame(frame);
-                }());
+                let count = 0;
+                let finalInterval = setInterval(function() {
+                    launchLocalConfetti();
+                    count++;
+                    if(count > 4) clearInterval(finalInterval);
+                }, 400);
             }
         }
 
@@ -528,18 +544,16 @@
             document.getElementById('mission-screen').style.display = 'block';
         }
 
-        // --- SPLASH ENGINE OVERLAY TIMER (Exactly 5000 Milliseconds) ---
-        window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(function() {
             const splash = document.getElementById('splash-screen');
             const game = document.getElementById('game-container');
-
-            setTimeout(() => {
+            if (splash) {
                 splash.style.opacity = '0';
                 game.style.display = 'block';
-                setTimeout(() => { game.style.opacity = '1'; }, 50);
-                setTimeout(() => { splash.remove(); }, 800);
-            }, 5000); 
-        });
+                setTimeout(function() { game.style.opacity = '1'; }, 50);
+                setTimeout(function() { splash.remove(); }, 800);
+            }
+        }, 5000);
     </script>
 </body>
 </html>
