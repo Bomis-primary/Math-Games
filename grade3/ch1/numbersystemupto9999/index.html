@@ -83,7 +83,7 @@
             background-repeat: no-repeat;
         }
 
-        /* Litter Blending (Removes White Boxes) */
+        /* Litter Blending */
         .trash-item {
             position: absolute;
             width: 48px;
@@ -101,7 +101,7 @@
             transition: transform 0.3s ease;
         }
         
-        /* 🎯 FIX ONLY: Forces white square backgrounds to blend seamlessly into transparency */
+        /* Blends out white boxes from the turtle assets */
         .turtle-interactive img {
             width: 100%;
             height: auto;
@@ -120,7 +120,6 @@
             animation: swimForwardAway 2.5s forwards ease-in-out;
         }
 
-        /* Glowing look that leaves the background multiplication intact */
         @keyframes yellowGlowPulse {
             0% { transform: scale(1); filter: drop-shadow(0 0 2px rgba(255, 235, 59, 0.5)); }
             100% { transform: scale(1.12); filter: drop-shadow(0 0 12px rgba(255, 235, 59, 0.9)); }
@@ -252,14 +251,66 @@
             }
         }
 
-        // Phase 1 Quiz Pool
+        // Phase 1 Quiz Pool (No Commas in Numbers)
         var phase1Pool = [
             { question: "Q1. What is the number name for 4206?", answers: ["Four thousand twenty-six", "Four thousand two hundred six", "Four hundred twenty-six", "Four thousand two hundred sixty"], correct: "Four thousand two hundred six" },
-            { question: "Q2. What is the place value of 7 in 7482?", answers: ["7", "70", "700", "7000"], correct: "7,000" },
+            { question: "Q2. What is the place value of 7 in 7482?", answers: ["7", "70", "700", "7000"], correct: "7000" },
             { question: "Q3. What is the face value of 8 in 3854?", answers: ["800", "80", "8", "8000"], correct: "8" },
-            { question: "Q4. Which expanded form represents 6245?", answers: ["6000 + 200 + 40 + 5", "600 + 200 + 40 + 5", "6000 + 20 + 40 + 5", "6000 + 200 + 4 + 5"], correct: "6,000 + 200 + 40 + 5" },
+            { question: "Q4. Which expanded form represents 6245?", answers: ["6000 + 200 + 40 + 5", "600 + 200 + 40 + 5", "6000 + 20 + 40 + 5", "6000 + 200 + 4 + 5"], correct: "6000 + 200 + 40 + 5" },
             { question: "Q5. Which symbol makes the statement true? 4586 > ____________", answers: ["4141", "4616", "4590", "4685"], correct: "4141" },
-            { question: "Q6. Which number is the greatest?", answers: ["2345", "2435", "2354", "2543"], correct: "2,543" },
-            { question: "Q7. Arrange these numbers in ascending order: 4201, 4021, 4120", answers: ["4021, 4120, 4201", "4120, 4021, 4201", "4201, 4120, 4021", "4021, 4201, 4120"], correct: "4,021, 4,120, 4,201" },
+            { question: "Q6. Which number is the greatest?", answers: ["2345", "2435", "2354", "2543"], correct: "2543" },
+            { question: "Q7. Arrange these numbers in ascending order: 4201, 4021, 4120", answers: ["4021, 4120, 4201", "4120, 4021, 4201", "4201, 4120, 4021", "4021, 4201, 4120"], correct: "4021, 4120, 4201" },
             { question: "Q8. What is the predecessor of 3000?", answers: ["2998", "2999", "3001", "3010"], correct: "2999" },
-            { question: "Q9. What is the successor of 8499?", answers:
+            { question: "Q9. What is the successor of 8499?", answers: ["8498", "8500", "8490", "8599"], correct: "8500" }
+        ];
+
+        // Phase 2 Quiz Pool (No Commas in Numbers)
+        var phase2Pool = [
+            { question: "Q10. Which is the greatest 4-digit number formed using 1, 4, 6, and 8 without repetition?", answers: ["1468", "8641", "8461", "6841"], correct: "8641" },
+            { question: "Q11. Which number is an odd number?", answers: ["2348", "5672", "7895", "4120"], correct: "7895" },
+            { question: "Q12. Round 6520 to the nearest 1000.", answers: ["6000", "6500", "7000", "5000"], correct: "7000" },
+            { question: "Q13. What comes next in the pattern? 100, 200, 300, 400, ___", answers: ["450", "500", "600", "700"], correct: "500" },
+            { question: "Q14. What Hindu-Arabic number does XL represent?", answers: ["60", "50", "40", "30"], correct: "40" }
+        ];
+
+        var currentPhase = 1;
+        var p1Index = 0;
+        var gameScore = 0;
+        var activeTurtleTarget = null;
+
+        var beachLitter = [
+            { asset: "assets/bottle1.png", top: "135px", left: "25px" },
+            { asset: "assets/wrapper-purple.png", top: "170px", left: "95px" },
+            { asset: "assets/tetra.png", top: "120px", left: "170px" },
+            { asset: "assets/bottle2.png", top: "165px", left: "245px" },
+            { asset: "assets/wrapper-red.png", top: "130px", left: "325px" },
+            { asset: "assets/tetra.png", top: "175px", left: "405px" },
+            { asset: "assets/wrapper-yellow.png", top: "125px", left: "485px" },
+            { asset: "assets/bottle1.png", top: "165px", left: "565px" },
+            { asset: "assets/wrapper-purple.png", top: "135px", left: "640px" }
+        ];
+
+        var reefTurtles = [
+            { id: 0, top: "40px", left: "50px", solved: false },
+            { id: 1, top: "120px", left: "180px", solved: false },
+            { id: 2, top: "35px", left: "320px", solved: false },
+            { id: 3, top: "130px", left: "460px", solved: false },
+            { id: 4, top: "50px", left: "590px", solved: false }
+        ];
+
+        function engageMission() {
+            document.getElementById('intro-card').style.display = 'none';
+            document.getElementById('active-playfield').style.display = 'block';
+            initBeachPhase();
+        }
+
+        function initBeachPhase() {
+            currentPhase = 1;
+            p1Index = 0;
+            var stage = document.getElementById('eco-stage');
+            stage.style.backgroundImage = "url('beach-bg.png')";
+            stage.innerHTML = '';
+
+            beachLitter.forEach(function(item, idx) {
+                var img = document.createElement('img');
+                img.className = 'trash-
