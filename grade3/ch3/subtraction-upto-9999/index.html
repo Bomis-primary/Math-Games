@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Garden Bee Bloom: Math Quest - Grade 3</title>
+<title>Barnaby Bee: The Honeycomb Quest</title>
 <style>
     :root {
-        --accent-green: #22c55e;
+        --primary-gold: #f59e0b;
+        --honey-amber: #d97706;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body, html {
@@ -16,7 +17,7 @@
         background-color: #0f172a;
     }
 
-    /* Splash Screen Overlay */
+    /* Loading Splash Overlay */
     #screen-splash {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: #ffffff !important; z-index: 99999;
@@ -33,11 +34,11 @@
         border-radius: 3px; overflow: hidden; position: relative;
     }
     .splash-loader-bar {
-        position: absolute; background: #22c55e; width: 100%; height: 100%;
-        left: -100%; animation: loadProgress 5s linear forwards; 
+        position: absolute; background: var(--primary-gold); width: 100%; height: 100%;
+        left: -100%; animation: loadProgress 3s linear forwards; 
     }
 
-    /* Main Viewport Wrapper with Integrated Background Asset */
+    /* Main Engine Game Window Frame */
     #app-viewport-wrapper {
         width: 100%; height: 100%;
         position: relative;
@@ -46,14 +47,14 @@
         flex-direction: column; padding: 15px;
         background: url('assets/garden-bg.png') no-repeat center center;
         background-size: cover;
+        transition: background 0.8s ease;
     }
 
-    /* Tint Overlay */
-    .garden-tint-overlay {
+    .ambient-tint-overlay {
         position: absolute; width: 100%; height: 100%; top: 0; left: 0;
         pointer-events: none; z-index: 1; 
-        background: rgba(224, 242, 254, 0.45);
-        transition: background 1s ease;
+        background: rgba(224, 242, 254, 0.3);
+        transition: background 0.8s ease;
     }
 
     .screen {
@@ -65,119 +66,121 @@
 
     .card {
         background: rgba(255, 255, 255, 0.96);
-        padding: 25px; border-radius: 32px; width: 100%;
-        border: 6px solid #22c55e; box-shadow: 0 15px 35px rgba(34, 197, 94, 0.3);
+        padding: 30px; border-radius: 32px; width: 100%;
+        border: 6px solid var(--primary-gold); box-shadow: 0 15px 35px rgba(217, 119, 6, 0.25);
     }
-    h1 { font-size: 34px; color: #16a34a; margin-bottom: 10px; font-weight: 800; }
+    h1 { font-size: 32px; color: var(--honey-amber); margin-bottom: 12px; font-weight: 800; }
     p { font-size: 17px; line-height: 1.5; color: #475569; margin-bottom: 20px; }
 
     .btn {
-        padding: 14px 24px; font-size: 19px; font-weight: 900;
+        padding: 14px 28px; font-size: 19px; font-weight: 900;
         color: white; border: none; border-radius: 20px; cursor: pointer;
-        background: linear-gradient(135deg, #4ade80 0%, #22c55e 100%);
-        box-shadow: 0 6px 0px #16a34a, 0 10px 15px rgba(0,0,0,0.15);
+        background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%);
+        box-shadow: 0 6px 0px #b45309, 0 10px 15px rgba(0,0,0,0.15);
         transition: transform 0.1s, box-shadow 0.1s;
     }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0px #16a34a, 0 12px 20px rgba(0,0,0,0.2); }
-    .btn:active { transform: translateY(4px); box-shadow: 0 2px 0px #16a34a; }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0px #b45309, 0 12px 20px rgba(0,0,0,0.2); }
+    .btn:active { transform: translateY(4px); box-shadow: 0 2px 0px #b45309; }
 
-    /* HUD Bar */
+    /* HUD Metrics display */
     .hud-header {
         width: 100%; display: flex; justify-content: space-between; font-weight: bold;
         background: rgba(255, 255, 255, 0.95); padding: 12px 24px; border-radius: 20px; margin-bottom: 15px;
-        font-size: 16px; border: 3px solid #86efac; color: #16a34a; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        font-size: 16px; border: 3px solid #fef08a; color: var(--honey-amber); box-shadow: 0 4px 10px rgba(0,0,0,0.05);
     }
 
-    /* Hanging Blackboard Sign */
+    /* Hanging Chalkboard Expression Sign */
     .wooden-sign-board {
-        background: #1e293b; color: #facc15; font-size: 44px; font-weight: 900;
-        padding: 18px 45px; border-radius: 24px; border: 6px solid #b45309;
-        margin-bottom: 20px; display: inline-block; letter-spacing: 3px;
+        background: #1e293b; color: #facc15; font-size: 42px; font-weight: 900;
+        padding: 16px 45px; border-radius: 24px; border: 6px solid #b45309;
+        margin-bottom: 20px; display: inline-block; letter-spacing: 2px;
         box-shadow: 0 10px 20px rgba(0,0,0,0.25), inset 0 4px 10px rgba(0,0,0,0.4);
     }
 
-    /* Natural Ground Garden Soil Environment (No Table) */
-    .stage-ground-container {
-        position: relative; width: 100%; height: 210px;
-        margin-top: 10px; display: flex; justify-content: space-around; align-items: flex-end;
-        padding-bottom: 15px;
-    }
-    .garden-soil-patch {
-        position: absolute; bottom: 0; left: 0; width: 100%; height: 25px;
-        background: linear-gradient(135deg, #5c2e0b 0%, #3d1e07 100%);
-        border-radius: 12px; border-top: 5px solid #22c55e; /* Grass fringe topper line */
-        box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+    /* Flight Path Interactive Zone Container */
+    .flight-zone-container {
+        position: relative; width: 100%; height: 260px;
+        margin-top: 5px; display: flex; justify-content: space-around; align-items: flex-end;
+        padding-bottom: 5px;
     }
 
-    /* Pots Structural Elements */
-    .flower-pot-wrapper {
-        position: relative; width: 135px; height: 130px;
-        display: flex; flex-direction: column; align-items: center;
-        justify-content: flex-end; cursor: pointer; z-index: 10; 
+    /* Dynamic Floating Hero Bee Actor */
+    #barnaby-bee-sprite {
+        position: absolute; width: 64px; height: 64px; font-size: 52px;
+        display: flex; align-items: center; justify-content: center;
+        z-index: 90; pointer-events: none;
+        top: 15px; left: calc(50% - 32px);
+        transition: top 0.9s cubic-bezier(0.25, 1, 0.5, 1), left 0.9s cubic-bezier(0.25, 1, 0.5, 1);
+        animation: beeHoverFloat 0.25s ease-in-out infinite alternate;
+    }
+
+    @keyframes beeHoverFloat {
+        0% { transform: translateY(0px) scaleX(1); }
+        100% { transform: translateY(-7px) scaleX(1.05); }
+    }
+
+    /* Level 1 Target Elements: Fully Blown Flower Pots */
+    .flower-pot-target {
+        position: relative; width: 140px; display: flex;
+        flex-direction: column; align-items: center; justify-content: flex-end;
+        cursor: pointer; z-index: 10;
+    }
+    .plant-stem-body { width: 8px; height: 45px; background: #22c55e; position: relative; }
+    .leaf-node-l { position: absolute; width: 15px; height: 9px; background: #16a34a; border-radius: 12px 0; left: -13px; top: 18px; transform: rotate(-20deg); }
+    .leaf-node-r { position: absolute; width: 15px; height: 9px; background: #16a34a; border-radius: 0 12px; right: -13px; top: 10px; transform: rotate(20deg); }
+    
+    .flower-blossom-top { 
+        font-size: 52px; margin-bottom: -8px; z-index: 2; 
         transition: transform 0.2s ease;
     }
-    .flower-pot-wrapper:hover { transform: scale(1.08) translateY(-5px); }
+    .flower-pot-target:hover .flower-blossom-top { transform: scale(1.18) rotate(8deg); }
 
-    .pot-rim { width: 125px; height: 18px; border-radius: 6px; z-index: 3; box-shadow: 0 3px 4px rgba(0,0,0,0.15); }
-    .pot-body { width: 105px; height: 70px; margin-top: -2px; border-radius: 0 0 16px 16px; position: relative; z-index: 2; display: flex; justify-content: center; align-items: center; }
-    
-    .pot-terracotta .pot-rim { background: #ea580c; border: 2px solid #c2410c; }
-    .pot-terracotta .pot-body { background: #f97316; border: 3px solid #ea580c; }
-    
-    .pot-teal .pot-rim { background: #0d9488; border: 2px solid #0f766e; }
-    .pot-teal .pot-body { background: #14b8a6; border: 3px solid #0d9488; }
-    
-    .pot-purple .pot-rim { background: #7c3aed; border: 2px solid #6d28d9; }
-    .pot-purple .pot-body { background: #a78bfa; border: 3px solid #7c3aed; }
+    .pot-rim-lip { width: 110px; height: 16px; background: #ea580c; border: 2px solid #c2410c; border-radius: 5px; z-index: 3; }
+    .pot-clay-base { width: 92px; height: 58px; background: #f97316; border: 3px solid #ea580c; border-radius: 0 0 14px 14px; margin-top: -2px; display: flex; justify-content: center; align-items: center; z-index: 2; box-shadow: 0 5px 10px rgba(0,0,0,0.1); }
 
-    .choice-tag-label {
-        background: white; color: #1e293b; padding: 4px 10px; border-radius: 10px;
-        font-weight: 900; font-size: 20px; border: 3px solid #475569;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1); pointer-events: none; z-index: 4;
+    /* Level 2 Target Elements: Hanging Golden Honeycombs matching layout structure */
+    .honeycomb-vault-target {
+        position: relative; width: 130px; height: 140px;
+        background: rgba(254, 240, 138, 0.85); border: 5px solid #f59e0b;
+        clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        cursor: pointer; z-index: 10; margin-bottom: 40px; /* Suspended up from the floor line */
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        transition: background 0.2s, transform 0.2s;
     }
+    .honeycomb-vault-target:hover { background: #fef9c3; transform: scale(1.06); }
+    .honey-cell-liquid { font-size: 34px; margin-bottom: 6px; }
 
-    /* Permanent Flowerbed Expansion Collection Shelf */
-    .permanent-flowerbed {
-        width: 100%; background: rgba(120, 53, 15, 0.95); border: 4px solid #451a03;
-        border-radius: 20px; min-height: 80px; padding: 10px; margin-top: 15px;
+    /* Absolute Value Answer Badges */
+    .math-value-badge {
+        background: white; color: #1e293b; padding: 4px 12px; border-radius: 10px;
+        font-weight: 900; font-size: 19px; border: 3px solid #475569;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1); pointer-events: none; z-index: 5;
+    }
+    .honeycomb-vault-target .math-value-badge { border-color: #b45309; background: #fffbeb; }
+
+    /* Continuous Collection Progress Tray */
+    .nectar-collection-jar {
+        width: 100%; background: rgba(255, 255, 255, 0.94); border: 4px solid var(--primary-gold);
+        border-radius: 20px; min-height: 85px; padding: 12px; margin-top: 15px;
         display: flex; justify-content: center; align-items: center; gap: 8px;
-        flex-wrap: wrap; box-shadow: inset 0 5px 10px rgba(0,0,0,0.4), 0 4px 10px rgba(0,0,0,0.1);
+        flex-wrap: wrap; box-shadow: inset 0 4px 8px rgba(0,0,0,0.06);
     }
-    .garden-soil-title {
-        color: #fef08a; font-size: 13px; font-weight: 800; width: 100%;
-        text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;
+    .jar-title-label {
+        color: var(--honey-amber); font-size: 13px; font-weight: 800; width: 100%;
+        text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;
     }
-    .sprouted-flower-item {
-        font-size: 32px; animation: seedGrow 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    .collected-loot-item {
+        font-size: 30px; animation: dropIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
     }
 
-    @keyframes seedGrow { 0% { transform: scale(0) rotate(-30deg); } 100% { transform: scale(1) rotate(0deg); } }
-
-    /* Interactive Animation Layers */
-    .surprise-flower-anchor {
-        position: absolute; bottom: 80px; font-size: 55px;
-        opacity: 0; transform: scale(0.1) translateY(30px);
-        pointer-events: none; z-index: 1; 
-        transition: all 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .happy-bee-anchor {
-        position: absolute; bottom: 90px; font-size: 35px;
-        opacity: 0; transform: translateX(0) scale(0.5);
-        pointer-events: none; z-index: 5;
-    }
-    
-    .flower-pot-wrapper.bloom-open .surprise-flower-anchor { opacity: 1; transform: scale(1.3) translateY(-40px); z-index: 20; }
-    .flower-pot-wrapper.bloom-open .happy-bee-anchor { opacity: 1; animation: beeFlyAround 2s ease-in-out infinite alternate; }
-    .flower-pot-wrapper.wrong-shake { animation: shakeW 0.4s ease; }
+    @keyframes dropIn { 0% { transform: scale(0) translateY(-15px); } 100% { transform: scale(1) translateY(0); } }
+    .wrong-shake { animation: shakeW 0.45s ease; }
 
     @keyframes shakeW {
         0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-10px); }
-        75% { transform: translateX(10px); }
-    }
-    @keyframes beeFlyAround {
-        0% { transform: translate(-20px, -50px) scale(1); }
-        100% { transform: translate(30px, -80px) scale(1.1) rotate(10deg); }
+        25% { transform: translateX(-12px); }
+        75% { transform: translateX(12px); }
     }
 
     #confetti-canvas-plane { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 100; }
@@ -188,7 +191,7 @@
 
 <div id="screen-splash">
     <div class="logo-container">
-        <img class="logo-img" src="assets/logo.png" alt="Innovine Logo">
+        <img class="logo-img" src="assets/logo.png" alt="Logo">
     </div>
     <div class="splash-loader">
         <div class="splash-loader-bar"></div>
@@ -196,65 +199,51 @@
 </div>
 
 <div id="app-viewport-wrapper">
-    <div class="garden-tint-overlay" id="garden-tint-mask"></div>
+    <div class="ambient-tint-overlay" id="ambient-tint-mask"></div>
     <canvas id="confetti-canvas-plane"></canvas>
 
     <div id="screen-welcome" class="screen active">
         <div class="card">
-            <h1>Garden Subtraction: Quest 9999! 🐝🌱</h1>
-            <p>Welcome to Grade 3 Botanists! Help the bee pollinate the garden pots by mastering large multi-digit subtraction equations up to 9999.</p>
-            <p style="font-weight: bold; color: #e11d48; margin-bottom: 12px;">✏️ Grab your notebook and pencil to carefully calculate regrouping values columns!</p>
-            <p style="font-weight: bold; color: #16a34a;">🎯 Grow 5 flowers to complete Level 1 and unlock the glowing Midnight Greenhouse in Level 2!</p>
-            <button class="btn" onclick="startGardenGame();">Start Botanical Quest</button>
+            <h1>Barnaby Bee: The Nectar Quest! 🐝🍯</h1>
+            <p>Welcome, Young Botanist! Barnaby the Bee needs your 4-digit place value skills to gather sweet flower nectar and unlock the Queen's Vault!</p>
+            <p style="font-weight: bold; color: #c2410c; margin-bottom: 12px;">✏️ Solve the subtraction calculations to safely guide Barnaby to the correct coordinates.</p>
+            <p style="font-weight: bold; color: var(--honey-amber);">🎯 Gather 5 Nectar Drops to fly back to the hive and access the Queen's Honeycomb Vault!</p>
+            <button class="btn" onclick="startNectarGame();">Start Nectar Journey</button>
         </div>
     </div>
 
     <div id="screen-game" class="screen">
         <div class="hud-header">
-            <div id="hud-level-tag">Greenhouse: Lvl 1 (No Borrowing) ☀️</div>
-            <div id="hud-score-tag">Grown: 0 / 10</div>
+            <div id="hud-level-tag">Patch: The Blossom Field (Lvl 1) ☀️</div>
+            <div id="hud-score-tag">Harvested: 0 / 10</div>
         </div>
 
         <div class="wooden-sign-board" id="problem-board-display">0000 - 0000</div>
 
-        <div class="stage-ground-container">
-            <div class="flower-pot-wrapper pot-terracotta" id="pot-node-0" onclick="handlePotClick(0)">
-                <div class="happy-bee-anchor">🐝</div>
-                <div class="surprise-flower-anchor" id="flower-node-0">🌷</div>
-                <div class="pot-rim"></div>
-                <div class="pot-body"><div class="choice-tag-label" id="tag-text-0">?</div></div>
-            </div>
-            <div class="flower-pot-wrapper pot-teal" id="pot-node-1" onclick="handlePotClick(1)">
-                <div class="happy-bee-anchor">🐝</div>
-                <div class="surprise-flower-anchor" id="flower-node-1">🌻</div>
-                <div class="pot-rim"></div>
-                <div class="pot-body"><div class="choice-tag-label" id="tag-text-1">?</div></div>
-            </div>
-            <div class="flower-pot-wrapper pot-purple" id="pot-node-2" onclick="handlePotClick(2)">
-                <div class="happy-bee-anchor">🐝</div>
-                <div class="surprise-flower-anchor" id="flower-node-2">🌺</div>
-                <div class="pot-rim"></div>
-                <div class="pot-body"><div class="choice-tag-label" id="tag-text-2">?</div></div>
-            </div>
-            <div class="garden-soil-patch"></div>
+        <div class="flight-zone-container" id="flight-arena-box">
+            
+            <div id="barnaby-bee-sprite">🐝</div>
+            
+            <div id="dynamic-choices-shelf" style="display: contents;"></div>
+
         </div>
 
-        <div class="permanent-flowerbed">
-            <div class="garden-soil-title">Your Growing Flowerbed Collection Patch</div>
-            <div id="flowerbed-collection-tray" style="display: contents;"></div>
+        <div class="nectar-collection-jar">
+            <div class="jar-title-label" id="jar-title-display">Barnaby's Nectar Storage Backpack</div>
+            <div id="honey-jar-tray-contents" style="display: contents;"></div>
         </div>
         
-        <div id="garden-feedback-text" style="font-weight: 800; font-size: 18px; color: #16a34a; margin-top: 10px; min-height: 25px; text-shadow: 0px 1px 2px rgba(255,255,255,0.8);">
-            Calculate column values and select the correct flower pot!
+        <div id="game-feedback-text" style="font-weight: 800; font-size: 18px; color: var(--honey-amber); margin-top: 15px; min-height: 25px; text-shadow: 0px 1px 2px rgba(255,255,255,0.8);">
+            Solve the subtraction problem to guide Barnaby to the correct spot!
         </div>
     </div>
 
     <div id="screen-end" class="screen">
         <div class="card">
-            <div style="font-size: 70px; margin-bottom: 15px;">🏆🐝🌻</div>
-            <h1>Grand Master Botanist!</h1>
-            <p>Sensational 4-digit place value analysis! You computed advanced borrowing paths up to 9999 perfectly and built a beautiful garden ecosystem.</p>
-            <button class="btn" onclick="goToScreen('screen-welcome'); resetGameSystemState();">Cultivate Again</button>
+            <div style="font-size: 75px; margin-bottom: 15px;">🏆🐝🍯</div>
+            <h1>Royal Honey Architect!</h1>
+            <p>Sensational! You computed multi-digit regrouping problems flawlessly up to 9999, filling the entire honeycomb vault with premium honey!</p>
+            <button class="btn" onclick="goToScreen('screen-welcome'); resetGameSystemState();">Play Voyage Again</button>
         </div>
     </div>
 </div>
@@ -267,12 +256,10 @@
     let currentActiveLevel = 1;
     let productsSolvedScore = 0;
     let roundTargetSolution = 0;
-    let rightAnswerPotIndex = 0;
+    let rightAnswerTargetIndex = 0;
     let userInteractionMutexLocked = false;
-    let activeSproutedFlowerIcon = '🌸';
 
-    const level1FlowersPool = ['🌷', '🌻', '🌺', '🌹', '🌸', '🌼'];
-    const level2FlowersPool = ['✨🌸', '🌟🌹', '💎🌷', '🔮🌻', '💫🌺', '🧬🌼'];
+    const flowerOptionsIcons = ['🌻', '🌷', '🌺', '🌹', '🌸', '🌼'];
 
     setTimeout(function() {
         const splash = document.getElementById('screen-splash');
@@ -284,7 +271,7 @@
                 if (appWrapper) appWrapper.style.display = 'flex';
             }, 500);
         }
-    }, 5000);
+    }, 3000);
 
     function goToScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -296,17 +283,31 @@
         currentActiveLevel = 1;
         productsSolvedScore = 0;
         userInteractionMutexLocked = false;
-        document.getElementById('flowerbed-collection-tray').innerHTML = '';
+        document.getElementById('honey-jar-tray-contents').innerHTML = '';
+        document.getElementById('jar-title-display').innerText = "Barnaby's Nectar Storage Backpack";
         
-        const mask = document.getElementById('garden-tint-mask');
-        if(mask) mask.style.background = "rgba(224, 242, 254, 0.45)"; 
+        const wrapper = document.getElementById('app-viewport-wrapper');
+        const mask = document.getElementById('ambient-tint-mask');
         
-        document.getElementById('hud-level-tag').innerText = "Greenhouse: Lvl 1 (No Borrowing) ☀️";
-        document.getElementById('hud-level-tag').style.color = "#16a34a";
-        document.getElementById('hud-score-tag').innerText = "Grown: 0 / 10";
+        if(wrapper) wrapper.style.background = "url('assets/garden-bg.png') no-repeat center center";
+        if(wrapper) wrapper.style.backgroundSize = "cover";
+        if(mask) mask.style.background = "rgba(224, 242, 254, 0.3)";
+        
+        document.getElementById('hud-level-tag').innerText = "Patch: The Blossom Field (Lvl 1) ☀️";
+        document.getElementById('hud-score-tag').innerText = "Harvested: 0 / 10";
+        resetBeePositionToCenter();
     }
 
-    function startGardenGame() {
+    function resetBeePositionToCenter() {
+        const bee = document.getElementById('barnaby-bee-sprite');
+        if(bee) {
+            bee.style.top = "15px";
+            bee.style.left = "calc(50% - 32px)";
+            bee.style.transform = "scaleX(1)";
+        }
+    }
+
+    function startNectarGame() {
         resetGameSystemState();
         goToScreen('screen-game');
         prepareNextQuestionRound();
@@ -314,36 +315,33 @@
 
     function prepareNextQuestionRound() {
         userInteractionMutexLocked = false;
-        document.getElementById('garden-feedback-text').innerText = "Calculate column values and select the correct flower pot!";
-        document.getElementById('garden-feedback-text').style.color = currentActiveLevel === 1 ? "#16a34a" : "#0284c7";
+        document.getElementById('game-feedback-text').innerText = currentActiveLevel === 1 ? 
+            "Guide Barnaby to the right flower to collect nectar!" : "Guide Barnaby to the matching cell to seal the honey!";
+        document.getElementById('game-feedback-text').style.color = "var(--honey-amber)";
+        resetBeePositionToCenter();
 
-        for(let i=0; i<3; i++) {
-            const pot = document.getElementById(`pot-node-${i}`);
-            if(pot) pot.className = pot.className.replace('bloom-open', '').replace('wrong-shake', '').trim();
-        }
-
-        // Grade 3 Math Generator
+        // 4-Digit Math Generator Engine
         let numA, numB;
         if (currentActiveLevel === 1) {
-            let thousandsA = Math.floor(Math.random() * 5) + 5; 
-            let hundredsA = Math.floor(Math.random() * 6) + 3;  
-            let tensA = Math.floor(Math.random() * 6) + 3;
-            let onesA = Math.floor(Math.random() * 6) + 3;
+            let thA = Math.floor(Math.random() * 5) + 5; 
+            let hA = Math.floor(Math.random() * 6) + 3;  
+            let tA = Math.floor(Math.random() * 6) + 3;
+            let oA = Math.floor(Math.random() * 6) + 3;
 
-            let thousandsB = Math.floor(Math.random() * (thousandsA - 1)) + 1;
-            let hundredsB = Math.floor(Math.random() * hundredsA);
-            let tensB = Math.floor(Math.random() * tensA);
-            let onesB = Math.floor(Math.random() * onesA);
+            let thB = Math.floor(Math.random() * (thA - 1)) + 1;
+            let hB = Math.floor(Math.random() * hA);
+            let tB = Math.floor(Math.random() * tA);
+            let oB = Math.floor(Math.random() * oA);
 
-            numA = (thousandsA * 1000) + (hundredsA * 100) + (tensA * 10) + onesA;
-            numB = (thousandsB * 1000) + (hundredsB * 100) + (tensB * 10) + onesB;
+            numA = (thA * 1000) + (hA * 100) + (tA * 10) + oA;
+            numB = (thB * 1000) + (hB * 100) + (tB * 10) + oB;
         } else {
             numA = Math.floor(Math.random() * 4000) + 5000; 
             numB = Math.floor(Math.random() * 3000) + 1500; 
             
-            let onesA = numA % 10;
-            let onesB = (onesA + 5) % 10 || 7;
-            numB = Math.floor(numB / 10) * 10 + onesB;
+            let oA = numA % 10;
+            let oB = (oA + 6) % 10 || 7; // Forces a regrouping scenario
+            numB = Math.floor(numB / 10) * 10 + oB;
         }
 
         roundTargetSolution = numA - numB;
@@ -351,60 +349,97 @@
 
         let choiceA = roundTargetSolution + (Math.random() > 0.5 ? 100 : -100);
         let choiceB = roundTargetSolution + (Math.random() > 0.5 ? 10 : -10);
-        if (choiceA === roundTargetSolution || choiceA < 0) choiceA = roundTargetSolution + 250;
-        if (choiceB === roundTargetSolution || choiceB === choiceA || choiceB < 0) choiceB = roundTargetSolution + 5;
+        if (choiceA === roundTargetSolution || choiceA < 0) choiceA = roundTargetSolution + 150;
+        if (choiceB === roundTargetSolution || choiceB === choiceA || choiceB < 0) choiceB = roundTargetSolution + 6;
 
-        let itemsList = [roundTargetSolution, choiceA, choiceB];
-        itemsList.sort(() => Math.random() - 0.5);
+        let dynamicItems = [roundTargetSolution, choiceA, choiceB];
+        dynamicItems.sort(() => Math.random() - 0.5);
+        rightAnswerTargetIndex = dynamicItems.indexOf(roundTargetSolution);
 
-        rightAnswerPotIndex = itemsList.indexOf(roundTargetSolution);
+        const targetsShelf = document.getElementById('dynamic-choices-shelf');
+        targetsShelf.innerHTML = '';
 
-        const targetedPool = currentActiveLevel === 1 ? level1FlowersPool : level2FlowersPool;
-        
-        for (let i = 0; i < 3; i++) {
-            document.getElementById(`tag-text-${i}`).innerText = itemsList[i];
-            const randomFlower = targetedPool[Math.floor(Math.random() * targetedPool.length)];
-            document.getElementById(`flower-node-${i}`).innerText = randomFlower;
-            if(i === rightAnswerPotIndex) {
-                activeSproutedFlowerIcon = randomFlower;
+        dynamicItems.forEach((value, index) => {
+            if (currentActiveLevel === 1) {
+                const randomBlossom = flowerOptionsIcons[Math.floor(Math.random() * flowerOptionsIcons.length)];
+                const potHTML = `
+                    <div class="flower-pot-target" id="target-node-${index}" onclick="handleTargetSelection(${index})">
+                        <div class="flower-blossom-top">${randomBlossom}</div>
+                        <div class="plant-stem-body">
+                            <div class="leaf-node-l"></div>
+                            <div class="leaf-node-r"></div>
+                        </div>
+                        <div class="pot-rim-lip"></div>
+                        <div class="pot-clay-base">
+                            <div class="math-value-badge">${value}</div>
+                        </div>
+                    </div>`;
+                targetsShelf.insertAdjacentHTML('beforeend', potHTML);
+            } else {
+                const combHTML = `
+                    <div class="honeycomb-vault-target" id="target-node-${index}" onclick="handleTargetSelection(${index})">
+                        <div class="honey-cell-liquid">🍯</div>
+                        <div class="math-value-badge">${value}</div>
+                    </div>`;
+                targetsShelf.insertAdjacentHTML('beforeend', combHTML);
             }
-        }
+        });
     }
 
-    function handlePotClick(potIndex) {
+    function handleTargetSelection(clickedIndex) {
         if (userInteractionMutexLocked) return;
 
-        const selectedPotNode = document.getElementById(`pot-node-${potIndex}`);
+        const targetDOMNode = document.getElementById(`target-node-${clickedIndex}`);
+        const beeSprite = document.getElementById('barnaby-bee-sprite');
 
-        if (potIndex === rightAnswerPotIndex) {
+        if (targetDOMNode && beeSprite) {
+            const containerOffset = document.getElementById('flight-arena-box').getBoundingClientRect();
+            const targetBounds = targetDOMNode.getBoundingClientRect();
+            
+            const targetRelativeLeft = targetBounds.left - containerOffset.left + (targetBounds.width / 2) - 32;
+            const targetRelativeTop = currentActiveLevel === 1 ? 
+                (targetBounds.top - containerOffset.top - 20) : (targetBounds.top - containerOffset.top + 15);
+
+            // Turn bee left/right depending on flight destination vector
+            const currentLeft = parseFloat(getComputedStyle(beeSprite).left);
+            if (targetRelativeLeft < currentLeft) {
+                beeSprite.style.transform = "scaleX(-1)";
+            } else {
+                beeSprite.style.transform = "scaleX(1)";
+            }
+
+            beeSprite.style.left = `${targetRelativeLeft}px`;
+            beeSprite.style.top = `${targetRelativeTop}px`;
+        }
+
+        if (clickedIndex === rightAnswerTargetIndex) {
             userInteractionMutexLocked = true;
             productsSolvedScore++;
             
-            document.getElementById('hud-score-tag').innerText = `Grown: ${productsSolvedScore} / 10`;
-            document.getElementById('garden-feedback-text').innerText = "EXCELLENT CALCULATION! WATCH IT BLOOM! 🐝✨";
-            document.getElementById('garden-feedback-text').style.color = "#16a34a";
-
-            if(selectedPotNode) selectedPotNode.classList.add('bloom-open');
+            document.getElementById('hud-score-tag').innerText = `Harvested: ${productsSolvedScore} / 10`;
+            document.getElementById('game-feedback-text').innerText = currentActiveLevel === 1 ? 
+                "SUCCESS! BARNABY IS DRINKING NECTAR! 🌸✨" : "PERFECT! NECTAR DEPOSITED INTO THE CELL! 🍯✨";
+            document.getElementById('game-feedback-text').style.color = "#16a34a";
 
             const audioC = document.getElementById('snd-correct');
             if(audioC) audioC.play().catch(() => {});
 
-            launchPetalShowerFX();
+            launchNectarSparkleFX();
 
             setTimeout(() => {
-                const bed = document.getElementById('flowerbed-collection-tray');
-                if(bed) {
-                    const flowerItem = document.createElement('span');
-                    flowerItem.className = 'sprouted-flower-item';
-                    flowerItem.innerText = activeSproutedFlowerIcon;
-                    bed.appendChild(flowerItem);
+                const jarContents = document.getElementById('honey-jar-tray-contents');
+                if(jarContents) {
+                    const drop = document.createElement('span');
+                    drop.className = 'collected-loot-item';
+                    drop.innerText = currentActiveLevel === 1 ? '💧' : '🍯';
+                    jarContents.appendChild(drop);
                 }
             }, 600);
 
             setTimeout(() => {
                 if (productsSolvedScore === 5 && currentActiveLevel === 1) {
                     currentActiveLevel = 2;
-                    triggerLevel2GardenShift();
+                    triggerLevel2HiveShift();
                     prepareNextQuestionRound();
                 } else if (productsSolvedScore >= 10) {
                     const audioClaps = document.getElementById('snd-claps');
@@ -413,78 +448,97 @@
                 } else {
                     prepareNextQuestionRound();
                 }
-            }, 2500);
+            }, 2300);
 
         } else {
+            userInteractionMutexLocked = true;
             const audioW = document.getElementById('snd-wrong');
             if(audioW) audioW.play().catch(() => {});
 
-            if(selectedPotNode) {
-                selectedPotNode.classList.add('wrong-shake');
-                setTimeout(() => selectedPotNode.classList.remove('wrong-shake'), 450);
+            if(targetDOMNode) {
+                targetDOMNode.classList.add('wrong-shake');
+                setTimeout(() => {
+                    targetDOMNode.classList.remove('wrong-shake');
+                    userInteractionMutexLocked = false;
+                }, 450);
             }
-            document.getElementById('garden-feedback-text').innerText = "Incorrect subtraction. Re-check your place value columns!";
-            document.getElementById('garden-feedback-text').style.color = "#ef4444";
+            document.getElementById('game-feedback-text').innerText = "Incorrect coordinates! Recalculate your subtraction column place values.";
+            document.getElementById('game-feedback-text').style.color = "#ef4444";
         }
     }
 
-    function triggerLevel2GardenShift() {
-        const mask = document.getElementById('garden-tint-mask');
+    function triggerLevel2HiveShift() {
+        const wrapper = document.getElementById('app-viewport-wrapper');
+        const mask = document.getElementById('ambient-tint-mask');
+        
+        if(wrapper) {
+            // Smooth custom image injection mapping directly to uploaded asset file
+            wrapper.style.background = "url('assets/hive-bg.png') no-repeat center center";
+            wrapper.style.backgroundSize = "cover";
+        }
         if(mask) {
-            mask.style.background = "rgba(4, 30, 66, 0.65)"; 
+            mask.style.background = "rgba(0, 0, 0, 0)"; // Reveal native asset details clearly
         }
         
-        document.getElementById('hud-level-tag').innerText = "Midnight Conservatory: Lvl 2 (Regrouping) 🌌";
-        document.getElementById('hud-level-tag').style.color = "#0284c7";
+        document.getElementById('jar-title-display').innerText = "The Queen's Active Honeycomb Vault Matrix";
+        document.getElementById('hud-level-tag').innerText = "Vault: The Queen's Honeycomb (Lvl 2) 🌌";
+        document.getElementById('hud-level-tag').style.color = "var(--primary-gold)";
+        
+        alert("Wonderful! Barnaby gathered enough nectar to return home. Now, let's fly up into the Honeycomb Vault cells!");
     }
 
-    /* Particle Frame Canvas */
-    let petalSystemActiveParticles = [];
+    /* Canvas Glitter Engine */
+    let sparkleActiveParticles = [];
     const canvasNode = document.getElementById('confetti-canvas-plane');
     const ctxEngine = canvasNode.getContext('2d');
 
-    function resizeGardenCanvas() {
+    function resizeNectarCanvas() {
         canvasNode.width = window.innerWidth;
         canvasNode.height = window.innerHeight;
     }
-    window.addEventListener('resize', resizeGardenCanvas);
-    resizeGardenCanvas();
+    window.addEventListener('resize', resizeNectarCanvas);
+    resizeNectarCanvas();
 
-    function launchPetalShowerFX() {
-        petalSystemActiveParticles = [];
-        const petalColors = ['#a78bfa', '#34d399', '#f43f5e', '#fbbf24', '#38bdf8', '#f472b6'];
-        for (let i = 0; i < 75; i++) {
-            petalSystemActiveParticles.push({
-                x: canvasNode.width / 2,
-                y: canvasNode.height / 2 + 10,
-                radius: Math.random() * 6 + 4,
-                color: petalColors[Math.floor(Math.random() * petalColors.length)],
-                vx: (Math.random() - 0.5) * 13,
-                vy: (Math.random() - 0.7) * 16,
+    function launchNectarSparkleFX() {
+        sparkleActiveParticles = [];
+        const glitterColorPalette = ['#f59e0b', '#fbbf24', '#fef08a', '#22c55e', '#67e8f9', '#ffffff'];
+        const beeElement = document.getElementById('barnaby-bee-sprite').getBoundingClientRect();
+        
+        const sourceX = beeElement.left + (beeElement.width / 2);
+        const sourceY = beeElement.top + (beeElement.height / 2) + 10;
+
+        for (let i = 0; i < 55; i++) {
+            sparkleActiveParticles.push({
+                x: sourceX,
+                y: sourceY,
+                radius: Math.random() * 5 + 2.5,
+                color: glitterColorPalette[Math.floor(Math.random() * glitterColorPalette.length)],
+                vx: (Math.random() - 0.5) * 11,
+                vy: (Math.random() - 0.6) * 11,
                 opacity: 1
             });
         }
-        requestAnimationFrame(renderPetalLoopFrame);
+        requestAnimationFrame(renderSparkleLoopFrame);
     }
 
-    function renderPetalLoopFrame() {
+    function renderSparkleLoopFrame() {
         ctxEngine.clearRect(0, 0, canvasNode.width, canvasNode.height);
-        let continuingParticlesLeft = false;
+        let elementsRunning = false;
 
-        petalSystemActiveParticles.forEach(p => {
+        sparkleActiveParticles.forEach(p => {
             p.x += p.vx; p.y += p.vy;
-            p.vy += 0.32; p.opacity -= 0.012;
+            p.vy += 0.16; p.opacity -= 0.016;
 
             if (p.opacity > 0) {
-                continuingParticlesLeft = true;
+                elementsRunning = true;
                 ctxEngine.beginPath(); ctxEngine.fillStyle = p.color; ctxEngine.globalAlpha = p.opacity;
-                ctxEngine.ellipse(p.x, p.y, p.radius, p.radius * 0.5, Math.PI / 4, 0, Math.PI * 2);
+                ctxEngine.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
                 ctxEngine.fill();
             }
         });
 
         ctxEngine.globalAlpha = 1.0;
-        if (continuingParticlesLeft) requestAnimationFrame(renderPetalLoopFrame);
+        if (elementsRunning) requestAnimationFrame(renderSparkleLoopFrame);
     }
 </script>
 </body>
