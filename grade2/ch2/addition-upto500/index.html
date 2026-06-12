@@ -20,10 +20,7 @@
         }
 
         body {
-            background-image: url('assets/sky-bg.png');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
+            background: #B0BEC5;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -56,18 +53,17 @@
         }
         @keyframes fillBar { 100% { width: 100%; } }
 
-        /* --- CORE GAME CANVAS --- */
+        /* --- CORE GAME CANVAS FRAMEWORK --- */
         #game-container {
             width: 95%;
             max-width: 750px;
             height: 620px;
-            background: rgba(255, 255, 255, 0.92);
-            backdrop-filter: blur(8px);
+            background: #FFFFFF;
             border-radius: 24px;
             border: 6px solid var(--panel-bg);
             box-shadow: 0 20px 40px rgba(0,0,0,0.3);
             position: relative;
-            display: none;
+            display: none; /* Controlled via loading cycle initialization */
             flex-direction: column;
             overflow: hidden;
         }
@@ -98,7 +94,7 @@
         }
         .start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
 
-        /* --- HUD CONTROLS --- */
+        /* --- HUD HEADERS --- */
         .hud-header {
             background: var(--panel-bg);
             color: var(--text-light);
@@ -122,10 +118,12 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
-        /* --- AIRPLAY BALLOON ZONE --- */
+        /* --- AIRPLAY BALLOON ZONE CONTAINED INSIDE BOX --- */
         .balloon-field {
             flex: 1;
-            background: transparent;
+            background-image: url('assets/sky-bg.png');
+            background-size: cover;
+            background-position: center;
             position: relative;
             overflow: hidden;
         }
@@ -221,6 +219,7 @@
     <audio id="snd-victory" src="assets/freesound_community-claps-44774.mp3" preload="none"></audio>
 
     <script>
+        // 15 structural matrix additions up to 500 mapping image guidelines
         var problemSets = [
             { question: "What is 23 + 14?", target: 37, choices: [37, 47, 36] },
             { question: "What is 52 + 35?", target: 87, choices: [87, 85, 97] },
@@ -439,6 +438,7 @@
             document.getElementById('intro-card').style.display = 'flex';
         }
 
+        /* --- TIMED TIMEOUT SETUP --- */
         window.addEventListener('load', function() {
             var splashNode = document.getElementById('splash-screen');
             var mainFrame = document.getElementById('game-container');
@@ -448,6 +448,8 @@
                     splashNode.style.opacity = '0';
                     if (mainFrame) {
                         mainFrame.style.display = 'flex';
+                        // Ensure layout instructions view card displays correctly first
+                        document.getElementById('intro-card').style.display = 'flex';
                         setTimeout(function() { 
                             if (splashNode.parentNode) splashNode.parentNode.removeChild(splashNode);
                         }, 600);
