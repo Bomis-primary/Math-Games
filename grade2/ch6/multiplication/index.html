@@ -1,557 +1,105 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grade 2: Deep Sea Multiplication Explorer</title>
-    <style>
-        :root {
-            --panel-bg: #0D2B45;
-            --accent-orange: #FF9800;
-            --text-light: #FFFFFF;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
-            user-select: none;
-        }
-
-        body {
-            background: #263238;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
-        }
-
-        /* --- REQUIRED 5-SECOND SPLASH SCREEN --- */
-        #splash-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #FFFFFF;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.6s ease-out;
-        }
-        .splash-logo { max-width: 260px; height: auto; margin-bottom: 20px; }
-        .timer-loader {
-            width: 120px; height: 6px; background: #E0E0E0; border-radius: 3px; overflow: hidden;
-        }
-        .timer-progress {
-            width: 0%; height: 100%; background: var(--accent-orange);
-            animation: fillBar 5s linear forwards;
-        }
-        @keyframes fillBar { 100% { width: 100%; } }
-
-        /* --- CORE GAME CANVAS FRAMEWORK --- */
-        #game-container {
-            width: 95%;
-            max-width: 750px;
-            height: 640px;
-            background: #FFFFFF;
-            border-radius: 24px;
-            border: 6px solid var(--panel-bg);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            position: relative;
-            display: none; 
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        /* --- INTRO & VICTORY CARDS --- */
-        .overlay-card {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #FFFFFF;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 30px;
-            text-align: center;
-            z-index: 50;
-        }
-        .mission-text {
-            font-size: 1.5rem; line-height: 1.6; margin: 25px 0; max-width: 550px;
-            background: #E0F7FA; padding: 25px; border-radius: 16px; border: 2px dashed #00ACC1;
-            color: #006064; font-weight: bold;
-        }
-        .start-btn {
-            background: linear-gradient(135deg, #00D2FF, #0066FF); color: white;
-            border: none; padding: 16px 45px; font-size: 1.4rem; font-weight: bold;
-            border-radius: 50px; cursor: pointer; box-shadow: 0 6px 0 #0044CC;
-            transition: transform 0.1s;
-        }
-        .start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
-
-        /* --- HUD HEADERS --- */
-        .hud-header {
-            background: var(--panel-bg);
-            color: var(--text-light);
-            padding: 14px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: bold;
-            font-size: 1.2rem;
-            z-index: 30;
-        }
-        .target-banner {
-            background: #E0F2F1;
-            border-bottom: 4px solid #00B0FF;
-            padding: 14px;
-            font-size: 1.4rem;
-            font-weight: bold;
-            text-align: center;
-            color: #006064;
-            z-index: 29;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-
-        /* --- VISUAL DISPLAY FOR GROUPED FISH --- */
-        #visual-group-display {
-            background: rgba(0, 172, 193, 0.1);
-            border: 3px dashed #00ACC1;
-            margin: 10px auto 0 auto;
-            width: 90%;
-            border-radius: 16px;
-            padding: 10px;
-            display: none;
-            justify-content: space-around;
-            align-items: center;
-        }
-        .fish-group-bubble {
-            background: rgba(255, 255, 255, 0.85);
-            border: 3px solid #00BCD4;
-            border-radius: 50%;
-            width: 110px;
-            height: 110px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 5px;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-        }
-        .mini-fish {
-            width: 42px;
-            height: 42px;
-        }
-
-        /* --- UNDERWATER PLAYFIELD SAFEZONE --- */
-        .sea-field {
-            flex: 1;
-            background: linear-gradient(to bottom, #1A237E, #121640) !important;
-            position: relative;
-            overflow: hidden;
-        }
-        .ambient-weed {
-            position: absolute; bottom: 0; width: 40px; height: 110px;
-            background: rgba(76, 175, 80, 0.4); border-radius: 50% 50% 0 0;
-            filter: blur(2px);
-        }
-
-        /* --- FLOATING FISH COMPONENT --- */
-        .fish-node {
-            position: absolute;
-            width: 170px;
-            height: 150px;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            transition: transform 0.05s linear;
-        }
-
-        .fish-graphic {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 1;
-            filter: drop-shadow(0 8px 12px rgba(0,0,0,0.3));
-        }
-
-        /* Expanded Badge for Structural Options */
-        .value-badge {
-            background: #FFFFFF;
-            color: #0D2B45;
-            padding: 6px 12px;
-            border-radius: 12px;
-            font-size: 1.15rem;
-            font-weight: 900;
-            border: 3px solid #0D2B45;
-            text-align: center;
-            min-width: 140px;
-            max-width: 165px;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.15);
-            z-index: 2;
-            margin-top: -5px;
-            line-height: 1.2;
-        }
-
-        .pop-sparkle {
-            position: absolute; width: 8px; height: 8px; border-radius: 50%;
-            pointer-events: none; z-index: 40;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coral Kingdom Multiplication</title>
+<style>
+body { margin:0; font-family: Arial; background: linear-gradient(#a0e0ff, #00bfff); color: #03396c; text-align:center; }
+button { padding:10px 20px; font-size:18px; margin:5px; border-radius:8px; cursor:pointer; }
+.correct { background-color: #4caf50; color: white; }
+.wrong { animation: shake 0.5s; }
+@keyframes shake { 0% {transform:translateX(0);} 25%{transform:translateX(-5px);}50%{transform:translateX(5px);}75%{transform:translateX(-5px);}100%{transform:translateX(0);} }
+#treasure { display:none; }
+</style>
 </head>
 <body>
 
-    <!-- Splash Screen Component -->
-    <div id="splash-screen">
-        <img src="assets/logo.png" alt="Game Logo" class="splash-logo" onerror="this.src='https://placehold.co/220x60/00BCD4/fff?text=Logo'">
-        <div class="timer-loader"><div class="timer-progress"></div></div>
-    </div>
+<div id="logoScreen">
+  <img src="innovine-logo.png" alt="Innovine Logo" width="200">
+</div>
 
-    <!-- Core Game Interface Box Frame -->
-    <div id="game-container">
-        
-        <!-- Instruction Screen Container Card -->
-        <div id="intro-card" class="overlay-card">
-            <div style="font-size: 4.5rem; margin-bottom: 10px;">🐙🐠🐟</div>
-            <h2 style="color: #006064; font-size: 2.2rem;">Deep Sea Multiplication!</h2>
-            <p class="mission-text">
-                Fill in the blanks!
-            </p>
-            <button class="start-btn" onclick="bootMathEngine()">Dive In! 🚀</button>
-        </div>
+<div id="gameScreen" style="display:none;">
+  <h2 id="story">Welcome to Coral Kingdom!</h2>
+  <p id="question"></p>
+  <div id="options"></div>
+</div>
 
-        <!-- HUD Panel Info -->
-        <div class="hud-header">
-            <span id="label-level">Question: 1 / 15</span>
-            <span>Score: <span id="label-score" style="color: #4AF2A1;">0</span></span>
-        </div>
+<div id="endScreen" style="display:none;">
+  <h2>🎉 Great Job! Coral Kingdom thanks you! 🎉</h2>
+  <button onclick="restartGame()">Play Again</button>
+</div>
 
-        <div class="target-banner" id="current-target-formula">
-            Loading your puzzle...
-        </div>
+<div id="treasure">
+  <img src="treasure-chest.png" width="200">
+</div>
 
-        <!-- Grouped Fish Demonstration Sandbox Area -->
-        <div id="visual-group-display">
-            <!-- Programmatically filled with 4 groups of 2 fish -->
-        </div>
+<script>
+const questions = [
+  {q:"3 fish each have 4 pearls. How many pearls in total?", options:[7,12,9], answer:12},
+  {q:"Crab has 2 claws, each holds 5 shells. Total shells?", options:[10,12,8], answer:10},
+  {q:"Seahorses swimming in 3 groups of 6. Total?", options:[18,20,15], answer:18},
+  {q:"Starfish in 10 groups, 2 in each?", options:[20,12,22], answer:20},
+  {q:"Coral reef has 4 rows of 10 stones. Total?", options:[40,30,50], answer:40},
+  {q:"12 tiny fish in 3 groups. Total?", options:[36,32,30], answer:36},
+  {q:"15 shells, each with 2 pearls. Total?", options:[25,30,28], answer:30},
+  {q:"5 treasure boxes, each 10 coins. Total?", options:[50,45,40], answer:50},
+  {q:"Crab carries 8 shells, each 6 pearls. Total?", options:[42,48,44], answer:48},
+  {q:"20 sea stars, each with 3 points of light. Total?", options:[60,50,55], answer:60}
+];
 
-        <!-- Underwater Scenery Box Area -->
-        <div class="sea-field" id="playfield-canvas">
-            <div class="ambient-weed" style="left: 40px; height: 140px;"></div>
-            <div class="ambient-weed" style="right: 70px; height: 90px;"></div>
-        </div>
+let currentQ = 0;
 
-        <!-- Ultimate Victory Screen Frame -->
-        <div id="victory-card" class="overlay-card" style="display: none;">
-            <div style="font-size: 5rem;">🏆🐳👑</div>
-            <h1 style="color: #006064; font-size: 2.4rem; margin: 15px 0;">Submarine Math Champion! 🏆</h1>
-            <p style="font-size: 1.35rem; margin-bottom: 25px; max-width: 500px; color: #37474F;">
-                Incredible exploring! You correctly solved every question, mastering repeated additions, standard tables up to 10, carry overs, and multiplying up to 100!
-            </p>
-            <h3 id="final-stats" style="color: #0044CC; margin-bottom: 30px; font-size: 1.6rem;"></h3>
-            <button class="start-btn" onclick="resetMathEngine()">Explore Again 🔄</button>
-        </div>
+function startGame() {
+  document.getElementById('logoScreen').style.display='none';
+  document.getElementById('gameScreen').style.display='block';
+  showQuestion();
+}
 
-    </div>
+function showQuestion() {
+  const q = questions[currentQ];
+  document.getElementById('question').innerText = q.q;
+  const opts = document.getElementById('options');
+  opts.innerHTML = '';
+  q.options.sort(()=>Math.random()-0.5);
+  q.options.forEach(o=>{
+    const btn = document.createElement('button');
+    btn.innerText=o;
+    btn.onclick = ()=>checkAnswer(o,btn);
+    opts.appendChild(btn);
+  });
+}
 
-    <!-- Audio Elements -->
-    <audio id="snd-pop" src="assets/correct.mp3" preload="none"></audio>
-    <audio id="snd-wrong" src="assets/wrong.mp3" preload="none"></audio>
-    <audio id="snd-victory" src="assets/freesound_community-claps-44774.mp3" preload="none"></audio>
+function checkAnswer(val,btn) {
+  if(val===questions[currentQ].answer){
+    btn.classList.add('correct');
+    setTimeout(()=>{
+      currentQ++;
+      if(currentQ<questions.length) showQuestion();
+      else endGame();
+    },500);
+  } else {
+    btn.classList.add('wrong');
+    setTimeout(()=>{ btn.classList.remove('wrong'); },500);
+  }
+}
 
-    <script>
-        // Shared dynamic vector micro-asset template
-        function generateFishSVGString(color) {
-            return `
-                <svg class="fish-graphic" viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M60 110 L40 145 L80 145 Z" fill="${color}" opacity="0.85"/>
-                    <path d="M60 110 L50 145 L70 145 Z" fill="#FFFFFF" opacity="0.2"/>
-                    <path d="M25 65 L5 75 L25 85 Z" fill="${color}"/>
-                    <path d="M95 65 L115 75 L95 85 Z" fill="${color}"/>
-                    <ellipse cx="60" cy="65" rx="36" ry="50" fill="${color}"/>
-                    <ellipse cx="60" cy="65" rx="26" ry="38" fill="#FFFFFF" opacity="0.15"/>
-                    <circle cx="44" cy="30" r="8" fill="#FFFFFF"/>
-                    <circle cx="44" cy="28" r="4" fill="#000000"/>
-                    <circle cx="76" cy="30" r="8" fill="#FFFFFF"/>
-                    <circle cx="76" cy="28" r="4" fill="#000000"/>
-                    <path d="M52 15 Q60 8 68 15" stroke="#FFFFFF" stroke-width="3" fill="none"/>
-                </svg>
-            `;
-        }
+function endGame() {
+  document.getElementById('gameScreen').style.display='none';
+  document.getElementById('endScreen').style.display='block';
+  document.getElementById('treasure').style.display='block';
+}
 
-        function generateHorizontalMiniFishSVG(color) {
-            return `
-                <svg class="mini-fish" viewBox="0 0 150 120" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M110 60 L145 40 L145 80 Z" fill="${color}"/>
-                    <ellipse cx="65" cy="60" rx="50" ry="36" fill="${color}"/>
-                    <circle cx="30" cy="44" r="8" fill="#FFFFFF"/>
-                    <circle cx="28" cy="44" r="4" fill="#000000"/>
-                </svg>
-            `;
-        }
+function restartGame() {
+  currentQ=0;
+  document.getElementById('endScreen').style.display='none';
+  document.getElementById('treasure').style.display='none';
+  document.getElementById('gameScreen').style.display='block';
+  showQuestion();
+}
 
-        // 15 Comprehensive Milestones with your customized introductory question!
-        var problemSets = [
-            { 
-                question: "Look at the aquarium below. What grouping structure do you see?", 
-                target: "4 groups of 2 fish", 
-                choices: ["4 groups of 2 fish", "2 groups of 4 fish", "3 groups of 3 fish"],
-                isVisualProblem: true
-            },
-            { question: "What is 2 + 2 + 2 + 2 equal to?", target: "8", choices: ["8", "6", "10"] },
-            { question: "Express as multiplication: 5 + 5 + 5 = ___", target: "15", choices: ["15", "10", "20"] },
-            { question: "What is 2 × 4?", target: "8", choices: ["8", "6", "12"] },
-            { question: "What is 5 × 3?", target: "15", choices: ["15", "12", "18"] },
-            { question: "What is 10 × 4?", target: "40", choices: ["40", "14", "50"] },
-            { question: "What is 3 × 3?", target: "9", choices: ["9", "6", "12"] },
-            { question: "If 4 × 2 = 8, then 2 × 4 = ___?", target: "8", choices: ["8", "6", "10"] },
-            { question: "Complete the property: 7 × 0 = ___?", target: "0", choices: ["0", "7", "14"] },
-            { question: "Complete the identity: 9 × 1 = ___?", target: "9", choices: ["9", "1", "10"] },
-            { question: "What is 12 × 2?", target: "24", choices: ["24", "22", "14"] },
-            { question: "What is 23 × 3?", target: "69", choices: ["69", "66", "59"] },
-            { question: "What is 6 × 10?", target: "60", choices: ["60", "16", "600"] },
-            { question: "What is 3 × 100?", target: "300", choices: ["300", "30", "303"] },
-            { question: "What is 15 × 4?", target: "60", choices: ["60", "45", "55"] }
-        ];
+setTimeout(startGame, 3000); // Logo screen 3 sec
+</script>
 
-        var currentStep = 0;
-        var totalScore = 0;
-        var trackingFish = [];
-        var frameAnimationId = null;
-        var DRIFT_SPEED = 0.75;
-
-        var fishColors = ["#FF5722", "#E91E63", "#00BCD4"];
-
-        function playSound(type) {
-            try {
-                var p = document.getElementById('snd-pop');
-                var w = document.getElementById('snd-wrong');
-                var v = document.getElementById('snd-victory');
-                if (type === 'pop' && p) { p.volume = 0.4; p.currentTime = 0; p.play().catch(function(){}); }
-                if (type === 'wrong' && w) { w.volume = 0.3; w.currentTime = 0; w.play().catch(function(){}); }
-                if (type === 'victory' && v) { v.volume = 0.5; v.currentTime = 0; v.play().catch(function(){}); }
-            } catch(e) {}
-        }
-
-        function shuffleArray(array) {
-            for (var i = array.length - 1; i > 0; i--) {
-                var j = Math.floor(Math.random() * (i + 1));
-                var temp = array[i];
-                array[i] = array[j];
-                array[j] = temp;
-            }
-            return array;
-        }
-
-        function bootMathEngine() {
-            document.getElementById('intro-card').style.display = 'none';
-            currentStep = 0;
-            totalScore = 0;
-            document.getElementById('label-score').innerText = totalScore;
-            loadMathProblem();
-        }
-
-        function loadMathProblem() {
-            clearActiveFish();
-            
-            var visualHeaderBlock = document.getElementById('visual-group-display');
-            var activeData = problemSets[currentStep];
-            
-            document.getElementById('label-level').innerText = "Question: " + (currentStep + 1) + " / " + problemSets.length;
-            document.getElementById('current-target-formula').innerText = activeData.question;
-
-            // Generate the requested 4 groups of 2 fish context row dynamically
-            if (activeData.isVisualProblem) {
-                visualHeaderBlock.style.display = 'flex';
-                visualHeaderBlock.innerHTML = '';
-                for(var g = 0; g < 4; g++) {
-                    var groupContainer = document.createElement('div');
-                    groupContainer.className = 'fish-group-bubble';
-                    groupContainer.innerHTML = generateHorizontalMiniFishSVG('#FF5722') + generateHorizontalMiniFishSVG('#00BCD4');
-                    visualHeaderBlock.appendChild(groupContainer);
-                }
-            } else {
-                visualHeaderBlock.style.display = 'none';
-            }
-
-            var randomizedChoices = activeData.choices.slice();
-            shuffleArray(randomizedChoices);
-
-            var trackWidth = 750 / 3; 
-
-            for (var i = 0; i < 3; i++) {
-                var val = randomizedChoices[i];
-                var fishContainer = document.createElement('div');
-                fishContainer.className = 'fish-node';
-
-                var color = fishColors[i % fishColors.length];
-                fishContainer.innerHTML = generateFishSVGString(color);
-
-                var badge = document.createElement('div');
-                badge.className = 'value-badge';
-                badge.innerText = val;
-                fishContainer.appendChild(badge);
-
-                var computedLeft = (i * trackWidth) + (trackWidth / 2) - 85; 
-                fishContainer.style.left = computedLeft + "px";
-                
-                var startTop = 500; 
-                fishContainer.style.top = startTop + "px";
-
-                fishContainer.dataset.value = val;
-                fishContainer.dataset.targetVal = activeData.target;
-                fishContainer.dataset.currentY = startTop;
-                fishContainer.dataset.color = color;
-
-                fishContainer.onclick = function(e) {
-                    evaluateFishSelection(this);
-                };
-
-                document.getElementById('playfield-canvas').appendChild(fishContainer);
-                trackingFish.push(fishContainer);
-            }
-
-            if (frameAnimationId) cancelAnimationFrame(frameAnimationId);
-            frameAnimationId = requestAnimationFrame(updateDriftCycle);
-        }
-
-        function updateDriftCycle() {
-            for (var i = 0; i < trackingFish.length; i++) {
-                var fNode = trackingFish[i];
-                var currY = parseFloat(fNode.dataset.currentY);
-                
-                currY -= DRIFT_SPEED;
-                fNode.dataset.currentY = currY;
-                fNode.style.transform = "translateY(" + (currY - 500) + "px)";
-
-                if (currY < -180) {
-                    resetFieldLoop();
-                    return;
-                }
-            }
-            frameAnimationId = requestAnimationFrame(updateDriftCycle);
-        }
-
-        function resetFieldLoop() {
-            for (var i = 0; i < trackingFish.length; i++) {
-                trackingFish[i].dataset.currentY = 500;
-                trackingFish[i].style.transform = "translateY(0px)";
-            }
-            frameAnimationId = requestAnimationFrame(updateDriftCycle);
-        }
-
-        function evaluateFishSelection(hitElement) {
-            var selectedStr = hitElement.dataset.value;
-            var correctStr = hitElement.dataset.targetVal;
-
-            if (selectedStr === correctStr) {
-                playSound('pop');
-                triggerSparkleBurst(hitElement);
-                totalScore += 10;
-                document.getElementById('label-score').innerText = totalScore;
-                
-                cancelAnimationFrame(frameAnimationId);
-                hitElement.style.display = "none";
-
-                setTimeout(function() {
-                    currentStep++;
-                    if (currentStep < problemSets.length) {
-                        loadMathProblem();
-                    } else {
-                        concludeMatrixSystem();
-                    }
-                }, 1000);
-
-            } else {
-                playSound('wrong');
-                hitElement.animate([
-                    { transform: 'translateX(-8px) translateY(' + (parseFloat(hitElement.dataset.currentY) - 500) + 'px)' },
-                    { transform: 'translateX(8px) translateY(' + (parseFloat(hitElement.dataset.currentY) - 500) + 'px)' },
-                    { transform: 'translateX(0px) translateY(' + (parseFloat(hitElement.dataset.currentY) - 500) + 'px)' }
-                ], { duration: 200, iterations: 2 });
-            }
-        }
-
-        function triggerSparkleBurst(originNode) {
-            var canvas = document.getElementById('playfield-canvas');
-            var rect = originNode.getBoundingClientRect();
-            var canvasRect = canvas.getBoundingClientRect();
-            
-            var centerX = rect.left - canvasRect.left + (rect.width / 2);
-            var centerY = rect.top - canvasRect.top + (rect.height / 2);
-            var burstColor = originNode.dataset.color;
-
-            for (var i = 0; i < 16; i++) {
-                var p = document.createElement('div');
-                p.className = 'pop-sparkle';
-                p.style.backgroundColor = burstColor;
-                p.style.left = centerX + 'px';
-                p.style.top = centerY + 'px';
-                canvas.appendChild(p);
-
-                var ang = Math.random() * Math.PI * 2;
-                var dist = Math.random() * 70 + 30;
-                var finX = Math.cos(ang) * dist;
-                var finY = Math.sin(ang) * dist;
-
-                p.animate([
-                    { transform: 'translate(-50%, -50%) scale(1.4)', opacity: 1 },
-                    { transform: 'translate(calc(-50% + ' + finX + 'px), calc(-50% + ' + finY + 'px)) scale(0)', opacity: 0 }
-                ], { duration: 500, easing: 'ease-out', fill: 'forwards' });
-
-                (function(particle){
-                    setTimeout(function(){ if(particle) particle.remove(); }, 550);
-                })(p);
-            }
-        }
-
-        function clearActiveFish() {
-            if (frameAnimationId) cancelAnimationFrame(frameAnimationId);
-            var canvas = document.getElementById('playfield-canvas');
-            var items = canvas.querySelectorAll('.fish-node');
-            items.forEach(function(el){ el.remove(); });
-            trackingFish = [];
-        }
-
-        function concludeMatrixSystem() {
-            clearActiveFish();
-            document.getElementById('visual-group-display').style.display = 'none';
-            document.getElementById('victory-card').style.display = 'flex';
-            document.getElementById('final-stats').innerText = "Final Score: " + totalScore + " / 150 Points!";
-            playSound('victory');
-        }
-
-        function resetMathEngine() {
-            document.getElementById('victory-card').style.display = 'none';
-            document.getElementById('intro-card').style.display = 'flex';
-        }
-
-        /* --- LOADING MANAGEMENT SYSTEM --- */
-        window.addEventListener('load', function() {
-            var splashNode = document.getElementById('splash-screen');
-            var mainFrame = document.getElementById('game-container');
-            
-            setTimeout(function() {
-                if (splashNode) {
-                    splashNode.style.opacity = '0';
-                    if (mainFrame) {
-                        mainFrame.style.display = 'flex';
-                        document.getElementById('intro-card').style.display = 'flex';
-                        setTimeout(function() { 
-                            if (splashNode.parentNode) splashNode.parentNode.removeChild(splashNode);
-                        }, 600);
-                    }
-                }
-            }, 5000);
-        });
-    </script>
 </body>
 </html>
