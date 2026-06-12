@@ -233,7 +233,7 @@
 <body>
 
     <div id="splash-screen">
-        <img src="assets/innovine-logo.png" alt="Innovine Logo" onerror="this.style.display='none';">
+        <img src="assets/innovine-logo.png" alt="Logo" onerror="this.style.display='none';">
         <div class="loader"></div>
         <p style="color: #6d4c41; font-weight: bold; margin-top: 15px;">Setting up Pizza Party...</p>
     </div>
@@ -259,19 +259,21 @@
 
     <script>
         const volInput = document.getElementById('volume');
-        const sndCorrect = document.getElementById('audio-correct');
-        const sndWrong = document.getElementById('audio-wrong');
 
+        // Foolproof audio player wrapped inside error-catch zones
         function playSound(isCorrect) {
-            const currentVolume = volInput.value;
-            if (isCorrect) {
-                sndCorrect.volume = currentVolume;
-                sndCorrect.currentTime = 0;
-                sndCorrect.play().catch(() => {});
-            } else {
-                sndWrong.volume = currentVolume;
-                sndWrong.currentTime = 0;
-                sndWrong.play().catch(() => {});
+            try {
+                const targetId = isCorrect ? 'audio-correct' : 'audio-wrong';
+                const audioEl = document.getElementById(targetId);
+                if (audioEl) {
+                    audioEl.volume = volInput.value;
+                    audioEl.currentTime = 0;
+                    audioEl.play().catch(() => {
+                        console.log("Audio play prevented by browser safety restrictions.");
+                    });
+                }
+            } catch (err) {
+                console.log("Audio elements not found or failed to load cleanly.");
             }
         }
 
@@ -292,16 +294,18 @@
         let acceptInput = true;
         let piecesLeft = 0;
 
-        // Display splash for 5 seconds
+        // SAFE TIMEOUT - Guaranteed to execute and clear the screen after 5 seconds
         setTimeout(() => {
             const splash = document.getElementById('splash-screen');
             const game = document.getElementById('main-game');
-            splash.style.opacity = 0;
-            setTimeout(() => {
-                splash.style.display = 'none';
-                game.style.display = 'block';
-                initGame();
-            }, 500);
+            if (splash && game) {
+                splash.style.opacity = 0;
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    game.style.display = 'block';
+                    initGame();
+                }, 500);
+            }
         }, 5000);
 
         function initGame() {
@@ -316,7 +320,9 @@
             const container = document.getElementById('game-content');
             const prog = document.getElementById('progress');
             
-            prog.style.width = `${(index / activeQuestions.length) * 100}%`;
+            if (prog) {
+                prog.style.width = `${(index / activeQuestions.length) * 100}%`;
+            }
 
             if (index >= activeQuestions.length) {
                 endGame();
@@ -341,29 +347,29 @@
                 `;
             }
 
-            container.innerHTML = `
-                <div class="story-text">
-                    There are ${q.total} pizza slices. Share them equally among the ${q.kids} children. How many slices does each child get?
-                </div>
-                <div class="instruction-alert" id="status-msg">👉 Drag ALL pizzas into plates to unlock numbers!</div>
-                
-                <div class="sandbox">
-                    <div class="section-title">Pizza Box</div>
-                    <div class="source-zone" id="pizza-box">${pizzaHTML}</div>
+            if (container) {
+                container.innerHTML = `
+                    <div class="story-text">
+                        There are ${q.total} pizza slices. Share them equally among the ${q.kids} children. How many slices does each child get?
+                    </div>
+                    <div class="instruction-alert" id="status-msg">👉 Drag ALL pizzas into plates to unlock numbers!</div>
                     
-                    <div class="section-title">Plates</div>
-                    <div class="targets-container">${kidsHTML}</div>
-                </div>
-                
-                <div class="options-grid" id="options-panel">
-                    ${q.options.map(num => `<button class="btn" onclick="submitAnswer(this, ${num})">${num}</button>`).join('')}
-                </div>
-            `;
-
-            attachTouchTracking();
+                    <div class="sandbox">
+                        <div class="section-title">Pizza Box</div>
+                        <div class="source-zone" id="pizza-box">${pizzaHTML}</div>
+                        
+                        <div class="section-title">Plates</div>
+                        <div class="targets-container">${kidsHTML}</div>
+                    </div>
+                    
+                    <div class="options-grid" id="options-panel">
+                        ${q.options.map(num => `<button class="btn" onclick="submitAnswer(this, ${num})">${num}</button>`).join('')}
+                    </div>
+                `;
+                attachTouchTracking();
+            }
         }
 
-        // Bulletproof Drag and Drop implementation using PointerEvents coordinates
         function attachTouchTracking() {
             const pieces = document.querySelectorAll('.pizza-piece');
             
@@ -374,17 +380,14 @@
                     e.preventDefault();
                     let currentTargetPlate = null;
                     
-                    // Style setup when lifted
                     piece.classList.add('dragging');
                     piece.style.position = 'fixed';
                     piece.setPointerCapture(e.pointerId);
                     
-                    // Center item directly under user touch coordinate
                     function trackMovement(evt) {
                         piece.style.left = (evt.clientX - 20) + 'px';
                         piece.style.top = (evt.clientY - 20) + 'px';
                         
-                        // Check what element sits underneath the active tracking coordinate
                         piece.style.display = 'none';
                         let elementUnderneath = document.elementFromPoint(evt.clientX, evt.clientY);
                         piece.style.display = 'inline-block';
@@ -392,7 +395,6 @@
                         if (elementUnderneath) {
                             let destinationPlate = elementUnderneath.closest('.drop-plate');
                             
-                            // Visual highlighting feedback loop
                             document.querySelectorAll('.drop-plate').forEach(pl => pl.classList.remove('hovered'));
                             if (destinationPlate) {
                                 destinationPlate.classList.add('hovered');
@@ -403,7 +405,6 @@
                         }
                     }
 
-                    // Run immediate location alignment initialization
                     trackMovement(e);
 
                     function releaseTracking(evt) {
@@ -415,22 +416,23 @@
                         piece.removeEventListener('pointerup', releaseTracking);
                         
                         if (currentTargetPlate) {
-                            // Successfully dropped onto plate layout zone
                             piece.style.position = 'static';
                             piece.style.fontSize = '22px';
                             currentTargetPlate.appendChild(piece);
                             piecesLeft--;
                             
-                            // Evaluation triggering state checking loop
                             if (piecesLeft === 0) {
-                                document.getElementById('options-panel').classList.add('unlocked');
+                                const panel = document.getElementById('options-panel');
+                                if (panel) panel.classList.add('unlocked');
+                                
                                 const status = document.getElementById('status-msg');
-                                status.innerText = "🎉 Unlocked! Count a plate and choose your number.";
-                                status.style.background = "#e8f5e9";
-                                status.style.color = "#2e7d32";
+                                if (status) {
+                                    status.innerText = "🎉 Unlocked! Count a plate and choose your number.";
+                                    status.style.background = "#e8f5e9";
+                                    status.style.color = "#2e7d32";
+                                }
                             }
                         } else {
-                            // Reset back to parent box flow container on miss
                             piece.style.position = 'static';
                         }
                     }
@@ -466,12 +468,24 @@
         }
 
         function endGame() {
-            document.getElementById('progress').style.width = '100%';
-            const container = document.getElementById('game-content');
+            const prog = document.getElementById('progress');
+            if (prog) prog.style.width = '100%';
             
-            if (points >= 6) {
-                confetti({ particleCount: 120, spread: 70 });
-            }
+            const container = document.getElementById('game-content');
+            if (container) {
+                if (points >= 6) {
+                    confetti({ particleCount: 120, spread: 70 });
+                }
 
-            container.innerHTML = `
-                <div class="story-text" style="font-size: 24px; color: #2e7
+                container.innerHTML = `
+                    <div class="story-text" style="font-size: 24px; color: #2e7d32;">Party Complete! 🥳</div>
+                    <div class="story-text">You successfully distributed all pizza slices evenly! Score: ${points} / ${activeQuestions.length}</div>
+                    <div class="options-grid unlocked">
+                        <button id="restart-btn" class="btn" onclick="initGame()">Play Again 🔄</button>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
