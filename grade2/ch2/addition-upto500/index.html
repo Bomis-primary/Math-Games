@@ -221,7 +221,6 @@
     <audio id="snd-victory" src="assets/freesound_community-claps-44774.mp3" preload="none"></audio>
 
     <script>
-        // 15 question structural matrices matching images LO guidelines up to 500
         var problemSets = [
             { question: "What is 23 + 14?", target: 37, choices: [37, 47, 36] },
             { question: "What is 52 + 35?", target: 87, choices: [87, 85, 97] },
@@ -312,14 +311,12 @@
                 var computedLeft = (i * trackWidth) + (trackWidth / 2) - 52; 
                 balloon.style.left = computedLeft + "px";
                 
-                // Varied initial offsets so they float staggered, rather than perfectly matching rows
-                var startTop = 500 + (Math.random() * 80); 
-                balloon.style.top = "0px";
+                var startTop = 500; 
+                balloon.style.top = startTop + "px";
 
                 balloon.dataset.value = val;
                 balloon.dataset.targetVal = activeData.target;
                 balloon.dataset.currentY = startTop;
-                balloon.style.transform = "translateY(" + (startTop - 500) + "px)";
 
                 balloon.onclick = function(e) {
                     evaluatePopSelection(this);
@@ -339,14 +336,21 @@
                 var currY = parseFloat(bNode.dataset.currentY);
                 
                 currY -= DRIFT_SPEED;
-                
-                // FIXED LOOP: Instead of checking the whole group, reset individual nodes instantly when exiting layout box
-                if (currY < -150) {
-                    currY = 500; 
-                }
-
                 bNode.dataset.currentY = currY;
                 bNode.style.transform = "translateY(" + (currY - 500) + "px)";
+
+                if (currY < -150) {
+                    resetFieldLoop();
+                    return;
+                }
+            }
+            frameAnimationId = requestAnimationFrame(updateDriftCycle);
+        }
+
+        function resetFieldLoop() {
+            for (var i = 0; i < trackingBalloons.length; i++) {
+                trackingBalloons[i].dataset.currentY = 500;
+                trackingBalloons[i].style.transform = "translateY(0px)";
             }
             frameAnimationId = requestAnimationFrame(updateDriftCycle);
         }
