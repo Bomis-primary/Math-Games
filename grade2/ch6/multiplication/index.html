@@ -119,14 +119,14 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
-        /* --- UNDERWATER PLAYFIELD canvas safe box --- */
+        /* --- UNDERWATER PLAYFIELD SAFEZONE (No background image dependencies) --- */
         .sea-field {
             flex: 1;
-            background: linear-gradient(to bottom, #1A237E, #121640);
+            background: linear-gradient(to bottom, #1A237E, #121640) !important;
             position: relative;
             overflow: hidden;
         }
-        /* Tiny decorative background bubbles */
+        /* Tiny decorative background weeds */
         .ambient-weed {
             position: absolute; bottom: 0; width: 40px; height: 110px;
             background: rgba(76, 175, 80, 0.4); border-radius: 50% 50% 0 0;
@@ -221,29 +221,231 @@
     <script>
         // 15 comprehensive Grade 2 multiplication learning milestones
         var problemSets = [
-            // Repeated Addition foundation
             { question: "What is 2 + 2 + 2 + 2 equal to?", target: 8, choices: [8, 6, 10] },
             { question: "Express as multiplication: 5 + 5 + 5", target: 15, choices: [15, 10, 20] },
-            // Recall Tables up to 10
             { question: "What is 2 × 4?", target: 8, choices: [8, 6, 12] },
             { question: "What is 5 × 3?", target: 15, choices: [15, 12, 18] },
             { question: "What is 10 × 4?", target: 40, choices: [40, 14, 50] },
             { question: "What is 3 × 3?", target: 9, choices: [9, 6, 12] },
-            // Multiplication Properties
             { question: "If 4 × 2 = 8, then 2 × 4 = ___?", target: 8, choices: [8, 6, 10] },
             { question: "Complete the property: 7 × 0 = ___?", target: 0, choices: [0, 7, 14] },
             { question: "Complete the identity: 9 × 1 = ___?", target: 9, choices: [9, 1, 10] },
-            // 2-digit by 1-digit (No carryover)
             { question: "What is 12 × 2?", target: 24, choices: [24, 22, 14] },
             { question: "What is 23 × 3?", target: 69, choices: [69, 66, 59] },
-            // Multiply by 10 & 100 Rules
             { question: "What is 6 × 10?", target: 60, choices: [60, 16, 600] },
             { question: "What is 3 × 100?", target: 300, choices: [300, 30, 303] },
-            // 2-digit by 1-digit (With carryover)
             { question: "What is 15 × 4?", target: 60, choices: [60, 45, 55] },
             { question: "What is 26 × 3?", target: 78, choices: [78, 68, 88] }
         ];
 
         var currentStep = 0;
         var totalScore = 0;
-        var trackingB
+        var trackingBalloons = [];
+        var frameAnimationId = null;
+        var DRIFT_SPEED = 0.75;
+
+        function playSound(type) {
+            try {
+                var p = document.getElementById('snd-pop');
+                var w = document.getElementById('snd-wrong');
+                var v = document.getElementById('snd-victory');
+                if (type === 'pop' && p) { p.volume = 0.4; p.currentTime = 0; p.play().catch(function(){}); }
+                if (type === 'wrong' && w) { w.volume = 0.3; w.currentTime = 0; w.play().catch(function(){}); }
+                if (type === 'victory' && v) { v.volume = 0.5; v.currentTime = 0; v.play().catch(function(){}); }
+            } catch(e) {}
+        }
+
+        function shuffleArray(array) {
+            for (var i = array.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = array[i];
+                array[i] = array[j];
+                array[j] = temp;
+            }
+            return array;
+        }
+
+        function bootMathEngine() {
+            document.getElementById('intro-card').style.display = 'none';
+            currentStep = 0;
+            totalScore = 0;
+            document.getElementById('label-score').innerText = totalScore;
+            loadMathProblem();
+        }
+
+        function loadMathProblem() {
+            clearActiveBalloons();
+            
+            var totalLevels = problemSets.length;
+            document.getElementById('label-level').innerText = "Question: " + (currentStep + 1) + " / " + totalLevels;
+            
+            var activeData = problemSets[currentStep];
+            document.getElementById('current-target-formula').innerText = activeData.question;
+
+            var randomizedChoices = activeData.choices.slice();
+            shuffleArray(randomizedChoices);
+
+            var trackWidth = 750 / 3; 
+
+            for (var i = 0; i < 3; i++) {
+                var val = randomizedChoices[i];
+                var bubble = document.createElement('div');
+                bubble.className = 'bubble-node';
+
+                var badge = document.createElement('div');
+                badge.className = 'value-badge';
+                badge.innerText = val;
+                bubble.appendChild(badge);
+
+                var computedLeft = (i * trackWidth) + (trackWidth / 2) - 57; 
+                bubble.style.left = computedLeft + "px";
+                
+                var startTop = 500; 
+                bubble.style.top = startTop + "px";
+
+                bubble.dataset.value = val;
+                bubble.dataset.targetVal = activeData.target;
+                bubble.dataset.currentY = startTop;
+
+                bubble.onclick = function(e) {
+                    evaluatePopSelection(this);
+                };
+
+                document.getElementById('playfield-canvas').appendChild(bubble);
+                trackingBalloons.push(bubble);
+            }
+
+            if (frameAnimationId) cancelAnimationFrame(frameAnimationId);
+            frameAnimationId = requestAnimationFrame(updateDriftCycle);
+        }
+
+        function updateDriftCycle() {
+            for (var i = 0; i < trackingBalloons.length; i++) {
+                var bNode = trackingBalloons[i];
+                var currY = parseFloat(bNode.dataset.currentY);
+                
+                currY -= DRIFT_SPEED;
+                bNode.dataset.currentY = currY;
+                bNode.style.transform = "translateY(" + (currY - 500) + "px)";
+
+                if (currY < -150) {
+                    resetFieldLoop();
+                    return;
+                }
+            }
+            frameAnimationId = requestAnimationFrame(updateDriftCycle);
+        }
+
+        function resetFieldLoop() {
+            for (var i = 0; i < trackingBalloons.length; i++) {
+                trackingBalloons[i].dataset.currentY = 500;
+                trackingBalloons[i].style.transform = "translateY(0px)";
+            }
+            frameAnimationId = requestAnimationFrame(updateDriftCycle);
+        }
+
+        function evaluatePopSelection(hitElement) {
+            var selectedNum = parseInt(hitElement.dataset.value);
+            var correctNum = parseInt(hitElement.dataset.targetVal);
+
+            if (selectedNum === correctNum) {
+                playSound('pop');
+                triggerSparkleBurst(hitElement);
+                totalScore += 10;
+                document.getElementById('label-score').innerText = totalScore;
+                
+                cancelAnimationFrame(frameAnimationId);
+                hitElement.style.display = "none";
+
+                setTimeout(function() {
+                    currentStep++;
+                    if (currentStep < problemSets.length) {
+                        loadMathProblem();
+                    } else {
+                        concludeMatrixSystem();
+                    }
+                }, 1000);
+
+            } else {
+                playSound('wrong');
+                hitElement.animate([
+                    { transform: 'translateX(-8px) translateY(' + (parseFloat(hitElement.dataset.currentY) - 500) + 'px)' },
+                    { transform: 'translateX(8px) translateY(' + (parseFloat(hitElement.dataset.currentY) - 500) + 'px)' },
+                    { transform: 'translateX(0px) translateY(' + (parseFloat(hitElement.dataset.currentY) - 500) + 'px)' }
+                ], { duration: 200, iterations: 2 });
+            }
+        }
+
+        function triggerSparkleBurst(originNode) {
+            var canvas = document.getElementById('playfield-canvas');
+            var rect = originNode.getBoundingClientRect();
+            var canvasRect = canvas.getBoundingClientRect();
+            
+            var centerX = rect.left - canvasRect.left + (rect.width / 2);
+            var centerY = rect.top - canvasRect.top + (rect.height / 2);
+
+            for (var i = 0; i < 16; i++) {
+                var p = document.createElement('div');
+                p.className = 'pop-sparkle';
+                p.style.backgroundColor = '#00E5FF';
+                p.style.left = centerX + 'px';
+                p.style.top = centerY + 'px';
+                canvas.appendChild(p);
+
+                var ang = Math.random() * Math.PI * 2;
+                var dist = Math.random() * 70 + 30;
+                var finX = Math.cos(ang) * dist;
+                var finY = Math.sin(ang) * dist;
+
+                p.animate([
+                    { transform: 'translate(-50%, -50%) scale(1.2)', opacity: 1 },
+                    { transform: 'translate(calc(-50% + ' + finX + 'px), calc(-50% + ' + finY + 'px)) scale(0)', opacity: 0 }
+                ], { duration: 500, easing: 'ease-out', fill: 'forwards' });
+
+                (function(particle){
+                    setTimeout(function(){ if(particle) particle.remove(); }, 550);
+                })(p);
+            }
+        }
+
+        function clearActiveBalloons() {
+            if (frameAnimationId) cancelAnimationFrame(frameAnimationId);
+            var canvas = document.getElementById('playfield-canvas');
+            var items = canvas.querySelectorAll('.bubble-node');
+            items.forEach(function(el){ el.remove(); });
+            trackingBalloons = [];
+        }
+
+        function concludeMatrixSystem() {
+            clearActiveBalloons();
+            document.getElementById('victory-card').style.display = 'flex';
+            document.getElementById('final-stats').innerText = "Final Score: " + totalScore + " / 150 Points!";
+            playSound('victory');
+        }
+
+        function resetMathEngine() {
+            document.getElementById('victory-card').style.display = 'none';
+            document.getElementById('intro-card').style.display = 'flex';
+        }
+
+        /* --- STABLE TIMEOUT LOADING SYSTEM --- */
+        window.addEventListener('load', function() {
+            var splashNode = document.getElementById('splash-screen');
+            var mainFrame = document.getElementById('game-container');
+            
+            setTimeout(function() {
+                if (splashNode) {
+                    splashNode.style.opacity = '0';
+                    if (mainFrame) {
+                        mainFrame.style.display = 'flex';
+                        document.getElementById('intro-card').style.display = 'flex';
+                        setTimeout(function() { 
+                            if (splashNode.parentNode) splashNode.parentNode.removeChild(splashNode);
+                        }, 600);
+                    }
+                }
+            }, 5000);
+        });
+    </script>
+</body>
+</html>
