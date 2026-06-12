@@ -26,9 +26,10 @@
             align-items: center;
             min-height: 100vh;
             overflow: hidden;
+            position: relative;
         }
 
-        /* --- EXPLICIT 5-SECOND SPLASH SCREEN --- */
+        /* --- EXPLICIT 5-SECOND SPLASH SCREEN WITH MATCHED LOGO ASSET --- */
         #splash-screen {
             position: fixed;
             top: 0;
@@ -66,6 +67,7 @@
             display: none;
             opacity: 0;
             transition: opacity 0.4s ease-in;
+            z-index: 10;
         }
 
         .mission-text {
@@ -172,20 +174,57 @@
             position: absolute; width: 8px; height: 8px; top: 50%; left: 50%;
             opacity: 0; pointer-events: none; z-index: 99; border-radius: 2px;
         }
+
+        /* --- FLOATING BALLOON ENGINE --- */
+        .balloon-element {
+            position: fixed;
+            bottom: -100px;
+            width: 65px;
+            height: 80px;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            z-index: 5;
+            pointer-events: none;
+            animation: floatUpward 4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            filter: drop-shadow(0 8px 15px rgba(0,0,0,0.15));
+        }
+        .balloon-element::before {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 8px solid inherit;
+            border-bottom-color: currentColor;
+        }
+        .balloon-element::after {
+            content: '';
+            position: absolute;
+            bottom: -45px;
+            left: 50%;
+            width: 2px;
+            height: 40px;
+            background: rgba(0,0,0,0.2);
+        }
+
+        @keyframes floatUpward {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-115vh) rotate(15deg); opacity: 0; }
+        }
     </style>
 </head>
 <body>
 
-    <!-- Splash Screen showing your logo for exactly 5 seconds -->
     <div id="splash-screen">
-        <img src="assets/logo.png" alt="Innovine Logo" class="splash-logo" onerror="this.src='https://placehold.co/220x60/FF9800/fff?text=Innovine'">
+        <img src="assets/innovine-logo.png" alt="Innovine Logo" class="splash-logo" onerror="this.src='https://placehold.co/220x60/FF9800/fff?text=Innovine'">
         <div class="timer-loader"><div class="timer-progress"></div></div>
     </div>
 
-    <!-- Game Container Frame -->
     <div id="game-container">
         
-        <!-- Welcome Intro Deck Card -->
         <div id="intro-card">
             <div style="font-size: 4rem; margin-bottom: 10px;">⏳⏰⚙️</div>
             <h2 style="color: var(--primary-dark); font-size: 2.2rem; margin-bottom: 12px;">The Time Traveler's Clock Tower</h2>
@@ -197,7 +236,6 @@
             <button class="start-btn" onclick="engageMission()">Sync Timelines! 🚀</button>
         </div>
 
-        <!-- Gameplay HUD Interface Structure -->
         <div id="active-playfield" style="display: none;">
             <div class="hud-header">
                 <span id="label-task">Progress Tracker</span>
@@ -207,9 +245,7 @@
 
             <div class="progress-track"><div id="progress-bar"></div></div>
 
-            <!-- ANIMATED WORKSTAGE FIELD -->
             <div id="tower-stage">
-                <!-- Level 1 Visual Asset Engine -->
                 <div class="analog-clock" id="live-clock">
                     <div class="clock-center"></div>
                     <div class="hand hour-hand" id="hw-hour"></div>
@@ -219,7 +255,6 @@
                     <div class="clock-num num6">6</div>
                     <div class="clock-num num9">9</div>
                 </div>
-                <!-- Level 2 Graphic Element Holder -->
                 <div id="calendar-graphic-box">📅</div>
             </div>
 
@@ -227,7 +262,6 @@
             <div class="grid-matrix" id="field-options"></div>
         </div>
 
-        <!-- Ultimate Victory Screen Card -->
         <div id="victory-card" style="display: none;">
             <div style="font-size: 5rem;">🏆⏳👑</div>
             <h1 style="color: #2E7D32; font-size: 2.5rem; margin: 15px 0;">Grand Time Master!</h1>
@@ -240,21 +274,52 @@
 
     </div>
 
-    <!-- Audio Channels -->
     <audio id="snd-correct" src="assets/correct.mp3" preload="none"></audio>
     <audio id="snd-wrong" src="assets/wrong.mp3" preload="none"></audio>
+    <audio id="snd-claps" src="assets/freesound_community-claps-44774.mp3" preload="none"></audio>
 
     <script>
         function triggerAudio(mode) {
             try {
                 var audioCorrect = document.getElementById('snd-correct');
                 var audioWrong = document.getElementById('snd-wrong');
+                var audioClaps = document.getElementById('snd-claps');
+                
                 if (mode === 'correct' && audioCorrect) {
                     audioCorrect.volume = 0.4; audioCorrect.currentTime = 0; audioCorrect.play().catch(function(){});
                 } else if (mode === 'wrong' && audioWrong) {
                     audioWrong.volume = 0.4; audioWrong.currentTime = 0; audioWrong.play().catch(function(){});
+                } else if (mode === 'victory' && audioClaps) {
+                    audioClaps.volume = 0.5; audioClaps.currentTime = 0; audioClaps.play().catch(function(){});
                 }
             } catch(err) {}
+        }
+
+        function launchRewardBalloons() {
+            var colors = ['#FF5252', '#FF4081', '#E040FB', '#7C4DFF', '#536DFE', '#448AFF', '#40C4FF', '#1DE9B6', '#69F0AE', '#B2FF59', '#EEFF41', '#FFD740', '#FF9100'];
+            
+            // Left end balloon configuration
+            var leftBalloon = document.createElement('div');
+            leftBalloon.className = 'balloon-element';
+            var leftColor = colors[Math.floor(Math.random() * colors.length)];
+            leftBalloon.style.backgroundColor = leftColor;
+            leftBalloon.style.color = leftColor;
+            leftBalloon.style.left = '4%';
+            leftBalloon.style.animationDelay = '0s';
+            document.body.appendChild(leftBalloon);
+
+            // Right end balloon configuration
+            var rightBalloon = document.createElement('div');
+            rightBalloon.className = 'balloon-element';
+            var rightColor = colors[Math.floor(Math.random() * colors.length)];
+            rightBalloon.style.backgroundColor = rightColor;
+            rightBalloon.style.color = rightColor;
+            rightBalloon.style.right = '4%';
+            rightBalloon.style.animationDelay = '0.2s';
+            document.body.appendChild(rightBalloon);
+
+            setTimeout(function() { leftBalloon.remove(); }, 4200);
+            setTimeout(function() { rightBalloon.remove(); }, 4400);
         }
 
         function deployConfettiEngine() {
@@ -281,7 +346,6 @@
         }
 
         /* --- GRADE 2 CURRICULUM MATH QUESTION DATABASE --- */
-        // Phase 1 Learning Outcomes: Read time when minute hand is on 12 ('o clock') or 6 ('half past')
         var phase1Pool = [
             { question: "Look at the clock face. What time is shown?", answers: ["3 o'clock", "4 o'clock", "Half past 3", "12 o'clock"], correct: "3 o'clock", hourAngle: 90, minAngle: 0 },
             { question: "The hour hand is past 1 and the minute hand is on 6. What time is it?", answers: ["1 o'clock", "Half past 1", "Half past 2", "6 o'clock"], correct: "Half past 1", hourAngle: 45, minAngle: 180 },
@@ -290,7 +354,6 @@
             { question: "Look at the clock face. What time is shown?", answers: ["Half past 5", "Half past 6", "5 o'clock", "6 o'clock"], correct: "Half past 5", hourAngle: 165, minAngle: 180 }
         ];
 
-        // Phase 2 Learning Outcomes: Calendar sequence (days, yesterday/today/tomorrow, months, leap year, seasons)
         var phase2Pool = [
             { question: "If today is Wednesday, what day was yesterday?", answers: ["Tuesday", "Thursday", "Monday", "Friday"], correct: "Tuesday", emoji: "📅" },
             { question: "Name the days! What day comes right after Friday?", answers: ["Saturday", "Sunday", "Thursday", "Monday"], correct: "Saturday", emoji: "📆" },
@@ -343,7 +406,6 @@
             var item = pool[pIndex];
             document.getElementById('field-question').innerText = item.question;
 
-            // Render interactive graphics space
             if (currentPhase === 1) {
                 document.getElementById('hw-hour').style.transform = 'rotate(' + item.hourAngle + 'deg)';
                 document.getElementById('hw-minute').style.transform = 'rotate(' + item.minAngle + 'deg)';
@@ -351,7 +413,6 @@
                 document.getElementById('calendar-graphic-box').innerText = item.emoji;
             }
 
-            // Options matrix populating
             var optionsBox = document.getElementById('field-options');
             optionsBox.innerHTML = '';
             item.answers.forEach(function(ans) {
@@ -370,6 +431,7 @@
                 btnElement.classList.add('correct');
                 triggerAudio('correct');
                 deployConfettiEngine();
+                launchRewardBalloons();
                 gameScore++;
                 document.getElementById('label-score').innerText = gameScore;
             } else {
@@ -396,6 +458,7 @@
         function concludeSimulation() {
             document.getElementById('active-playfield').style.display = 'none';
             document.getElementById('victory-card').style.display = 'block';
+            triggerAudio('victory'); // Plays the claps asset file on final victory screen
             var totalQ = phase1Pool.length + phase2Pool.length;
             document.getElementById('final-stats').innerText = "Timeline Score: " + gameScore + " / " + totalQ;
         }
@@ -409,7 +472,6 @@
             var splash = document.getElementById('splash-screen');
             var mainContainer = document.getElementById('game-container');
             
-            // Wait precisely 5000ms (5 seconds) before fading out splash panel
             setTimeout(function() {
                 if (splash) {
                     splash.style.opacity = '0';
