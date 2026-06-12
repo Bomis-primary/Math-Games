@@ -19,7 +19,46 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            overflow-x: hidden;
         }
+        /* Splash Screen Style */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        #splash-screen img {
+            max-width: 250px;
+            height: auto;
+            margin-bottom: 20px;
+            animation: pulse 1.5s infinite alternate;
+        }
+        @keyframes pulse {
+            from { transform: scale(0.95); }
+            to { transform: scale(1.05); }
+        }
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #ff7043;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Game Container */
         .game-container {
             background: white;
             border: 4px solid #ffb74d;
@@ -29,6 +68,7 @@
             max-width: 450px;
             box-shadow: 0 8px 16px rgba(0,0,0,0.1);
             text-align: center;
+            display: none; /* Hidden during splash screen */
         }
         h1 {
             color: #e65100;
@@ -118,7 +158,18 @@
 </head>
 <body>
 
-    <div class="game-container">
+    <!-- 5-Second Splash Screen using repository assets -->
+    <div id="splash-screen">
+        <img src="assets/innovine-logo.png" alt="Innovine Logo" onerror="this.style.display='none';">
+        <div class="loader"></div>
+        <p style="color: #6d4c41; font-weight: bold; margin-top: 15px;">Loading Your Game...</p>
+    </div>
+
+    <!-- Audio Elements pointing to repository assets -->
+    <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+    <div class="game-container" id="main-game">
         <h1>🍕 Pizza Party Share!</h1>
         
         <div class="volume-box">
@@ -136,30 +187,20 @@
     </div>
 
     <script>
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         const volInput = document.getElementById('volume');
+        const sndCorrect = document.getElementById('audio-correct');
+        const sndWrong = document.getElementById('audio-wrong');
 
         function playSound(isCorrect) {
-            const gainNode = audioCtx.createGain();
-            gainNode.gain.value = volInput.value;
-            gainNode.connect(audioCtx.destination);
-            
-            const osc = audioCtx.createOscillator();
-            osc.connect(gainNode);
-
+            const currentVolume = volInput.value;
             if (isCorrect) {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(440, audioCtx.currentTime); // A4
-                osc.frequency.setValueAtTime(554.37, audioCtx.currentTime + 0.1); // C#5
-                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.2); // E5
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.35);
+                sndCorrect.volume = currentVolume;
+                sndCorrect.currentTime = 0;
+                sndCorrect.play().catch(e => console.log("Audio play blocked"));
             } else {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(180, audioCtx.currentTime);
-                osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.25);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.25);
+                sndWrong.volume = currentVolume;
+                sndWrong.currentTime = 0;
+                sndWrong.play().catch(e => console.log("Audio play blocked"));
             }
         }
 
@@ -180,6 +221,19 @@
         let index = 0;
         let points = 0;
         let acceptInput = true;
+
+        // Splash Screen Timer Control (5 Seconds)
+        setTimeout(() => {
+            const splash = document.getElementById('splash-screen');
+            const game = document.getElementById('main-game');
+            
+            splash.style.opacity = 0;
+            setTimeout(() => {
+                splash.style.display = 'none';
+                game.style.display = 'block';
+                initGame();
+            }, 500);
+        }, 5000);
 
         function initGame() {
             activeQuestions = [...questionsList].sort(() => Math.random() - 0.5);
@@ -263,8 +317,6 @@
                 </div>
             `;
         }
-
-        window.onload = initGame;
     </script>
 </body>
 </html>
