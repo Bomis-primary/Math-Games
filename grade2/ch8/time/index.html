@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grade 2 Time Traveler: Balloon Rescue</title>
+    <title>Grade 2: Time Machine Mechanic</title>
     <style>
         :root {
-            --text-main: #37474F;
-            --primary: #FF9800;
-            --primary-dark: #F57C00;
+            --text-main: #2C3E50;
+            --primary: #009688;
+            --primary-dark: #00796B;
+            --gear-color: #78909C;
         }
 
         * {
@@ -20,7 +21,7 @@
         }
 
         body {
-            background: linear-gradient(to bottom, #B3E5FC 0%, #E1F5FE 100%);
+            background: linear-gradient(135deg, #ECEFF1 0%, #CFD8DC 100%);
             color: var(--text-main);
             display: flex;
             justify-content: center;
@@ -55,197 +56,168 @@
         }
         @keyframes fillBar { 100% { width: 100%; } }
 
-        /* --- MAIN GAME WINDOW LAYOUT --- */
+        /* --- MAIN LAYOUT CONTROLLER --- */
         #game-container {
             width: 95%;
             max-width: 800px;
-            background: rgba(255, 255, 255, 0.95);
-            padding: 20px;
-            border-radius: 30px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+            background: #FFFFFF;
+            padding: 25px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
             border: 6px solid var(--primary);
             text-align: center;
             display: none;
             opacity: 0;
             transition: opacity 0.4s ease-in;
             z-index: 10;
-            position: relative;
         }
 
         .mission-text {
             font-size: 1.2rem; line-height: 1.6; margin-bottom: 25px;
-            background: #FFF3E0; padding: 20px; border-radius: 20px; border: 2px dashed var(--primary);
+            background: #E0F2F1; padding: 20px; border-radius: 16px; border: 2px dashed var(--primary);
         }
         .start-btn {
-            background: linear-gradient(135deg, #4CAF50, #388E3C); color: white;
-            border: none; padding: 15px 45px; font-size: 1.5rem; font-weight: bold;
-            border-radius: 50px; cursor: pointer; box-shadow: 0 6px 0 #1B5E20;
+            background: linear-gradient(135deg, #00B0FF, #0091EA); color: white;
+            border: none; padding: 16px 50px; font-size: 1.4rem; font-weight: bold;
+            border-radius: 50px; cursor: pointer; box-shadow: 0 6px 0 #007BB6;
             transition: transform 0.1s;
         }
         .start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
 
-        /* --- PLAYFIELD & TIME DISPLAY --- */
+        /* --- HUD TRACKER --- */
         #active-playfield { display: none; }
-        
         .hud-header {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 12px; font-weight: bold; font-size: 1.1rem;
         }
-        .phase-badge { background: #FFE082; padding: 6px 16px; border-radius: 20px; color: #E65100; font-weight: bold;}
+        .phase-badge { background: #B2DFDB; padding: 6px 16px; border-radius: 20px; color: #004D40; font-weight: bold;}
 
         .progress-track {
             width: 100%; height: 14px; background: #ECEFF1; border-radius: 10px;
-            overflow: hidden; margin-bottom: 15px; border: 1px solid #CFD8DC;
+            overflow: hidden; margin-bottom: 20px; border: 1px solid #CFD8DC;
         }
-        #progress-bar { height: 100%; width: 0%; background: #4CAF50; transition: width 0.3s; }
+        #progress-bar { height: 100%; width: 0%; background: #009688; transition: width 0.3s; }
 
         .question-banner {
-            font-size: 1.35rem; font-weight: bold; color: #1A237E;
-            background: #E8EAF6; padding: 14px; border-radius: 15px;
-            margin-bottom: 15px; border-left: 6px solid #3F51B5;
+            font-size: 1.4rem; font-weight: bold; color: #37474F; background: #F5F7F8;
+            padding: 16px; border-radius: 16px; margin-bottom: 20px; border-bottom: 4px solid #DFE4E8;
         }
 
-        #visual-display-arena {
-            width: 100%; height: 200px;
-            background: linear-gradient(to bottom, #1A237E, #283593);
-            border-radius: 20px; display: flex; justify-content: center;
-            align-items: center; position: relative; margin-bottom: 20px;
-            box-shadow: inset 0 5px 15px rgba(0,0,0,0.3);
+        /* --- THE TIME MACHINE CORE STAGE --- */
+        #machine-core-arena {
+            width: 100%; height: 220px; background: #263238; border-radius: 20px;
+            display: flex; justify-content: center; align-items: center; position: relative;
+            margin-bottom: 25px; border: 4px solid #455A64;
+            box-shadow: inset 0 6px 15px rgba(0,0,0,0.5);
         }
 
-        /* Interactive CSS Analog Clock Face */
+        /* Large Clear CSS Analog Clock Face */
         .analog-clock {
-            width: 150px; height: 150px; background: #FFFFFF;
-            border: 6px solid #FFB300; border-radius: 50%; position: relative;
+            width: 160px; height: 160px; background: #FFFFFF;
+            border: 8px solid #FFB300; border-radius: 50%; position: relative;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
         .clock-center {
-            position: absolute; width: 10px; height: 10px; background: #D32F2F;
+            position: absolute; width: 12px; height: 12px; background: #D32F2F;
             border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;
         }
         .hand {
             position: absolute; bottom: 50%; left: 50%; transform-origin: bottom center;
-            border-radius: 3px; transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+            border-radius: 4px; transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.15);
         }
-        .hour-hand { width: 5px; height: 38px; background: #212121; z-index: 5; }
-        .minute-hand { width: 3px; height: 58px; background: #757575; z-index: 4; }
-        .clock-num { position: absolute; font-size: 0.9rem; font-weight: bold; color: #212121; }
-        .num12 { top: 2px; left: calc(50% - 7px); }
-        .num3  { right: 5px; top: calc(50% - 9px); }
-        .num6  { bottom: 2px; left: calc(50% - 4px); }
-        .num9  { left: 5px; top: calc(50% - 9px); }
+        .hour-hand { width: 6px; height: 42px; background: #212121; z-index: 5; }
+        .minute-hand { width: 4px; height: 62px; background: #546E7A; z-index: 4; }
+        .clock-num { position: absolute; font-size: 1rem; font-weight: bold; color: #212121; }
+        .num12 { top: 4px; left: calc(50% - 8px); }
+        .num3  { right: 6px; top: calc(50% - 9px); }
+        .num6  { bottom: 4px; left: calc(50% - 5px); }
+        .num9  { left: 6px; top: calc(50% - 9px); }
 
-        #calendar-canvas-emoji { font-size: 4.5rem; display: none; }
+        #calendar-core-emoji { font-size: 5rem; display: none; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); }
 
-        /* --- INTERACTIVE MOVING GAMEBALLOONS --- */
-        .game-balloon {
-            position: fixed;
-            bottom: -120px;
-            width: 105px;
-            height: 125px;
-            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 8px;
-            text-align: center;
-            font-size: 0.95rem;
-            font-weight: bold;
-            color: white;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.4);
-            animation: floatGameBalloon 7s linear forwards;
-            box-shadow: inset -8px -10px 20px rgba(0,0,0,0.15), 0 10px 20px rgba(0,0,0,0.15);
-            z-index: 20;
+        /* --- STATIC, HIGH-READABILITY INTERACTIVE GEAR SELECTIONS --- */
+        .gear-matrix {
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
         }
-        .game-balloon::before {
-            content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
-            border-left: 6px solid transparent; border-right: 6px solid transparent;
-            border-bottom: 8px solid currentColor;
+        
+        .part-card {
+            background: #FFFFFF; border: 4px solid #B0BEC5; border-radius: 18px;
+            padding: 20px; font-size: 1.4rem; font-weight: bold; color: #37474F;
+            cursor: pointer; box-shadow: 0 6px 0 #B0BEC5; transition: all 0.1s;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
         }
-        .game-balloon::after {
-            content: ''; position: absolute; bottom: -35px; left: 50%;
-            width: 2px; height: 30px; background: rgba(0,0,0,0.25);
-        }
+        .part-card:hover { background: #FAFAFA; border-color: #78909C; }
+        .part-card:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
+        
+        /* Clear Grade-2 Color Code Signaling */
+        .part-card.correct { background: #C8E6C9 !important; border-color: #4CAF50 !important; color: #2E7D32 !important; box-shadow: 0 6px 0 #388E3C !important; }
+        .part-card.wrong { background: #FFCDD2 !important; border-color: #F44336 !important; color: #C62828 !important; box-shadow: 0 6px 0 #D32F2F !important; }
 
-        @keyframes floatGameBalloon {
-            0% { transform: translateY(0) translateX(0) rotate(0deg); }
-            33% { transform: translateY(-40vh) translateX(20px) rotate(5deg); }
-            66% { transform: translateY(-80vh) translateX(-20px) rotate(-5deg); }
-            100% { transform: translateY(-125vh) translateX(0) rotate(0deg); }
+        /* --- CELEBRATION BALLOONS (RELEASED FROM SIDES ONLY ON SUCCESS) --- */
+        .side-balloon {
+            position: fixed; bottom: -120px; width: 75px; height: 95px;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%; z-index: 99; pointer-events: none;
+            animation: launchUp 3.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.15));
         }
-
-        /* Pop Burst Animation Effect */
-        .popped {
-            animation: balloonBurst 0.25s ease-out forwards !important;
-            pointer-events: none;
-        }
-        @keyframes balloonBurst {
-            0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.4); opacity: 0.5; filter: brightness(1.5); }
-            100% { transform: scale(0); opacity: 0; }
-        }
-
-        /* --- CELEBRATION REWARD SIDE-BALLOONS --- */
-        .reward-balloon {
-            position: fixed; bottom: -120px; width: 70px; height: 85px;
-            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%; z-index: 5; pointer-events: none;
-            animation: floatRewardUp 4s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.15));
-        }
-        .reward-balloon::before {
+        .side-balloon::before {
             content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
             border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 7px solid currentColor;
         }
-        @keyframes floatRewardUp {
-            0% { transform: translateY(0); opacity: 0; }
-            15% { opacity: 1; }
-            100% { transform: translateY(-120vh); opacity: 0; }
+        .side-balloon::after {
+            content: ''; position: absolute; bottom: -40px; left: 50%; width: 2px; height: 35px; background: rgba(0,0,0,0.2);
+        }
+        @keyframes launchUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-120vh) rotate(10deg); opacity: 0; }
         }
 
         .confetti-element {
             position: absolute; width: 8px; height: 8px; top: 50%; left: 50%;
-            opacity: 0; pointer-events: none; z-index: 99; border-radius: 2px;
+            opacity: 0; pointer-events: none; z-index: 95; border-radius: 2px;
         }
     </style>
 </head>
 <body>
 
-    <!-- Splash Screen showing your branded asset file for exactly 5 seconds -->
+    <!-- Splash Screen showing your logo for exactly 5 seconds -->
     <div id="splash-screen">
-        <img src="assets/innovine-logo.png" alt="Innovine Logo" class="splash-logo" onerror="this.src='https://placehold.co/220x60/FF9800/fff?text=Innovine'">
+        <img src="assets/innovine-logo.png" alt="Innovine Logo" class="splash-logo" onerror="this.src='https://placehold.co/220x60/009688/fff?text=Innovine'">
         <div class="timer-loader"><div class="timer-progress"></div></div>
     </div>
 
-    <!-- Main Game Frame Box Container -->
+    <!-- Game Container Frame -->
     <div id="game-container">
         
         <!-- Welcome Intro Deck Card -->
         <div id="intro-card">
-            <div style="font-size: 4.5rem; margin-bottom: 10px; animation: bounce 1s infinite alternate;">🎈⏰🎈</div>
-            <h2 style="color: var(--primary-dark); font-size: 2.3rem; margin-bottom: 12px;">Balloon Pop Time Traveler!</h2>
+            <div style="font-size: 4.5rem; margin-bottom: 12px;">⚙️⏳🚀</div>
+            <h2 style="color: var(--primary-dark); font-size: 2.2rem; margin-bottom: 12px;">Time Machine Repair Shop</h2>
             <p class="mission-text">
-                The Clock Tower has exploded, scattering time variables into floating space balloons!
+                The Time Machine has broken down! We need a master mechanic to install the correct parts and fix the timeline.
                 <br><br>
-                <strong>How to Play:</strong> Read the clock face or question banner, then <strong>tap or click the correct floating balloon</strong> to pop it before it flies away!
+                <strong>Your Mission:</strong> Look at the clock face or reading prompt carefully, choose the engine gear with the correct time text, and fix the machine!
             </p>
-            <button class="start-btn" onclick="startGame()">Start Balloon Rescue! 🚀</button>
+            <button class="start-btn" onclick="startRepairShop()">Enter Engine Room 🛠️</button>
         </div>
 
-        <!-- Gameplay HUD Structure -->
+        <!-- Gameplay Field Layout -->
         <div id="active-playfield">
             <div class="hud-header">
-                <span id="label-task">Challenge: 1 / 12</span>
-                <span class="phase-badge" id="label-phase">Level 1: Clock Face Match</span>
-                <span>Score: <span id="label-score" style="color:#4CAF50; font-weight:bold;">0</span></span>
+                <span id="label-task">Engine Fix: 1 / 12</span>
+                <span class="phase-badge" id="label-phase">Level 1: Hour Gears</span>
+                <span>Score: <span id="label-score" style="color: var(--primary-dark);">0</span></span>
             </div>
 
             <div class="progress-track"><div id="progress-bar"></div></div>
 
-            <div class="question-banner" id="field-question">Look at the clock face. Find the correct moving balloon option!</div>
+            <div class="question-banner" id="field-question">Checking system alignment...</div>
 
-            <!-- ANIMATED VISUAL CENTER STAGE -->
-            <div id="visual-display-arena">
-                <!-- Level 1 Analog Engine -->
+            <!-- CORE VISUAL AREA (No falling parts, completely static for Grade 2 focus) -->
+            <div id="machine-core-arena">
+                <!-- Level 1 Analog Engine Layout -->
                 <div class="analog-clock" id="live-clock">
                     <div class="clock-center"></div>
                     <div class="hand hour-hand" id="hw-hour"></div>
@@ -255,55 +227,54 @@
                     <div class="clock-num num6">6</div>
                     <div class="clock-num num9">9</div>
                 </div>
-                <!-- Level 2 Calendar Frame Box -->
-                <div id="calendar-canvas-emoji">📅</div>
+                <!-- Level 2 Calendar Crystal Display Layout -->
+                <div id="calendar-core-emoji">📅</div>
             </div>
-            
-            <p style="font-size:0.9rem; color:#78909C; font-style:italic;">Balloons are rising... Tap the right choice!</p>
+
+            <!-- Large, highly readable text option grid -->
+            <div class="gear-matrix" id="field-options"></div>
         </div>
 
-        <!-- Ultimate Victory Card Screen Deck -->
+        <!-- Ultimate Victory Screen Card -->
         <div id="victory-card" style="display: none;">
-            <div style="font-size: 5.5rem;">🏆🎈👑</div>
-            <h1 style="color: #2E7D32; font-size: 2.6rem; margin: 15px 0;">Ultimate Time Master!</h1>
-            <p style="font-size: 1.3rem; margin-bottom: 25px; padding: 0 15px;">
-                Sensational! You popped all the chronological anomalies and restored the calendar year perfectly!
+            <div style="font-size: 5rem;">🏆🛠️⚡</div>
+            <h1 style="color: #2E7D32; font-size: 2.5rem; margin: 15px 0;">Chief Time Engineer!</h1>
+            <p style="font-size: 1.3rem; margin-bottom: 25px; padding: 0 20px;">
+                Amazing! The engine is humming smoothly and time is moving perfectly again!
             </p>
             <h2 id="final-stats" style="color: var(--primary-dark); margin-bottom: 25px;"></h2>
-            <button class="start-btn" onclick="resetSimulator()">Play Again 🔄</button>
+            <button class="start-btn" onclick="resetSimulator()">Repair Another Machine 🔄</button>
         </div>
 
     </div>
 
-    <!-- Audio channels linked perfectly with validated repository layout filenames -->
+    <!-- Audio Asset Anchors -->
     <audio id="snd-correct" src="assets/correct.mp3" preload="none"></audio>
     <audio id="snd-wrong" src="assets/wrong.mp3" preload="none"></audio>
     <audio id="snd-claps" src="assets/freesound_community-claps-44774.mp3" preload="none"></audio>
 
     <script>
         var phase1Pool = [
-            { question: "What time is shown on this analog clock face?", answers: ["3 o'clock", "4 o'clock", "Half past 3", "12 o'clock"], correct: "3 o'clock", hourAngle: 90, minAngle: 0 },
-            { question: "The hour hand passes 1 and the minute hand sits on 6. What time is it?", answers: ["1 o'clock", "Half past 1", "Half past 2", "6 o'clock"], correct: "Half past 1", hourAngle: 45, minAngle: 180 },
-            { question: "What time is shown on this analog clock face?", answers: ["8 o'clock", "9 o'clock", "Half past 8", "12 o'clock"], correct: "8 o'clock", hourAngle: 240, minAngle: 0 },
-            { question: "Both hands point straight up towards 12. What time is it?", answers: ["12 o'clock", "6 o'clock", "Half past 12", "1 o'clock"], correct: "12 o'clock", hourAngle: 0, minAngle: 0 },
-            { question: "What time is shown on this analog clock face?", answers: ["Half past 5", "Half past 6", "5 o'clock", "6 o'clock"], correct: "Half past 5", hourAngle: 165, minAngle: 180 }
+            { question: "What time does the clock machine show?", answers: ["3 o'clock", "4 o'clock", "Half past 3", "12 o'clock"], correct: "3 o'clock", hourAngle: 90, minAngle: 0 },
+            { question: "The hour hand is past 1 and the minute hand is on 6. What time is it?", answers: ["1 o'clock", "Half past 1", "Half past 2", "6 o'clock"], correct: "Half past 1", hourAngle: 45, minAngle: 180 },
+            { question: "What time does the clock machine show?", answers: ["8 o'clock", "9 o'clock", "Half past 8", "12 o'clock"], correct: "8 o'clock", hourAngle: 240, minAngle: 0 },
+            { question: "Both clock hands are pointing straight up at 12. What time is it?", answers: ["12 o'clock", "6 o'clock", "Half past 12", "1 o'clock"], correct: "12 o'clock", hourAngle: 0, minAngle: 0 },
+            { question: "What time does the clock machine show?", answers: ["Half past 5", "Half past 6", "5 o'clock", "6 o'clock"], correct: "Half past 5", hourAngle: 165, minAngle: 180 }
         ];
 
         var phase2Pool = [
             { question: "If today is Wednesday, what day was yesterday?", answers: ["Tuesday", "Thursday", "Monday", "Friday"], correct: "Tuesday", emoji: "📅" },
-            { question: "Name the days! What day comes right after Friday?", answers: ["Saturday", "Sunday", "Thursday", "Monday"], correct: "Saturday", emoji: "📆" },
+            { question: "What day comes right after Friday?", answers: ["Saturday", "Sunday", "Thursday", "Monday"], correct: "Saturday", emoji: "📆" },
             { question: "How many months are there in one full year?", answers: ["12 months", "7 months", "30 months", "10 months"], correct: "12 months", emoji: "🗓️" },
             { question: "Which of these months has exactly 30 days?", answers: ["April", "January", "March", "December"], correct: "April", emoji: "📝" },
-            { question: "How many days does February have during a normal Leap Year?", answers: ["29 days", "28 days", "30 days", "31 days"], correct: "29 days", emoji: "🚀" },
-            { question: "Which season is typically known for being very cold and having snow?", answers: ["Winter", "Summer", "Spring", "Autumn"], correct: "Winter", emoji: "❄️" },
-            { question: "Complete the cycle sequence of seasons: Spring, Summer, Autumn, and then ______?", answers: ["Winter", "Rainy", "Holiday", "January"], correct: "Winter", emoji: "🍂" }
+            { question: "How many days does February have in a Leap Year?", answers: ["29 days", "28 days", "30 days", "31 days"], correct: "29 days", emoji: "🚀" },
+            { question: "Which season is known for cold weather and winter clothes?", answers: ["Winter", "Summer", "Spring", "Autumn"], correct: "Winter", emoji: "❄️" },
+            { question: "Finish the season order: Spring, Summer, Autumn, and then ______?", answers: ["Winter", "Rainy", "Holiday", "January"], correct: "Winter", emoji: "🍂" }
         ];
 
         var currentPhase = 1;
         var pIndex = 0;
         var gameScore = 0;
-        var activeBalloonElements = [];
-        var levelTimerInterval = null;
 
         function triggerAudio(mode) {
             try {
@@ -320,56 +291,51 @@
             } catch(err) {}
         }
 
-        // Specific user request mechanic: Releases 2 balloons from left and right ends of the screen upon hitting a correct target
-        function launchSideRewardBalloons() {
-            var hexColors = ['#FF1744', '#F50057', '#D500F9', '#651FFF', '#3D5AFE', '#29B6F6', '#00E676', '#FFEA00', '#FF9100'];
+        // Fires off two beautiful reward balloons from the left and right ends only upon a correct choice
+        function triggerSideBalloons() {
+            var colorList = ['#E91E63', '#9C27B0', '#2196F3', '#4CAF50', '#FFEB3B', '#FF9800', '#00BCD4'];
             
-            // Left end celebratory reward balloon
-            var leftReward = document.createElement('div');
-            leftReward.className = 'reward-balloon';
-            var leftC = hexColors[Math.floor(Math.random() * hexColors.length)];
-            leftReward.style.backgroundColor = leftC;
-            leftReward.style.color = leftC;
-            leftReward.style.left = '3%';
-            document.body.appendChild(leftReward);
+            var leftB = document.createElement('div');
+            leftB.className = 'side-balloon';
+            var lc = colorList[Math.floor(Math.random() * colorList.length)];
+            leftB.style.backgroundColor = lc; leftB.style.color = lc;
+            leftB.style.left = '4%';
+            document.body.appendChild(leftB);
 
-            // Right end celebratory reward balloon
-            var rightReward = document.createElement('div');
-            rightReward.className = 'reward-balloon';
-            var rightC = hexColors[Math.floor(Math.random() * hexColors.length)];
-            rightReward.style.backgroundColor = rightC;
-            rightReward.style.color = rightC;
-            rightReward.style.right = '3%';
-            document.body.appendChild(rightReward);
+            var rightB = document.createElement('div');
+            rightB.className = 'side-balloon';
+            var rc = colorList[Math.floor(Math.random() * colorList.length)];
+            rightB.style.backgroundColor = rc; rightB.style.color = rc;
+            rightB.style.right = '4%';
+            document.body.appendChild(rightB);
 
-            setTimeout(function() { leftReward.remove(); }, 4100);
-            setTimeout(function() { rightReward.remove(); }, 4100);
+            setTimeout(function() { leftB.remove(); rightB.remove(); }, 3600);
         }
 
-        function deployConfettiEngine() {
+        function deployConfetti() {
             try {
                 var frame = document.getElementById('game-container');
                 if(!frame) return;
-                var palettes = ['#FF9800', '#FFD54F', '#4CAF50', '#00E676', '#2196F3', '#FFFFFF'];
-                for (var i = 0; i < 35; i++) {
+                var palettes = ['#009688', '#FF9800', '#FFD54F', '#4CAF50', '#2196F3', '#FFFFFF'];
+                for (var i = 0; i < 30; i++) {
                     var atom = document.createElement('div');
                     atom.className = 'confetti-element';
                     atom.style.backgroundColor = palettes[Math.floor(Math.random() * palettes.length)];
                     frame.appendChild(atom);
                     var angle = Math.random() * Math.PI * 2;
-                    var force = Math.random() * 160 + 60;
+                    var force = Math.random() * 150 + 50;
                     var shiftX = Math.cos(angle) * force;
-                    var shiftY = Math.sin(angle) * force - 15;
+                    var shiftY = Math.sin(angle) * force - 10;
                     atom.animate([
                         { transform: 'translate(-50%, -50%) scale(1) rotate(0deg)', opacity: 1 },
                         { transform: 'translate(calc(-50% + ' + shiftX + 'px), calc(-50% + ' + shiftY + 'px)) scale(0.3) rotate(' + (Math.random() * 360) + 'deg)', opacity: 0 }
-                    ], { duration: Math.random() * 500 + 600, easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)', fill: 'forwards' });
-                    (function(el) { setTimeout(function() { if(el) el.remove(); }, 1200); })(atom);
+                    ], { duration: Math.random() * 400 + 600, easing: 'ease-out', fill: 'forwards' });
+                    (function(el) { setTimeout(function() { if(el) el.remove(); }, 1100); })(atom);
                 }
             } catch(e){}
         }
 
-        function startGame() {
+        function startRepairShop() {
             document.getElementById('intro-card').style.display = 'none';
             document.getElementById('active-playfield').style.display = 'block';
             initLevel1();
@@ -378,34 +344,27 @@
         function initLevel1() {
             currentPhase = 1; pIndex = 0;
             document.getElementById('live-clock').style.display = 'block';
-            document.getElementById('calendar-canvas-emoji').style.display = 'none';
-            document.getElementById('label-phase').innerText = "Level 1: Clock Face Match";
+            document.getElementById('calendar-core-emoji').style.display = 'none';
+            document.getElementById('label-phase').innerText = "Level 1: Hour Gears";
             executeChallenge();
         }
 
         function initLevel2() {
             currentPhase = 2; pIndex = 0;
             document.getElementById('live-clock').style.display = 'none';
-            document.getElementById('calendar-canvas-emoji').style.display = 'block';
-            document.getElementById('label-phase').innerText = "Level 2: Calendar Engine";
-            document.getElementById('label-phase').style.background = "#BBDEFB";
-            document.getElementById('label-phase').style.color = "#0D47A1";
+            document.getElementById('calendar-core-emoji').style.display = 'block';
+            document.getElementById('label-phase').innerText = "Level 2: Calendar System";
+            document.getElementById('label-phase').style.background = "#E0F2F1";
+            document.getElementById('label-phase').style.color = "#004D40";
             executeChallenge();
         }
 
-        function clearActiveBalloons() {
-            activeBalloonElements.forEach(function(el) { if (el && el.parentNode) el.remove(); });
-            activeBalloonElements = [];
-        }
-
         function executeChallenge() {
-            clearActiveBalloons();
-            
             var pool = (currentPhase === 1) ? phase1Pool : phase2Pool;
             var totalQuestions = phase1Pool.length + phase2Pool.length;
             var cumulativeIndex = (currentPhase === 1) ? pIndex : phase1Pool.length + pIndex;
             
-            document.getElementById('label-task').innerText = "Challenge: " + (cumulativeIndex + 1) + " / " + totalQuestions;
+            document.getElementById('label-task').innerText = "Engine Fix: " + (cumulativeIndex + 1) + " / " + totalQuestions;
             document.getElementById('progress-bar').style.width = ((cumulativeIndex / totalQuestions) * 100) + "%";
 
             var item = pool[pIndex];
@@ -415,68 +374,39 @@
                 document.getElementById('hw-hour').style.transform = 'rotate(' + item.hourAngle + 'deg)';
                 document.getElementById('hw-minute').style.transform = 'rotate(' + item.minAngle + 'deg)';
             } else {
-                document.getElementById('calendar-canvas-emoji').innerText = item.emoji;
+                document.getElementById('calendar-core-emoji').innerText = item.emoji;
             }
 
-            // Generate moving balloons spanning the display viewports horizontally
-            var balloonColors = ['#FF5722', '#E91E63', '#9C27B0', '#3F51B5', '#00BCD4', '#4CAF50', '#FFC107', '#91DC5A'];
-            var screenSegments = [15, 36, 56, 76]; // Spreads options cleanly across horizontal screen sectors
+            var optionsBox = document.getElementById('field-options');
+            optionsBox.innerHTML = '';
             
-            // Randomize options placements so answers shuffle visually
-            var shuffledAnswers = [].concat(item.answers).sort(function() { return 0.5 - Math.random(); });
-
-            shuffledAnswers.forEach(function(ans, idx) {
-                var bal = document.createElement('div');
-                bal.className = 'game-balloon';
-                bal.innerText = ans;
-                
-                var randomColor = balloonColors[Math.floor(Math.random() * balloonColors.length)];
-                bal.style.backgroundColor = randomColor;
-                bal.style.color = randomColor; // Provides hex context to CSS currentColor pseudo elements
-                
-                // Set layout coordinate placement along screen segments
-                bal.style.left = screenSegments[idx] + '%';
-                // Introduce staggered floating offsets so they don't ascend perfectly aligned
-                bal.style.animationDelay = (Math.random() * 1.2) + 's';
-                
-                bal.onclick = function() { processBalloonPop(bal, ans, item.correct); };
-                
-                document.body.appendChild(bal);
-                activeBalloonElements.push(bal);
+            item.answers.forEach(function(ans) {
+                var card = document.createElement('div');
+                card.className = 'part-card';
+                card.innerHTML = '⚙️ ' + ans;
+                card.onclick = function() { checkAnswer(card, ans, item.correct); };
+                optionsBox.appendChild(card);
             });
         }
 
-        function processBalloonPop(clickedElement, chosenString, correctString) {
-            // Instantly freeze/disable interaction across active options
-            activeBalloonElements.forEach(function(b) { b.style.pointerEvents = 'none'; });
-            
-            clickedElement.classList.add('popped');
+        function checkAnswer(cardElement, chosen, correct) {
+            document.querySelectorAll('.part-card').forEach(function(el) { el.style.pointerEvents = 'none'; });
 
-            if (chosenString === correctString) {
+            if (chosen === correct) {
+                cardElement.classList.add('correct');
                 triggerAudio('correct');
-                deployConfettiEngine();
-                launchSideRewardBalloons(); // Specific requirement execution triggers left/right balloons!
+                deployConfetti();
+                triggerSideBalloons(); // Celebration balloons trigger cleanly from left/right margins!
                 gameScore++;
                 document.getElementById('label-score').innerText = gameScore;
-                
-                // Animate and clear wrong floating balloons away elegantly
-                setTimeout(function() {
-                    activeBalloonElements.forEach(function(b) { if(b !== clickedElement) b.classList.add('popped'); });
-                }, 400);
             } else {
+                cardElement.classList.add('wrong');
                 triggerAudio('wrong');
-                // Pulse or mark the wrong balloon choice red while showing the right choice
-                clickedElement.style.border = "4px solid #D32F2F";
-                activeBalloonElements.forEach(function(b) {
-                    if (b.innerText === correctString) {
-                        b.style.border = "5px solid #4CAF50";
-                        b.style.transform = "scale(1.2)";
-                        b.style.fontWeight = "900";
-                    }
+                document.querySelectorAll('.part-card').forEach(function(el) {
+                    if (el.innerText.replace('⚙️ ', '') === correct) el.classList.add('correct');
                 });
             }
 
-            // Schedule transition sweep for next scenario
             setTimeout(function() {
                 pIndex++;
                 var pool = (currentPhase === 1) ? phase1Pool : phase2Pool;
@@ -485,25 +415,24 @@
                 } else if(currentPhase === 1) {
                     initLevel2();
                 } else {
-                    concludeSimulation();
+                    showVictoryScreen();
                 }
-            }, 2500);
+            }, 2000);
         }
 
-        function concludeSimulation() {
-            clearActiveBalloons();
+        function showVictoryScreen() {
             document.getElementById('active-playfield').style.display = 'none';
             document.getElementById('victory-card').style.display = 'block';
-            triggerAudio('victory'); // Plays claps sound asset
+            triggerAudio('victory');
             var totalQ = phase1Pool.length + phase2Pool.length;
-            document.getElementById('final-stats').innerText = "Game Score: " + gameScore + " / " + totalQ;
+            document.getElementById('final-stats').innerText = "Timeline Repair Accuracy: " + gameScore + " / " + totalQ;
         }
 
         function resetSimulator() {
             location.reload();
         }
 
-        /* --- LOGO SPLASH DISPATCH ENGINE --- */
+        /* --- STABLE 5-SECOND SPLASH SCREEN DISPATCH --- */
         window.addEventListener('load', function() {
             var splash = document.getElementById('splash-screen');
             var mainContainer = document.getElementById('game-container');
