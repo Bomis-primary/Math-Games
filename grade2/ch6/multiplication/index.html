@@ -57,7 +57,7 @@
         #game-container {
             width: 95%;
             max-width: 750px;
-            height: 620px;
+            height: 640px;
             background: #FFFFFF;
             border-radius: 24px;
             border: 6px solid var(--panel-bg);
@@ -82,9 +82,9 @@
             z-index: 50;
         }
         .mission-text {
-            font-size: 1.25rem; line-height: 1.6; margin: 20px 0; max-width: 550px;
-            background: #E0F7FA; padding: 20px; border-radius: 16px; border: 2px dashed #00ACC1;
-            color: #006064;
+            font-size: 1.5rem; line-height: 1.6; margin: 25px 0; max-width: 550px;
+            background: #E0F7FA; padding: 25px; border-radius: 16px; border: 2px dashed #00ACC1;
+            color: #006064; font-weight: bold;
         }
         .start-btn {
             background: linear-gradient(135deg, #00D2FF, #0066FF); color: white;
@@ -98,24 +98,53 @@
         .hud-header {
             background: var(--panel-bg);
             color: var(--text-light);
-            padding: 12px 20px;
+            padding: 14px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-weight: bold;
-            font-size: 1.05rem;
+            font-size: 1.2rem;
             z-index: 30;
         }
         .target-banner {
             background: #E0F2F1;
             border-bottom: 4px solid #00B0FF;
-            padding: 16px;
-            font-size: 1.7rem;
+            padding: 14px;
+            font-size: 1.4rem;
             font-weight: bold;
             text-align: center;
             color: #006064;
             z-index: 29;
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        /* --- VISUAL DISPLAY FOR GROUPED FISH --- */
+        #visual-group-display {
+            background: rgba(0, 172, 193, 0.1);
+            border: 3px dashed #00ACC1;
+            margin: 10px auto 0 auto;
+            width: 90%;
+            border-radius: 16px;
+            padding: 10px;
+            display: none;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .fish-group-bubble {
+            background: rgba(255, 255, 255, 0.85);
+            border: 3px solid #00BCD4;
+            border-radius: 50%;
+            width: 110px;
+            height: 110px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+        }
+        .mini-fish {
+            width: 42px;
+            height: 42px;
         }
 
         /* --- UNDERWATER PLAYFIELD SAFEZONE --- */
@@ -125,17 +154,16 @@
             position: relative;
             overflow: hidden;
         }
-        /* Tiny decorative background weeds */
         .ambient-weed {
             position: absolute; bottom: 0; width: 40px; height: 110px;
             background: rgba(76, 175, 80, 0.4); border-radius: 50% 50% 0 0;
             filter: blur(2px);
         }
 
-        /* --- FLOATING FISH COMPONENT (Replaced Circles) --- */
+        /* --- FLOATING FISH COMPONENT --- */
         .fish-node {
             position: absolute;
-            width: 120px;
+            width: 170px;
             height: 150px;
             cursor: pointer;
             display: flex;
@@ -145,7 +173,6 @@
             transition: transform 0.05s linear;
         }
 
-        /* Custom Vector Styling */
         .fish-graphic {
             position: absolute;
             top: 0;
@@ -156,20 +183,22 @@
             filter: drop-shadow(0 8px 12px rgba(0,0,0,0.3));
         }
 
-        /* High-Contrast Value Badge Inside Fish Belly */
+        /* Expanded Badge for Structural Options */
         .value-badge {
             background: #FFFFFF;
             color: #0D2B45;
-            padding: 4px 10px;
-            border-radius: 8px;
-            font-size: 1.45rem;
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 1.15rem;
             font-weight: 900;
             border: 3px solid #0D2B45;
             text-align: center;
-            min-width: 60px;
+            min-width: 140px;
+            max-width: 165px;
             box-shadow: 0 4px 0 rgba(0,0,0,0.15);
             z-index: 2;
-            margin-top: -10px; /* Positions perfectly on the main core body */
+            margin-top: -5px;
+            line-height: 1.2;
         }
 
         .pop-sparkle {
@@ -180,25 +209,28 @@
 </head>
 <body>
 
+    <!-- Splash Screen Component -->
     <div id="splash-screen">
         <img src="assets/logo.png" alt="Game Logo" class="splash-logo" onerror="this.src='https://placehold.co/220x60/00BCD4/fff?text=Logo'">
         <div class="timer-loader"><div class="timer-progress"></div></div>
     </div>
 
+    <!-- Core Game Interface Box Frame -->
     <div id="game-container">
         
+        <!-- Instruction Screen Container Card -->
         <div id="intro-card" class="overlay-card">
             <div style="font-size: 4.5rem; margin-bottom: 10px;">🐙🐠🐟</div>
             <h2 style="color: #006064; font-size: 2.2rem;">Deep Sea Multiplication!</h2>
             <p class="mission-text">
-                Welcome to the underwater exploration! Look at the multiplication problem at the top, watch the 3 slow sea fish swim up, and tap the fish with the correct magic answer to earn points!
+                Fill in the blanks!
             </p>
             <button class="start-btn" onclick="bootMathEngine()">Dive In! 🚀</button>
         </div>
 
+        <!-- HUD Panel Info -->
         <div class="hud-header">
             <span id="label-level">Question: 1 / 15</span>
-            <span style="background: #00BCD4; padding: 4px 12px; border-radius: 12px; color: white; font-size: 0.9rem;">Grade 2 Multiplication</span>
             <span>Score: <span id="label-score" style="color: #4AF2A1;">0</span></span>
         </div>
 
@@ -206,11 +238,18 @@
             Loading your puzzle...
         </div>
 
+        <!-- Grouped Fish Demonstration Sandbox Area -->
+        <div id="visual-group-display">
+            <!-- Programmatically filled with 4 groups of 2 fish -->
+        </div>
+
+        <!-- Underwater Scenery Box Area -->
         <div class="sea-field" id="playfield-canvas">
             <div class="ambient-weed" style="left: 40px; height: 140px;"></div>
             <div class="ambient-weed" style="right: 70px; height: 90px;"></div>
         </div>
 
+        <!-- Ultimate Victory Screen Frame -->
         <div id="victory-card" class="overlay-card" style="display: none;">
             <div style="font-size: 5rem;">🏆🐳👑</div>
             <h1 style="color: #006064; font-size: 2.4rem; margin: 15px 0;">Submarine Math Champion! 🏆</h1>
@@ -223,28 +262,64 @@
 
     </div>
 
+    <!-- Audio Elements -->
     <audio id="snd-pop" src="assets/correct.mp3" preload="none"></audio>
     <audio id="snd-wrong" src="assets/wrong.mp3" preload="none"></audio>
     <audio id="snd-victory" src="assets/freesound_community-claps-44774.mp3" preload="none"></audio>
 
     <script>
-        // 15 comprehensive Grade 2 multiplication learning milestones
+        // Shared dynamic vector micro-asset template
+        function generateFishSVGString(color) {
+            return `
+                <svg class="fish-graphic" viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M60 110 L40 145 L80 145 Z" fill="${color}" opacity="0.85"/>
+                    <path d="M60 110 L50 145 L70 145 Z" fill="#FFFFFF" opacity="0.2"/>
+                    <path d="M25 65 L5 75 L25 85 Z" fill="${color}"/>
+                    <path d="M95 65 L115 75 L95 85 Z" fill="${color}"/>
+                    <ellipse cx="60" cy="65" rx="36" ry="50" fill="${color}"/>
+                    <ellipse cx="60" cy="65" rx="26" ry="38" fill="#FFFFFF" opacity="0.15"/>
+                    <circle cx="44" cy="30" r="8" fill="#FFFFFF"/>
+                    <circle cx="44" cy="28" r="4" fill="#000000"/>
+                    <circle cx="76" cy="30" r="8" fill="#FFFFFF"/>
+                    <circle cx="76" cy="28" r="4" fill="#000000"/>
+                    <path d="M52 15 Q60 8 68 15" stroke="#FFFFFF" stroke-width="3" fill="none"/>
+                </svg>
+            `;
+        }
+
+        function generateHorizontalMiniFishSVG(color) {
+            return `
+                <svg class="mini-fish" viewBox="0 0 150 120" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M110 60 L145 40 L145 80 Z" fill="${color}"/>
+                    <ellipse cx="65" cy="60" rx="50" ry="36" fill="${color}"/>
+                    <circle cx="30" cy="44" r="8" fill="#FFFFFF"/>
+                    <circle cx="28" cy="44" r="4" fill="#000000"/>
+                </svg>
+            `;
+        }
+
+        // 15 Comprehensive Milestones with your customized introductory question!
         var problemSets = [
-            { question: "What is 2 + 2 + 2 + 2 equal to?", target: 8, choices: [8, 6, 10] },
-            { question: "Express as multiplication: 5 + 5 + 5", target: 15, choices: [15, 10, 20] },
-            { question: "What is 2 × 4?", target: 8, choices: [8, 6, 12] },
-            { question: "What is 5 × 3?", target: 15, choices: [15, 12, 18] },
-            { question: "What is 10 × 4?", target: 40, choices: [40, 14, 50] },
-            { question: "What is 3 × 3?", target: 9, choices: [9, 6, 12] },
-            { question: "If 4 × 2 = 8, then 2 × 4 = ___?", target: 8, choices: [8, 6, 10] },
-            { question: "Complete the property: 7 × 0 = ___?", target: 0, choices: [0, 7, 14] },
-            { question: "Complete the identity: 9 × 1 = ___?", target: 9, choices: [9, 1, 10] },
-            { question: "What is 12 × 2?", target: 24, choices: [24, 22, 14] },
-            { question: "What is 23 × 3?", target: 69, choices: [69, 66, 59] },
-            { question: "What is 6 × 10?", target: 60, choices: [60, 16, 600] },
-            { question: "What is 3 × 100?", target: 300, choices: [300, 30, 303] },
-            { question: "What is 15 × 4?", target: 60, choices: [60, 45, 55] },
-            { question: "What is 26 × 3?", target: 78, choices: [78, 68, 88] }
+            { 
+                question: "Look at the aquarium below. What grouping structure do you see?", 
+                target: "4 groups of 2 fish", 
+                choices: ["4 groups of 2 fish", "2 groups of 4 fish", "3 groups of 3 fish"],
+                isVisualProblem: true
+            },
+            { question: "What is 2 + 2 + 2 + 2 equal to?", target: "8", choices: ["8", "6", "10"] },
+            { question: "Express as multiplication: 5 + 5 + 5 = ___", target: "15", choices: ["15", "10", "20"] },
+            { question: "What is 2 × 4?", target: "8", choices: ["8", "6", "12"] },
+            { question: "What is 5 × 3?", target: "15", choices: ["15", "12", "18"] },
+            { question: "What is 10 × 4?", target: "40", choices: ["40", "14", "50"] },
+            { question: "What is 3 × 3?", target: "9", choices: ["9", "6", "12"] },
+            { question: "If 4 × 2 = 8, then 2 × 4 = ___?", target: "8", choices: ["8", "6", "10"] },
+            { question: "Complete the property: 7 × 0 = ___?", target: "0", choices: ["0", "7", "14"] },
+            { question: "Complete the identity: 9 × 1 = ___?", target: "9", choices: ["9", "1", "10"] },
+            { question: "What is 12 × 2?", target: "24", choices: ["24", "22", "14"] },
+            { question: "What is 23 × 3?", target: "69", choices: ["69", "66", "59"] },
+            { question: "What is 6 × 10?", target: "60", choices: ["60", "16", "600"] },
+            { question: "What is 3 × 100?", target: "300", choices: ["300", "30", "303"] },
+            { question: "What is 15 × 4?", target: "60", choices: ["60", "45", "55"] }
         ];
 
         var currentStep = 0;
@@ -253,7 +328,6 @@
         var frameAnimationId = null;
         var DRIFT_SPEED = 0.75;
 
-        // Bright ocean color variants for fish
         var fishColors = ["#FF5722", "#E91E63", "#00BCD4"];
 
         function playSound(type) {
@@ -288,11 +362,25 @@
         function loadMathProblem() {
             clearActiveFish();
             
-            var totalLevels = problemSets.length;
-            document.getElementById('label-level').innerText = "Question: " + (currentStep + 1) + " / " + totalLevels;
-            
+            var visualHeaderBlock = document.getElementById('visual-group-display');
             var activeData = problemSets[currentStep];
+            
+            document.getElementById('label-level').innerText = "Question: " + (currentStep + 1) + " / " + problemSets.length;
             document.getElementById('current-target-formula').innerText = activeData.question;
+
+            // Generate the requested 4 groups of 2 fish context row dynamically
+            if (activeData.isVisualProblem) {
+                visualHeaderBlock.style.display = 'flex';
+                visualHeaderBlock.innerHTML = '';
+                for(var g = 0; g < 4; g++) {
+                    var groupContainer = document.createElement('div');
+                    groupContainer.className = 'fish-group-bubble';
+                    groupContainer.innerHTML = generateHorizontalMiniFishSVG('#FF5722') + generateHorizontalMiniFishSVG('#00BCD4');
+                    visualHeaderBlock.appendChild(groupContainer);
+                }
+            } else {
+                visualHeaderBlock.style.display = 'none';
+            }
 
             var randomizedChoices = activeData.choices.slice();
             shuffleArray(randomizedChoices);
@@ -304,31 +392,15 @@
                 var fishContainer = document.createElement('div');
                 fishContainer.className = 'fish-node';
 
-                // Inline beautiful upward facing fish SVG
                 var color = fishColors[i % fishColors.length];
-                var svgHTML = `
-                    <svg class="fish-graphic" viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M60 110 L40 145 L80 145 Z" fill="${color}" opacity="0.85"/>
-                        <path d="M60 110 L50 145 L70 145 Z" fill="#FFFFFF" opacity="0.2"/>
-                        <path d="M25 65 L5 75 L25 85 Z" fill="${color}"/>
-                        <path d="M95 65 L115 75 L95 85 Z" fill="${color}"/>
-                        <ellipse cx="60" cy="65" rx="36" ry="50" fill="${color}"/>
-                        <ellipse cx="60" cy="65" rx="26" ry="38" fill="#FFFFFF" opacity="0.15"/>
-                        <circle cx="44" cy="30" r="8" fill="#FFFFFF"/>
-                        <circle cx="44" cy="28" r="4" fill="#000000"/>
-                        <circle cx="76" cy="30" r="8" fill="#FFFFFF"/>
-                        <circle cx="76" cy="28" r="4" fill="#000000"/>
-                        <path d="M52 15 Q60 8 68 15" stroke="#FFFFFF" stroke-width="3" fill="none"/>
-                    </svg>
-                `;
-                fishContainer.innerHTML = svgHTML;
+                fishContainer.innerHTML = generateFishSVGString(color);
 
                 var badge = document.createElement('div');
                 badge.className = 'value-badge';
                 badge.innerText = val;
                 fishContainer.appendChild(badge);
 
-                var computedLeft = (i * trackWidth) + (trackWidth / 2) - 60; 
+                var computedLeft = (i * trackWidth) + (trackWidth / 2) - 85; 
                 fishContainer.style.left = computedLeft + "px";
                 
                 var startTop = 500; 
@@ -377,10 +449,10 @@
         }
 
         function evaluateFishSelection(hitElement) {
-            var selectedNum = parseInt(hitElement.dataset.value);
-            var correctNum = parseInt(hitElement.dataset.targetVal);
+            var selectedStr = hitElement.dataset.value;
+            var correctStr = hitElement.dataset.targetVal;
 
-            if (selectedNum === correctNum) {
+            if (selectedStr === correctStr) {
                 playSound('pop');
                 triggerSparkleBurst(hitElement);
                 totalScore += 10;
@@ -451,6 +523,7 @@
 
         function concludeMatrixSystem() {
             clearActiveFish();
+            document.getElementById('visual-group-display').style.display = 'none';
             document.getElementById('victory-card').style.display = 'flex';
             document.getElementById('final-stats').innerText = "Final Score: " + totalScore + " / 150 Points!";
             playSound('victory');
