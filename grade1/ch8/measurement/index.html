@@ -24,7 +24,7 @@
             min-height: 100vh;
             overflow: hidden;
         }
-        /* Splash Screen Style */
+        /* Splash Screen Style with 5-Second Logo Display */
         #splash-screen {
             position: fixed;
             top: 0;
@@ -40,6 +40,31 @@
             transition: opacity 0.5s ease;
             color: white;
             text-align: center;
+            padding: 20px;
+        }
+        .splash-logo-container {
+            width: 140px;
+            height: 140px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 4px solid #fff59d;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 65px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            animation: pulse-logo 2s infinite alternate;
+            overflow: hidden;
+        }
+        .splash-logo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        @keyframes pulse-logo {
+            from { transform: scale(0.95); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
+            to { transform: scale(1.05); box-shadow: 0 12px 24px rgba(0,0,0,0.3); }
         }
         .splash-title {
             font-size: 32px;
@@ -55,8 +80,8 @@
             border: 6px solid rgba(255,255,255,0.3);
             border-top: 6px solid #fff59d;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
         }
         @keyframes spin {
@@ -297,12 +322,16 @@
 </head>
 <body>
 
-    <!-- Splash Screen Screen Panel -->
+    <!-- Splash Screen Panel with Verified 5-Second Timer and Logo Display -->
     <div id="splash-screen">
-        <div class="splash-title">🌴 Measurement Island</div>
+        <div class="splash-logo-container">
+            <!-- Tries loading a local logo image file, gracefully falls back to emoji art if absent -->
+            <img class="splash-logo-img" src="assets/innovine-logo.png" alt="🌴" onerror="this.style.display='none';">
+        </div>
+        <div class="splash-title">Measurement Island</div>
         <div class="splash-subtitle">Length, Weight & Capacity Quest</div>
         <div class="loader"></div>
-        <p style="margin-top: 15px; font-weight: bold; font-size: 14px; letter-spacing: 1px;">PREPARING ADVENTURE...</p>
+        <p style="margin-top: 15px; font-weight: bold; font-size: 13px; letter-spacing: 1px;">PREPARING ADVENTURE...</p>
     </div>
 
     <!-- Audio Placeholders -->
@@ -351,9 +380,9 @@
             } catch (e) {}
         }
 
-        // Fully randomized bank covering all core LO goals from image_5e38bc.png
+        // Questions mapping to objectives within image_5e38bc.png
         const puzzleBank = [
-            // LEVEL 1: LENGTH PILLARS
+            // LEVEL 1: LENGTH
             {
                 level: 1,
                 title: "📏 Length Comparison Quest",
@@ -380,15 +409,15 @@
                 options: ["2 paperclips", "4 paperclips", "6 paperclips", "8 paperclips"]
             },
 
-            // LEVEL 2: WEIGHT PILLARS
+            // LEVEL 2: WEIGHT
             {
                 level: 2,
                 title: "⚖️ Weight Balance Quest",
                 instruction: "Look at how the balance scale tips! Complete the true math sentence below.",
                 type: "weight-comparison",
-                weightState: "left-heavy", // tilts beam left
-                leftItem: "⛰️", // boulder
-                rightItem: "🪶", // feather
+                weightState: "left-heavy",
+                leftItem: "⛰️",
+                rightItem: "🪶",
                 sentenceContext: "The heavy Boulder ⛰️ is ________ than the light Feather 🪶.",
                 answer: "heavier than",
                 options: ["heavier than", "lighter than", "as heavy as"]
@@ -405,7 +434,7 @@
                 options: ["3 blocks", "5 blocks", "8 blocks"]
             },
 
-            // LEVEL 3: CAPACITY PILLARS
+            // LEVEL 3: CAPACITY
             {
                 level: 3,
                 title: "🥤 Capacity Container Quest",
@@ -440,7 +469,7 @@
         let finalScore = 0;
         let isInputAllowed = true;
 
-        // Auto transition off splash screen screen after 5 seconds delay
+        // Auto-hide the splash screen after exactly 5000 milliseconds (5 seconds)
         setTimeout(() => {
             const splash = document.getElementById('splash-screen');
             const gameWindow = document.getElementById('main-game');
@@ -460,7 +489,6 @@
             const optionsZone = document.getElementById('options-zone');
             const progressFill = document.getElementById('progress-bar-fill');
             
-            // Render progress state calculations
             progressFill.style.width = `${(currentIndex / puzzleBank.length) * 100}%`;
 
             if (currentIndex >= puzzleBank.length) {
@@ -470,16 +498,13 @@
 
             const currentPuzzle = puzzleBank[currentIndex];
             
-            // Set headers metadata text strings
             document.getElementById('level-lbl').innerText = `Level ${currentPuzzle.level}: Master ${currentPuzzle.level === 1 ? 'Length' : currentPuzzle.level === 2 ? 'Weight' : 'Capacity'}`;
             document.getElementById('game-title').innerText = currentPuzzle.title;
             document.getElementById('instruction-txt').innerText = currentPuzzle.instruction;
 
-            // CLEAR DYNAMIC REGIONS
             space.innerHTML = "";
             optionsZone.innerHTML = "";
 
-            // INJECT GRAPHICAL INTERACTION MATRIX ACCORDING TO DATA TYPES
             if (currentPuzzle.type === "length-comparison") {
                 let lengthHTML = `<div class="length-row">`;
                 currentPuzzle.items.forEach(item => {
@@ -527,7 +552,6 @@
                 space.innerHTML = capacityHTML;
             }
 
-            // BUILD BOTTOM INTERACTIVE BUTTON ROW ARRAY OPTIONS
             currentPuzzle.options.forEach(optionText => {
                 const btnNode = document.createElement('button');
                 btnNode.className = "btn";
@@ -541,18 +565,13 @@
             if (!isInputAllowed) return;
             const currentPuzzle = puzzleBank[currentIndex];
             const buttons = document.querySelectorAll('#options-zone .btn');
-            
             buttons.forEach(btn => {
-                if (btn.innerText === currentPuzzle.options[id]) {
-                    btn.click();
-                }
+                if (btn.innerText === currentPuzzle.options[id]) btn.click();
             });
         }
 
         function selectCapacityItem(name) {
             if (!isInputAllowed) return;
-            
-            // Visual pouring water feedback animation sequence
             const fillLine = document.getElementById(`fill-${name}`);
             if (fillLine) fillLine.style.height = "85%";
 
@@ -561,9 +580,7 @@
             
             setTimeout(() => {
                 buttons.forEach(btn => {
-                    if (btn.innerText === name) {
-                        btn.click();
-                    }
+                    if (btn.innerText === name) btn.click();
                 });
             }, 600);
         }
@@ -590,16 +607,12 @@
                 clickedBtn.classList.add('wrong');
                 triggerSound(false);
                 
-                // Expose correct layout option node safely as a learning cue
                 document.querySelectorAll('#options-zone .btn').forEach(btn => {
                     let targetGoalText = (q.type === "length-comparison") ? q.options[q.correctId] : q.answer;
-                    if (btn.innerText === targetGoalText) {
-                        btn.classList.add('correct');
-                    }
+                    if (btn.innerText === targetGoalText) btn.classList.add('correct');
                 });
             }
 
-            // Move forwards onto the next sequential challenge layout safely
             setTimeout(() => {
                 currentIndex++;
                 loadNextQuestion();
@@ -609,7 +622,7 @@
         function renderEndScreen() {
             document.getElementById('level-lbl').style.display = "none";
             document.getElementById('game-title').innerText = "🌴 Exploration Complete!";
-            document.getElementById('instruction-txt').innerText = "Splendid job! You completed all the length, weight, and capacity comparison islands successfully.";
+            document.getElementById('instruction-txt').innerText = "Splendid job! You mastered all the length, weight, and capacity comparison islands successfully.";
             
             const space = document.getElementById('interactive-space');
             const optionsZone = document.getElementById('options-zone');
