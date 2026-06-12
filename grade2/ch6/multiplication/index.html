@@ -9,7 +9,6 @@
             --panel-bg: #0D2B45;
             --accent-orange: #FF9800;
             --text-light: #FFFFFF;
-            --sea-bubble: rgba(33, 150, 243, 0.7);
         }
 
         * {
@@ -119,7 +118,7 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
-        /* --- UNDERWATER PLAYFIELD SAFEZONE (No background image dependencies) --- */
+        /* --- UNDERWATER PLAYFIELD SAFEZONE --- */
         .sea-field {
             flex: 1;
             background: linear-gradient(to bottom, #1A237E, #121640) !important;
@@ -133,34 +132,44 @@
             filter: blur(2px);
         }
 
-        /* --- FLOATING BUBBLE COMPONENT --- */
-        .bubble-node {
+        /* --- FLOATING FISH COMPONENT (Replaced Circles) --- */
+        .fish-node {
             position: absolute;
-            width: 115px;
-            height: 115px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.9) 0%, rgba(0,188,212,0.4) 40%, rgba(13,71,161,0.6) 80%);
-            border: 2px solid rgba(255,255,255,0.6);
-            box-shadow: inset -10px -10px 25px rgba(0,0,0,0.3), 0 10px 20px rgba(0,0,0,0.2);
+            width: 120px;
+            height: 150px;
             cursor: pointer;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             transition: transform 0.05s linear;
         }
 
-        /* High-Contrast Value Badge Inside Bubble */
+        /* Custom Vector Styling */
+        .fish-graphic {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            filter: drop-shadow(0 8px 12px rgba(0,0,0,0.3));
+        }
+
+        /* High-Contrast Value Badge Inside Fish Belly */
         .value-badge {
             background: #FFFFFF;
             color: #0D2B45;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 1.5rem;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 1.45rem;
             font-weight: 900;
             border: 3px solid #0D2B45;
             text-align: center;
-            min-width: 65px;
+            min-width: 60px;
             box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+            z-index: 2;
+            margin-top: -10px; /* Positions perfectly on the main core body */
         }
 
         .pop-sparkle {
@@ -179,10 +188,10 @@
     <div id="game-container">
         
         <div id="intro-card" class="overlay-card">
-            <div style="font-size: 4.5rem; margin-bottom: 10px;">🐙🐠🫧</div>
+            <div style="font-size: 4.5rem; margin-bottom: 10px;">🐙🐠🐟</div>
             <h2 style="color: #006064; font-size: 2.2rem;">Deep Sea Multiplication!</h2>
             <p class="mission-text">
-                Welcome to the underwater exploration! Look at the multiplication problem at the top, watch the 3 slow oxygen bubbles float up, and pop the bubble with the correct magic answer to earn points!
+                Welcome to the underwater exploration! Look at the multiplication problem at the top, watch the 3 slow sea fish swim up, and tap the fish with the correct magic answer to earn points!
             </p>
             <button class="start-btn" onclick="bootMathEngine()">Dive In! 🚀</button>
         </div>
@@ -240,9 +249,12 @@
 
         var currentStep = 0;
         var totalScore = 0;
-        var trackingBalloons = [];
+        var trackingFish = [];
         var frameAnimationId = null;
         var DRIFT_SPEED = 0.75;
+
+        // Bright ocean color variants for fish
+        var fishColors = ["#FF5722", "#E91E63", "#00BCD4"];
 
         function playSound(type) {
             try {
@@ -274,7 +286,7 @@
         }
 
         function loadMathProblem() {
-            clearActiveBalloons();
+            clearActiveFish();
             
             var totalLevels = problemSets.length;
             document.getElementById('label-level').innerText = "Question: " + (currentStep + 1) + " / " + totalLevels;
@@ -289,30 +301,50 @@
 
             for (var i = 0; i < 3; i++) {
                 var val = randomizedChoices[i];
-                var bubble = document.createElement('div');
-                bubble.className = 'bubble-node';
+                var fishContainer = document.createElement('div');
+                fishContainer.className = 'fish-node';
+
+                // Inline beautiful upward facing fish SVG
+                var color = fishColors[i % fishColors.length];
+                var svgHTML = `
+                    <svg class="fish-graphic" viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M60 110 L40 145 L80 145 Z" fill="${color}" opacity="0.85"/>
+                        <path d="M60 110 L50 145 L70 145 Z" fill="#FFFFFF" opacity="0.2"/>
+                        <path d="M25 65 L5 75 L25 85 Z" fill="${color}"/>
+                        <path d="M95 65 L115 75 L95 85 Z" fill="${color}"/>
+                        <ellipse cx="60" cy="65" rx="36" ry="50" fill="${color}"/>
+                        <ellipse cx="60" cy="65" rx="26" ry="38" fill="#FFFFFF" opacity="0.15"/>
+                        <circle cx="44" cy="30" r="8" fill="#FFFFFF"/>
+                        <circle cx="44" cy="28" r="4" fill="#000000"/>
+                        <circle cx="76" cy="30" r="8" fill="#FFFFFF"/>
+                        <circle cx="76" cy="28" r="4" fill="#000000"/>
+                        <path d="M52 15 Q60 8 68 15" stroke="#FFFFFF" stroke-width="3" fill="none"/>
+                    </svg>
+                `;
+                fishContainer.innerHTML = svgHTML;
 
                 var badge = document.createElement('div');
                 badge.className = 'value-badge';
                 badge.innerText = val;
-                bubble.appendChild(badge);
+                fishContainer.appendChild(badge);
 
-                var computedLeft = (i * trackWidth) + (trackWidth / 2) - 57; 
-                bubble.style.left = computedLeft + "px";
+                var computedLeft = (i * trackWidth) + (trackWidth / 2) - 60; 
+                fishContainer.style.left = computedLeft + "px";
                 
                 var startTop = 500; 
-                bubble.style.top = startTop + "px";
+                fishContainer.style.top = startTop + "px";
 
-                bubble.dataset.value = val;
-                bubble.dataset.targetVal = activeData.target;
-                bubble.dataset.currentY = startTop;
+                fishContainer.dataset.value = val;
+                fishContainer.dataset.targetVal = activeData.target;
+                fishContainer.dataset.currentY = startTop;
+                fishContainer.dataset.color = color;
 
-                bubble.onclick = function(e) {
-                    evaluatePopSelection(this);
+                fishContainer.onclick = function(e) {
+                    evaluateFishSelection(this);
                 };
 
-                document.getElementById('playfield-canvas').appendChild(bubble);
-                trackingBalloons.push(bubble);
+                document.getElementById('playfield-canvas').appendChild(fishContainer);
+                trackingFish.push(fishContainer);
             }
 
             if (frameAnimationId) cancelAnimationFrame(frameAnimationId);
@@ -320,15 +352,15 @@
         }
 
         function updateDriftCycle() {
-            for (var i = 0; i < trackingBalloons.length; i++) {
-                var bNode = trackingBalloons[i];
-                var currY = parseFloat(bNode.dataset.currentY);
+            for (var i = 0; i < trackingFish.length; i++) {
+                var fNode = trackingFish[i];
+                var currY = parseFloat(fNode.dataset.currentY);
                 
                 currY -= DRIFT_SPEED;
-                bNode.dataset.currentY = currY;
-                bNode.style.transform = "translateY(" + (currY - 500) + "px)";
+                fNode.dataset.currentY = currY;
+                fNode.style.transform = "translateY(" + (currY - 500) + "px)";
 
-                if (currY < -150) {
+                if (currY < -180) {
                     resetFieldLoop();
                     return;
                 }
@@ -337,14 +369,14 @@
         }
 
         function resetFieldLoop() {
-            for (var i = 0; i < trackingBalloons.length; i++) {
-                trackingBalloons[i].dataset.currentY = 500;
-                trackingBalloons[i].style.transform = "translateY(0px)";
+            for (var i = 0; i < trackingFish.length; i++) {
+                trackingFish[i].dataset.currentY = 500;
+                trackingFish[i].style.transform = "translateY(0px)";
             }
             frameAnimationId = requestAnimationFrame(updateDriftCycle);
         }
 
-        function evaluatePopSelection(hitElement) {
+        function evaluateFishSelection(hitElement) {
             var selectedNum = parseInt(hitElement.dataset.value);
             var correctNum = parseInt(hitElement.dataset.targetVal);
 
@@ -383,11 +415,12 @@
             
             var centerX = rect.left - canvasRect.left + (rect.width / 2);
             var centerY = rect.top - canvasRect.top + (rect.height / 2);
+            var burstColor = originNode.dataset.color;
 
             for (var i = 0; i < 16; i++) {
                 var p = document.createElement('div');
                 p.className = 'pop-sparkle';
-                p.style.backgroundColor = '#00E5FF';
+                p.style.backgroundColor = burstColor;
                 p.style.left = centerX + 'px';
                 p.style.top = centerY + 'px';
                 canvas.appendChild(p);
@@ -398,7 +431,7 @@
                 var finY = Math.sin(ang) * dist;
 
                 p.animate([
-                    { transform: 'translate(-50%, -50%) scale(1.2)', opacity: 1 },
+                    { transform: 'translate(-50%, -50%) scale(1.4)', opacity: 1 },
                     { transform: 'translate(calc(-50% + ' + finX + 'px), calc(-50% + ' + finY + 'px)) scale(0)', opacity: 0 }
                 ], { duration: 500, easing: 'ease-out', fill: 'forwards' });
 
@@ -408,16 +441,16 @@
             }
         }
 
-        function clearActiveBalloons() {
+        function clearActiveFish() {
             if (frameAnimationId) cancelAnimationFrame(frameAnimationId);
             var canvas = document.getElementById('playfield-canvas');
-            var items = canvas.querySelectorAll('.bubble-node');
+            var items = canvas.querySelectorAll('.fish-node');
             items.forEach(function(el){ el.remove(); });
-            trackingBalloons = [];
+            trackingFish = [];
         }
 
         function concludeMatrixSystem() {
-            clearActiveBalloons();
+            clearActiveFish();
             document.getElementById('victory-card').style.display = 'flex';
             document.getElementById('final-stats').innerText = "Final Score: " + totalScore + " / 150 Points!";
             playSound('victory');
@@ -428,7 +461,7 @@
             document.getElementById('intro-card').style.display = 'flex';
         }
 
-        /* --- STABLE TIMEOUT LOADING SYSTEM --- */
+        /* --- LOADING MANAGEMENT SYSTEM --- */
         window.addEventListener('load', function() {
             var splashNode = document.getElementById('splash-screen');
             var mainFrame = document.getElementById('game-container');
