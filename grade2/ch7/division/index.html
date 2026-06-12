@@ -2,25 +2,26 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pizza Party Division</title>
-    <!-- Canvas Confetti Library for completion celebration -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
             font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
-            touch-action: none; /* Prevents scrolling while dragging on mobile */
+            touch-action: none; /* Disables page scrolling completely while interacting */
         }
         body {
             background-color: #fff3e0;
             margin: 0;
-            padding: 15px;
+            padding: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            overflow-x: hidden;
+            overflow: hidden;
+            -webkit-user-select: none;
+            user-select: none;
         }
         /* Splash Screen Style */
         #splash-screen {
@@ -64,30 +65,30 @@
             background: white;
             border: 4px solid #ffb74d;
             border-radius: 20px;
-            padding: 20px;
+            padding: 15px;
             width: 100%;
-            max-width: 480px;
-            box-shadow: 0 8px 16 rgba(0,0,0,0.1);
+            max-width: 460px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
             text-align: center;
-            display: none; /* Hidden during splash screen */
+            display: none;
         }
         h1 {
             color: #e65100;
-            margin: 0 0 10px 0;
-            font-size: 26px;
+            margin: 0 0 8px 0;
+            font-size: 24px;
         }
         .volume-box {
             background: #fff8e1;
             padding: 5px;
             border-radius: 8px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             font-size: 14px;
         }
         .progress-bar {
             background: #f5f5f5;
             border-radius: 10px;
             height: 12px;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             overflow: hidden;
         }
         .progress {
@@ -97,70 +98,80 @@
             transition: width 0.3s;
         }
         .story-text {
-            font-size: 17px;
+            font-size: 16px;
             color: #4e342e;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             font-weight: bold;
             line-height: 1.4;
         }
         .instruction-alert {
-            font-size: 14px;
+            font-size: 13px;
             color: #d84315;
             font-weight: bold;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
             background: #fbe9e7;
-            padding: 5px;
-            border-radius: 5px;
+            padding: 6px;
+            border-radius: 6px;
         }
-        /* Drag and Drop Layout Area */
+        /* Drag and Drop Sandbox layout */
         .sandbox {
             background: #fafafa;
             border: 2px dashed #bcaaa4;
             border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
+            padding: 12px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        .section-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #8d6e63;
+            margin-bottom: 5px;
+            font-weight: bold;
         }
         .source-zone {
             display: flex;
             justify-content: center;
             align-items: center;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 12px;
             min-height: 65px;
             background: #fffde7;
             border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 15px;
+            padding: 8px;
+            margin-bottom: 12px;
         }
         .pizza-piece {
-            font-size: 32px;
+            font-size: 34px;
             cursor: grab;
             user-select: none;
-            position: relative;
-            z-index: 10;
+            display: inline-block;
+            transition: transform 0.1s;
         }
-        .pizza-piece:active {
+        .pizza-piece.dragging {
             cursor: grabbing;
+            transform: scale(1.2);
+            z-index: 1000 !important;
         }
         .targets-container {
             display: flex;
             justify-content: space-around;
-            gap: 10px;
-            margin-top: 15px;
+            gap: 8px;
+            margin-top: 10px;
         }
         .child-profile {
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 80px;
+            width: 85px;
         }
         .child-avatar {
             font-size: 36px;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
         }
         .drop-plate {
-            width: 70px;
-            height: 70px;
+            width: 75px;
+            height: 75px;
             background: #e0f2f1;
             border: 3px dashed #009688;
             border-radius: 50%;
@@ -169,19 +180,20 @@
             align-items: center;
             flex-wrap: wrap;
             gap: 2px;
-            font-size: 16px;
-            transition: background 0.2s;
+            padding: 4px;
+            transition: background 0.2s, transform 0.2s;
         }
         .drop-plate.hovered {
             background: #b2dfdb;
+            transform: scale(1.05);
         }
-        /* Options Style */
+        /* Options Panel Layout */
         .options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 12px;
-            opacity: 0.4;
-            pointer-events: none; /* Locked initially */
+            opacity: 0.3;
+            pointer-events: none;
             transition: opacity 0.3s;
         }
         .options-grid.unlocked {
@@ -195,10 +207,9 @@
             border-radius: 12px;
             color: white;
             font-size: 24px;
-            padding: 12px;
+            padding: 10px;
             cursor: pointer;
             font-weight: bold;
-            transition: background 0.2s;
         }
         .btn:active {
             transform: translateY(2px);
@@ -221,14 +232,12 @@
 </head>
 <body>
 
-    <!-- 5-Second Splash Screen -->
     <div id="splash-screen">
         <img src="assets/innovine-logo.png" alt="Innovine Logo" onerror="this.style.display='none';">
         <div class="loader"></div>
-        <p style="color: #6d4c41; font-weight: bold; margin-top: 15px;">Loading Your Drag & Drop Game...</p>
+        <p style="color: #6d4c41; font-weight: bold; margin-top: 15px;">Setting up Pizza Party...</p>
     </div>
 
-    <!-- Repository Audio Assets -->
     <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
@@ -245,8 +254,7 @@
         </div>
 
         <div id="game-content">
-            <!-- Questions dynamically injected here -->
-        </div>
+            </div>
     </div>
 
     <script>
@@ -284,7 +292,7 @@
         let acceptInput = true;
         let piecesLeft = 0;
 
-        // Splash Screen Timer Control (5 Seconds)
+        // Display splash for 5 seconds
         setTimeout(() => {
             const splash = document.getElementById('splash-screen');
             const game = document.getElementById('main-game');
@@ -318,10 +326,9 @@
             const q = activeQuestions[index];
             piecesLeft = q.total;
 
-            // Generate HTML structures
             let pizzaHTML = "";
             for (let i = 0; i < q.total; i++) {
-                pizzaHTML += `<span class="pizza-piece" draggable="true" id="pizza-${i}">🍕</span>`;
+                pizzaHTML += `<span class="pizza-piece" id="pizza-${i}">🍕</span>`;
             }
 
             let kidsHTML = "";
@@ -338,7 +345,7 @@
                 <div class="story-text">
                     There are ${q.total} pizza slices. Share them equally among the ${q.kids} children. How many slices does each child get?
                 </div>
-                <div class="instruction-alert" id="status-msg">👉 Drag ALL pizzas to the plates to unlock answers!</div>
+                <div class="instruction-alert" id="status-msg">👉 Drag ALL pizzas into plates to unlock numbers!</div>
                 
                 <div class="sandbox">
                     <div class="section-title">Pizza Box</div>
@@ -353,104 +360,85 @@
                 </div>
             `;
 
-            setupDragAndDrop();
+            attachTouchTracking();
         }
 
-        function setupDragAndDrop() {
+        // Bulletproof Drag and Drop implementation using PointerEvents coordinates
+        function attachTouchTracking() {
             const pieces = document.querySelectorAll('.pizza-piece');
-            const plates = document.querySelectorAll('.drop-plate');
-
-            // Desktop Drag Handlers
-            pieces.forEach(p => {
-                p.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData('text/plain', e.target.id);
-                });
-                
-                // Mobile Touch Pointer Handlers
-                p.addEventListener('pointerdown', onPointerDown);
-            });
-
-            plates.forEach(plate => {
-                plate.addEventListener('dragover', (e) => e.preventDefault());
-                plate.addEventListener('dragenter', () => plate.classList.add('hovered'));
-                plate.addEventListener('dragleave', () => plate.classList.remove('hovered'));
-                
-                plate.addEventListener('drop', (e) => {
+            
+            pieces.forEach(piece => {
+                piece.addEventListener('pointerdown', (e) => {
+                    if (!acceptInput) return;
+                    
                     e.preventDefault();
-                    plate.classList.remove('hovered');
-                    const id = e.dataTransfer.getData('text/plain');
-                    const pizza = document.getElementById(id);
-                    if (pizza) movePizzaToPlate(pizza, plate);
+                    let currentTargetPlate = null;
+                    
+                    // Style setup when lifted
+                    piece.classList.add('dragging');
+                    piece.style.position = 'fixed';
+                    piece.setPointerCapture(e.pointerId);
+                    
+                    // Center item directly under user touch coordinate
+                    function trackMovement(evt) {
+                        piece.style.left = (evt.clientX - 20) + 'px';
+                        piece.style.top = (evt.clientY - 20) + 'px';
+                        
+                        // Check what element sits underneath the active tracking coordinate
+                        piece.style.display = 'none';
+                        let elementUnderneath = document.elementFromPoint(evt.clientX, evt.clientY);
+                        piece.style.display = 'inline-block';
+                        
+                        if (elementUnderneath) {
+                            let destinationPlate = elementUnderneath.closest('.drop-plate');
+                            
+                            // Visual highlighting feedback loop
+                            document.querySelectorAll('.drop-plate').forEach(pl => pl.classList.remove('hovered'));
+                            if (destinationPlate) {
+                                destinationPlate.classList.add('hovered');
+                                currentTargetPlate = destinationPlate;
+                            } else {
+                                currentTargetPlate = null;
+                            }
+                        }
+                    }
+
+                    // Run immediate location alignment initialization
+                    trackMovement(e);
+
+                    function releaseTracking(evt) {
+                        piece.releasePointerCapture(evt.pointerId);
+                        piece.classList.remove('dragging');
+                        document.querySelectorAll('.drop-plate').forEach(pl => pl.classList.remove('hovered'));
+                        
+                        piece.removeEventListener('pointermove', trackMovement);
+                        piece.removeEventListener('pointerup', releaseTracking);
+                        
+                        if (currentTargetPlate) {
+                            // Successfully dropped onto plate layout zone
+                            piece.style.position = 'static';
+                            piece.style.fontSize = '22px';
+                            currentTargetPlate.appendChild(piece);
+                            piecesLeft--;
+                            
+                            // Evaluation triggering state checking loop
+                            if (piecesLeft === 0) {
+                                document.getElementById('options-panel').classList.add('unlocked');
+                                const status = document.getElementById('status-msg');
+                                status.innerText = "🎉 Unlocked! Count a plate and choose your number.";
+                                status.style.background = "#e8f5e9";
+                                status.style.color = "#2e7d32";
+                            }
+                        } else {
+                            // Reset back to parent box flow container on miss
+                            piece.style.position = 'static';
+                        }
+                    }
+
+                    piece.addEventListener('pointermove', trackMovement);
+                    piece.addEventListener('pointerup', releaseTracking);
                 });
             });
-        }
-
-        // Mobile Friendly Touch Tracking Engine
-        let activeDragElement = null;
-        function onPointerDown(e) {
-            if(!acceptInput) return;
-            activeDragElement = e.target;
-            activeDragElement.setPointerCapture(e.pointerId);
-            activeDragElement.style.position = 'fixed';
-            moveAt(e.clientX, e.clientY);
-
-            activeDragElement.addEventListener('pointermove', onPointerMove);
-            activeDragElement.addEventListener('pointerup', onPointerUp);
-        }
-
-        function moveAt(clientX, clientY) {
-            if (!activeDragElement) return;
-            activeDragElement.style.left = clientX - 20 + 'px';
-            activeDragElement.style.top = clientY - 20 + 'px';
-        }
-
-        function onPointerMove(e) {
-            moveAt(e.clientX, e.clientY);
-        }
-
-        function onPointerUp(e) {
-            if (!activeDragElement) return;
-            activeDragElement.removeEventListener('pointermove', onPointerMove);
-            activeDragElement.removeEventListener('pointerup', onPointerUp);
-            
-            // Clear inline styles to do a bounding check
-            activeDragElement.style.display = 'none';
-            let elemBelow = document.elementFromPoint(e.clientX, e.clientY);
-            activeDragElement.style.display = 'inline-block';
-            
-            if (elemBelow) {
-                let plate = elemBelow.closest('.drop-plate');
-                if (plate) {
-                    // Snap back down into standard layout flow inside plate
-                    activeDragElement.style.position = 'static';
-                    movePizzaToPlate(activeDragElement, plate);
-                    activeDragElement = null;
-                    return;
-                }
-            }
-            
-            // Snap back into box if missed
-            activeDragElement.style.position = 'static';
-            activeDragElement = null;
-        }
-
-        function movePizzaToPlate(pizza, plate) {
-            // Shrink pizza sizing slightly to fit multiple slices neatly in the child's circular plate
-            pizza.style.fontSize = '20px';
-            plate.appendChild(pizza);
-            pizza.setAttribute('draggable', 'false');
-            pizza.removeEventListener('pointerdown', onPointerDown);
-            
-            piecesLeft--;
-            
-            // Once all pieces are placed, reveal choices
-            if (piecesLeft === 0) {
-                document.getElementById('options-panel').classList.add('unlocked');
-                const status = document.getElementById('status-msg');
-                status.innerText = "🎉 Unlocked! Count a plate and select your answer.";
-                status.style.background = "#e8f5e9";
-                status.style.color = "#2e7d32";
-            }
         }
 
         function submitAnswer(element, choice) {
@@ -486,13 +474,4 @@
             }
 
             container.innerHTML = `
-                <div class="story-text" style="font-size: 24px; color: #2e7d32;">Party Complete! 🥳</div>
-                <div class="story-text">You successfully distributed all pizza slices evenly! Score: ${points} / ${activeQuestions.length}</div>
-                <div class="options-grid unlocked">
-                    <button id="restart-btn" class="btn" onclick="initGame()">Play Again 🔄</button>
-                </div>
-            `;
-        }
-    </script>
-</body>
-</html>
+                <div class="story-text" style="font-size: 24px; color: #2e7
