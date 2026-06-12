@@ -1,676 +1,639 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Measurement Masters: Chapter 8</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Measurement Island Adventure</title>
+    <!-- Canvas Confetti Library for leveling up and game completion -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            touch-action: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        body {
+            background-color: #e0f7fa;
+            margin: 0;
+            padding: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        /* Splash Screen Style */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #00acc1, #007c91);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+            color: white;
+            text-align: center;
+        }
+        .splash-title {
+            font-size: 32px;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .splash-subtitle {
+            font-size: 18px;
+            margin-bottom: 25px;
+            opacity: 0.9;
+        }
+        .loader {
+            border: 6px solid rgba(255,255,255,0.3);
+            border-top: 6px solid #fff59d;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Game Framework Layout */
+        .game-container {
+            background: white;
+            border: 5px solid #00acc1;
+            border-radius: 24px;
+            padding: 15px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            text-align: center;
+            display: none;
+            position: relative;
+        }
+        .level-badge {
+            background: #00acc1;
+            color: white;
+            padding: 3px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            display: inline-block;
+            margin-bottom: 6px;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #006064;
+            margin: 0 0 6px 0;
+            font-size: 22px;
+        }
+        .volume-box {
+            background: #e0f2f1;
+            padding: 5px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #004d40;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .progress-bar {
+            background: #f5f5f5;
+            border-radius: 10px;
+            height: 14px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            border: 1px solid #e0e0e0;
+        }
+        .progress {
+            background: linear-gradient(90deg, #4dd0e1, #00acc1);
+            height: 100%;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+        .instruction-card {
+            font-size: 16px;
+            color: #37474f;
+            margin-bottom: 15px;
+            font-weight: bold;
+            line-height: 1.4;
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 12px;
+            border-left: 5px solid #00acc1;
+        }
 
-<style>
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    text-align: center;
-    /* FIXED: Clean background linear gradient with no extra image or bucket configurations */
-    background: linear-gradient(to bottom, #b3e5fc 0%, #e1f5fe 40%, #81c784 40%, #4caf50 100%);
-    color: #333;
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    width: 100vw;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    overflow-x: hidden;
-    user-select: none;
-    position: relative;
-}
+        /* WORKSPACE INTERACTIVE BOX */
+        .workspace {
+            background: #fafafa;
+            border: 3px dashed #b2dfdb;
+            border-radius: 16px;
+            min-height: 180px;
+            margin-bottom: 15px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            overflow: hidden;
+        }
 
-body::before {
-    content: "☀️";
-    position: absolute;
-    top: 15px;
-    right: 20px;
-    font-size: clamp(60px, 12vw, 100px);
-    z-index: 1;
-}
+        /* LEVEL 1 SPECIFIC GRAPHICS */
+        .length-row {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            align-items: flex-start;
+            padding: 10px;
+        }
+        .length-item-wrapper {
+            display: flex;
+            align-items: center;
+            width: 100%;
+            gap: 10px;
+            cursor: pointer;
+            background: white;
+            padding: 6px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .length-item-wrapper:active {
+            transform: scale(0.98);
+        }
+        .length-bar {
+            height: 24px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            padding-left: 8px;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
 
-#splashScreen {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: #ffffff;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    transition: opacity 0.3s ease-out;
-}
-#splashScreen img { max-width: 80%; max-height: 60%; object-fit: contain; }
+        /* LEVEL 2 SPECIFIC GRAPHICS (BALANCE BEAM) */
+        .scale-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            margin-top: 10px;
+        }
+        .scale-beam {
+            width: 260px;
+            height: 10px;
+            background: #78909c;
+            border-radius: 4px;
+            position: relative;
+            transform-origin: center center;
+            transition: transform 0.5s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding: 0 10px;
+        }
+        .scale-base {
+            width: 40px;
+            height: 60px;
+            background: #546e7a;
+            clip-path: polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%);
+            margin-top: -2px;
+        }
+        .scale-plate {
+            width: 80px;
+            height: 45px;
+            background: #b0bec5;
+            border-bottom: 6px solid #90a4ae;
+            border-radius: 0 0 40px 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 28px;
+            position: relative;
+            transform-origin: center top;
+            transition: transform 0.5s ease;
+        }
 
-#gameContainer {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    z-index: 2;
-}
+        /* LEVEL 3 SPECIFIC GRAPHICS (CAPACITY POUR) */
+        .capacity-layout {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end;
+            width: 100%;
+            gap: 15px;
+            padding-top: 10px;
+        }
+        .glass-container {
+            border: 4px solid #78909c;
+            border-top: none;
+            border-radius: 0 0 16px 16px;
+            background: rgba(255,255,255,0.5);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: flex-end;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+        .fluid-fill {
+            background: linear-gradient(0deg, #29b6f6, #4fc3f7);
+            width: 100%;
+            height: 0%;
+            transition: height 0.5s ease;
+        }
+        .container-label {
+            position: absolute;
+            top: 35%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            z-index: 2;
+        }
 
-.level-badge {
-    background: #ff9800;
-    color: white;
-    padding: 8px 28px;
-    border-radius: 30px;
-    font-size: 18px;
-    font-weight: bold;
-    letter-spacing: 1px;
-    margin-top: 15px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-}
-
-h1 {
-    margin: 15px 0 5px 0;
-    font-size: clamp(28px, 6vw, 42px);
-    color: #0d47a1;
-    text-shadow: 0px 2px 4px rgba(255,255,255,0.8);
-}
-
-.instruction {
-    margin: 0 0 20px 0;
-    font-size: clamp(18px, 4vw, 26px);
-    color: #d84315;
-    font-weight: bold;
-    max-width: 90%;
-    text-shadow: 0 1px 2px rgba(255,255,255,0.6);
-}
-
-#sortingArena {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-}
-
-.item-pair-board {
-    background: #8d6e63;
-    border: 8px solid #5d4037;
-    border-radius: 28px;
-    padding: 30px 35px;
-    margin-bottom: 30px;
-    box-shadow: 0 14px 30px rgba(0,0,0,0.25);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 92vw;
-    max-width: 600px;
-    box-sizing: border-box;
-}
-
-.items-scaffold {
-    display: flex;
-    justify-content: center;
-    gap: 50px;
-    width: 100%;
-    min-height: 160px;
-}
-
-.draggable-wrapper {
-    width: 150px;
-    height: 150px;
-    background: #fff;
-    border-radius: 24px;
-    border: 5px solid #ffb74d;
-    box-shadow: 0 8px 16px rgba(0,0,0,0.15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 15px;
-    box-sizing: border-box;
-    cursor: grab;
-    touch-action: none;
-    position: relative;
-    left: 0;
-    top: 0;
-    z-index: 10;
-}
-.draggable-wrapper:active { cursor: grabbing; }
-.draggable-wrapper img { width: 100%; height: 100%; object-fit: contain; pointer-events: none; transition: transform 0.2s; }
-
-.bins-container {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    width: 94vw;
-    max-width: 620px;
-    margin-top: 10px;
-}
-
-.sort-bin {
-    flex: 1;
-    background: rgba(255, 255, 255, 0.7);
-    border: 5px dashed #0288d1;
-    border-radius: 32px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 20px 15px;
-    box-sizing: border-box;
-    min-height: 250px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.12);
-}
-.sort-bin.drag-over { background-color: rgba(129, 199, 132, 0.9); border-color: #2e7d32; }
-.sort-bin .bin-title { font-size: clamp(22px, 4.5vw, 28px); font-weight: bold; color: #0d47a1; text-shadow: 0 1px 1px white; margin-bottom: 15px; }
-
-#orderingArena {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-}
-
-.scrambled-row {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    margin-bottom: 40px;
-    width: 94vw;
-    max-width: 620px;
-}
-
-.order-card {
-    width: clamp(105px, 26vw, 145px);
-    aspect-ratio: 1 / 1;
-    background: #ffffff;
-    border-radius: 24px;
-    border: 5px solid #fff;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
-    cursor: pointer;
-    padding: 15px;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s;
-}
-.order-card:hover { transform: scale(1.05); }
-.order-card img { width: 100%; height: 100%; object-fit: contain; }
-
-.slots-row {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    width: 94vw;
-    max-width: 620px;
-}
-
-.pedestal-slot {
-    width: clamp(105px, 26vw, 145px);
-    aspect-ratio: 1 / 1;
-    background: rgba(0,0,0,0.25);
-    border: 4px solid rgba(255,255,255,0.7);
-    border-radius: 26px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 12px;
-    box-sizing: border-box;
-}
-.pedestal-slot img { width: 95%; height: 95%; object-fit: contain; }
-.pedestal-label { font-size: 13px; font-weight: bold; color: #0d47a1; margin-top: 8px; text-shadow: 0 1px 1px white; }
-
-.btn {
-    padding: 16px 55px;
-    margin: 30px 0 20px 0;
-    font-size: 22px;
-    font-weight: bold;
-    border: none;
-    border-radius: 50px;
-    cursor: pointer;
-    background: #ff5722;
-    color: white;
-    box-shadow: 0 6px 14px rgba(255, 87, 34, 0.4);
-}
-.btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-#fireworks { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; }
-
-#winScreen {
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(26, 35, 126, 0.98);
-    display: none;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
-#winScreen h1 { font-size: clamp(40px, 9vw, 64px); color: #ffd166; margin: 0 0 15px 0; }
-</style>
+        /* INTERACTIVE OPTIONS CONTROL ZONE */
+        .options-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 15px;
+        }
+        .btn {
+            background: #ff7043;
+            border: none;
+            border-bottom: 4px solid #d84315;
+            border-radius: 14px;
+            color: white;
+            font-size: 18px;
+            padding: 12px 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.1s ease;
+        }
+        .btn:active {
+            transform: translateY(2px);
+            border-bottom-width: 2px;
+        }
+        .btn.correct {
+            background: #4caf50 !important;
+            border-color: #2e7d32 !important;
+        }
+        .btn.wrong {
+            background: #f44336 !important;
+            border-color: #c62828 !important;
+        }
+    </style>
 </head>
 <body>
 
-<div id="splashScreen">
-    <img src="assets/logo.png" alt="Logo">
-</div>
+    <!-- Splash Screen Screen Panel -->
+    <div id="splash-screen">
+        <div class="splash-title">🌴 Measurement Island</div>
+        <div class="splash-subtitle">Length, Weight & Capacity Quest</div>
+        <div class="loader"></div>
+        <p style="margin-top: 15px; font-weight: bold; font-size: 14px; letter-spacing: 1px;">PREPARING ADVENTURE...</p>
+    </div>
 
-<div id="gameContainer">
-    <div id="levelBadge" class="level-badge">LEVEL 1</div>
-    <h1 id="gameTitle">Measurement Sorting Zone</h1>
-    <p id="gameInstruction" class="instruction">Loading setup...</p>
+    <!-- Audio Placeholders -->
+    <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
-    <div id="sortingArena">
-        <div class="item-pair-board">
-            <div class="items-scaffold" id="itemsScaffold"></div>
-        </div>
+    <!-- Core Game UI Main Container -->
+    <div class="game-container" id="main-game">
+        <div class="level-badge" id="level-lbl">Level 1: Length Quest</div>
+        <h1 id="game-title">Measure and Compare!</h1>
         
-        <div class="bins-container">
-            <div class="sort-bin" data-side="left">
-                <div id="leftBinTitle" class="bin-title">Heavy</div>
-            </div>
-            <div class="sort-bin" data-side="right">
-                <div id="rightBinTitle" class="bin-title">Light</div>
-            </div>
+        <div class="volume-box">
+            <label for="volume">🔊 Game Volume: </label>
+            <input type="range" id="volume" min="0" max="1" step="0.2" value="0.6">
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress" id="progress-bar-fill"></div>
+        </div>
+
+        <div class="instruction-card" id="instruction-txt">
+            Loading mission criteria...
+        </div>
+
+        <div class="workspace" id="interactive-space">
+            <!-- Dynamic components inject here based on current active level -->
+        </div>
+
+        <div class="options-box" id="options-zone">
+            <!-- Dynamic button nodes inject here -->
         </div>
     </div>
 
-    <div id="orderingArena">
-        <div id="scrambledRow" class="scrambled-row"></div>
-        <div class="slots-row">
-            <div class="pedestal-slot"><div id="p1" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"></div><div id="l1" class="pedestal-label">1st</div></div>
-            <div class="pedestal-slot"><div id="p2" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"></div><div id="l2" class="pedestal-label">2nd</div></div>
-            <div class="pedestal-slot"><div id="p3" style="width:100%; height:100%; display:flex; align-items:center; justify-content:center;"></div><div id="l3" class="pedestal-label">3rd</div></div>
-        </div>
-    </div>
+    <script>
+        const volumeSlider = document.getElementById('volume');
 
-    <button id="actionControl" class="btn" onclick="advanceNextSequence()" disabled>Next ➡️</button>
-</div>
+        function triggerSound(isCorrectSound) {
+            try {
+                const targetId = isCorrectSound ? 'audio-correct' : 'audio-wrong';
+                const soundNode = document.getElementById(targetId);
+                if (soundNode) {
+                    soundNode.volume = volumeSlider.value;
+                    soundNode.currentTime = 0;
+                    soundNode.play().catch(() => {});
+                }
+            } catch (e) {}
+        }
 
-<canvas id="fireworks"></canvas>
+        // Fully randomized bank covering all core LO goals from image_5e38bc.png
+        const puzzleBank = [
+            // LEVEL 1: LENGTH PILLARS
+            {
+                level: 1,
+                title: "📏 Length Comparison Quest",
+                instruction: "Look at the colorful bars. Choose the item that is the LONGEST!",
+                type: "length-comparison",
+                items: [
+                    { name: "Crayon 🖍️", width: "40%", color: "#e91e63", id: 0 },
+                    { name: "Pencil ✏️", width: "85%", color: "#ffeb3b", labelColor: "#5d4037", id: 1 },
+                    { name: "Ruler 📐", width: "60%", color: "#4caf50", id: 2 }
+                ],
+                correctId: 1, 
+                options: ["Crayon 🖍️", "Pencil ✏️", "Ruler 📐"]
+            },
+            {
+                level: 1,
+                title: "📏 Length Unit Counting",
+                instruction: "This magical key 🔑 is exactly as long as 4 paperclips lined up end-to-end. How many paperclips long is it?",
+                type: "length-unit",
+                graphicHTML: `
+                    <div style="font-size:45px; margin-bottom:10px;">🔑</div>
+                    <div style="display:flex; gap:4px; font-size:24px;">📎📎📎📎</div>
+                `,
+                answer: "4 paperclips",
+                options: ["2 paperclips", "4 paperclips", "6 paperclips", "8 paperclips"]
+            },
 
-<div id="winScreen">
-    <h1 id="winHeader">LEVEL CLEAR! 🎉</h1>
-    <p id="winMessage" style="font-size:24px; color:#e0f2f1; margin:0 0 30px 0;">Awesome sorting skills!</p>
-    <button class="btn" style="background:#e91e63; box-shadow:0 6px 14px rgba(233,30,99,0.4);" onclick="handleOverlayReset()">Next Level ➡️</button>
-</div>
+            // LEVEL 2: WEIGHT PILLARS
+            {
+                level: 2,
+                title: "⚖️ Weight Balance Quest",
+                instruction: "Look at how the balance scale tips! Complete the true math sentence below.",
+                type: "weight-comparison",
+                weightState: "left-heavy", // tilts beam left
+                leftItem: "⛰️", // boulder
+                rightItem: "🪶", // feather
+                sentenceContext: "The heavy Boulder ⛰️ is ________ than the light Feather 🪶.",
+                answer: "heavier than",
+                options: ["heavier than", "lighter than", "as heavy as"]
+            },
+            {
+                level: 2,
+                title: "⚖️ Non-Standard Weight Units",
+                instruction: "An apple 🍎 perfectly balances on the scale when exactly 5 wooden blocks 🧱 are placed on the other side. What is the weight of the apple?",
+                type: "weight-unit",
+                weightState: "balanced",
+                leftItem: "🍎",
+                rightItem: "🧱<span style='font-size:14px; position:absolute; bottom:2px; right:2px;'>x5</span>",
+                answer: "5 blocks",
+                options: ["3 blocks", "5 blocks", "8 blocks"]
+            },
 
-<audio id="winMusic" preload="auto" src="https://cdn.pixabay.com/download/audio/2022/03/15/audio_d0b6b6b5c3.mp3?filename=success-fanfare-trumpets-6185.mp3"></audio>
-<audio id="correctSound" preload="auto" src="assets/correct.mp3"></audio>
-<audio id="wrongSound" preload="auto" src="assets/wrong.mp3"></audio>
+            // LEVEL 3: CAPACITY PILLARS
+            {
+                level: 3,
+                title: "🥤 Capacity Container Quest",
+                instruction: "Capacity is the maximum amount an object can contain. Which of these containers can hold the MOST amount of water?",
+                type: "capacity-comparison",
+                containers: [
+                    { icon: "☕", size: "45px", height: "50px", width: "55px", name: "Teacup" },
+                    { icon: "🪣", size: "65px", height: "85px", width: "80px", name: "Large Bucket", isCorrect: true },
+                    { icon: "🥛", size: "50px", height: "65px", width: "50px", name: "Glass" }
+                ],
+                answer: "Large Bucket",
+                options: ["Teacup", "Glass", "Large Bucket"]
+            },
+            {
+                level: 3,
+                title: "🥤 Non-Standard Capacity Units",
+                instruction: "It takes exactly 6 small cups 🥛 of juice to fill up this entire giant pitcher 🏺 to its maximum line. What is the capacity of the pitcher?",
+                type: "capacity-unit",
+                graphicHTML: `
+                    <div style="display:flex; align-items:center; gap:20px;">
+                        <div style="font-size:65px;">🏺</div>
+                        <div style="font-size:24px;">=</div>
+                        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:5px; font-size:24px;">🥛🥛🥛🥛🥛🥛</div>
+                    </div>
+                `,
+                answer: "6 cups",
+                options: ["3 cups", "6 cups", "9 cups"]
+            }
+        ];
 
-<script>
-const winMusic = document.getElementById("winMusic");
-const correctSound = document.getElementById("correctSound");
-const wrongSound = document.getElementById("wrongSound");
+        let currentIndex = 0;
+        let finalScore = 0;
+        let isInputAllowed = true;
 
-let currentLevel = 1;
-let currentRound = 0;
-let winInterval = null;
-let roundSortedCount = 0;
-
-const sortingRounds = [
-    {
-        instruction: "Round 1: Which item is Heavy and which is Light?",
-        leftLabel: "Heavy", rightLabel: "Light",
-        items: [
-            { img: "assets/pink-dino.png", targetSide: "left", scale: "1.0" },
-            { img: "assets/frog.png", targetSide: "right", scale: "0.6" }
-        ]
-    },
-    {
-        instruction: "Round 2: Which item is Heavy and which is Light?",
-        leftLabel: "Heavy", rightLabel: "Light",
-        items: [
-            { img: "assets/watermelon.png", targetSide: "left", scale: "1.0" },
-            { img: "assets/apple.png", targetSide: "right", scale: "0.55" }
-        ]
-    },
-    {
-        instruction: "Round 3: Which item is Heavy and which is Light?",
-        leftLabel: "Heavy", rightLabel: "Light",
-        items: [
-            { img: "assets/bag_flour.png", targetSide: "left", scale: "1.0" },
-            { img: "assets/feather.png", targetSide: "right", scale: "0.7" }
-        ]
-    },
-    {
-        instruction: "Round 4: Which item is Long and which is Short?",
-        leftLabel: "Long", rightLabel: "Short",
-        items: [
-            { img: "assets/ladder.png", targetSide: "left", scale: "1.0" },
-            { img: "assets/ribbon.png", targetSide: "right", scale: "0.65" }
-        ]
-    },
-    {
-        instruction: "Round 5: Which item holds More and which holds Less?",
-        leftLabel: "Holds More", rightLabel: "Holds Less",
-        items: [
-            { img: "assets/milk-carton.png", targetSide: "left", scale: "1.0" },
-            { img: "assets/cup.png", targetSide: "right", scale: "0.6" }
-        ]
-    }
-];
-
-const orderingRounds = [
-    {
-        instruction: "Arrange from Shortest to Longest!",
-        labels: ["Shortest", "Medium", "Longest"],
-        pool: [
-            { rank: 1, img: "assets/pencil.png", scale: "0.5" },
-            { rank: 2, img: "assets/ribbon.png", scale: "0.75" },
-            { rank: 3, img: "assets/ladder.png", scale: "1.1" }
-        ]
-    },
-    {
-        instruction: "Arrange from Heaviest to Lightest!",
-        labels: ["Heaviest", "Medium", "Lightest"],
-        pool: [
-            { rank: 1, img: "assets/bag_flour.png", scale: "1.1" },
-            { rank: 2, img: "assets/apple.png", scale: "0.75" },
-            { rank: 3, img: "assets/turtle.png", scale: "0.5" }
-        ]
-    },
-    {
-        instruction: "Arrange from Smallest to Biggest!",
-        labels: ["Smallest", "Medium", "Biggest"],
-        pool: [
-            { rank: 1, img: "assets/frog.png", scale: "0.5" },
-            { rank: 2, img: "assets/turtle.png", scale: "0.75" },
-            { rank: 3, img: "assets/pink-dino.png", scale: "1.1" }
-        ]
-    }
-];
-
-let level2RoundIndex = 0;
-let level2PlacementIndex = 1;
-
-window.addEventListener("DOMContentLoaded", () => {
-    setTimeout(() => {
-        const splash = document.getElementById("splashScreen");
-        const container = document.getElementById("gameContainer");
-        splash.style.opacity = "0";
+        // Auto transition off splash screen screen after 5 seconds delay
         setTimeout(() => {
-            splash.style.display = "none";
-            container.style.display = "flex";
-            startLevel1();
-        }, 300);
-    }, 1000); 
-});
-
-function startLevel1() {
-    currentLevel = 1;
-    currentRound = 0;
-    document.getElementById("levelBadge").innerText = "LEVEL 1";
-    document.getElementById("gameTitle").innerText = "Measurement Sorting Zone";
-    document.getElementById("sortingArena").style.display = "flex";
-    document.getElementById("orderingArena").style.display = "none";
-    loadSortingRound(currentRound);
-}
-
-function loadSortingRound(roundIndex) {
-    document.getElementById("actionControl").disabled = true;
-    roundSortedCount = 0;
-    
-    const roundData = sortingRounds[roundIndex];
-    document.getElementById("gameInstruction").innerText = roundData.instruction;
-    document.getElementById("leftBinTitle").innerText = roundData.leftLabel;
-    document.getElementById("rightBinTitle").innerText = roundData.rightLabel;
-    
-    document.querySelectorAll('.sort-bin .draggable-wrapper').forEach(el => el.remove());
-    
-    let scrambledPair = [...roundData.items];
-    for (let i = scrambledPair.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [scrambledPair[i], scrambledPair[j]] = [scrambledPair[j], scrambledPair[i]];
-    }
-    
-    const scaffold = document.getElementById("itemsScaffold");
-    scaffold.innerHTML = "";
-    
-    scrambledPair.forEach((item, index) => {
-        const frame = document.createElement("div");
-        frame.className = "draggable-wrapper";
-        frame.id = "drag-item-" + index;
-        frame.dataset.targetSide = item.targetSide;
-        frame.innerHTML = `<img src="${item.img}" style="transform: scale(${item.scale});">`;
-        makeElementMobileDraggable(frame);
-        scaffold.appendChild(frame);
-    });
-}
-
-function makeElementMobileDraggable(el) {
-    let startX = 0, startY = 0;
-    let isDragging = false;
-
-    el.addEventListener('mousedown', dragStart);
-    el.addEventListener('touchstart', dragStart, { passive: false });
-
-    function dragStart(e) {
-        isDragging = true;
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        
-        startX = clientX;
-        startY = clientY;
-        
-        el.style.transition = "none";
-        el.style.zIndex = "1000";
-
-        document.addEventListener('mousemove', dragMove);
-        document.addEventListener('touchmove', dragMove, { passive: false });
-        document.addEventListener('mouseup', dragEnd);
-        document.addEventListener('touchend', dragEnd);
-    }
-
-    function dragMove(e) {
-        if (!isDragging) return;
-        if(e.cancelable) e.preventDefault();
-        
-        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        
-        let deltaX = clientX - startX;
-        let deltaY = clientY - startY;
-
-        el.style.transform = `translate(${deltaX}px, ${deltaY}px) scale(1.05)`;
-
-        const hoveredBin = getHoveredBin(clientX, clientY);
-        document.querySelectorAll('.sort-bin').forEach(bin => bin.classList.remove('drag-over'));
-        if (hoveredBin) {
-            hoveredBin.classList.add('drag-over');
-        }
-    }
-
-    function dragEnd(e) {
-        if (!isDragging) return;
-        isDragging = false;
-
-        document.removeEventListener('mousemove', dragMove);
-        document.removeEventListener('touchmove', dragMove);
-        document.removeEventListener('mouseup', dragEnd);
-        document.removeEventListener('touchend', dragEnd);
-
-        const finalX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-        const finalY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-        
-        const targetBin = getHoveredBin(finalX, finalY);
-        document.querySelectorAll('.sort-bin').forEach(bin => bin.classList.remove('drag-over'));
-
-        if (targetBin && targetBin.dataset.side === el.dataset.targetSide) {
-            correctSound.currentTime = 0;
-            correctSound.play().catch(err => {});
-            
-            el.style.transition = "none";
-            el.style.transform = "none";
-            el.style.position = "relative";
-            el.style.left = "0px";
-            el.style.top = "0px";
-            el.style.zIndex = "1";
-            el.style.width = "120px";  
-            el.style.height = "120px";
-            el.style.margin = "10px auto";
-            
-            targetBin.appendChild(el);
-            
-            roundSortedCount++;
-            if (roundSortedCount >= 2) {
-                document.getElementById("actionControl").disabled = false;
+            const splash = document.getElementById('splash-screen');
+            const gameWindow = document.getElementById('main-game');
+            if (splash && gameWindow) {
+                splash.style.opacity = 0;
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    gameWindow.style.display = 'block';
+                    loadNextQuestion();
+                }, 500);
             }
-        } else {
-            wrongSound.currentTime = 0;
-            wrongSound.play().catch(err => {});
-            el.style.transition = "transform 0.3s ease";
-            el.style.transform = "translate(0px, 0px)";
-            el.style.zIndex = "10";
-        }
-    }
+        }, 5000);
 
-    function getHoveredBin(x, y) {
-        const bins = document.querySelectorAll('.sort-bin');
-        for (let i = 0; i < bins.length; i++) {
-            const r = bins[i].getBoundingClientRect();
-            if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
-                return bins[i];
+        function loadNextQuestion() {
+            isInputAllowed = true;
+            const space = document.getElementById('interactive-space');
+            const optionsZone = document.getElementById('options-zone');
+            const progressFill = document.getElementById('progress-bar-fill');
+            
+            // Render progress state calculations
+            progressFill.style.width = `${(currentIndex / puzzleBank.length) * 100}%`;
+
+            if (currentIndex >= puzzleBank.length) {
+                renderEndScreen();
+                return;
             }
+
+            const currentPuzzle = puzzleBank[currentIndex];
+            
+            // Set headers metadata text strings
+            document.getElementById('level-lbl').innerText = `Level ${currentPuzzle.level}: Master ${currentPuzzle.level === 1 ? 'Length' : currentPuzzle.level === 2 ? 'Weight' : 'Capacity'}`;
+            document.getElementById('game-title').innerText = currentPuzzle.title;
+            document.getElementById('instruction-txt').innerText = currentPuzzle.instruction;
+
+            // CLEAR DYNAMIC REGIONS
+            space.innerHTML = "";
+            optionsZone.innerHTML = "";
+
+            // INJECT GRAPHICAL INTERACTION MATRIX ACCORDING TO DATA TYPES
+            if (currentPuzzle.type === "length-comparison") {
+                let lengthHTML = `<div class="length-row">`;
+                currentPuzzle.items.forEach(item => {
+                    lengthHTML += `
+                        <div class="length-item-wrapper" onclick="selectLengthItem(${item.id})">
+                            <div class="length-bar" style="width: ${item.width}; background-color: ${item.color}; color: ${item.labelColor || 'white'};">
+                                ${item.name}
+                            </div>
+                        </div>
+                    `;
+                });
+                lengthHTML += `</div>`;
+                space.innerHTML = lengthHTML;
+            } 
+            else if (currentPuzzle.type === "length-unit" || currentPuzzle.type === "capacity-unit") {
+                space.innerHTML = currentPuzzle.graphicHTML;
+            } 
+            else if (currentPuzzle.type === "weight-comparison" || currentPuzzle.type === "weight-unit") {
+                let tiltDeg = "0deg";
+                if (currentPuzzle.weightState === "left-heavy") tiltDeg = "-12deg";
+                if (currentPuzzle.weightState === "right-heavy") tiltDeg = "12deg";
+
+                space.innerHTML = `
+                    <div class="scale-container">
+                        <div class="scale-beam" style="transform: rotate(${tiltDeg});">
+                            <div class="scale-plate" style="transform: rotate(${-parseFloat(tiltDeg)}deg);">${currentPuzzle.leftItem}</div>
+                            <div class="scale-plate" style="transform: rotate(${-parseFloat(tiltDeg)}deg);">${currentPuzzle.rightItem}</div>
+                        </div>
+                        <div class="scale-base"></div>
+                        ${currentPuzzle.sentenceContext ? `<div style="font-size:14px; margin-top:12px; font-weight:bold; color:#37474f; padding:0 5px;">${currentPuzzle.sentenceContext}</div>` : ''}
+                    </div>
+                `;
+            }
+            else if (currentPuzzle.type === "capacity-comparison") {
+                let capacityHTML = `<div class="capacity-layout">`;
+                currentPuzzle.containers.forEach(box => {
+                    capacityHTML += `
+                        <div class="glass-container" style="height:${box.height}; width:${box.width};" onclick="selectCapacityItem('${box.name}')">
+                            <div class="container-label">${box.icon}</div>
+                            <div class="fluid-fill" id="fill-${box.name}"></div>
+                        </div>
+                    `;
+                });
+                capacityHTML += `</div>`;
+                space.innerHTML = capacityHTML;
+            }
+
+            // BUILD BOTTOM INTERACTIVE BUTTON ROW ARRAY OPTIONS
+            currentPuzzle.options.forEach(optionText => {
+                const btnNode = document.createElement('button');
+                btnNode.className = "btn";
+                btnNode.innerText = optionText;
+                btnNode.onclick = () => verifyChoiceAnswer(btnNode, optionText);
+                optionsZone.appendChild(btnNode);
+            });
         }
-        return null;
-    }
-}
 
-function startLevel2() {
-    currentLevel = 2;
-    level2RoundIndex = 0;
-    document.getElementById("levelBadge").innerText = "LEVEL 2";
-    document.getElementById("gameTitle").innerText = "The Ordering Machine";
-    document.getElementById("sortingArena").style.display = "none";
-    document.getElementById("orderingArena").style.display = "flex";
-    loadLevel2Round(level2RoundIndex);
-}
-
-function loadLevel2Round(index) {
-    document.getElementById("actionControl").disabled = true;
-    level2PlacementIndex = 1;
-    
-    const roundData = orderingRounds[index];
-    document.getElementById("gameInstruction").innerText = roundData.instruction;
-    
-    document.getElementById("l1").innerText = roundData.labels[0];
-    document.getElementById("l2").innerText = roundData.labels[1];
-    document.getElementById("l3").innerText = roundData.labels[2];
-    
-    document.getElementById("p1").innerHTML = "";
-    document.getElementById("p2").innerHTML = "";
-    document.getElementById("p3").innerHTML = "";
-
-    let itemsToScramble = [...roundData.pool];
-    for (let i = itemsToScramble.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [itemsToScramble[i], itemsToScramble[j]] = [itemsToScramble[j], itemsToScramble[i]];
-    }
-
-    const row = document.getElementById("scrambledRow");
-    row.innerHTML = "";
-    itemsToScramble.forEach(item => {
-        const card = document.createElement("div");
-        card.className = "order-card";
-        card.innerHTML = `<img src="${item.img}" style="transform: scale(${item.scale});">`;
-        card.onclick = () => evaluateOrderClick(card, item);
-        row.appendChild(card);
-    });
-}
-
-function evaluateOrderClick(cardElement, itemData) {
-    if (itemData.rank === level2PlacementIndex) {
-        correctSound.currentTime = 0;
-        correctSound.play().catch(e => {});
-        
-        document.getElementById(`p${level2PlacementIndex}`).innerHTML = `<img src="${itemData.img}" style="width:100%; height:100%; object-fit:contain; transform: scale(${itemData.scale});">`;
-        
-        cardElement.style.display = "none";
-        
-        level2PlacementIndex++;
-        if (level2PlacementIndex > 3) {
-            document.getElementById("actionControl").disabled = false;
+        function selectLengthItem(id) {
+            if (!isInputAllowed) return;
+            const currentPuzzle = puzzleBank[currentIndex];
+            const buttons = document.querySelectorAll('#options-zone .btn');
+            
+            buttons.forEach(btn => {
+                if (btn.innerText === currentPuzzle.options[id]) {
+                    btn.click();
+                }
+            });
         }
-    } else {
-        wrongSound.currentTime = 0;
-        wrongSound.play().catch(e => {});
-        cardElement.style.backgroundColor = "#ffcdd2";
-        setTimeout(() => cardElement.style.backgroundColor = "#ffffff", 500);
-    }
-}
 
-function advanceNextSequence() {
-    if (currentLevel === 1) {
-        currentRound++;
-        if (currentRound < sortingRounds.length) {
-            loadSortingRound(currentRound);
-        } else {
-            triggerCelebrationOverlay("LEVEL 1 MET! 🏆", "Splendid sorting! Ready for the sequencing machine?", "Next Level ➡️");
+        function selectCapacityItem(name) {
+            if (!isInputAllowed) return;
+            
+            // Visual pouring water feedback animation sequence
+            const fillLine = document.getElementById(`fill-${name}`);
+            if (fillLine) fillLine.style.height = "85%";
+
+            const currentPuzzle = puzzleBank[currentIndex];
+            const buttons = document.querySelectorAll('#options-zone .btn');
+            
+            setTimeout(() => {
+                buttons.forEach(btn => {
+                    if (btn.innerText === name) {
+                        btn.click();
+                    }
+                });
+            }, 600);
         }
-    } else {
-        level2RoundIndex++;
-        if (level2RoundIndex < orderingRounds.length) {
-            loadLevel2Round(level2RoundIndex);
-        } else {
-            triggerCelebrationOverlay("CHAPTER COMPLETE! 👑", "Outstanding! You have mastered all Chapter 8 measurement criteria!", "Play Again 🔄");
+
+        function verifyChoiceAnswer(clickedBtn, userText) {
+            if (!isInputAllowed) return;
+            isInputAllowed = false;
+
+            const q = puzzleBank[currentIndex];
+            let checkCondition = false;
+
+            if (q.type === "length-comparison") {
+                checkCondition = (userText === q.options[q.correctId]);
+            } else {
+                checkCondition = (userText === q.answer);
+            }
+
+            if (checkCondition) {
+                finalScore++;
+                clickedBtn.classList.add('correct');
+                triggerSound(true);
+                confetti({ particleCount: 35, spread: 50, origin: { y: 0.8 } });
+            } else {
+                clickedBtn.classList.add('wrong');
+                triggerSound(false);
+                
+                // Expose correct layout option node safely as a learning cue
+                document.querySelectorAll('#options-zone .btn').forEach(btn => {
+                    let targetGoalText = (q.type === "length-comparison") ? q.options[q.correctId] : q.answer;
+                    if (btn.innerText === targetGoalText) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+
+            // Move forwards onto the next sequential challenge layout safely
+            setTimeout(() => {
+                currentIndex++;
+                loadNextQuestion();
+            }, 2500);
         }
-    }
-}
 
-function triggerCelebrationOverlay(head, msg, btnTxt) {
-    document.getElementById("winHeader").innerText = head;
-    document.getElementById("winMessage").innerText = msg;
-    const overlayBtn = document.querySelector("#winScreen .btn");
-    overlayBtn.innerText = btnTxt;
-    
-    document.getElementById("winScreen").style.display = "flex";
-    winMusic.currentTime = 0;
-    winMusic.play().catch(e => {});
-    
-    burst();
-    winInterval = setInterval(burst, 700);
-}
+        function renderEndScreen() {
+            document.getElementById('level-lbl').style.display = "none";
+            document.getElementById('game-title').innerText = "🌴 Exploration Complete!";
+            document.getElementById('instruction-txt').innerText = "Splendid job! You completed all the length, weight, and capacity comparison islands successfully.";
+            
+            const space = document.getElementById('interactive-space');
+            const optionsZone = document.getElementById('options-zone');
+            
+            if (finalScore >= (puzzleBank.length * 0.7)) {
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            }
 
-function handleOverlayReset() {
-    document.getElementById("winScreen").style.display = "none";
-    if (winInterval) clearInterval(winInterval);
-    particles = [];
+            space.innerHTML = `
+                <div style="font-size: 70px; margin-bottom: 10px;">🏆</div>
+                <div style="font-size: 22px; font-weight: bold; color: #007c91;">Total Badges: ${finalScore} / ${puzzleBank.length}</div>
+            `;
 
-    if (currentLevel === 1) {
-        startLevel2();
-    } else if (level2RoundIndex >= orderingRounds.length) {
-        startLevel1();
-    }
-}
+            optionsZone.innerHTML = `
+                <button class="btn" style="grid-column: span 2; background-color:#00acc1; border-color:#007c91;" onclick="restartAdventure()">Play Again 🔄</button>
+            `;
+        }
 
-const canvas = document.getElementById("fireworks");
-const ctx = canvas.getContext("2d");
-let particles = [];
-function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-resize();
-window.addEventListener("resize", resize);
-
-function burst() {
-    const ox = Math.random() * canvas.width;
-    const oy = Math.random() * (canvas.height * 0.6) + (canvas.height * 0.1);
-    const hue = Math.floor(Math.random() * 360);
-    for(let i=0; i<35; i++){
-        let a = Math.random() * 2 * Math.PI;
-        let s = Math.random() * 4 + 1.5;
-        particles.push({ x: ox, y: oy, vx: Math.cos(a)*s, vy: Math.sin(a)*s, radius: Math.random()*2+1, alpha: 1, color: `hsla(${hue}, 100%, 60%, `, gravity: 0.04 });
-    }
-}
-function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.alpha -= 0.015; });
-    particles = particles.filter(p => p.alpha > 0);
-    particles.forEach(p => {
-        ctx.fillStyle = `${p.color}${p.alpha})`;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI*2); ctx.fill();
-    });
-    requestAnimationFrame(animate);
-}
-animate();
-</script>
+        function restartAdventure() {
+            currentIndex = 0;
+            finalScore = 0;
+            document.getElementById('level-lbl').style.display = "inline-block";
+            loadNextQuestion();
+        }
+    </script>
 </body>
 </html>
