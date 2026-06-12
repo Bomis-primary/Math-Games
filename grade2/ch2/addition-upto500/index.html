@@ -1,117 +1,463 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Addition Racing Game - Finish Line Fixed</title>
-<style>
-  body { font-family: Arial, sans-serif; text-align: center; margin:0; background: linear-gradient(to bottom, #a8d8ff, #e0f0ff);}
-  #race-track {width: 90%; height: 300px; margin: 30px auto; position: relative; border-radius: 15px; overflow: hidden; border: 2px solid #333;}
-  #race-track img#trackBg {position:absolute; top:0; left:0; width:100%; height:100%; z-index:0;}
-  #playerCar {width: 220px; position: absolute; bottom: 20px; left: 0; transform: rotate(180deg); transition: left 0.5s; z-index:1;}
-  /* Finish line adjusted to align with track */
-  #finishLine {position:absolute; right:50px; top:0; bottom:0; width:15px; background:red; border-radius:5px; z-index:2;}
-  .question-box {margin: 20px auto; font-size: 28px; background-color: #ffd700; padding: 15px 25px; border-radius: 15px; width: fit-content;}
-  .options {margin-top: 15px;}
-  .options button {
-    font-size: 26px;
-    padding: 20px 30px;
-    margin: 10px;
-    cursor: pointer;
-    border-radius: 15px;
-    border: none;
-    background: linear-gradient(to right, #ff7f50, #ff6347);
-    color: white;
-    transition: transform 0.2s;
-  }
-  .options button:hover { transform: scale(1.1); }
-  #finishMessage {font-size: 36px; color: green; display:none; margin-top:20px;}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 2 Chrono-Engine: Addition up to 500</title>
+    <style>
+        :root {
+            --panel-bg: #222E3C;
+            --accent-orange: #FF9800;
+            --text-light: #FFFFFF;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(135deg, #CFD8DC 0%, #90A4AE 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- REQUIRED 5-SECOND SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.6s ease-out;
+        }
+        .splash-logo { max-width: 260px; height: auto; margin-bottom: 20px; }
+        .timer-loader {
+            width: 120px; height: 6px; background: #E0E0E0; border-radius: 3px; overflow: hidden;
+        }
+        .timer-progress {
+            width: 0%; height: 100%; background: var(--accent-orange);
+            animation: fillBar 5s linear forwards;
+        }
+        @keyframes fillBar { 100% { width: 100%; } }
+
+        /* --- CORE GAME CANVAS --- */
+        #game-container {
+            width: 95%;
+            max-width: 750px;
+            height: 620px;
+            background: #FFFFFF;
+            border-radius: 24px;
+            border: 6px solid var(--panel-bg);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            position: relative;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- INTRO & VICTORY CARDS --- */
+        .overlay-card {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+            text-align: center;
+            z-index: 50;
+        }
+        .mission-text {
+            font-size: 1.15rem; line-height: 1.6; margin: 20px 0; max-width: 550px;
+            background: #E3F2FD; padding: 20px; border-radius: 16px; border: 2px dashed #2196F3;
+        }
+        .start-btn {
+            background: linear-gradient(135deg, #FF9800, #F57C00); color: white;
+            border: none; padding: 16px 45px; font-size: 1.4rem; font-weight: bold;
+            border-radius: 50px; cursor: pointer; box-shadow: 0 6px 0 #E65100;
+            transition: transform 0.1s;
+        }
+        .start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
+
+        /* --- HUD CONTROLS --- */
+        .hud-header {
+            background: var(--panel-bg);
+            color: var(--text-light);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.05rem;
+            z-index: 30;
+        }
+        .target-banner {
+            background: #FFF3E0;
+            border-bottom: 4px solid var(--accent-orange);
+            padding: 14px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            color: #E65100;
+            z-index: 29;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        /* --- AIRPLAY BALLOON ZONE --- */
+        .balloon-field {
+            flex: 1;
+            background: linear-gradient(to bottom, #E8F5E9 0%, #C8E6C9 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* --- CRITICAL VISIBILITY BALLOON DESIGN --- */
+        .balloon-node {
+            position: absolute;
+            width: 105px;
+            height: 130px;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset -8px -12px 15px rgba(0,0,0,0.15), 0 8px 15px rgba(0,0,0,0.1);
+            transition: transform 0.1s ease;
+        }
+        /* Triangle knot beneath balloon body */
+        .balloon-node::after {
+            content: '';
+            position: absolute;
+            bottom: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 7px solid transparent;
+            border-right: 7px solid transparent;
+            border-bottom: 10px solid currentColor;
+        }
+
+        /* High-Contrast Value Badge for Absolute Readability */
+        .value-badge {
+            background: #FFFFFF;
+            color: #222E3C;
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 1.35rem;
+            font-weight: 900;
+            border: 3px solid #222E3C;
+            text-align: center;
+            min-width: 65px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+
+        /* --- DECORATIVE PARTICLES --- */
+        .pop-sparkle {
+            position: absolute; width: 10px; height: 10px; border-radius: 50%;
+            pointer-events: none; z-index: 40;
+        }
+    </style>
 </head>
 <body>
 
-<h1>Addition Racing Game</h1>
-<div id="race-track">
-  <img src="assets/track-bg.png" id="trackBg" alt="Track Background">
-  <img src="assets/car.png" id="playerCar" alt="Player Car">
-  <div id="finishLine"></div>
-</div>
+    <!-- Splash Screen Component -->
+    <div id="splash-screen">
+        <img src="assets/innovine-logo.png" alt="Innovine Logo" class="splash-logo" onerror="this.src='https://placehold.co/220x60/FF9800/fff?text=Innovine'">
+        <div class="timer-loader"><div class="timer-progress"></div></div>
+    </div>
 
-<div class="question-box" id="question">1 + 2 = ?</div>
-<div class="options" id="options">
-  <button>3</button>
-  <button>7</button>
-  <button>16</button>
-  <button>13</button>
-</div>
-<div id="finishMessage">🏁 You Win! 🏁</div>
+    <!-- Active Sandbox Framework Frame -->
+    <div id="game-container">
+        
+        <!-- Welcome Setup Card -->
+        <div id="intro-card" class="overlay-card">
+            <div style="font-size: 4.5rem; margin-bottom: 10px;">🎈➕⚡</div>
+            <h2 style="color: #2E7D32; font-size: 2.2rem;">Addition Matrix Stabilizer</h2>
+            <p class="mission-text">
+                The Chrono-Engine is venting addition calculations up to 500! Read the main target problem closely, track the 3 slow-moving bubbles, and pop the one containing the correct sum to secure the temporal grid!
+            </p>
+            <button class="start-btn" onclick="bootMathEngine()">Power Up Matrix 🛠️</button>
+        </div>
 
-<audio id="correctSound" src="assets/correct.mp3"></audio>
-<audio id="wrongSound" src="assets/wrong.mp3"></audio>
-<audio id="clapSound" src="assets/freesound_community-claps-44774.mp3"></audio>
+        <!-- Dynamic Game Interface elements -->
+        <div class="hud-header">
+            <span id="label-level">Matrix Sync: 1 / 6</span>
+            <span style="background: #FF9800; padding: 4px 12px; border-radius: 12px; color: black;">Grade 2 Math</span>
+            <span>Energy Core: <span id="label-score" style="color: #81C784;">0</span></span>
+        </div>
 
-<script>
-const car = document.getElementById('playerCar');
-const finishLine = document.getElementById('finishLine');
-const optionsDiv = document.getElementById('options');
-const finishMessage = document.getElementById('finishMessage');
-const correctSound = document.getElementById('correctSound');
-const wrongSound = document.getElementById('wrongSound');
-const clapSound = document.getElementById('clapSound');
+        <div class="target-banner" id="current-target-formula">
+            Scanning Mathematical Matrix...
+        </div>
 
-let carPosition = 0;
-const step = 60; // pixels per correct answer
-const trackWidth = document.getElementById('race-track').offsetWidth - car.offsetWidth - 50; // adjust for finish line
+        <!-- Interactive Playground -->
+        <div class="balloon-field" id="playfield-canvas">
+            <!-- Exactly 3 slow balloons will reside dynamically here -->
+        </div>
 
-// Sample sums
-const questions = [
-  {q:"1 + 2", a:3}, {q:"4 + 6", a:10}, {q:"12 + 15", a:27}, {q:"78 + 45", a:123}, {q:"98 + 86", a:184},
-  {q:"66 + 96", a:162}, {q:"69 + 83", a:152}, {q:"298 + 375", a:673}, {q:"295 + 343", a:638}
-];
+        <!-- Ultimate Core Victory Card -->
+        <div id="victory-card" class="overlay-card" style="display: none;">
+            <div style="font-size: 5rem;">👑🔢✨</div>
+            <h1 style="color: #1B5E20; font-size: 2.4rem; margin: 15px 0;">Mathematical Balance Restored!</h1>
+            <p style="font-size: 1.25rem; margin-bottom: 25px; max-width: 500px;">
+                Incredible computation speed! You processed carryovers, multi-number columns, and place-value matrices flawlessly up to 500!
+            </p>
+            <h3 id="final-stats" style="color: var(--accent-orange); margin-bottom: 30px; font-size: 1.5rem;"></h3>
+            <button class="start-btn" onclick="resetMathEngine()">Recalibrate Grid 🔄</button>
+        </div>
 
-function loadQuestion() {
-  const item = questions[Math.floor(Math.random() * questions.length)];
-  document.getElementById('question').textContent = item.q + " = ?";
-  
-  const answers = [item.a];
-  while (answers.length < 4) {
-    let wrong = Math.floor(item.a - 50 + Math.random()*100);
-    if (!answers.includes(wrong) && wrong > 0) answers.push(Math.round(wrong));
-  }
-  answers.sort(() => Math.random() - 0.5);
+    </div>
 
-  optionsDiv.innerHTML = '';
-  answers.forEach(ans => {
-    const btn = document.createElement('button');
-    btn.textContent = ans;
-    btn.onclick = () => handleAnswer(ans === item.a);
-    optionsDiv.appendChild(btn);
-  });
-}
+    <!-- Active Sound Channels -->
+    <audio id="snd-pop" src="assets/correct.mp3" preload="none"></audio>
+    <audio id="snd-wrong" src="assets/wrong.mp3" preload="none"></audio>
+    <audio id="snd-victory" src="assets/freesound_community-claps-44774.mp3" preload="none"></audio>
 
-function handleAnswer(correct) {
-  if(correct) {
-    carPosition += step;
-    correctSound.play();
-    if(carPosition >= trackWidth){
-      carPosition = trackWidth;
-      finishMessage.style.display = 'block';
-      clapSound.play();
-      optionsDiv.innerHTML = '';
-      document.getElementById('question').innerHTML = '';
-    }
-  } else {
-    carPosition -= step;
-    if(carPosition < 0) carPosition = 0;
-    wrongSound.play();
-  }
-  car.style.left = carPosition + 'px';
-  loadQuestion();
-}
+    <script>
+        // Mapped structural lesson steps matching objectives in image_9523b5.png
+        var problemSets = [
+            { question: "Add: 34 + 12", target: 46, choices: [46, 48, 36] }, // 2-digit without carry
+            { question: "Add: 56 + 27", target: 83, choices: [83, 73, 81] }, // 2-digit with carry
+            { question: "Add: 12 + 21 + 33", target: 66, choices: [66, 56, 68] }, // Three 2-digit without carry
+            { question: "Which fills the blank?  140 + 210 = ___ + 140", target: 210, choices: [210, 140, 350] }, // Commutative Property
+            { question: "Add: 214 + 152", target: 366, choices: [366, 368, 466] }, // 3-digit without carry
+            { question: "Add: 248 + 175", target: 423, choices: [423, 413, 425] }  // 3-digit with carry up to 500
+        ];
 
-// Initialize
-loadQuestion();
-</script>
+        var currentStep = 0;
+        var totalScore = 0;
+        var trackingBalloons = [];
+        var frameAnimationId = null;
+        
+        // Calibrated slow movement speed constant (pixels per animation frame frame)
+        var DRIFT_SPEED = 0.65; 
 
+        var colorPalette = [
+            { bg: '#E91E63', text: '#E91E63' }, // Hot Pink
+            { bg: '#2196F3', text: '#2196F3' }, // Bright Blue
+            { bg: '#9C27B0', text: '#9C27B0' }  // Purple
+        ];
+
+        function playSound(type) {
+            try {
+                var p = document.getElementById('snd-pop');
+                var w = document.getElementById('snd-wrong');
+                var v = document.getElementById('snd-victory');
+                if (type === 'pop' && p) { p.volume = 0.4; p.currentTime = 0; p.play().catch(function(){}); }
+                if (type === 'wrong' && w) { w.volume = 0.3; w.currentTime = 0; w.play().catch(function(){}); }
+                if (type === 'victory' && v) { v.volume = 0.5; v.currentTime = 0; v.play().catch(function(){}); }
+            } catch(e) {}
+        }
+
+        function bootMathEngine() {
+            document.getElementById('intro-card').style.display = 'none';
+            currentStep = 0;
+            totalScore = 0;
+            document.getElementById('label-score').innerText = totalScore;
+            loadMathProblem();
+        }
+
+        function loadMathProblem() {
+            // Clean out old operational data frames
+            clearActiveBalloons();
+            
+            var totalLevels = problemSets.length;
+            document.getElementById('label-level').innerText = "Matrix Sync: " + (currentStep + 1) + " / " + totalLevels;
+            
+            var activeData = problemSets[currentStep];
+            document.getElementById('current-target-formula').innerText = activeData.question;
+
+            // Generate precisely 3 distinct tracks horizontally to spread out layout cleanly
+            var trackWidth = 750 / 3; 
+
+            for (var i = 0; i < 3; i++) {
+                var val = activeData.choices[i];
+                var balloon = document.createElement('div');
+                balloon.className = 'balloon-node';
+                
+                // Assign bright aesthetics with unique values
+                var styling = colorPalette[i % colorPalette.length];
+                balloon.style.backgroundColor = styling.bg;
+                balloon.style.color = styling.text;
+
+                // Build high-contrast visual display text container inside balloon
+                var badge = document.createElement('div');
+                badge.className = 'value-badge';
+                badge.innerText = val;
+                balloon.appendChild(badge);
+
+                // Exact horizontal track spacing positioning
+                var computedLeft = (i * trackWidth) + (trackWidth / 2) - 52; 
+                balloon.style.left = computedLeft + "px";
+                
+                // Initialize perfectly aligned beneath the lower visibility boundary
+                var startTop = 500; 
+                balloon.style.top = startTop + "px";
+
+                // Map state payloads explicitly onto the node
+                balloon.dataset.value = val;
+                balloon.dataset.targetVal = activeData.target;
+                balloon.dataset.currentY = startTop;
+
+                // Handle click action
+                balloon.onclick = function(e) {
+                    evaluatePopSelection(this);
+                };
+
+                document.getElementById('playfield-canvas').appendChild(balloon);
+                trackingBalloons.push(balloon);
+            }
+
+            // Fire running cycle loop
+            if (frameAnimationId) cancelAnimationFrame(frameAnimationId);
+            frameAnimationId = requestAnimationFrame(updateDriftCycle);
+        }
+
+        // Loop animation managing constant uniform vertical translation
+        function updateDriftCycle() {
+            for (var i = 0; i < trackingBalloons.length; i++) {
+                var bNode = trackingBalloons[i];
+                var currY = parseFloat(bNode.dataset.currentY);
+                
+                // Translate slowly up
+                currY -= DRIFT_SPEED;
+                bNode.dataset.currentY = currY;
+                bNode.style.transform = "translateY(" + (currY - 500) + "px)";
+
+                // Recycle parameters smoothly if elements reach top boundary line
+                if (currY < -150) {
+                    resetFieldLoop();
+                    return;
+                }
+            }
+            frameAnimationId = requestAnimationFrame(updateDriftCycle);
+        }
+
+        function resetFieldLoop() {
+            // Re-spawns at bottom if student lets them pass without popping
+            for (var i = 0; i < trackingBalloons.length; i++) {
+                trackingBalloons[i].dataset.currentY = 500;
+                trackingBalloons[i].style.transform = "translateY(0px)";
+            }
+            frameAnimationId = requestAnimationFrame(updateDriftCycle);
+        }
+
+        function evaluatePopSelection(hitElement) {
+            var selectedNum = parseInt(hitElement.dataset.value);
+            var correctNum = parseInt(hitElement.dataset.targetVal);
+
+            if (selectedNum === correctNum) {
+                playSound('pop');
+                triggerSparkleBurst(hitElement);
+                totalScore += 10;
+                document.getElementById('label-score').innerText = totalScore;
+                
+                // Freeze activity momentarily for successful validation sequence
+                cancelAnimationFrame(frameAnimationId);
+                hitElement.style.display = "none";
+
+                setTimeout(function() {
+                    currentStep++;
+                    if (currentStep < problemSets.length) {
+                        loadMathProblem();
+                    } else {
+                        concludeMatrixSystem();
+                    }
+                }, 1000);
+
+            } else {
+                playSound('wrong');
+                // Give a subtle physical bounce vibration feedback on mistake
+                hitElement.animate([
+                    { transform: 'translateX(-8px) translateY(' + (parseFloat(hitElement.dataset.currentY) - 500) + 'px)' },
+                    { transform: 'translateX(8px) translateY(' + (parseFloat(hitElement.dataset.currentY) - 500) + 'px)' },
+                    { transform: 'translateX(0px) translateY(' + (parseFloat(hitElement.dataset.currentY) - 500) + 'px)' }
+                ], { duration: 200, iterations: 2 });
+            }
+        }
+
+        function triggerSparkleBurst(originNode) {
+            var canvas = document.getElementById('playfield-canvas');
+            var rect = originNode.getBoundingClientRect();
+            var canvasRect = canvas.getBoundingClientRect();
+            
+            var centerX = rect.left - canvasRect.left + (rect.width / 2);
+            var centerY = rect.top - canvasRect.top + (rect.height / 2);
+            var color = originNode.style.backgroundColor;
+
+            for (var i = 0; i < 16; i++) {
+                var p = document.createElement('div');
+                p.className = 'pop-sparkle';
+                p.style.backgroundColor = color;
+                p.style.left = centerX + 'px';
+                p.style.top = centerY + 'px';
+                canvas.appendChild(p);
+
+                var ang = Math.random() * Math.PI * 2;
+                var dist = Math.random() * 80 + 40;
+                var finX = Math.cos(ang) * dist;
+                var finY = Math.sin(ang) * dist;
+
+                p.animate([
+                    { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                    { transform: 'translate(calc(-50% + ' + finX + 'px), calc(-50% + ' + finY + 'px)) scale(0)', opacity: 0 }
+                ], { duration: 600, easing: 'ease-out', fill: 'forwards' });
+
+                (function(particle){
+                    setTimeout(function(){ if(particle) particle.remove(); }, 650);
+                })(p);
+            }
+        }
+
+        function clearActiveBalloons() {
+            if (frameAnimationId) cancelAnimationFrame(frameAnimationId);
+            var canvas = document.getElementById('playfield-canvas');
+            canvas.innerHTML = "";
+            trackingBalloons = [];
+        }
+
+        function concludeMatrixSystem() {
+            clearActiveBalloons();
+            document.getElementById('victory-card').style.display = 'flex';
+            document.getElementById('final-stats').innerText = "Final Core Power Score: " + totalScore + " / 60";
+            playSound('victory');
+        }
+
+        function resetMathEngine() {
+            document.getElementById('victory-card').style.display = 'none';
+            document.getElementById('intro-card').style.display = 'flex';
+        }
+
+        /* --- IMMUTABLE TIMED LOADING FOR BRANDING --- */
+        window.addEventListener('load', function() {
+            var splashNode = document.getElementById('splash-screen');
+            var mainFrame = document.getElementById('game-container');
+            
+            setTimeout(function() {
+                if (splashNode) {
+                    splashNode.style.opacity = '0';
+                    if (mainFrame) {
+                        mainFrame.style.display = 'flex';
+                        setTimeout(function() { 
+                            if (splashNode.parentNode) splashNode.parentNode.removeChild(splashNode);
+                        }, 600);
+                    }
+                }
+            }, 5000);
+        });
+    </script>
 </body>
 </html>
