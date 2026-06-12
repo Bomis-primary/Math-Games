@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pizza Party Division</title>
+    <title>Sweet Treats Sharing & Distribution Game</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         * {
@@ -74,21 +74,31 @@
         }
         h1 {
             color: #e65100;
-            margin: 0 0 8px 0;
-            font-size: 24px;
+            margin: 0 0 4px 0;
+            font-size: 22px;
+        }
+        .part-badge {
+            background: #e65100;
+            color: white;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-block;
+            margin-bottom: 8px;
+            font-weight: bold;
         }
         .volume-box {
             background: #fff8e1;
-            padding: 5px;
+            padding: 4px;
             border-radius: 8px;
-            margin-bottom: 12px;
-            font-size: 14px;
+            margin-bottom: 10px;
+            font-size: 13px;
         }
         .progress-bar {
             background: #f5f5f5;
             border-radius: 10px;
             height: 12px;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
             overflow: hidden;
         }
         .progress {
@@ -123,7 +133,7 @@
             position: relative;
         }
         .section-title {
-            font-size: 12px;
+            font-size: 11px;
             text-transform: uppercase;
             color: #8d6e63;
             margin-bottom: 5px;
@@ -141,16 +151,16 @@
             padding: 8px;
             margin-bottom: 12px;
         }
-        .pizza-piece {
+        .treat-piece {
             font-size: 34px;
             cursor: grab;
             user-select: none;
             display: inline-block;
             transition: transform 0.1s;
         }
-        .pizza-piece.dragging {
+        .treat-piece.dragging, .formula-card.dragging {
             cursor: grabbing;
-            transform: scale(1.2);
+            transform: scale(1.15);
             z-index: 1000 !important;
         }
         .targets-container {
@@ -163,30 +173,35 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            width: 85px;
+            width: 95px;
         }
         .child-avatar {
             font-size: 36px;
             margin-bottom: 3px;
         }
+        
+        /* PLATE GRID CONTAINER */
         .drop-plate {
-            width: 75px;
-            height: 75px;
+            width: 85px;
+            height: 85px;
             background: #e0f2f1;
             border: 3px dashed #009688;
             border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 2px;
-            padding: 4px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-auto-rows: 1fr;
+            place-items: center;
+            align-content: center;
+            gap: 1px;
+            padding: 6px;
+            overflow: hidden;
             transition: background 0.2s, transform 0.2s;
         }
-        .drop-plate.hovered {
-            background: #b2dfdb;
+        .drop-plate.hovered, .basket-target.hovered {
+            background: #b2dfdb !important;
             transform: scale(1.05);
         }
+        
         /* Options Panel Layout */
         .options-grid {
             display: grid;
@@ -228,6 +243,50 @@
             background: #29b6f6;
             border-color: #0288d1;
         }
+
+        /* PART 2 - ABSTRACT FORMULA SHIFT DESIGN STYLES */
+        .formula-card {
+            background: #fff59d;
+            border: 3px solid #fbc02d;
+            border-radius: 15px;
+            font-size: 32px;
+            font-weight: bold;
+            color: #f57f17;
+            padding: 15px 30px;
+            display: inline-block;
+            cursor: grab;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .baskets-wrapper {
+            display: flex;
+            justify-content: space-around;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .basket-target {
+            background: #ffe0b2;
+            border: 3px dashed #f57c00;
+            border-radius: 12px;
+            width: 85px;
+            padding: 10px 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-weight: bold;
+            color: #e65100;
+            transition: background 0.2s, transform 0.2s;
+        }
+        .basket-icon {
+            font-size: 42px;
+            margin-bottom: 5px;
+        }
+        .basket-num {
+            font-size: 20px;
+            background: white;
+            padding: 2px 12px;
+            border-radius: 10px;
+            border: 2px solid #f57c00;
+        }
     </style>
 </head>
 <body>
@@ -235,14 +294,15 @@
     <div id="splash-screen">
         <img src="assets/innovine-logo.png" alt="Logo" onerror="this.style.display='none';">
         <div class="loader"></div>
-        <p style="color: #6d4c41; font-weight: bold; margin-top: 15px;">Setting up Pizza Party...</p>
+        <p style="color: #6d4c41; font-weight: bold; margin-top: 15px;">Setting up Treat Party...</p>
     </div>
 
     <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
     <div class="game-container" id="main-game">
-        <h1>🍕 Pizza Party Share!</h1>
+        <span class="part-badge" id="game-part-lbl">Part 1: Sharing Objects</span>
+        <h1 id="game-title">🧁 Sweet Treats Share!</h1>
         
         <div class="volume-box">
             <label for="volume">🔊 Volume: </label>
@@ -260,7 +320,6 @@
     <script>
         const volInput = document.getElementById('volume');
 
-        // Foolproof audio player wrapped inside error-catch zones
         function playSound(isCorrect) {
             try {
                 const targetId = isCorrect ? 'audio-correct' : 'audio-wrong';
@@ -268,33 +327,44 @@
                 if (audioEl) {
                     audioEl.volume = volInput.value;
                     audioEl.currentTime = 0;
-                    audioEl.play().catch(() => {
-                        console.log("Audio play prevented by browser safety restrictions.");
-                    });
+                    audioEl.play().catch(() => {});
                 }
-            } catch (err) {
-                console.log("Audio elements not found or failed to load cleanly.");
-            }
+            } catch (err) {}
         }
 
-        const questionsList = [
+        const itemThemes = [
+            { name: "cupcakes", emoji: "🧁", title: "🧁 Cupcake Party Share!" },
+            { name: "pastries", emoji: "🍰", title: "🍰 Pastry Party Share!" },
+            { name: "chocolates", emoji: "🍫", title: "🍫 Chocolate Party Share!" },
+            { name: "candies", emoji: "🍬", title: "🍬 Candy Party Share!" },
+            { name: "pizzas", emoji: "🍕", title: "🍕 Pizza Party Share!" }
+        ];
+
+        // Part 1 Questions Configuration (Concrete Drag and Drop)
+        const part1Questions = [
             { total: 4, kids: 2, avatars: ["👦", "👧"], answer: 2, options: [1, 2, 3, 4] },
             { total: 6, kids: 2, avatars: ["👦", "👧"], answer: 3, options: [2, 3, 4, 5] },
             { total: 6, kids: 3, avatars: ["👦", "👧", "👶"], answer: 2, options: [1, 2, 3, 4] },
             { total: 8, kids: 2, avatars: ["👧", "👧"], answer: 4, options: [2, 3, 4, 6] },
-            { total: 9, kids: 3, avatars: ["👦", "👧", "👦"], answer: 3, options: [2, 3, 4, 5] },
-            { total: 10, kids: 2, avatars: ["👦", "👧"], answer: 5, options: [2, 4, 5, 6] },
-            { total: 12, kids: 3, avatars: ["👧", "👧", "👧"], answer: 4, options: [3, 4, 5, 6] },
-            { total: 12, kids: 4, avatars: ["👦", "👧", "👦", "👧"], answer: 3, options: [2, 3, 4, 6] }
+            { total: 9, kids: 3, avatars: ["👦", "👧", "👦"], answer: 3, options: [2, 3, 4, 5] }
         ];
 
+        // Part 2 Questions Configuration (Abstract Formula Distribution Match)
+        const part2Questions = [
+            { formula: "10 ÷ 2", answer: 5, options: [3, 4, 5] },
+            { formula: "12 ÷ 3", answer: 4, options: [2, 4, 6] },
+            { formula: "6 ÷ 2", answer: 3, options: [2, 3, 4] },
+            { formula: "8 ÷ 4", answer: 2, options: [1, 2, 3] },
+            { formula: "15 ÷ 3", answer: 5, options: [4, 5, 6] }
+        ];
+
+        let currentGamePart = 1; // 1 = Concrete Items, 2 = Abstract Formulas
         let activeQuestions = [];
         let index = 0;
         let points = 0;
         let acceptInput = true;
         let piecesLeft = 0;
 
-        // SAFE TIMEOUT - Guaranteed to execute and clear the screen after 5 seconds
         setTimeout(() => {
             const splash = document.getElementById('splash-screen');
             const game = document.getElementById('main-game');
@@ -303,38 +373,46 @@
                 setTimeout(() => {
                     splash.style.display = 'none';
                     game.style.display = 'block';
-                    initGame();
+                    startPart1();
                 }, 500);
             }
         }, 5000);
 
-        function initGame() {
-            activeQuestions = [...questionsList].sort(() => Math.random() - 0.5);
+        function startPart1() {
+            currentGamePart = 1;
+            document.getElementById('game-part-lbl').innerText = "Part 1: Drag & Divide Objects";
+            activeQuestions = [...part1Questions].sort(() => Math.random() - 0.5);
             index = 0;
             points = 0;
-            showQuestion();
+            showPart1Question();
         }
 
-        function showQuestion() {
+        function showPart1Question() {
             acceptInput = true;
             const container = document.getElementById('game-content');
             const prog = document.getElementById('progress');
+            const mainTitle = document.getElementById('game-title');
             
             if (prog) {
-                prog.style.width = `${(index / activeQuestions.length) * 100}%`;
+                // Combined progress mapping across both parts
+                let completePct = ((index) / (part1Questions.length + part2Questions.length)) * 100;
+                prog.style.width = `${completePct}%`;
             }
 
             if (index >= activeQuestions.length) {
-                endGame();
+                startPart2();
                 return;
             }
 
             const q = activeQuestions[index];
             piecesLeft = q.total;
 
-            let pizzaHTML = "";
+            const theme = itemThemes[Math.floor(Math.random() * itemThemes.length)];
+            if (mainTitle) mainTitle.innerText = theme.title;
+
+            let treatsHTML = "";
             for (let i = 0; i < q.total; i++) {
-                pizzaHTML += `<span class="pizza-piece" id="pizza-${i}">🍕</span>`;
+                treatsHTML += `<span class="treat-piece" id="treat-${i}">${theme.emoji}</span>`;
             }
 
             let kidsHTML = "";
@@ -350,33 +428,31 @@
             if (container) {
                 container.innerHTML = `
                     <div class="story-text">
-                        There are ${q.total} pizza slices. Share them equally among the ${q.kids} children. How many slices does each child get?
+                        There are ${q.total} ${theme.name}. Share them equally among the ${q.kids} children. How many ${theme.name} does each child get?
                     </div>
-                    <div class="instruction-alert" id="status-msg">👉 Drag ALL pizzas into plates to unlock numbers!</div>
+                    <div class="instruction-alert" id="status-msg">👉 Drag ALL items into plates to unlock numbers!</div>
                     
                     <div class="sandbox">
-                        <div class="section-title">Pizza Box</div>
-                        <div class="source-zone" id="pizza-box">${pizzaHTML}</div>
+                        <div class="section-title">Treats Box</div>
+                        <div class="source-zone" id="treats-box">${treatsHTML}</div>
                         
                         <div class="section-title">Plates</div>
                         <div class="targets-container">${kidsHTML}</div>
                     </div>
                     
                     <div class="options-grid" id="options-panel">
-                        ${q.options.map(num => `<button class="btn" onclick="submitAnswer(this, ${num})">${num}</button>`).join('')}
+                        ${q.options.map(num => `<button class="btn" onclick="submitPart1Answer(this, ${num})">${num}</button>`).join('')}
                     </div>
                 `;
-                attachTouchTracking();
+                attachPart1TouchTracking();
             }
         }
 
-        function attachTouchTracking() {
-            const pieces = document.querySelectorAll('.pizza-piece');
-            
+        function attachPart1TouchTracking() {
+            const pieces = document.querySelectorAll('.treat-piece');
             pieces.forEach(piece => {
                 piece.addEventListener('pointerdown', (e) => {
                     if (!acceptInput) return;
-                    
                     e.preventDefault();
                     let currentTargetPlate = null;
                     
@@ -394,7 +470,6 @@
                         
                         if (elementUnderneath) {
                             let destinationPlate = elementUnderneath.closest('.drop-plate');
-                            
                             document.querySelectorAll('.drop-plate').forEach(pl => pl.classList.remove('hovered'));
                             if (destinationPlate) {
                                 destinationPlate.classList.add('hovered');
@@ -417,14 +492,17 @@
                         
                         if (currentTargetPlate) {
                             piece.style.position = 'static';
-                            piece.style.fontSize = '22px';
+                            const slicesCount = currentTargetPlate.children.length;
+                            if (slicesCount >= 4) piece.style.fontSize = '14px';
+                            else if (slicesCount >= 2) piece.style.fontSize = '18px';
+                            else piece.style.fontSize = '22px';
+                            
                             currentTargetPlate.appendChild(piece);
                             piecesLeft--;
                             
                             if (piecesLeft === 0) {
                                 const panel = document.getElementById('options-panel');
                                 if (panel) panel.classList.add('unlocked');
-                                
                                 const status = document.getElementById('status-msg');
                                 if (status) {
                                     status.innerText = "🎉 Unlocked! Count a plate and choose your number.";
@@ -436,14 +514,13 @@
                             piece.style.position = 'static';
                         }
                     }
-
                     piece.addEventListener('pointermove', trackMovement);
                     piece.addEventListener('pointerup', releaseTracking);
                 });
             });
         }
 
-        function submitAnswer(element, choice) {
+        function submitPart1Answer(element, choice) {
             if (!acceptInput) return;
             acceptInput = false;
 
@@ -463,8 +540,148 @@
 
             setTimeout(() => {
                 index++;
-                showQuestion();
-            }, 2500);
+                showPart1Question();
+            }, 2000);
+        }
+
+        /* PART 2 - ABSTRACT FORMULA MATCH ENGINE IMPLEMENTATION */
+        function startPart2() {
+            currentGamePart = 2;
+            document.getElementById('game-part-lbl').innerText = "Part 2: Distribute Games & Formulas";
+            document.getElementById('game-title').innerText = "🎯 Formula Distribution Match!";
+            activeQuestions = [...part2Questions].sort(() => Math.random() - 0.5);
+            index = 0;
+            showPart2Question();
+        }
+
+        function showPart2Question() {
+            acceptInput = true;
+            const container = document.getElementById('game-content');
+            const prog = document.getElementById('progress');
+            
+            if (prog) {
+                let completePct = ((part1Questions.length + index) / (part1Questions.length + part2Questions.length)) * 100;
+                prog.style.width = `${completePct}%`;
+            }
+
+            if (index >= activeQuestions.length) {
+                endGame();
+                return;
+            }
+
+            const q = activeQuestions[index];
+
+            let basketsHTML = "";
+            q.options.forEach(num => {
+                basketsHTML += `
+                    <div class="basket-target" data-value="${num}">
+                        <div class="basket-icon">🧺</div>
+                        <div class="basket-num">${num}</div>
+                    </div>
+                `;
+            });
+
+            if (container) {
+                container.innerHTML = `
+                    <div class="story-text" style="margin-bottom: 25px;">
+                        Drag and distribute the division problem card into the correct answer basket below!
+                    </div>
+                    
+                    <div style="min-height: 100px; display: flex; justify-content: center; align-items: center; margin-bottom: 30px;">
+                        <div class="formula-card" id="active-formula-card">${q.formula}</div>
+                    </div>
+                    
+                    <div class="baskets-wrapper">
+                        ${basketsHTML}
+                    </div>
+                `;
+                attachPart2TouchTracking();
+            }
+        }
+
+        function attachPart2TouchTracking() {
+            const card = document.getElementById('active-formula-card');
+            if (!card) return;
+
+            card.addEventListener('pointerdown', (e) => {
+                if (!acceptInput) return;
+                e.preventDefault();
+                let selectedBasket = null;
+                
+                card.classList.add('dragging');
+                card.style.position = 'fixed';
+                card.setPointerCapture(e.pointerId);
+
+                function trackCard(evt) {
+                    card.style.left = (evt.clientX - card.offsetWidth / 2) + 'px';
+                    card.style.top = (evt.clientY - card.offsetHeight / 2) + 'px';
+
+                    card.style.display = 'none';
+                    let elementUnderneath = document.elementFromPoint(evt.clientX, evt.clientY);
+                    card.style.display = 'inline-block';
+
+                    if (elementUnderneath) {
+                        let targetBasket = elementUnderneath.closest('.basket-target');
+                        document.querySelectorAll('.basket-target').forEach(b => b.classList.remove('hovered'));
+                        if (targetBasket) {
+                            targetBasket.classList.add('hovered');
+                            selectedBasket = targetBasket;
+                        } else {
+                            selectedBasket = null;
+                        }
+                    }
+                }
+
+                trackCard(e);
+
+                function releaseCard(evt) {
+                    card.releasePointerCapture(evt.pointerId);
+                    card.classList.remove('dragging');
+                    document.querySelectorAll('.basket-target').forEach(b => b.classList.remove('hovered'));
+
+                    card.removeEventListener('pointermove', trackCard);
+                    card.removeEventListener('pointerup', releaseCard);
+
+                    if (selectedBasket) {
+                        const chosenValue = parseInt(selectedBasket.getAttribute('data-value'));
+                        const q = activeQuestions[index];
+                        
+                        acceptInput = false;
+
+                        if (chosenValue === q.answer) {
+                            points++;
+                            selectedBasket.style.background = "#c8e6c9";
+                            selectedBasket.style.borderColor = "#2e7d32";
+                            playSound(true);
+                            confetti({ particleCount: 30, spread: 40, origin: { y: 0.75 } });
+                        } else {
+                            selectedBasket.style.background = "#ffcdd2";
+                            selectedBasket.style.borderColor = "#c62828";
+                            playSound(false);
+                            
+                            // Highlight the correct answer basket
+                            document.querySelectorAll('.basket-target').forEach(b => {
+                                if (parseInt(b.getAttribute('data-value')) === q.answer) {
+                                    b.style.background = "#c8e6c9";
+                                    b.style.borderColor = "#2e7d32";
+                                }
+                            });
+                        }
+
+                        setTimeout(() => {
+                            index++;
+                            showPart2Question();
+                        }, 2000);
+
+                    } else {
+                        // Reset formula location if missed
+                        card.style.position = 'static';
+                    }
+                }
+
+                card.addEventListener('pointermove', trackCard);
+                card.addEventListener('pointerup', releaseCard);
+            });
         }
 
         function endGame() {
@@ -472,16 +689,18 @@
             if (prog) prog.style.width = '100%';
             
             const container = document.getElementById('game-content');
+            const totalCount = part1Questions.length + part2Questions.length;
             if (container) {
-                if (points >= 6) {
+                if (points >= (totalCount * 0.7)) {
                     confetti({ particleCount: 120, spread: 70 });
                 }
 
                 container.innerHTML = `
-                    <div class="story-text" style="font-size: 24px; color: #2e7d32;">Party Complete! 🥳</div>
-                    <div class="story-text">You successfully distributed all pizza slices evenly! Score: ${points} / ${activeQuestions.length}</div>
-                    <div class="options-grid unlocked">
-                        <button id="restart-btn" class="btn" onclick="initGame()">Play Again 🔄</button>
+                    <div class="story-text" style="font-size: 24px; color: #2e7d32;">Game Complete! 🥳</div>
+                    <div class="story-text">Wonderful job! You mastered sharing items and matching division questions!</div>
+                    <div class="story-text" style="font-size: 20px; color: #e65100;">Total Score: ${points} / ${totalCount}</div>
+                    <div style="margin-top: 20px;">
+                        <button id="restart-btn" class="btn" onclick="startPart1()" style="width:100%;">Play Again 🔄</button>
                     </div>
                 `;
             }
