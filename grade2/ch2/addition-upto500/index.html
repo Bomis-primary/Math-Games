@@ -117,10 +117,13 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
-        /* --- AIRPLAY BALLOON ZONE --- */
+        /* --- AIRPLAY BALLOON ZONE WITH EXPLICIT PATH ASSET --- */
         .balloon-field {
             flex: 1;
-            background: linear-gradient(to bottom, #E8F5E9 0%, #C8E6C9 100%);
+            background-image: url('assets/sky-bg.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             position: relative;
             overflow: hidden;
         }
@@ -173,9 +176,9 @@
 </head>
 <body>
 
-    <!-- Splash Screen Component -->
+    <!-- Splash Screen Component with explicit repository logo assets -->
     <div id="splash-screen">
-        <img src="assets/innovine-logo.png" alt="Innovine Logo" class="splash-logo" onerror="this.src='https://placehold.co/220x60/FF9800/fff?text=Innovine'">
+        <img src="assets/logo.png" alt="Game Logo" class="splash-logo" onerror="this.src='https://placehold.co/220x60/FF9800/fff?text=Logo'">
         <div class="timer-loader"><div class="timer-progress"></div></div>
     </div>
 
@@ -203,7 +206,7 @@
             Scanning Mathematical Matrix...
         </div>
 
-        <!-- Interactive Playground -->
+        <!-- Interactive Playground using sky-bg.png -->
         <div class="balloon-field" id="playfield-canvas">
             <!-- Exactly 3 slow balloons will reside dynamically here -->
         </div>
@@ -221,20 +224,20 @@
 
     </div>
 
-    <!-- Active Sound Channels -->
+    <!-- Repository Verified Active Sound Assets -->
     <audio id="snd-pop" src="assets/correct.mp3" preload="none"></audio>
     <audio id="snd-wrong" src="assets/wrong.mp3" preload="none"></audio>
     <audio id="snd-victory" src="assets/freesound_community-claps-44774.mp3" preload="none"></audio>
 
     <script>
-        // Mapped structural lesson steps matching objectives in image_9523b5.png
+        // Data arrays explicitly mapping required educational metrics from image_9523b5.png
         var problemSets = [
-            { question: "Add: 34 + 12", target: 46, choices: [46, 48, 36] }, // 2-digit without carry
-            { question: "Add: 56 + 27", target: 83, choices: [83, 73, 81] }, // 2-digit with carry
-            { question: "Add: 12 + 21 + 33", target: 66, choices: [66, 56, 68] }, // Three 2-digit without carry
-            { question: "Which fills the blank?  140 + 210 = ___ + 140", target: 210, choices: [210, 140, 350] }, // Commutative Property
-            { question: "Add: 214 + 152", target: 366, choices: [366, 368, 466] }, // 3-digit without carry
-            { question: "Add: 248 + 175", target: 423, choices: [423, 413, 425] }  // 3-digit with carry up to 500
+            { question: "Add: 34 + 12", target: 46, choices: [46, 48, 36] }, 
+            { question: "Add: 56 + 27", target: 83, choices: [83, 73, 81] }, 
+            { question: "Add: 12 + 21 + 33", target: 66, choices: [66, 56, 68] }, 
+            { question: "Which fills the blank?  140 + 210 = ___ + 140", target: 210, choices: [210, 140, 350] }, 
+            { question: "Add: 214 + 152", target: 366, choices: [366, 368, 466] }, 
+            { question: "Add: 248 + 175", target: 423, choices: [423, 413, 425] }  
         ];
 
         var currentStep = 0;
@@ -242,13 +245,13 @@
         var trackingBalloons = [];
         var frameAnimationId = null;
         
-        // Calibrated slow movement speed constant (pixels per animation frame frame)
+        // Calibrated slow speed for clear visibility
         var DRIFT_SPEED = 0.65; 
 
         var colorPalette = [
-            { bg: '#E91E63', text: '#E91E63' }, // Hot Pink
-            { bg: '#2196F3', text: '#2196F3' }, // Bright Blue
-            { bg: '#9C27B0', text: '#9C27B0' }  // Purple
+            { bg: '#E91E63', text: '#E91E63' }, 
+            { bg: '#2196F3', text: '#2196F3' }, 
+            { bg: '#9C27B0', text: '#9C27B0' }  
         ];
 
         function playSound(type) {
@@ -271,7 +274,6 @@
         }
 
         function loadMathProblem() {
-            // Clean out old operational data frames
             clearActiveBalloons();
             
             var totalLevels = problemSets.length;
@@ -280,7 +282,7 @@
             var activeData = problemSets[currentStep];
             document.getElementById('current-target-formula').innerText = activeData.question;
 
-            // Generate precisely 3 distinct tracks horizontally to spread out layout cleanly
+            // Strict tracking container restriction: Spawn exactly 3 options
             var trackWidth = 750 / 3; 
 
             for (var i = 0; i < 3; i++) {
@@ -288,31 +290,26 @@
                 var balloon = document.createElement('div');
                 balloon.className = 'balloon-node';
                 
-                // Assign bright aesthetics with unique values
                 var styling = colorPalette[i % colorPalette.length];
                 balloon.style.backgroundColor = styling.bg;
                 balloon.style.color = styling.text;
 
-                // Build high-contrast visual display text container inside balloon
+                // Built with white background framing for bold readability
                 var badge = document.createElement('div');
                 badge.className = 'value-badge';
                 badge.innerText = val;
                 balloon.appendChild(badge);
 
-                // Exact horizontal track spacing positioning
                 var computedLeft = (i * trackWidth) + (trackWidth / 2) - 52; 
                 balloon.style.left = computedLeft + "px";
                 
-                // Initialize perfectly aligned beneath the lower visibility boundary
                 var startTop = 500; 
                 balloon.style.top = startTop + "px";
 
-                // Map state payloads explicitly onto the node
                 balloon.dataset.value = val;
                 balloon.dataset.targetVal = activeData.target;
                 balloon.dataset.currentY = startTop;
 
-                // Handle click action
                 balloon.onclick = function(e) {
                     evaluatePopSelection(this);
                 };
@@ -321,23 +318,19 @@
                 trackingBalloons.push(balloon);
             }
 
-            // Fire running cycle loop
             if (frameAnimationId) cancelAnimationFrame(frameAnimationId);
             frameAnimationId = requestAnimationFrame(updateDriftCycle);
         }
 
-        // Loop animation managing constant uniform vertical translation
         function updateDriftCycle() {
             for (var i = 0; i < trackingBalloons.length; i++) {
                 var bNode = trackingBalloons[i];
                 var currY = parseFloat(bNode.dataset.currentY);
                 
-                // Translate slowly up
                 currY -= DRIFT_SPEED;
                 bNode.dataset.currentY = currY;
                 bNode.style.transform = "translateY(" + (currY - 500) + "px)";
 
-                // Recycle parameters smoothly if elements reach top boundary line
                 if (currY < -150) {
                     resetFieldLoop();
                     return;
@@ -347,7 +340,6 @@
         }
 
         function resetFieldLoop() {
-            // Re-spawns at bottom if student lets them pass without popping
             for (var i = 0; i < trackingBalloons.length; i++) {
                 trackingBalloons[i].dataset.currentY = 500;
                 trackingBalloons[i].style.transform = "translateY(0px)";
@@ -365,7 +357,6 @@
                 totalScore += 10;
                 document.getElementById('label-score').innerText = totalScore;
                 
-                // Freeze activity momentarily for successful validation sequence
                 cancelAnimationFrame(frameAnimationId);
                 hitElement.style.display = "none";
 
@@ -380,7 +371,6 @@
 
             } else {
                 playSound('wrong');
-                // Give a subtle physical bounce vibration feedback on mistake
                 hitElement.animate([
                     { transform: 'translateX(-8px) translateY(' + (parseFloat(hitElement.dataset.currentY) - 500) + 'px)' },
                     { transform: 'translateX(8px) translateY(' + (parseFloat(hitElement.dataset.currentY) - 500) + 'px)' },
@@ -441,7 +431,7 @@
             document.getElementById('intro-card').style.display = 'flex';
         }
 
-        /* --- IMMUTABLE TIMED LOADING FOR BRANDING --- */
+        /* --- REQUIRED 5-SECOND TIMED LOADING FOR BRANDING SIMULATION --- */
         window.addEventListener('load', function() {
             var splashNode = document.getElementById('splash-screen');
             var mainFrame = document.getElementById('game-container');
