@@ -20,7 +20,10 @@
         }
 
         body {
-            background: linear-gradient(135deg, #CFD8DC 0%, #90A4AE 100%);
+            background-image: url('assets/sky-bg.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -58,10 +61,11 @@
             width: 95%;
             max-width: 750px;
             height: 620px;
-            background: #FFFFFF;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
             border-radius: 24px;
             border: 6px solid var(--panel-bg);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
             position: relative;
             display: none;
             flex-direction: column;
@@ -82,7 +86,7 @@
             z-index: 50;
         }
         .mission-text {
-            font-size: 1.2rem; line-height: 1.6; margin: 20px 0; max-width: 550px;
+            font-size: 1.25rem; line-height: 1.6; margin: 20px 0; max-width: 550px;
             background: #E8F5E9; padding: 20px; border-radius: 16px; border: 2px dashed #4CAF50;
             color: #2E7D32;
         }
@@ -109,8 +113,8 @@
         .target-banner {
             background: #FFF3E0;
             border-bottom: 4px solid var(--accent-orange);
-            padding: 14px;
-            font-size: 1.6rem;
+            padding: 16px;
+            font-size: 1.7rem;
             font-weight: bold;
             text-align: center;
             color: #E65100;
@@ -118,18 +122,15 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
 
-        /* --- AIRPLAY BALLOON ZONE WITH EXPLICIT PATH ASSET --- */
+        /* --- AIRPLAY BALLOON ZONE --- */
         .balloon-field {
             flex: 1;
-            background-image: url('assets/sky-bg.png');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            background: transparent;
             position: relative;
             overflow: hidden;
         }
 
-        /* --- CRITICAL VISIBILITY BALLOON DESIGN --- */
+        /* --- BALLOON COMPONENT --- */
         .balloon-node {
             position: absolute;
             width: 105px;
@@ -142,7 +143,6 @@
             box-shadow: inset -8px -12px 15px rgba(0,0,0,0.15), 0 8px 15px rgba(0,0,0,0.1);
             transition: transform 0.1s ease;
         }
-        /* Triangle knot beneath balloon body */
         .balloon-node::after {
             content: '';
             position: absolute;
@@ -154,13 +154,13 @@
             border-bottom: 10px solid currentColor;
         }
 
-        /* High-Contrast Value Badge for Absolute Readability */
+        /* High-Contrast Value Badge */
         .value-badge {
             background: #FFFFFF;
             color: #222E3C;
             padding: 4px 10px;
             border-radius: 8px;
-            font-size: 1.4rem;
+            font-size: 1.45rem;
             font-weight: 900;
             border: 3px solid #222E3C;
             text-align: center;
@@ -168,7 +168,6 @@
             box-shadow: 0 4px 0 rgba(0,0,0,0.1);
         }
 
-        /* --- DECORATIVE PARTICLES --- */
         .pop-sparkle {
             position: absolute; width: 10px; height: 10px; border-radius: 50%;
             pointer-events: none; z-index: 40;
@@ -188,7 +187,7 @@
             <div style="font-size: 4.5rem; margin-bottom: 10px;">🎈🎈✨</div>
             <h2 style="color: #2E7D32; font-size: 2.2rem;">The Big Balloon Festival!</h2>
             <p class="mission-text">
-                Welcome to the balloon party! Look at the math math problem at the top, watch the 3 slow balloons float up, and pop the one with the correct magic number to win points!
+                Welcome to the balloon party! Look at the math problem at the top, watch the 3 slow balloons float up, and pop the one with the correct magic number to win points!
             </p>
             <button class="start-btn" onclick="bootMathEngine()">Let's Play! 🚀</button>
         </div>
@@ -203,14 +202,13 @@
             Loading your question...
         </div>
 
-        <div class="balloon-field" id="playfield-canvas">
-            </div>
+        <div class="balloon-field" id="playfield-canvas"></div>
 
         <div id="victory-card" class="overlay-card" style="display: none;">
             <div style="font-size: 5rem;">🏆⭐👑</div>
             <h1 style="color: #1B5E20; font-size: 2.4rem; margin: 15px 0;">You are an addition champion! 🏆</h1>
-            <p style="font-size: 1.3rem; margin-bottom: 25px; max-width: 500px; color: #37474F;">
-                Fantastic popping skills! You answered all 15 questions correctly and mastered columns, place values, and additions all the way up to 500!
+            <p style="font-size: 1.35rem; margin-bottom: 25px; max-width: 500px; color: #37474F;">
+                Fantastic popping skills! You answered all questions correctly and mastered place values, carry overs, and math matrices up to 500!
             </p>
             <h3 id="final-stats" style="color: var(--accent-orange); margin-bottom: 30px; font-size: 1.6rem;"></h3>
             <button class="start-btn" onclick="resetMathEngine()">Play Again 🔄</button>
@@ -223,37 +221,35 @@
     <audio id="snd-victory" src="assets/freesound_community-claps-44774.mp3" preload="none"></audio>
 
     <script>
-        // 15 full structured questions mapping every LO from image_9523b5.png up to 500
+        // 15 question structural matrices matching images LO guidelines up to 500
         var problemSets = [
-            { question: "What is 20 + 13?", target: 33, choices: [33, 43, 23] },
-            { question: "What is 34 + 12?", target: 46, choices: [46, 48, 36] },
-            { question: "What is 42 + 25?", target: 67, choices: [67, 57, 69] },
-            { question: "What is 56 + 27?", target: 83, choices: [83, 73, 81] },
-            { question: "What is 68 + 14?", target: 82, choices: [82, 72, 84] },
-            { question: "What is 45 + 39?", target: 84, choices: [84, 74, 94] },
-            { question: "What is 10 + 20 + 30?", target: 60, choices: [60, 50, 70] },
-            { question: "What is 12 + 21 + 33?", target: 66, choices: [66, 56, 68] },
-            { question: "What is 15 + 22 + 41?", target: 78, choices: [78, 88, 68] },
-            { question: "Fill the blank: 100 + 200 = ___ + 100", target: 200, choices: [200, 100, 300] },
-            { question: "Fill the blank: 140 + 210 = ___ + 140", target: 210, choices: [210, 140, 350] },
-            { question: "What is 214 + 152?", target: 366, choices: [366, 368, 466] },
-            { question: "What is 305 + 132?", target: 437, choices: [437, 427, 439] },
-            { question: "What is 248 + 175?", target: 423, choices: [423, 413, 425] },
-            { question: "What is 199 + 256?", target: 455, choices: [455, 445, 465] }
+            { question: "What is 23 + 14?", target: 37, choices: [37, 47, 36] },
+            { question: "What is 52 + 35?", target: 87, choices: [87, 85, 97] },
+            { question: "What is 46 + 28?", target: 74, choices: [74, 64, 72] },
+            { question: "What is 39 + 57?", target: 96, choices: [96, 86, 94] },
+            { question: "What is 11 + 22 + 33?", target: 66, choices: [66, 55, 77] },
+            { question: "What is 25 + 14 + 32?", target: 71, choices: [71, 61, 81] },
+            { question: "What is 48 + 16 + 27?", target: 91, choices: [91, 81, 93] },
+            { question: "Fill the blank: 120 + 230 = ___ + 120", target: 230, choices: [230, 120, 350] },
+            { question: "Fill the blank: 310 + 80 = 80 + ___", target: 310, choices: [310, 80, 390] },
+            { question: "What is 241 + 135?", target: 376, choices: [376, 378, 476] },
+            { question: "What is 152 + 326?", target: 478, choices: [478, 476, 378] },
+            { question: "What is 264 + 153?", target: 417, choices: [417, 407, 427] },
+            { question: "What is 185 + 246?", target: 431, choices: [431, 421, 433] },
+            { question: "What is 122 + 134 + 113?", target: 369, choices: [369, 359, 379] },
+            { question: "What is 145 + 162 + 124?", target: 431, choices: [431, 421, 441] }
         ];
 
         var currentStep = 0;
         var totalScore = 0;
         var trackingBalloons = [];
         var frameAnimationId = null;
-        
-        // Very gentle, slow movement speed perfect for 7-year-olds
         var DRIFT_SPEED = 0.65; 
 
         var colorPalette = [
-            { bg: '#E91E63', text: '#E91E63' }, // Pink/Red
-            { bg: '#2196F3', text: '#2196F3' }, // Blue
-            { bg: '#9C27B0', text: '#9C27B0' }  // Purple
+            { bg: '#E91E63', text: '#E91E63' },
+            { bg: '#2196F3', text: '#2196F3' },
+            { bg: '#9C27B0', text: '#9C27B0' }
         ];
 
         function playSound(type) {
@@ -267,7 +263,6 @@
             } catch(e) {}
         }
 
-        // Standard Fisher-Yates array shuffle function to fix the "1st answer is correct" glitch
         function shuffleArray(array) {
             for (var i = array.length - 1; i > 0; i--) {
                 var j = Math.floor(Math.random() * (i + 1));
@@ -295,7 +290,6 @@
             var activeData = problemSets[currentStep];
             document.getElementById('current-target-formula').innerText = activeData.question;
 
-            // CRITICAL FIX: Shallow copy choices array and completely randomize the bubble placement positions
             var randomizedChoices = activeData.choices.slice();
             shuffleArray(randomizedChoices);
 
@@ -310,7 +304,6 @@
                 balloon.style.backgroundColor = styling.bg;
                 balloon.style.color = styling.text;
 
-                // Built with white background framing for bold readability
                 var badge = document.createElement('div');
                 badge.className = 'value-badge';
                 badge.innerText = val;
@@ -319,12 +312,14 @@
                 var computedLeft = (i * trackWidth) + (trackWidth / 2) - 52; 
                 balloon.style.left = computedLeft + "px";
                 
-                var startTop = 500; 
-                balloon.style.top = startTop + "px";
+                // Varied initial offsets so they float staggered, rather than perfectly matching rows
+                var startTop = 500 + (Math.random() * 80); 
+                balloon.style.top = "0px";
 
                 balloon.dataset.value = val;
                 balloon.dataset.targetVal = activeData.target;
                 balloon.dataset.currentY = startTop;
+                balloon.style.transform = "translateY(" + (startTop - 500) + "px)";
 
                 balloon.onclick = function(e) {
                     evaluatePopSelection(this);
@@ -344,21 +339,14 @@
                 var currY = parseFloat(bNode.dataset.currentY);
                 
                 currY -= DRIFT_SPEED;
+                
+                // FIXED LOOP: Instead of checking the whole group, reset individual nodes instantly when exiting layout box
+                if (currY < -150) {
+                    currY = 500; 
+                }
+
                 bNode.dataset.currentY = currY;
                 bNode.style.transform = "translateY(" + (currY - 500) + "px)";
-
-                if (currY < -150) {
-                    resetFieldLoop();
-                    return;
-                }
-            }
-            frameAnimationId = requestAnimationFrame(updateDriftCycle);
-        }
-
-        function resetFieldLoop() {
-            for (var i = 0; i < trackingBalloons.length; i++) {
-                trackingBalloons[i].dataset.currentY = 500;
-                trackingBalloons[i].style.transform = "translateY(0px)";
             }
             frameAnimationId = requestAnimationFrame(updateDriftCycle);
         }
@@ -438,7 +426,7 @@
         function concludeMatrixSystem() {
             clearActiveBalloons();
             document.getElementById('victory-card').style.display = 'flex';
-            document.getElementById('final-stats').innerText = "Final High Score: " + totalScore + " / 150 Points!";
+            document.getElementById('final-stats').innerText = "Final Score: " + totalScore + " / 150 Points!";
             playSound('victory');
         }
 
@@ -447,7 +435,6 @@
             document.getElementById('intro-card').style.display = 'flex';
         }
 
-        /* --- REQUIRED 5-SECOND TIMED LOADING FOR BRANDING SIMULATION --- */
         window.addEventListener('load', function() {
             var splashNode = document.getElementById('splash-screen');
             var mainFrame = document.getElementById('game-container');
