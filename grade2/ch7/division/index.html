@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sweet Treats Sharing & Distribution Game</title>
+    <title>Sweet Treats & Equation Express</title>
+    <!-- Canvas Confetti Library for completion celebration -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         * {
@@ -80,12 +81,13 @@
         .part-badge {
             background: #e65100;
             color: white;
-            padding: 2px 10px;
+            padding: 2px 12px;
             border-radius: 20px;
             font-size: 12px;
             display: inline-block;
             margin-bottom: 8px;
             font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
         }
         .volume-box {
             background: #fff8e1;
@@ -160,7 +162,7 @@
         }
         .treat-piece.dragging, .formula-card.dragging {
             cursor: grabbing;
-            transform: scale(1.15);
+            transform: scale(1.1) rotate(-3deg) !important;
             z-index: 1000 !important;
         }
         .targets-container {
@@ -180,7 +182,7 @@
             margin-bottom: 3px;
         }
         
-        /* PLATE GRID CONTAINER */
+        /* PLATE CONTAINER FIXES (Referencing structural setup of image_6892a0.png) */
         .drop-plate {
             width: 85px;
             height: 85px;
@@ -197,7 +199,7 @@
             overflow: hidden;
             transition: background 0.2s, transform 0.2s;
         }
-        .drop-plate.hovered, .basket-target.hovered {
+        .drop-plate.hovered, .station-target.hovered {
             background: #b2dfdb !important;
             transform: scale(1.05);
         }
@@ -244,64 +246,80 @@
             border-color: #0288d1;
         }
 
-        /* PART 2 - ABSTRACT FORMULA SHIFT DESIGN STYLES */
+        /* LEVEL 2 - ENHANCED THEMED DESIGN: EQUATION EXPRESS */
         .formula-card {
-            background: #fff59d;
-            border: 3px solid #fbc02d;
-            border-radius: 15px;
-            font-size: 32px;
+            background: linear-gradient(135deg, #ffca28, #fff176);
+            border: 3px solid #ff8f00;
+            border-radius: 16px;
+            font-size: 24px;
             font-weight: bold;
-            color: #f57f17;
-            padding: 15px 30px;
+            color: #5d4037;
+            padding: 16px 24px;
             display: inline-block;
             cursor: grab;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            text-shadow: 1px 1px 0px white;
+            min-width: 220px;
+            max-width: 320px;
+            line-height: 1.3;
         }
-        .baskets-wrapper {
+        .stations-wrapper {
             display: flex;
             justify-content: space-around;
             gap: 10px;
             margin-top: 20px;
         }
-        .basket-target {
-            background: #ffe0b2;
-            border: 3px dashed #f57c00;
-            border-radius: 12px;
-            width: 85px;
-            padding: 10px 5px;
+        .station-target {
+            background: #d7ccc8;
+            border: 3px dashed #795548;
+            border-radius: 16px;
+            width: 110px;
+            padding: 12px 5px;
             display: flex;
             flex-direction: column;
             align-items: center;
             font-weight: bold;
-            color: #e65100;
+            color: #4e342e;
             transition: background 0.2s, transform 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
-        .basket-icon {
-            font-size: 42px;
+        .station-icon {
+            font-size: 36px;
+            margin-bottom: 2px;
+            filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.1));
+        }
+        .station-name {
+            font-size: 11px;
+            color: #8d6e63;
+            text-transform: uppercase;
             margin-bottom: 5px;
         }
-        .basket-num {
-            font-size: 20px;
+        .station-num {
+            font-size: 22px;
+            color: #d84315;
             background: white;
-            padding: 2px 12px;
+            padding: 2px 16px;
             border-radius: 10px;
-            border: 2px solid #f57c00;
+            border: 2px solid #795548;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
     </style>
 </head>
 <body>
 
+    <!-- Splash Screen Panel -->
     <div id="splash-screen">
         <img src="assets/innovine-logo.png" alt="Logo" onerror="this.style.display='none';">
         <div class="loader"></div>
         <p style="color: #6d4c41; font-weight: bold; margin-top: 15px;">Setting up Treat Party...</p>
     </div>
 
+    <!-- Background Audio Elements -->
     <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
     <div class="game-container" id="main-game">
-        <span class="part-badge" id="game-part-lbl">Part 1: Sharing Objects</span>
+        <span class="part-badge" id="game-part-lbl">Level 1: Sharing Objects</span>
         <h1 id="game-title">🧁 Sweet Treats Share!</h1>
         
         <div class="volume-box">
@@ -314,7 +332,8 @@
         </div>
 
         <div id="game-content">
-            </div>
+            <!-- Dynamic Injection Slot -->
+        </div>
     </div>
 
     <script>
@@ -340,7 +359,7 @@
             { name: "pizzas", emoji: "🍕", title: "🍕 Pizza Party Share!" }
         ];
 
-        // Part 1 Questions Configuration (Concrete Drag and Drop)
+        // Level 1 Questions
         const part1Questions = [
             { total: 4, kids: 2, avatars: ["👦", "👧"], answer: 2, options: [1, 2, 3, 4] },
             { total: 6, kids: 2, avatars: ["👦", "👧"], answer: 3, options: [2, 3, 4, 5] },
@@ -349,16 +368,21 @@
             { total: 9, kids: 3, avatars: ["👦", "👧", "👦"], answer: 3, options: [2, 3, 4, 5] }
         ];
 
-        // Part 2 Questions Configuration (Abstract Formula Distribution Match)
+        // Level 2 Questions featuring 4 dynamic typologies
         const part2Questions = [
-            { formula: "10 ÷ 2", answer: 5, options: [3, 4, 5] },
-            { formula: "12 ÷ 3", answer: 4, options: [2, 4, 6] },
-            { formula: "6 ÷ 2", answer: 3, options: [2, 3, 4] },
-            { formula: "8 ÷ 4", answer: 2, options: [1, 2, 3] },
-            { formula: "15 ÷ 3", answer: 5, options: [4, 5, 6] }
+            // Typology A: Standard Formula
+            { typeText: "Standard Equation", formula: "12 ÷ 3 = ?", answer: 4, options: [3, 4, 5] },
+            // Typology B: Missing Divisor Box
+            { typeText: "Missing Number", formula: "10 ÷ ▢ = 2", answer: 5, options: [2, 4, 5] },
+            // Typology C: Sentence Word Problem conversion
+            { typeText: "Group Sharing Words", formula: "Share 6 items into 2 equal groups", answer: 3, options: [2, 3, 4] },
+            // Typology D: Inverse Multiplication Connection
+            { typeText: "Multiplication Match", formula: "3 × ▢ = 9", answer: 3, options: [2, 3, 4] },
+            // Typology A Variant
+            { typeText: "Standard Equation", formula: "8 ÷ 4 = ?", answer: 2, options: [1, 2, 3] }
         ];
 
-        let currentGamePart = 1; // 1 = Concrete Items, 2 = Abstract Formulas
+        let currentGamePart = 1; 
         let activeQuestions = [];
         let index = 0;
         let points = 0;
@@ -380,7 +404,7 @@
 
         function startPart1() {
             currentGamePart = 1;
-            document.getElementById('game-part-lbl').innerText = "Part 1: Drag & Divide Objects";
+            document.getElementById('game-part-lbl').innerText = "Level 1: Drag & Divide Objects";
             activeQuestions = [...part1Questions].sort(() => Math.random() - 0.5);
             index = 0;
             points = 0;
@@ -394,7 +418,6 @@
             const mainTitle = document.getElementById('game-title');
             
             if (prog) {
-                // Combined progress mapping across both parts
                 let completePct = ((index) / (part1Questions.length + part2Questions.length)) * 100;
                 prog.style.width = `${completePct}%`;
             }
@@ -544,11 +567,11 @@
             }, 2000);
         }
 
-        /* PART 2 - ABSTRACT FORMULA MATCH ENGINE IMPLEMENTATION */
+        /* LEVEL 2 - EQUATION EXPRESS IMPLEMENTATION */
         function startPart2() {
             currentGamePart = 2;
-            document.getElementById('game-part-lbl').innerText = "Part 2: Distribute Games & Formulas";
-            document.getElementById('game-title').innerText = "🎯 Formula Distribution Match!";
+            document.getElementById('game-part-lbl').innerText = "Level 2: The Equation Express";
+            document.getElementById('game-title').innerText = "🚂 Route the Cargo Cargo!";
             activeQuestions = [...part2Questions].sort(() => Math.random() - 0.5);
             index = 0;
             showPart2Question();
@@ -571,28 +594,32 @@
 
             const q = activeQuestions[index];
 
-            let basketsHTML = "";
+            let stationsHTML = "";
             q.options.forEach(num => {
-                basketsHTML += `
-                    <div class="basket-target" data-value="${num}">
-                        <div class="basket-icon">🧺</div>
-                        <div class="basket-num">${num}</div>
+                stationsHTML += `
+                    <div class="station-target" data-value="${num}">
+                        <div class="station-name">Station</div>
+                        <div class="station-icon">🚂</div>
+                        <div class="station-num">${num}</div>
                     </div>
                 `;
             });
 
             if (container) {
                 container.innerHTML = `
-                    <div class="story-text" style="margin-bottom: 25px;">
-                        Drag and distribute the division problem card into the correct answer basket below!
+                    <div class="story-text" style="color: #d84315; font-size: 14px; text-transform: uppercase;">
+                        📂 Mission Type: ${q.typeText}
+                    </div>
+                    <div class="story-text" style="margin-bottom: 20px;">
+                        Drag the cargo formula box into the correct depot station below!
                     </div>
                     
-                    <div style="min-height: 100px; display: flex; justify-content: center; align-items: center; margin-bottom: 30px;">
+                    <div style="min-height: 110px; display: flex; justify-content: center; align-items: center; margin-bottom: 25px;">
                         <div class="formula-card" id="active-formula-card">${q.formula}</div>
                     </div>
                     
-                    <div class="baskets-wrapper">
-                        ${basketsHTML}
+                    <div class="stations-wrapper">
+                        ${stationsHTML}
                     </div>
                 `;
                 attachPart2TouchTracking();
@@ -606,7 +633,7 @@
             card.addEventListener('pointerdown', (e) => {
                 if (!acceptInput) return;
                 e.preventDefault();
-                let selectedBasket = null;
+                let selectedStation = null;
                 
                 card.classList.add('dragging');
                 card.style.position = 'fixed';
@@ -621,13 +648,13 @@
                     card.style.display = 'inline-block';
 
                     if (elementUnderneath) {
-                        let targetBasket = elementUnderneath.closest('.basket-target');
-                        document.querySelectorAll('.basket-target').forEach(b => b.classList.remove('hovered'));
-                        if (targetBasket) {
-                            targetBasket.classList.add('hovered');
-                            selectedBasket = targetBasket;
+                        let targetStation = elementUnderneath.closest('.station-target');
+                        document.querySelectorAll('.station-target').forEach(b => b.classList.remove('hovered'));
+                        if (targetStation) {
+                            targetStation.classList.add('hovered');
+                            selectedStation = targetStation;
                         } else {
-                            selectedBasket = null;
+                            selectedStation = null;
                         }
                     }
                 }
@@ -637,30 +664,29 @@
                 function releaseCard(evt) {
                     card.releasePointerCapture(evt.pointerId);
                     card.classList.remove('dragging');
-                    document.querySelectorAll('.basket-target').forEach(b => b.classList.remove('hovered'));
+                    document.querySelectorAll('.station-target').forEach(b => b.classList.remove('hovered'));
 
                     card.removeEventListener('pointermove', trackCard);
                     card.removeEventListener('pointerup', releaseCard);
 
-                    if (selectedBasket) {
-                        const chosenValue = parseInt(selectedBasket.getAttribute('data-value'));
+                    if (selectedStation) {
+                        const chosenValue = parseInt(selectedStation.getAttribute('data-value'));
                         const q = activeQuestions[index];
                         
                         acceptInput = false;
 
                         if (chosenValue === q.answer) {
                             points++;
-                            selectedBasket.style.background = "#c8e6c9";
-                            selectedBasket.style.borderColor = "#2e7d32";
+                            selectedStation.style.background = "#c8e6c9";
+                            selectedStation.style.borderColor = "#2e7d32";
                             playSound(true);
                             confetti({ particleCount: 30, spread: 40, origin: { y: 0.75 } });
                         } else {
-                            selectedBasket.style.background = "#ffcdd2";
-                            selectedBasket.style.borderColor = "#c62828";
+                            selectedStation.style.background = "#ffcdd2";
+                            selectedStation.style.borderColor = "#c62828";
                             playSound(false);
                             
-                            // Highlight the correct answer basket
-                            document.querySelectorAll('.basket-target').forEach(b => {
+                            document.querySelectorAll('.station-target').forEach(b => {
                                 if (parseInt(b.getAttribute('data-value')) === q.answer) {
                                     b.style.background = "#c8e6c9";
                                     b.style.borderColor = "#2e7d32";
@@ -671,10 +697,9 @@
                         setTimeout(() => {
                             index++;
                             showPart2Question();
-                        }, 2000);
+                        }, 2200);
 
                     } else {
-                        // Reset formula location if missed
                         card.style.position = 'static';
                     }
                 }
@@ -696,11 +721,11 @@
                 }
 
                 container.innerHTML = `
-                    <div class="story-text" style="font-size: 24px; color: #2e7d32;">Game Complete! 🥳</div>
-                    <div class="story-text">Wonderful job! You mastered sharing items and matching division questions!</div>
-                    <div class="story-text" style="font-size: 20px; color: #e65100;">Total Score: ${points} / ${totalCount}</div>
+                    <div class="story-text" style="font-size: 24px; color: #2e7d32;">All Levels Clear! 🥳</div>
+                    <div class="story-text">Fantastic! You masterfully divided tasty objects and routed all train mathematical equations safely!</div>
+                    <div class="story-text" style="font-size: 20px; color: #e65100;">Final Score: ${points} / ${totalCount}</div>
                     <div style="margin-top: 20px;">
-                        <button id="restart-btn" class="btn" onclick="startPart1()" style="width:100%;">Play Again 🔄</button>
+                        <button id="restart-btn" class="btn" onclick="startPart1()" style="width:100%;">Restart Adventure 🔄</button>
                     </div>
                 `;
             }
