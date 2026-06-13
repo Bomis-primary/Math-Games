@@ -1,204 +1,520 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>G3 Pattern Wizard</title>
-<style>
-  body {
-    margin: 0;
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #ffe0f0, #e0f7ff);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-  }
-  #game-container { width: 100%; max-width: 700px; text-align: center; position: relative; }
-  #logo-slide, #end-slide { display: none; }
-  #question-slide { display: none; }
-  .option {
-    background-color: #fff;
-    border: 2px solid #cfa;
-    border-radius: 10px;
-    padding: 15px 25px;
-    margin: 10px;
-    display: inline-block;
-    cursor: pointer;
-    font-size: 1.2em;
-    transition: transform 0.2s;
-  }
-  .option:hover { transform: scale(1.05); }
-  .correct { border-color: green; background-color: #cfc; }
-  .wrong { border-color: red; background-color: #fcc; animation: jiggle 0.3s; }
-  @keyframes jiggle {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    50% { transform: translateX(5px); }
-    75% { transform: translateX(-5px); }
-    100% { transform: translateX(0); }
-  }
-  #confetti-canvas { position: absolute; top: 0; left: 0; pointer-events: none; }
-  #instruction {
-    background-color: #ffd;
-    padding: 10px;
-    border-radius: 8px;
-    font-weight: bold;
-    margin-bottom: 15px;
-  }
-  #play-again-btn {
-    padding: 12px 25px;
-    font-size: 1.2em;
-    border-radius: 12px;
-    border: none;
-    background-color: #ffcc66;
-    cursor: pointer;
-    margin-top: 20px;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pattern Detective Mission</title>
+    <style>
+        :root {
+            --bg-color: #EBF4F6;
+            --primary-color: #FF5964;
+            --secondary-color: #35A7FF;
+            --accent-color: #FFC857;
+            --dark-color: #2E4057;
+            --success-color: #20BF55;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+            overflow-x: hidden;
+        }
+
+        /* 5-Second Logo Splash Screen */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        #splash-screen img {
+            max-width: 80%;
+            max-height: 80%;
+            object-fit: contain;
+        }
+
+        .game-card {
+            background: #FFFFFF;
+            border: 6px solid var(--dark-color);
+            border-radius: 28px;
+            padding: 25px;
+            width: 100%;
+            max-width: 550px;
+            text-align: center;
+            box-shadow: 0 12px 0px var(--dark-color);
+            position: relative;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.2rem;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 0px #FAD2E1;
+        }
+
+        .mission-badge {
+            background: var(--accent-color);
+            color: var(--dark-color);
+            font-weight: bold;
+            padding: 5px 15px;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 15px;
+            border: 2px solid var(--dark-color);
+            font-size: 0.9rem;
+        }
+
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #F4F7F6;
+            padding: 10px 15px;
+            border-radius: 14px;
+            margin-bottom: 20px;
+            border: 2px solid #DDD;
+            font-weight: bold;
+        }
+
+        .volume-box {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .volume-box input {
+            width: 60px;
+        }
+
+        .instruction-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--dark-color);
+            margin-bottom: 20px;
+        }
+
+        /* Interactive Target Screen Display Area */
+        .display-zone {
+            background: #FFF;
+            border: 4px dashed var(--secondary-color);
+            border-radius: 20px;
+            padding: 25px 15px;
+            margin-bottom: 25px;
+            min-height: 140px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        /* SVG / CSS Element Art Stylings */
+        .game-item {
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+
+        .item-circle {
+            background: #FF5964;
+            border-radius: 50%;
+            border: 3px solid var(--dark-color);
+        }
+
+        .item-square {
+            background: #35A7FF;
+            border-radius: 10px;
+            border: 3px solid var(--dark-color);
+        }
+
+        .item-triangle {
+            width: 0;
+            height: 0;
+            border-left: 30px solid transparent;
+            border-right: 30px solid transparent;
+            border-bottom: 55px solid #FFC857;
+        }
+
+        .item-num {
+            background: #E0FF4F;
+            border: 3px solid var(--dark-color);
+            border-radius: 12px;
+            box-shadow: 3px 3px 0px var(--dark-color);
+        }
+
+        .item-blank {
+            background: #FFF;
+            border: 3px dashed var(--primary-color);
+            border-radius: 10px;
+            color: var(--primary-color);
+        }
+
+        /* Symmetry Display Component */
+        .symmetry-box {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .sym-line {
+            position: absolute;
+            border-left: 4px dashed #333;
+            z-index: 5;
+        }
+
+        .line-vertical {
+            height: 100%;
+            top: 0;
+            left: 50%;
+        }
+
+        .line-crooked {
+            height: 100%;
+            top: 0;
+            left: 40%;
+            transform: rotate(15deg);
+        }
+
+        /* Interactive Choice Buttons */
+        .options-box {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn-choice {
+            background: #FFFFFF;
+            border: 3px solid var(--dark-color);
+            border-radius: 18px;
+            padding: 15px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 0px var(--dark-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 70px;
+        }
+
+        .btn-choice:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0px var(--dark-color);
+        }
+
+        .btn-choice .item-triangle {
+            transform: scale(0.8);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .btn-restart {
+            background: var(--success-color);
+            color: white;
+            border: 4px solid var(--dark-color);
+            padding: 12px 35px;
+            font-size: 1.6rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0px var(--dark-color);
+            margin-top: 20px;
+        }
+
+        .btn-restart:active {
+            transform: translateY(6px);
+            box-shadow: 0 0px 0px var(--dark-color);
+        }
+
+        /* Confetti Elements */
+        .confetti-particle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            animation: blow 0.8s ease-out forwards;
+            z-index: 10;
+            border-radius: 50%;
+        }
+
+        @keyframes blow {
+            0% { transform: translate(0, 0) scale(1); opacity: 1; }
+            100% { transform: translate(var(--cx), var(--cy)) scale(0.3); opacity: 0; }
+        }
+    </style>
 </head>
 <body>
-<div id="game-container">
 
-  <!-- Logo Slide -->
-  <div id="logo-slide">
-    <img src="logo.png" alt="Innovine Logo" style="width:200px;">
-  </div>
+    <!-- 5-Second Splash Screen Container -->
+    <div id="splash-screen">
+        <img src="logo.png" alt="Game Logo">
+    </div>
 
-  <!-- Question Slide -->
-  <div id="question-slide">
-    <div id="instruction"></div>
-    <div id="options-container"></div>
-  </div>
+    <!-- Hidden Audio Elements using your correct.mp3 and wrong.mp3 -->
+    <audio id="audioCorrect" src="correct.mp3" preload="auto"></audio>
+    <audio id="audioWrong" src="wrong.mp3" preload="auto"></audio>
 
-  <!-- End Slide -->
-  <div id="end-slide">
-    <h2>🎉 Well Done! 🎉</h2>
-    <button id="play-again-btn">Play Again</button>
-  </div>
+    <div class="game-card" id="mainCard">
+        <!-- Game Screen -->
+        <div id="playContainer">
+            <h1>Pattern Detective 🕵️‍♂️</h1>
+            <div id="missionBadge" class="mission-badge">Mission 1: Find the Missing Piece</div>
 
-</div>
+            <div class="status-bar">
+                <span id="qCount">Question: 1 / 10</span>
+                <div class="volume-box">
+                    <span>🔊</span>
+                    <input type="range" id="volControl" min="0" max="1" step="0.1" value="0.8">
+                </div>
+            </div>
 
-<audio id="correct-sound" src="correct.mp3"></audio>
-<audio id="wrong-sound" src="wrong.mp3"></audio>
-<audio id="applause-sound" src="freesound_community-claps-44774.mp3"></audio>
+            <p class="instruction-text" id="promptText">Complete the repeating sequence:</p>
 
-<canvas id="confetti-canvas"></canvas>
+            <div class="display-zone" id="renderArea">
+                <!-- Programmatically filled -->
+            </div>
 
-<script>
-// --- Game Data ---
-const rounds = [
-  { instruction: "Complete the sequence: Red, Blue, Red, ?", options: ["Blue","Red","Green"], answer: 0 },
-  { instruction: "Extend the pattern: 2, 4, 6, ?", options: ["7","8","9"], answer: 1 },
-  { instruction: "Complete the shape pattern: Circle, Square, Circle, ?", options: ["Square","Triangle","Circle"], answer: 0 },
-  { instruction: "Tiling: Tap the shape to complete the grid.", options: ["Square","Circle","Triangle"], answer: 0 },
-  { instruction: "Is this shape symmetrical?", options: ["Yes","No"], answer: 0 },
-  { instruction: "Draw the line of symmetry for this shape.", options: ["Vertical","Horizontal","Diagonal"], answer: 0 }
-];
+            <div class="options-box" id="optionsArea">
+                <!-- Programmatically filled -->
+            </div>
+        </div>
 
-let currentRound = -1;
-let attempt = 0;
+        <!-- End Score Screen -->
+        <div id="endContainer" class="hidden">
+            <h2 style="font-size: 2.5rem; color: var(--primary-color); margin-bottom: 15px;">Mission Complete! 🌟</h2>
+            <p id="scoreSummary" style="font-size: 1.8rem; font-weight: bold; margin-bottom: 10px;">Final Score: 0 / 10</p>
+            <p id="motivationalMessage" style="font-size: 1.2rem; color: #444; font-weight: bold;"></p>
+            <button class="btn-restart" onclick="restartMission()">New Mission</button>
+        </div>
+    </div>
 
-// --- Elements ---
-const logoSlide = document.getElementById("logo-slide");
-const questionSlide = document.getElementById("question-slide");
-const endSlide = document.getElementById("end-slide");
-const instructionEl = document.getElementById("instruction");
-const optionsContainer = document.getElementById("options-container");
-const correctSound = document.getElementById("correct-sound");
-const wrongSound = document.getElementById("wrong-sound");
-const applauseSound = document.getElementById("applause-sound");
-const playAgainBtn = document.getElementById("play-again-btn");
-const confettiCanvas = document.getElementById("confetti-canvas");
+    <script>
+        // Audio playback handlers
+        function triggerSound(isCorrect) {
+            const player = document.getElementById(isCorrect ? 'audioCorrect' : 'audioWrong');
+            const volumeSetting = parseFloat(document.getElementById('volControl').value);
+            
+            if (player) {
+                player.volume = volumeSetting;
+                player.currentTime = 0; // Rewind to start
+                player.play().catch(e => console.log("Audio play blocked by browser policies: ", e));
+            }
+        }
 
-// --- Game Flow ---
-function startGame() {
-  logoSlide.style.display = "block";
-  questionSlide.style.display = "none";
-  endSlide.style.display = "none";
-  currentRound = -1;
-  attempt = 0;
-  setTimeout(nextRound, 3000);
-}
+        // Particle confetti fx burst
+        function executeConfetti() {
+            const boundary = document.getElementById('mainCard');
+            const colorMix = ['#FF5964', '#35A7FF', '#FFC857', '#20BF55', '#E0FF4F'];
+            for(let i=0; i<40; i++) {
+                const dot = document.createElement('div');
+                dot.classList.add('confetti-particle');
+                dot.style.backgroundColor = colorMix[Math.floor(Math.random() * colorMix.length)];
+                dot.style.left = '50%';
+                dot.style.bottom = '130px';
+                
+                const cx = (Math.random() - 0.5) * 400;
+                const cy = -(Math.random() * 250 + 50);
+                dot.style.setProperty('--cx', `${cx}px`);
+                dot.style.setProperty('--cy', `${cy}px`);
+                
+                boundary.appendChild(dot);
+                setTimeout(() => dot.remove(), 800);
+            }
+        }
 
-function nextRound() {
-  currentRound++;
-  attempt = 0;
-  if(currentRound >= rounds.length) { showEndSlide(); return; }
-  showQuestion(rounds[currentRound]);
-}
+        // 10 Conceptual questions mapped directly to image_fde5dd.png LOs
+        const totalMissionQuestions = 10;
+        let indexPointer = 0;
+        let totalScore = 0;
+        let liveQuestion = {};
+        let lockingMechanism = true;
 
-function showQuestion(round) {
-  logoSlide.style.display = "none";
-  questionSlide.style.display = "block";
-  endSlide.style.display = "none";
-  instructionEl.textContent = round.instruction;
-  optionsContainer.innerHTML = "";
-  round.options.forEach((opt, idx) => {
-    const btn = document.createElement("div");
-    btn.classList.add("option");
-    btn.textContent = opt;
-    btn.addEventListener("click", () => handleAnswer(idx));
-    optionsContainer.appendChild(btn);
-  });
-}
+        const masterQuestionPool = [
+            // Level 1: Find Missing Pieces (Repeating & Growing Patterns)
+            { mission: "Mission 1: Missing Piece", text: "Complete the repeating sequence:", type: "missing", layout: ['circle', 'square', 'circle', 'square', 'blank'], target: "circle", choices: ['circle', 'square', 'triangle', 'number-3'] },
+            { mission: "Mission 1: Missing Piece", text: "Complete the growing pattern:", type: "missing", layout: ['number-2', 'number-4', 'number-6', 'number-8', 'blank'], target: "10", choices: ['9', '10', '12', '14'] },
+            { mission: "Mission 1: Missing Piece", text: "Complete the repeating pattern:", type: "missing", layout: ['triangle', 'triangle', 'circle', 'triangle', 'triangle', 'blank'], target: "circle", choices: ['circle', 'square', 'triangle', 'number-5'] },
+            { mission: "Mission 1: Missing Piece", text: "Complete the growing pattern:", type: "missing", layout: ['number-5', 'number-10', 'number-15', 'blank'], target: "20", choices: ['16', '25', '20', '30'] },
+            
+            // Level 2: Find the Secret Pattern Rule
+            { mission: "Mission 2: Rule Detective", text: "What is the core rule of this number pattern?", type: "rule", layout: ['number-3', 'number-6', 'number-9', 'number-12'], target: "Count by 3s (+3)", choices: ["Count by 2s (+2)", "Count by 3s (+3)", "Count by 5s (+5)", "Pattern subtracts"] },
+            { mission: "Mission 2: Rule Detective", text: "What is the pattern rule here?", type: "rule", layout: ['number-10', 'number-20', 'number-30', 'number-40'], target: "Count by 10s (+10)", choices: ["Count by 5s (+5)", "Count by 10s (+10)", "Count by 2s (+2)", "Count by 4s (+4)"] },
+            { mission: "Mission 2: Rule Detective", text: "What repeats in this shape sequence?", type: "rule", layout: ['circle', 'square', 'square', 'circle', 'square', 'square'], target: "1 Circle, 2 Squares", choices: ["1 Circle, 1 Square", "1 Circle, 2 Squares", "2 Circles, 1 Square", "Triangle repeats"] },
+            
+            // Level 3: Symmetry Check
+            { mission: "Mission 3: Symmetry Patrol", text: "Is the line a perfect line of symmetry?", type: "symmetry", subType: "vertical", target: "Yes! Perfect Match", choices: ["Yes! Perfect Match", "No! Not Equal"] },
+            { mission: "Mission 3: Symmetry Patrol", text: "Is the line dividing the shape into mirror-image halves?", type: "symmetry", subType: "crooked", target: "No! Not Equal", choices: ["Yes! Perfect Match", "No! Not Equal"] },
+            { mission: "Mission 3: Symmetry Patrol", text: "Is this dotted line an accurate line of symmetry?", type: "symmetry", subType: "vertical", target: "Yes! Perfect Match", choices: ["Yes! Perfect Match", "No! Not Equal"] }
+        ];
 
-function handleAnswer(selectedIdx) {
-  const round = rounds[currentRound];
-  const buttons = optionsContainer.children;
-  if(selectedIdx === round.answer) {
-    buttons[selectedIdx].classList.add("correct");
-    correctSound.play();
-    setTimeout(nextRound, 1000);
-  } else {
-    buttons[selectedIdx].classList.add("wrong");
-    wrongSound.play();
-    attempt++;
-    if(attempt >= 2) { buttons[round.answer].classList.add("correct"); setTimeout(nextRound, 1500); }
-  }
-}
+        let activelyShuffledPool = [];
 
-function showEndSlide() {
-  questionSlide.style.display = "none";
-  endSlide.style.display = "block";
-  applauseSound.play();
-  launchConfetti();
-}
+        function bootstrapper() {
+            // Splash Screen removal after exactly 5 seconds
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                setTimeout(() => splash.remove(), 500);
+            }, 5000);
 
-// --- Play Again ---
-playAgainBtn.addEventListener("click", () => { clearConfetti(); startGame(); });
+            activelyShuffledPool = [...masterQuestionPool].sort(() => Math.random() - 0.5);
+            buildQuestion();
+        }
 
-// --- Confetti ---
-let confettiCtx = confettiCanvas.getContext('2d');
-confettiCanvas.width = window.innerWidth;
-confettiCanvas.height = window.innerHeight;
-let confettiPieces = [];
-function launchConfetti() {
-  confettiPieces = [];
-  for(let i=0;i<150;i++){
-    confettiPieces.push({x:Math.random()*confettiCanvas.width,y:Math.random()*confettiCanvas.height,r:Math.random()*6+2,d:Math.random()*20,color:`hsl(${Math.random()*360},100%,50%)`,tilt:Math.random()*10-10});
-  }
-  requestAnimationFrame(drawConfetti);
-}
-function drawConfetti() {
-  confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
-  confettiPieces.forEach(p=>{
-    confettiCtx.beginPath();
-    confettiCtx.lineWidth = p.r/2;
-    confettiCtx.strokeStyle = p.color;
-    confettiCtx.moveTo(p.x+p.tilt+p.r/4,p.y);
-    confettiCtx.lineTo(p.x+p.tilt,p.y+p.r);
-    confettiCtx.stroke();
-    p.y+=Math.cos(0.1+p.d)*2+1;
-    p.x+=Math.sin(0.05)*2;
-    if(p.y>confettiCanvas.height){p.y=0;p.x=Math.random()*confettiCanvas.width;}
-  });
-  if(endSlide.style.display==="block") requestAnimationFrame(drawConfetti);
-}
-function clearConfetti() { confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height); }
+        function spawnVisualElement(itemStr, isInteractive = false, targetIdx = -1) {
+            const div = document.createElement('div');
+            div.classList.add('game-item');
+            
+            if (itemStr.startsWith('number-')) {
+                div.classList.add('shape-num');
+                div.innerText = itemStr.replace('number-', '');
+            } else if (itemStr === 'blank') {
+                div.classList.add('item-blank');
+                div.innerText = '?';
+            } else {
+                div.classList.add(`item-${itemStr}`);
+            }
 
-window.onload = startGame;
-</script>
+            if (isInteractive) {
+                div.onclick = () => verifySelectedAnswer(itemStr.replace('number-', ''), targetIdx);
+            }
+            return div;
+        }
+
+        function buildQuestion() {
+            lockingMechanism = true;
+            liveQuestion = activelyShuffledPool[indexPointer];
+            
+            document.getElementById('qCount').innerText = `Question: ${indexPointer + 1} / ${totalMissionQuestions}`;
+            document.getElementById('missionBadge').innerText = liveQuestion.mission;
+            document.getElementById('promptText').innerText = liveQuestion.text;
+
+            const renderArea = document.getElementById('renderArea');
+            const optionsArea = document.getElementById('optionsArea');
+            renderArea.innerHTML = '';
+            optionsArea.innerHTML = '';
+
+            // Setup display zone according to challenge type
+            if (liveQuestion.type === "missing" || liveQuestion.type === "rule") {
+                liveQuestion.layout.forEach(item => {
+                    renderArea.appendChild(spawnVisualElement(item));
+                });
+            } else if (liveQuestion.type === "symmetry") {
+                const box = document.createElement('div');
+                box.classList.add('symmetry-box');
+                
+                // Toggle a standard circle or square target to challenge line detection
+                const shapeClass = (indexPointer % 2 === 0) ? 'item-circle' : 'item-square';
+                const innerShape = document.createElement('div');
+                innerShape.className = `game-item ${shapeClass}`;
+                innerShape.style.width = "100px";
+                innerShape.style.height = "100px";
+
+                const splitLine = document.createElement('div');
+                splitLine.className = `sym-line line-${liveQuestion.subType}`;
+
+                box.appendChild(innerShape);
+                box.appendChild(splitLine);
+                renderArea.appendChild(box);
+            }
+
+            // Setup options area
+            liveQuestion.choices.forEach(choice => {
+                const btn = document.createElement('button');
+                btn.classList.add('btn-choice');
+                
+                if (liveQuestion.type === "missing" && !choice.startsWith('number-') && choice !== 'circle' && choice !== 'square' && choice !== 'triangle') {
+                    btn.innerText = choice;
+                    btn.onclick = () => verifySelectedAnswer(choice);
+                } else if (liveQuestion.type === "missing" && (choice === 'circle' || choice === 'square' || choice === 'triangle')) {
+                    btn.appendChild(spawnVisualElement(choice));
+                    btn.onclick = () => verifySelectedAnswer(choice);
+                } else {
+                    btn.innerText = choice;
+                    btn.onclick = () => verifySelectedAnswer(choice);
+                }
+                optionsArea.appendChild(btn);
+            });
+        }
+
+        function verifySelectedAnswer(chosenString) {
+            if (!lockingMechanism) return;
+            lockingMechanism = false;
+
+            const correctValue = liveQuestion.target;
+            const targetBlankSpace = document.querySelector('.item-blank');
+
+            if (chosenString === correctValue) {
+                totalScore++;
+                triggerSound(true);
+                executeConfetti();
+                if (targetBlankSpace) targetBlankSpace.style.backgroundColor = "var(--success-color)";
+            } else {
+                triggerSound(false);
+                if (targetBlankSpace) targetBlankSpace.style.backgroundColor = "var(--primary-color)";
+            }
+
+            // Move forward automatically after 1.2 seconds
+            setTimeout(() => {
+                indexPointer++;
+                if (indexPointer < totalMissionQuestions) {
+                    buildQuestion();
+                } else {
+                    triggerFinalEvaluation();
+                }
+            }, 1200);
+        }
+
+        function triggerFinalEvaluation() {
+            document.getElementById('playContainer').classList.add('hidden');
+            document.getElementById('endContainer').classList.remove('hidden');
+            document.getElementById('scoreSummary').innerText = `Final Score: ${totalScore} / ${totalMissionQuestions}`;
+            
+            let message = "Keep learning, detective! Practice makes patterns easy! 💪";
+            if (totalScore === totalMissionQuestions) message = "Brilliant! You cracked every pattern rule perfectly! 🏆🔎";
+            else if (totalScore >= 7) message = "Great intuition! Fantastic logical tracking skills! 🚀💥";
+            
+            document.getElementById('motivationalMessage').innerText = message;
+        }
+
+        function restartMission() {
+            indexPointer = 0;
+            totalScore = 0;
+            document.getElementById('endContainer').classList.add('hidden');
+            document.getElementById('playContainer').classList.remove('hidden');
+            bootstrapper();
+        }
+
+        window.onload = bootstrapper;
+    </script>
 </body>
 </html>
