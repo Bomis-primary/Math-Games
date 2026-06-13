@@ -541,4 +541,205 @@
                 if (level1PuppiesPerWagon[i] >= 6) continue;
                 level1PuppiesPerWagon[i]++;
                 
-                let wBox = document.getElementById(`wagon-
+                let wBox = document.getElementById(`wagon-idx-${i}`);
+                let puppy = document.createElement('img');
+                puppy.className = "pet-token-icon";
+                puppy.src = "assets/dog.png";
+                puppy.onerror = function() { this.src = "https://cdn-icons-png.flaticon.com/512/616/616408.png"; };
+                wBox.appendChild(puppy);
+            }
+        }
+
+        function checkLevel1() {
+            const valA = parseInt(document.getElementById('inputFactorA').value);
+            const valB = parseInt(document.getElementById('inputFactorB').value);
+            const valProduct = parseInt(document.getElementById('inputProduct').value);
+            const target = levelDataMatrix[gameLevel][activeQuestionIndex];
+
+            if (isNaN(valA) || isNaN(valB) || isNaN(valProduct)) {
+                alert("Please fill in all blanks in the calculation bar first!");
+                return;
+            }
+
+            if (level1WagonsCount === target.wagons && level1PuppiesPerWagon.every(count => count === target.dogs) && 
+                valA === target.wagons && valB === target.dogs && valProduct === (target.wagons * target.dogs)) {
+                triggerLevelPassGems(10);
+            } else {
+                playAudio('wrong');
+                alert(`Incorrect! Create exactly ${target.wagons} wagons with ${target.dogs} dogs each, and enter ${target.wagons}, ${target.dogs}, and ${target.wagons * target.dogs} in the blanks.`);
+            }
+        }
+
+        // --- LEVEL 2 ENGINE OPERATIONS ---
+        function toggleGridCellL2(cell) {
+            if (cell.classList.contains('highlighted')) {
+                cell.classList.remove('highlighted');
+                cell.innerHTML = '';
+            } else {
+                cell.classList.add('highlighted');
+                let cat = document.createElement('img');
+                cat.src = "assets/cat.png";
+                cat.onerror = function() { this.src = "https://cdn-icons-png.flaticon.com/512/616/616430.png"; };
+                cell.appendChild(cat);
+            }
+        }
+
+        function checkLevel2() {
+            const highlightedCells = document.querySelectorAll('.grid-cell.highlighted');
+            const valA = parseInt(document.getElementById('inputFactorA').value);
+            const valB = parseInt(document.getElementById('inputFactorB').value);
+            const valProduct = parseInt(document.getElementById('inputProduct').value);
+            const target = levelDataMatrix[gameLevel][activeQuestionIndex];
+
+            if (isNaN(valA) || isNaN(valB) || isNaN(valProduct)) {
+                alert("Please fill in all blanks in the calculation bar first!");
+                return;
+            }
+            
+            let minR = 6, maxR = -1, minC = 6, maxC = -1;
+            highlightedCells.forEach(cell => {
+                let r = parseInt(cell.dataset.row);
+                let c = parseInt(cell.dataset.col);
+                if (r < minR) minR = r; if (r > maxR) maxR = r;
+                if (c < minC) minC = c; if (c > maxC) maxC = c;
+            });
+
+            let rowCount = (maxR - minR) + 1;
+            let colCount = (maxC - minC) + 1;
+            let totalExpectedCount = rowCount * colCount;
+
+            if (rowCount === target.rows && colCount === target.cols && highlightedCells.length === totalExpectedCount && 
+                valA === target.rows && valB === target.cols && valProduct === target.product) {
+                triggerLevelPassGems(10);
+            } else {
+                playAudio('wrong');
+                alert(`Alignment error! Highlight a block measuring exactly ${target.rows} rows down and ${target.cols} columns across, then complete calculations with ${target.rows}, ${target.cols}, and ${target.product}.`);
+            }
+        }
+
+        // --- LEVEL 3 ENGINE OPERATIONS ---
+        function selectChoiceL3(val, cardElement) {
+            document.querySelectorAll('.choice-card').forEach(c => c.classList.remove('selected'));
+            cardElement.classList.add('selected');
+            level3SelectedValue = val;
+        }
+
+        function checkLevel3() {
+            const valA = parseInt(document.getElementById('inputFactorA').value);
+            const valB = parseInt(document.getElementById('inputFactorB').value);
+            const valProduct = parseInt(document.getElementById('inputProduct').value);
+            const target = levelDataMatrix[gameLevel][activeQuestionIndex];
+
+            if (isNaN(valA) || isNaN(valB) || isNaN(valProduct) || !level3SelectedValue) {
+                alert("Please select a snack bag option and complete all mathematical entry blanks first!");
+                return;
+            }
+
+            if (level3SelectedValue === target.correctChoice && valA === target.fA && valB === target.fB && valProduct === target.prod) {
+                triggerLevelPassGems(10);
+            } else {
+                playAudio('wrong');
+                alert(`Recalculation needed! Select the option showing ${target.correctChoice} and input values ${target.fA}, ${target.fB}, and ${target.prod} into the formula row!`);
+            }
+        }
+
+        // --- LEVEL 4 ENGINE OPERATIONS ---
+        function tapMilestoneNodeL4(numValue, nodeElement) {
+            if (numValue === 0) return;
+            if (nodeElement.classList.contains('passed')) {
+                nodeElement.classList.remove('passed');
+                level4MilestonesVisited = level4MilestonesVisited.filter(v => v !== numValue);
+            } else {
+                nodeElement.classList.add('passed');
+                level4MilestonesVisited.push(numValue);
+                level4MilestonesVisited.sort((a,b) => a - b);
+            }
+        }
+
+        function checkLevel4() {
+            const valA = parseInt(document.getElementById('inputFactorA').value);
+            const valB = parseInt(document.getElementById('inputFactorB').value);
+            const valProduct = parseInt(document.getElementById('inputProduct').value);
+            const target = levelDataMatrix[gameLevel][activeQuestionIndex];
+
+            if (isNaN(valA) || isNaN(valB) || isNaN(valProduct)) {
+                alert("Please fill in all blanks in the calculation bar first!");
+                return;
+            }
+
+            let matching = level4MilestonesVisited.length === target.endpoints.length && 
+                           level4MilestonesVisited.every((val, i) => val === target.endpoints[i]);
+
+            if (matching && valA === target.fA && valB === target.fB && valProduct === target.prod) {
+                triggerLevelPassGems(10);
+            } else {
+                playAudio('wrong');
+                alert(`Incorrect tracking! Highlight nodes [${target.endpoints.join(', ')}] on the line track, then log ${target.fA} x ${target.fB} = ${target.prod} inside the blanks row.`);
+            }
+        }
+
+        // --- CORNER POPCORN EXPLOSION FOUNTAINS ---
+        function triggerLevelPassGems(rewardPoints) {
+            cumulativeStars += rewardPoints;
+            playAudio('right');
+
+            const viewWidth = window.innerWidth;
+            const viewHeight = window.innerHeight;
+
+            // Sprites sprout up simultaneously from both bottom corners 
+            for (let i = 0; i < 30; i++) {
+                createSinglePopcorn(0, viewHeight, 1);       
+                createSinglePopcorn(viewWidth, viewHeight, -1); 
+            }
+
+            document.getElementById('reward-card').classList.remove('hidden');
+        }
+
+        function createSinglePopcorn(xCoord, yCoord, directionSign) {
+            const kernel = document.createElement('div');
+            kernel.className = "popcorn-particle";
+            kernel.innerText = "🍿";
+            kernel.style.left = `${xCoord}px`;
+            kernel.style.top = `${yCoord - 60}px`;
+
+            const targetDistX = (150 + Math.random() * 420) * directionSign;
+            const targetDistY = -(450 + Math.random() * 350);
+            const spinValue = (360 + Math.random() * 540) * directionSign;
+
+            kernel.style.setProperty('--tx', `${targetDistX}px`);
+            kernel.style.setProperty('--ty', `${targetDistY}px`);
+            kernel.style.setProperty('--rot', `${spinValue}deg`);
+
+            document.body.appendChild(kernel);
+            setTimeout(() => kernel.remove(), 1300);
+        }
+
+        function advanceNextLevel() {
+            document.getElementById('reward-card').classList.add('hidden');
+            
+            // Advance sequential question cursor or level indexing pointers
+            if (activeQuestionIndex < 3) {
+                activeQuestionIndex++;
+                loadLevelData();
+            } else {
+                if (gameLevel < 4) {
+                    gameLevel++;
+                    activeQuestionIndex = 1;
+                    loadLevelData();
+                } else {
+                    document.getElementById('txtHudScore').innerText = `Parade Stars: ⭐ ${cumulativeStars}`;
+                    document.getElementById('victory-card').classList.remove('hidden');
+                }
+            }
+        }
+
+        function resetWholeGame() {
+            gameLevel = 1;
+            activeQuestionIndex = 1;
+            cumulativeStars = 0;
+            document.getElementById('victory-card').classList.add('hidden');
+            loadLevelData();
+        }
+    </script>
+</body>
+</html>
