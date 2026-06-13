@@ -32,7 +32,7 @@
             user-select: none;
         }
 
-        /* --- SPLASH SCREEN LOGO --- */
+        /* --- SPLASH SCREEN --- */
         #screen-splash {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -135,7 +135,6 @@
             background: #e53935; color: white; padding: 6px 18px; border-radius: 10px;
             font-size: 1.4rem; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.15); display: inline-block;
         }
-        .price-tag.hidden { display: none !important; }
 
         .drop-counter-zone {
             flex: 1; background: #f3e5f5; border: 3px dashed var(--accent-purple);
@@ -178,11 +177,11 @@
         .money-tool-item:active { cursor: grabbing; }
         .money-tool-item.restricted-hidden { display: none !important; }
 
-        /* --- COINS / NOTES IMAGE STYLING --- */
+        /* --- COINS / NOTES ASSETS --- */
         .currency-asset-img { width: 50px; height: 50px; object-fit: contain; pointer-events: none; mix-blend-mode: multiply; }
         .note-asset-img { width: 80px; height: 44px; object-fit: contain; pointer-events: none; mix-blend-mode: multiply; }
         
-        /* Fallbacks in case individual images fail */
+        /* Fallbacks if assets fail to load */
         .currency-fallback-circle {
             width: 46px; height: 46px; border-radius: 50%; background: #ffcc80; border: 2px solid #ef6c00;
             display: flex; align-items: center; justify-content: center; font-size: 0.95rem; color: #e65100; font-weight: bold;
@@ -197,11 +196,9 @@
 
         /* --- FOOTER OPTIONS --- */
         .action-row { display: flex; justify-content: center; gap: 20px; padding-top: 15px; }
-        .cta-btn btn-success { background: linear-gradient(135deg, #81c784, #4caf50); border-color: #2e7d32; color: white; box-shadow: 0 5px 0 #2e7d32; }
-        .cta-btn btn-danger { background: linear-gradient(135deg, #e57373, #ef5350); border-color: #c62828; color: white; box-shadow: 0 5px 0 #c62828; }
         .banner-msg { text-align: center; height: 25px; font-size: 1.2rem; font-weight: bold; margin-top: 8px; }
 
-        /* --- Raining Currency FX --- */
+        /* --- Particle Rewards FX --- */
         .falling-star {
             position: fixed; z-index: 9999; pointer-events: none; top: -45px;
             font-size: 2rem; animation: fallDown var(--dur) linear forwards;
@@ -214,7 +211,7 @@
 </head>
 <body>
 
-    <!-- Splash Screen (Referencing image_c2c201.png asset directory path) -->
+    <!-- Splash Screen -->
     <div id="screen-splash">
         <div class="splash-inner">
             <img src="assets/innovine-logo.png" class="splash-logo-img" alt="Innovine Logo">
@@ -255,17 +252,17 @@
                         <div class="price-tag" id="shelf-price-badge">Target: ₹0</div>
                     </div>
 
-                    <!-- Sandbox Landing Checkout Mat Area -->
+                    <!-- Sandbox Landing Area -->
                     <div class="drop-counter-zone" id="checkout-mat-target">
                         <div class="drop-label" id="mat-placeholder-hint">🫳 Drag money onto this grid space!</div>
                         <div class="live-math-feed" id="mat-running-total" style="display: none;">Total Put Inside: ₹0</div>
                     </div>
 
-                    <!-- Story Mode Choice Button Matrix Grid -->
+                    <!-- Story Mode Choice Matrix -->
                     <div class="quiz-options-matrix" id="l3-quiz-row" style="display: none;"></div>
                 </div>
 
-                <!-- Right Pocket Wallet System Panel - Tailored directly to available assets in image_c2c201.png -->
+                <!-- Right Cash Box Wallet -->
                 <div class="wallet-rack" id="source-wallet-rack">
                     <div class="wallet-title">👛 Your Dynamic Cash Box</div>
                     
@@ -302,10 +299,10 @@
 
             </div>
 
-            <!-- Footer Action Controls Row -->
+            <!-- Footer Action Controls -->
             <div class="action-row" id="core-action-footer">
-                <button class="cta-btn btn-success" style="background: linear-gradient(135deg, #81c784, #4caf50); border-color: #2e7d32; color: white; box-shadow: 0 5px 0 #2e7d32;" onclick="evaluateActivePuzzleOutput()">Submit Verification 💸</button>
-                <button class="cta-btn btn-danger" style="background: linear-gradient(135deg, #e57373, #ef5350); border-color: #c62828; color: white; box-shadow: 0 5px 0 #c62828;" onclick="clearCheckoutMat()">Clear Tray 🔄</button>
+                <button class="cta-btn" style="background: linear-gradient(135deg, #81c784, #4caf50); border-color: #2e7d32; color: white; box-shadow: 0 5px 0 #2e7d32;" onclick="evaluateActivePuzzleOutput()">Submit Verification 💸</button>
+                <button class="cta-btn" style="background: linear-gradient(135deg, #e57373, #ef5350); border-color: #c62828; color: white; box-shadow: 0 5px 0 #c62828;" onclick="clearCheckoutMat()">Clear Tray 🔄</button>
             </div>
             <div class="banner-msg" id="counter-status-feedback"></div>
         </div>
@@ -323,7 +320,7 @@
 
     </div>
 
-    <!-- Hidden Audio Preloaders matching verified assets -->
+    <!-- Hidden Audio Preloaders -->
     <audio id="sound-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
@@ -334,7 +331,6 @@
         let currentTargetPrice = 0;
         let customRuleCheck = null;
 
-        // Custom leveled pools fully tailored to existing asset files visible inside image_c2c201.png
         const masterSimulationPool = [
             // LEVEL 1: Denomination Exchange Counter Concepts
             { mode: 1, label: "Level 1: Exchange Counter (1/4)", color: "#ba68c8", prompt: "Exchange this high-value ₹10 Note using ONLY ₹2 Coins!", restriction: [2], target: 10 },
@@ -414,10 +410,12 @@
             badge.style.background = currentConfig.color;
             document.documentElement.style.setProperty('--level-color', currentConfig.color);
 
+            // Workspace blocks are explicitly displayed for standard interactive tracking
             document.getElementById('main-target-card').style.display = "flex";
             document.getElementById('checkout-mat-target').style.display = "flex";
             document.getElementById('l3-quiz-row').style.display = "none";
             document.getElementById('core-action-footer').style.display = "flex";
+            document.getElementById('source-wallet-rack').style.display = "flex";
             
             document.querySelectorAll('.money-tool-item').forEach(el => el.classList.remove('restricted-hidden'));
             clearCheckoutMat();
@@ -427,8 +425,8 @@
                 customRuleCheck = currentConfig.restriction;
                 
                 document.getElementById('shelf-main-prompt').innerText = currentConfig.prompt;
+                document.getElementById('shelf-price-badge').style.display = "inline-block";
                 document.getElementById('shelf-price-badge').innerText = `Exchange Value: ₹${currentTargetPrice}`;
-                document.getElementById('shelf-price-badge').classList.remove('hidden');
                 
                 document.querySelectorAll('.money-tool-item').forEach(el => {
                     let val = parseInt(el.getAttribute('data-value'));
@@ -441,17 +439,13 @@
                 currentTargetPrice = currentConfig.target;
                 customRuleCheck = null;
                 document.getElementById('shelf-main-prompt').innerText = currentConfig.prompt;
+                document.getElementById('shelf-price-badge').style.display = "inline-block";
                 document.getElementById('shelf-price-badge').innerText = `Change Due: ₹${currentTargetPrice}`;
-                document.getElementById('shelf-price-badge').classList.remove('hidden');
 
             } else if (currentConfig.mode === 3) {
-                document.getElementById('checkout-mat-target').style.display = "none";
-                document.getElementById('core-action-footer').style.display = "none";
-                
+                // Keep the structural panels active, but explicitly hide only the value indicator container 
+                document.getElementById('shelf-price-badge').style.display = "none";
                 document.getElementById('shelf-main-prompt').innerText = currentConfig.prompt;
-                
-                // Hide the old red price tag badge badge container altogether so "Change Due" won't leak
-                document.getElementById('shelf-price-badge').classList.add('hidden');
 
                 let quizBox = document.getElementById('l3-quiz-row');
                 quizBox.innerHTML = "";
