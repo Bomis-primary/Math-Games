@@ -61,6 +61,7 @@
             max-width: 550px;
             text-align: center;
             box-shadow: 0 16px 0px var(--dark-blue);
+            position: relative;
         }
 
         h1 {
@@ -235,6 +236,58 @@
             box-shadow: 0 2px 0px var(--dark-blue);
         }
 
+        /* Level Encouragement Overlay Popup */
+        .encouragement-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.96);
+            border-radius: 26px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            padding: 20px;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .encouragement-title {
+            font-size: 2rem;
+            color: var(--dark-blue);
+            margin-bottom: 10px;
+        }
+
+        .encouragement-msg {
+            font-size: 1.2rem;
+            color: #4B5563;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .btn-next-level {
+            background: var(--mint);
+            color: white;
+            border: 3px solid var(--dark-blue);
+            border-radius: 20px;
+            padding: 10px 30px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 0 var(--dark-blue);
+        }
+        .btn-next-level:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 var(--dark-blue);
+        }
+
         .hidden { display: none !important; }
 
         .btn-replay-action {
@@ -255,16 +308,24 @@
 
     <!-- Splash Screen -->
     <div id="splash-screen">
-        <img src="assets/logo.png" alt="Education Logo">
+        <img src="./assets/logo.png" alt="Education Logo">
         <h2 style="color: var(--dark-blue); margin-top:15px;">Data handling Explorer 📈</h2>
     </div>
 
     <!-- Audio Targets -->
-    <audio id="audioRight" src="assets/correct.mp3" preload="auto"></audio>
-    <audio id="audioWrong" src="assets/wrong.mp3" preload="auto"></audio>
-    <audio id="audioApplause" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
+    <audio id="audioRight" src="./assets/correct.mp3" preload="auto"></audio>
+    <audio id="audioWrong" src="./assets/wrong.mp3" preload="auto"></audio>
+    <audio id="audioApplause" src="./assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
 
     <div class="game-container">
+        <!-- Encouragement Overlay Dynamic Element -->
+        <div id="encouragementOverlayBox" class="encouragement-overlay hidden">
+            <div style="font-size: 4rem;" id="overlayEmoji">🌟</div>
+            <div class="encouragement-title" id="overlayTitle">Level Cleared!</div>
+            <div class="encouragement-msg" id="overlayMessage">Keep it up, you are doing awesome!</div>
+            <button class="btn-next-level" onclick="dismissLevelOverlay()">Let's Go! 🚀</button>
+        </div>
+
         <div id="gameplayCorePanel">
             <h1>Data handling Master 📊</h1>
             <div id="levelBadgeDisplay" class="level-badge tier-easy">Level 1: Tally & Survey Basics</div>
@@ -315,25 +376,20 @@
 
         let pointerIndex = 0;
         let runningScore = 0;
+        let isSecondChanceActive = false;
         let interactiveLock = true;
 
-        // Structured 15 Questions mapped to the verified Learning Outcomes
         const curriculumPool = [
-            // LEVEL 1: Tally & Survey Basics (Outcomes: Tally Marks & Questionnaire concepts)
             { zone: "Level 1: Tally & Survey Basics", css: "tier-easy", q: "What tool should you use to collect data about your classmates' favorite sports?", type: "text", answer: "A Questionnaire", choices: ["A Ruler", "A Scale", "A Questionnaire", "An Eraser"] },
             { zone: "Level 1: Tally & Survey Basics", css: "tier-easy", q: "What number does this group of tally marks represent?", type: "tally", value: 5, answer: "5", choices: ["4", "5", "6", "10"] },
             { zone: "Level 1: Tally & Survey Basics", css: "tier-easy", q: "Identify the number shown by these tallies:", type: "tally", value: 7, answer: "7", choices: ["6", "7", "8", "12"] },
             { zone: "Level 1: Tally & Survey Basics", css: "tier-easy", q: "If you count 13 birds, how many diagonal/slash lines will you draw in total for the tallies?", type: "text", answer: "2", choices: ["1", "2", "3", "4"] },
             { zone: "Level 1: Tally & Survey Basics", css: "tier-easy", q: "Why do we record data using tally marks instead of long numbers?", type: "text", answer: "To count quickly one by one", choices: ["To make it colorful", "To count quickly one by one", "To do multiplication", "To draw pictures"] },
-
-            // LEVEL 2: Pictograph Production (Outcomes: Interpreting & Designing Pictographs)
             { zone: "Level 2: Pictograph Production", css: "tier-medium", q: "How many Stars ⭐ were earned by Team A altogether?", type: "pic", labels: ["Team A", "Team B"], elements: ["⭐⭐⭐", "⭐⭐"], key: "Each ⭐ = 1 Star", answer: "3", choices: ["2", "3", "5", "6"] },
             { zone: "Level 2: Pictograph Production", css: "tier-medium", q: "Look closely at the key! How many Stars ⭐ did Team B earn?", type: "pic", labels: ["Team A", "Team B"], elements: ["⭐⭐⭐", "⭐⭐"], key: "Each ⭐ = 2 Stars", answer: "4", choices: ["2", "4", "6", "8"] },
             { zone: "Level 2: Pictograph Production", css: "tier-medium", q: "How many total ice creams are represented in this chart?", type: "pic", labels: ["Choco", "Vanilla"], elements: ["🍦🍦", "🍦"], key: "Each 🍦 = 5 Ice creams", answer: "15", choices: ["3", "10", "15", "20"] },
             { zone: "Level 2: Pictograph Production", css: "tier-medium", q: "To represent 40 cars where each icon equals 10 cars, how many symbols must you design?", type: "text", answer: "4 symbols", choices: ["4 symbols", "10 symbols", "40 symbols", "2 symbols"] },
             { zone: "Level 2: Pictograph Production", css: "tier-medium", q: "A pictograph has 3 balloon icons. The key says: Each icon = 3 balloons. How many actual balloons are there?", type: "text", answer: "9 balloons", choices: ["3 balloons", "6 balloons", "9 balloons", "12 balloons"] },
-
-            // LEVEL 3: Bar Graph & Interpretation Mastery (Outcomes: Bar graph comparison, effectiveness, and accuracy evaluation)
             { zone: "Level 3: Graph Interpretation", css: "tier-hard", q: "How many more points did Cats score than Dogs?", type: "bar", labels: ["Dogs", "Cats", "Birds"], heights: [40, 90, 60], values: ["4", "9", "6"], answer: "5", choices: ["3", "4", "5", "6"] },
             { zone: "Level 3: Graph Interpretation", css: "tier-hard", q: "Which animal scored the minimum/least points according to the bar heights?", type: "bar", labels: ["Dogs", "Cats", "Birds"], heights: [40, 90, 60], values: ["4", "9", "6"], answer: "Dogs", choices: ["Dogs", "Cats", "Birds", "None"] },
             { zone: "Level 3: Graph Interpretation", css: "tier-hard", q: "Evaluate accuracy: A bar shows 8 units, but the label says '5'. Is this bar graph accurately drawn?", type: "text", answer: "No, it is inaccurate", choices: ["Yes, it is correct", "No, it is inaccurate", "Can't tell", "It doesn't matter"] },
@@ -344,6 +400,7 @@
         function bootGameEngine() {
             pointerIndex = 0;
             runningScore = 0;
+            isSecondChanceActive = false;
             renderNextStage();
         }
 
@@ -364,11 +421,9 @@
             const sandbox = document.getElementById('chartRenderSandbox');
             sandbox.innerHTML = '';
 
-            // 1. TALLY RENDERING ENGINE
             if(stepData.type === 'tally') {
                 const container = document.createElement('div');
                 container.className = 'tally-container';
-                
                 let val = stepData.value;
                 while(val > 0) {
                     if(val >= 5) {
@@ -386,7 +441,6 @@
                 }
                 sandbox.appendChild(container);
             } 
-            // 2. PICTOGRAPH RENDERING ENGINE
             else if(stepData.type === 'pic') {
                 const table = document.createElement('div');
                 table.className = 'pictograph-table';
@@ -402,7 +456,6 @@
                 table.appendChild(keyBox);
                 sandbox.appendChild(table);
             } 
-            // 3. BAR CHART RENDERING ENGINE
             else if(stepData.type === 'bar') {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'bar-chart-wrapper';
@@ -434,39 +487,81 @@
 
         function evaluateChoiceIntent(selectedStr, btnDOM) {
             if(!interactiveLock) return;
-            interactiveLock = false;
 
             const activeStep = curriculumPool[pointerIndex];
 
             if(selectedStr === activeStep.answer) {
+                interactiveLock = false;
                 runningScore++;
                 btnDOM.style.background = "var(--mint)";
                 btnDOM.style.color = "white";
                 triggerAudioCue('right');
+                isSecondChanceActive = false;
+                proceedToNextStepSequencer();
             } else {
-                btnDOM.style.background = "var(--coral)";
-                btnDOM.style.color = "white";
-                triggerAudioCue('wrong');
-
-                setTimeout(() => {
-                    const optionsList = document.querySelectorAll('.btn-choice-opt');
-                    optionsList.forEach(b => {
-                        if(b.innerText === activeStep.answer) {
-                            b.style.background = "var(--mint)";
-                            b.style.color = "white";
-                        }
-                    });
-                }, 300);
-            }
-
-            setTimeout(() => {
-                pointerIndex++;
-                if(pointerIndex < 15) {
-                    renderNextStage();
+                // If this was their first attempt, give them one more chance
+                if(!isSecondChanceActive) {
+                    isSecondChanceActive = true;
+                    btnDOM.style.background = "var(--amber)";
+                    btnDOM.style.color = "var(--dark-blue)";
+                    btnDOM.innerText = "Try Again! 🌟";
+                    triggerAudioCue('wrong');
                 } else {
-                    terminateAndEvaluateMission();
+                    // Out of chances for this question
+                    interactiveLock = false;
+                    isSecondChanceActive = false;
+                    btnDOM.style.background = "var(--coral)";
+                    btnDOM.style.color = "white";
+                    triggerAudioCue('wrong');
+
+                    // Highlight the true solution so they learn
+                    setTimeout(() => {
+                        const optionsList = document.querySelectorAll('.btn-choice-opt');
+                        optionsList.forEach(b => {
+                            if(b.innerText === activeStep.answer) {
+                                b.style.background = "var(--mint)";
+                                b.style.color = "white";
+                            }
+                        });
+                    }, 300);
+                    proceedToNextStepSequencer();
+                }
+            }
+        }
+
+        function proceedToNextStepSequencer() {
+            setTimeout(() => {
+                // Check if they just completed a level group (Question 5 or Question 10)
+                if(pointerIndex === 4) {
+                    showLevelCompletionOverlay("❤️ Level 1 Cleared!", "Fantastic work! You are officially a Tally Mark Superstar! ⭐", "🎈");
+                } else if(pointerIndex === 9) {
+                    showLevelCompletionOverlay("🚀 Level 2 Cleared!", "Unbelievable skills! You read those Pictograph scales perfectly! 🍦", "🎉");
+                } else {
+                    advanceQuestionPointer();
                 }
             }, 1500);
+        }
+
+        function showLevelCompletionOverlay(title, description, emoji) {
+            document.getElementById('overlayTitle').innerText = title;
+            document.getElementById('overlayMessage').innerText = description;
+            document.getElementById('overlayEmoji').innerText = emoji;
+            document.getElementById('encouragementOverlayBox').classList.remove('hidden');
+            triggerAudioCue('applause');
+        }
+
+        function dismissLevelOverlay() {
+            document.getElementById('encouragementOverlayBox').classList.add('hidden');
+            advanceQuestionPointer();
+        }
+
+        function advanceQuestionPointer() {
+            pointerIndex++;
+            if(pointerIndex < 15) {
+                renderNextStage();
+            } else {
+                terminateAndEvaluateMission();
+            }
         }
 
         function terminateAndEvaluateMission() {
