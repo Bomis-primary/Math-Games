@@ -187,9 +187,23 @@
         .money-tool-item.exhausted { opacity: 0.3; cursor: not-allowed; pointer-events: none; background: #eeeeee; border-color: #bdbdbd; box-shadow: none; }
         .count-badge { background: #e65100; color: white; border-radius: 8px; padding: 1px 6px; font-size: 0.85rem; }
 
-        /* --- IMAGE SPRITE CONFIGURATIONS --- */
-        .currency-asset-img { width: 55px; height: 55px; object-fit: contain; pointer-events: none; display: block; }
-        .note-asset-img { width: 75px; height: 45px; object-fit: contain; pointer-events: none; display: block; }
+        /* --- 🌟 IMAGE SPRITE CONFIGURATIONS (CSS MULTIPLY TRICK APPLIED) 🌟 --- */
+        .currency-asset-img { 
+            width: 55px; 
+            height: 55px; 
+            object-fit: contain; 
+            pointer-events: none; 
+            display: block;
+            mix-blend-mode: multiply; /* Drops out white backgrounds instantly */
+        }
+        .note-asset-img { 
+            width: 75px; 
+            height: 45px; 
+            object-fit: contain; 
+            pointer-events: none; 
+            display: block;
+            mix-blend-mode: multiply; /* Drops out white backgrounds instantly */
+        }
         
         .currency-fallback-circle {
             width: 48px; height: 48px; border-radius: 50%; background: #ffe082; border: 2px solid #f57f17;
@@ -242,11 +256,9 @@
 </head>
 <body>
 
-    <!-- Audio Elements using local directory structure -->
     <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
-    <!-- Splash Loader Screen -->
     <div id="screen-splash">
         <div class="splash-inner">
             <img src="assets/logo.png" class="splash-logo" alt="Logo" onerror="this.src='https://placehold.co/200?text=Math+Quest'">
@@ -254,10 +266,8 @@
         </div>
     </div>
 
-    <!-- Core Interactive Architecture Frame -->
     <div class="game-container">
         
-        <!-- Welcome Layer Card -->
         <div class="screen-layer active" id="screen-intro">
             <div class="hero-banner">🪙🐷🛍️</div>
             <h1 style="margin-bottom: 10px; font-size: 2.3rem; color: var(--text-dark);">13-Round Indian Currency Quest</h1>
@@ -272,7 +282,6 @@
             <button class="cta-btn" onclick="switchActiveLayer('screen-play')">Start Challenge! 🚀</button>
         </div>
 
-        <!-- Simulator Core operational hub -->
         <div class="screen-layer" id="screen-play">
             <div class="hud-row">
                 <div>⭐ Score: <span id="label-score-val">0</span></div>
@@ -281,13 +290,10 @@
             </div>
             <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
 
-            <!-- Double Grid Split Workspace -->
             <div class="workspace-grid">
                 
-                <!-- Left Playfield Column Layout Canvas -->
                 <div class="counter-shelf" id="left-workspace-panel">
                     
-                    <!-- Level 3 Specific Toy Shop Row -->
                     <div class="level3-carousel-shelf" id="l3-item-shelf" style="display: none;">
                         <div class="carousel-item-card" id="l3-card-teddy" data-item="teddy" data-price="100" onclick="selectLevel3Product(this)">
                             <div style="font-size: 2rem;">🧸</div>
@@ -306,23 +312,19 @@
                         </div>
                     </div>
 
-                    <!-- Target Monitor Display Panel -->
                     <div class="target-display-card" id="main-target-card">
                         <div class="toy-avatar" id="shelf-toy-icon">🐖</div>
                         <div class="price-tag" id="shelf-toy-price">Target: ₹0</div>
                     </div>
 
-                    <!-- Sandbox Landing Checkout Mat Area -->
                     <div class="drop-counter-zone" id="checkout-mat-target">
                         <div class="drop-label" id="mat-placeholder-hint">🛒 Drag currency elements into this mat!</div>
                         <div class="live-math-feed" id="mat-running-total" style="display: none;">Counter Total: ₹0</div>
                     </div>
 
-                    <!-- Level 2 Choice button Matrix Row -->
                     <div class="quiz-options-matrix" id="l2-quiz-row" style="display: none;"></div>
                 </div>
 
-                <!-- Right Inventory Wallet Panel Control Grid -->
                 <div class="wallet-rack" id="source-wallet-rack">
                     <div class="wallet-title" id="wallet-header-title">🎒 Infinite Wallet Pocket</div>
                     <div class="inventory-hint" id="wallet-sub-hint">Unlimited coins & notes</div>
@@ -360,7 +362,6 @@
 
             </div>
 
-            <!-- Footer Action Buttons Controls Bar -->
             <div class="action-row" id="core-action-footer">
                 <button class="cta-btn btn-success" id="btn-verify-trigger" onclick="evaluateSimulatorBasket()">Verify Money 💸</button>
                 <button class="cta-btn btn-danger" id="btn-clear-trigger" onclick="clearCheckoutMat()">Clear Matrix 🔄</button>
@@ -368,7 +369,6 @@
             <div class="banner-msg" id="counter-status-feedback"></div>
         </div>
 
-        <!-- End Completion Game Over Frame Card -->
         <div class="screen-layer" id="screen-end">
             <div class="hero-banner">👑🏆🥇</div>
             <h1 style="color: #2e7d32; font-size: 2.4rem; margin-bottom: 12px;">Grand Champion Economist!</h1>
@@ -563,248 +563,3 @@
         }
 
         function refreshWalletCountersUI() {
-            if (masterSimulationPool[activeTurnIndex].mode !== 3) return;
-            
-            document.getElementById('stock-v1').innerText = walletInventoryStock.v1;
-            document.getElementById('stock-v2').innerText = walletInventoryStock.v2;
-            document.getElementById('stock-v5').innerText = walletInventoryStock.v5;
-            document.getElementById('stock-v10').innerText = walletInventoryStock.v10;
-            document.getElementById('stock-v20').innerText = walletInventoryStock.v20;
-            document.getElementById('stock-v50').innerText = walletInventoryStock.v50;
-
-            document.getElementById('tool-v1').classList.toggle('exhausted', walletInventoryStock.v1 <= 0);
-            document.getElementById('tool-v2').classList.toggle('exhausted', walletInventoryStock.v2 <= 0);
-            document.getElementById('tool-v5').classList.toggle('exhausted', walletInventoryStock.v5 <= 0);
-            document.getElementById('tool-v10').classList.toggle('exhausted', walletInventoryStock.v10 <= 0);
-            document.getElementById('tool-v20').classList.toggle('exhausted', walletInventoryStock.v20 <= 0);
-            document.getElementById('tool-v50').classList.toggle('exhausted', walletInventoryStock.v50 <= 0);
-        }
-
-        function selectLevel3Product(cardElement) {
-            if (cardElement.classList.contains('bought')) return;
-            
-            document.querySelectorAll('.carousel-item-card').forEach(c => { if(!c.classList.contains('bought')) c.classList.remove('selected'); });
-            cardElement.classList.add('selected');
-
-            let price = parseInt(cardElement.getAttribute('data-price'));
-            let item = cardElement.getAttribute('data-item');
-            
-            level3SelectedTarget = item;
-            currentTargetPrice = price;
-
-            let iconEmoji = item === 'teddy' ? "🧸" : item === 'car' ? "🚗" : "📚";
-            document.getElementById('shelf-toy-icon').innerText = iconEmoji;
-            document.getElementById('shelf-toy-price').innerText = `Pay Price: ₹${price}`;
-
-            document.getElementById('btn-verify-trigger').disabled = false;
-            clearCheckoutMat();
-        }
-
-        // UNIFIED MOUSE & TOUCH EVENT DRAG MECHANISM
-        function bindDragAndDropEngine() {
-            const toolkits = document.querySelectorAll('.money-tool-item');
-            toolkits.forEach(tool => {
-                tool.addEventListener('mousedown', initiateDragSequence, { passive: false });
-                tool.addEventListener('touchstart', initiateDragSequence, { passive: false });
-            });
-
-            function initiateDragSequence(event) {
-                event.preventDefault();
-                const originElement = this;
-                if (originElement.classList.contains('exhausted')) return;
-
-                const incrementalValue = parseInt(originElement.getAttribute('data-value'));
-                const keyMapString = `v${incrementalValue}`;
-
-                const childAsset = originElement.firstElementChild.cloneNode(true);
-                const visualFloater = document.createElement('div');
-                visualFloater.className = 'dropped-currency-token';
-                visualFloater.style.position = 'absolute';
-                visualFloater.style.zIndex = '9999';
-                visualFloater.appendChild(childAsset);
-                document.body.appendChild(visualFloater);
-
-                let startX = event.type === 'touchstart' ? event.touches[0].clientX : event.clientX;
-                let startY = event.type === 'touchstart' ? event.touches[0].clientY : event.clientY;
-                let elemRect = originElement.getBoundingClientRect();
-
-                let pointerOffsetX = startX - elemRect.left;
-                let pointerOffsetY = startY - elemRect.top;
-
-                positionNode(startX, startY);
-
-                function positionNode(cx, cy) {
-                    visualFloater.style.left = (cx - pointerOffsetX) + 'px';
-                    visualFloater.style.top = (cy - pointerOffsetY) + 'px';
-                }
-
-                function trackMovement(moveEvent) {
-                    let curX = moveEvent.type === 'touchmove' ? moveEvent.touches[0].clientX : moveEvent.clientX;
-                    let curY = moveEvent.type === 'touchmove' ? moveEvent.touches[0].clientY : moveEvent.clientY;
-                    positionNode(curX, curY);
-                }
-
-                document.addEventListener('mousemove', trackMovement, { passive: false });
-                document.addEventListener('touchmove', trackMovement, { passive: false });
-
-                document.addEventListener('mouseup', function terminateSequence() {
-                    document.removeEventListener('mousemove', trackMovement);
-                    document.removeEventListener('touchmove', trackMovement);
-                    
-                    const dropMat = document.getElementById('checkout-mat-target');
-                    const matRect = dropMat.getBoundingClientRect();
-                    const cloneRect = visualFloater.getBoundingClientRect();
-
-                    let hitDetected = !(cloneRect.right < matRect.left || 
-                                         cloneRect.left > matRect.right || 
-                                         cloneRect.bottom < matRect.top || 
-                                         cloneRect.top > matRect.bottom);
-
-                    let inventoryAvailable = masterSimulationPool[activeTurnIndex].mode !== 3 || walletInventoryStock[keyMapString] > 0;
-
-                    if (hitDetected && inventoryAvailable) {
-                        runningBasketTotal += incrementalValue;
-                        
-                        if (masterSimulationPool[activeTurnIndex].mode === 3) {
-                            walletInventoryStock[keyMapString]--;
-                            refreshWalletCountersUI();
-                        }
-
-                        let placementClone = childAsset.cloneNode(true);
-                        let placementWrapper = document.createElement('div');
-                        placementWrapper.className = 'dropped-currency-token';
-                        placementWrapper.setAttribute('data-deducted-value', incrementalValue);
-                        placementWrapper.appendChild(placementClone);
-                        dropMat.appendChild(placementWrapper);
-
-                        let piggyNode = document.getElementById('piggy-avatar-node');
-                        if (piggyNode) {
-                            piggyNode.classList.add('bounce');
-                            setTimeout(() => piggyNode.classList.remove('bounce'), 150);
-                        }
-
-                        refreshMatVisualCounter();
-                    }
-                    visualFloater.remove();
-                }, { once: true });
-            }
-        }
-
-        function refreshMatVisualCounter() {
-            let hint = document.getElementById('mat-placeholder-hint');
-            let feed = document.getElementById('mat-running-total');
-            
-            if (runningBasketTotal > 0) {
-                hint.style.display = 'none';
-                feed.style.display = 'block';
-                feed.innerText = `Matrix Total: ₹${runningBasketTotal}`;
-            } else {
-                hint.style.display = 'block';
-                feed.style.display = 'none';
-            }
-        }
-
-        function clearCheckoutMat() {
-            if (masterSimulationPool[activeTurnIndex].mode === 3) {
-                const activeTokens = document.getElementById('checkout-mat-target').querySelectorAll('.dropped-currency-token');
-                activeTokens.forEach(tok => {
-                    let restoredValue = parseInt(tok.getAttribute('data-deducted-value'));
-                    if (restoredValue) walletInventoryStock[`v${restoredValue}`]++;
-                });
-                refreshWalletCountersUI();
-            }
-
-            runningBasketTotal = 0;
-            refreshMatVisualCounter();
-            document.getElementById('counter-status-feedback').innerText = "";
-            
-            const mat = document.getElementById('checkout-mat-target');
-            const elementsToRemove = mat.querySelectorAll('.dropped-currency-token');
-            elementsToRemove.forEach(el => el.remove());
-        }
-
-        function evaluateQuizSelection(buttonElement, clientValue, targetAnswer) {
-            document.querySelectorAll('.quiz-card-btn').forEach(b => b.disabled = true);
-
-            if (clientValue === targetAnswer) {
-                buttonElement.classList.add('correct');
-                currentScore += 10;
-                document.getElementById('label-score-val').innerText = currentScore;
-                playSound('success');
-                triggerGoldenCoinShowerEffect();
-                activeTurnIndex++;
-                setTimeout(buildActiveGameLevel, 2200);
-            } else {
-                buttonElement.classList.add('wrong');
-                playSound('wrong');
-                document.querySelectorAll('.quiz-card-btn').forEach(b => {
-                    if (parseInt(b.innerText.replace('₹','')) === targetAnswer) b.classList.add('correct');
-                });
-                activeTurnIndex++;
-                setTimeout(buildActiveGameLevel, 2200);
-            }
-        }
-
-        function evaluateSimulatorBasket() {
-            let feedback = document.getElementById('counter-status-feedback');
-            let configMode = masterSimulationPool[activeTurnIndex].mode;
-
-            if (configMode === 3 && level3SelectedTarget === 0) {
-                feedback.style.color = "#c62828";
-                feedback.innerText = "Please tap an active item card from the shop shelf first!";
-                playSound('wrong');
-                return;
-            }
-
-            if (runningBasketTotal === currentTargetPrice) {
-                currentScore += 10;
-                document.getElementById('label-score-val').innerText = currentScore;
-                feedback.style.color = "#2e7d32";
-                feedback.innerText = "Perfect payment! Golden coins are raining! 🌟🪙";
-                
-                playSound('success');
-                triggerGoldenCoinShowerEffect();
-
-                if (configMode === 3) {
-                    level3PurchasedRegistry[level3SelectedTarget] = true;
-                }
-
-                activeTurnIndex++;
-                setTimeout(buildActiveGameLevel, 2200);
-            } else {
-                playSound('wrong');
-                feedback.style.color = "#c62828";
-                if (runningBasketTotal > currentTargetPrice) {
-                    feedback.innerText = `Overpaid (₹${runningBasketTotal}). Clear layout & calculate change!`;
-                } else {
-                    feedback.innerText = `Insufficient total (₹${runningBasketTotal}). Keep dragging coins & notes!`;
-                }
-            }
-        }
-
-        function concludeSimulationWorkflow() {
-            document.getElementById('progress-fill').style.width = "100%";
-            document.getElementById('screen-play').classList.remove('active');
-            document.getElementById('screen-end').classList.add('active');
-            document.getElementById('final-score-report').innerText = `Final Score Tally: ${currentScore} / ${TOTAL_TURNS_MAX * 10}`;
-        }
-
-        function reinitializeSimulation() {
-            activeTurnIndex = 0;
-            currentScore = 0;
-            level3PurchasedRegistry = { teddy: false, car: false, book: false };
-            switchActiveLayer('screen-intro');
-        }
-
-        window.addEventListener('load', function() {
-            setTimeout(() => {
-                const splash = document.getElementById('screen-splash');
-                if (splash) {
-                    splash.style.opacity = '0';
-                    setTimeout(() => splash.remove(), 500);
-                }
-            }, 2000);
-        });
-    </script>
-</body>
-</html>
