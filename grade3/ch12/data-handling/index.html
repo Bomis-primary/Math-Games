@@ -1,1 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 3 Data Handling Mastery</title>
+    <style>
+        :root {
+            --bg-color: #F3F4F6;
+            --dark-blue: #1E3A8A;
+            --mint: #10B981;
+            --amber: #F59E0B;
+            --coral: #EF4444;
+            --white: #FFFFFF;
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+        }
+
+        /* 4-Second Splash Screen */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        #splash-screen img {
+            max-width: 65%;
+            max-height: 55%;
+            object-fit: contain;
+        }
+
+        .game-container {
+            background: var(--white);
+            border: 6px solid var(--dark-blue);
+            border-radius: 32px;
+            padding: 25px;
+            width: 100%;
+            max-width: 550px;
+            text-align: center;
+            box-shadow: 0 16px 0px var(--dark-blue);
+        }
+
+        h1 {
+            color: var(--dark-blue);
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+
+        .level-badge {
+            display: inline-block;
+            padding: 6px 22px;
+            font-weight: bold;
+            border-radius: 50px;
+            color: white;
+            border: 3px solid var(--dark-blue);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+        }
+
+        .tier-easy { background: var(--mint); }
+        .tier-medium { background: var(--amber); color: var(--dark-blue); }
+        .tier-hard { background: var(--coral); }
+
+        .progress-bar-container {
+            background: #E5E7EB;
+            border: 3px solid var(--dark-blue);
+            height: 22px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+
+        #progressBarFill {
+            height: 100%;
+            width: 6.6%;
+            background: linear-gradient(90deg, var(--mint), var(--amber), var(--coral));
+            transition: width 0.4s ease;
+        }
+
+        .status-meta {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            color: var(--dark-blue);
+            margin-bottom: 15px;
+            background: #EFF6FF;
+            padding: 8px 14px;
+            border-radius: 12px;
+        }
+
+        .chart-display-sandbox {
+            background: #FAFAFA;
+            border: 4px dashed #9CA3AF;
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 20px;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .question-prompt {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--dark-blue);
+            margin-bottom: 15px;
+        }
+
+        /* --- TALLY MARK VISUAL STYLING --- */
+        .tally-container {
+            display: inline-flex;
+            gap: 15px;
+            font-size: 2rem;
+            letter-spacing: 2px;
+            font-weight: bold;
+            color: #374151;
+            background: #F3F4F6;
+            padding: 10px 20px;
+            border-radius: 12px;
+            border: 2px solid #D1D5DB;
+        }
+        .tally-bundle {
+            position: relative;
+            display: inline-block;
+            letter-spacing: 1px;
+            padding-right: 5px;
+        }
+        .tally-bundle::after {
+            content: "";
+            position: absolute;
+            left: -2px;
+            top: 50%;
+            width: 110%;
+            height: 4px;
+            background-color: var(--coral);
+            transform: rotate(-20deg);
+            transform-origin: left center;
+        }
+
+        /* --- CSS PICTOGRAPH LAYOUT --- */
+        .pictograph-table { width: 100%; }
+        .pictograph-row {
+            display: flex;
+            align-items: center;
+            border-bottom: 2px dashed #E5E7EB;
+            padding: 8px 0;
+        }
+        .pic-label { width: 90px; font-weight: bold; text-align: left; color: var(--dark-blue); }
+        .pic-icons { flex-grow: 1; text-align: left; font-size: 1.6rem; }
+        .pic-key {
+            font-size: 0.9rem;
+            background: #FEF3C7;
+            padding: 6px 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: bold;
+            border: 1px solid var(--amber);
+        }
+
+        /* --- CSS BAR GRAPH LAYOUT --- */
+        .bar-chart-wrapper {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            width: 100%;
+            height: 140px;
+            border-bottom: 4px solid var(--dark-blue);
+            margin-bottom: 10px;
+        }
+        .bar-column { display: flex; flex-direction: column; align-items: center; width: 55px; }
+        .bar-fill {
+            width: 100%;
+            background: var(--amber);
+            border: 3px solid var(--dark-blue);
+            border-bottom: none;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            position: relative;
+        }
+        .bar-value { position: absolute; top: -24px; font-weight: bold; font-size: 0.9rem; color: var(--dark-blue); }
+        .bar-label { margin-top: 6px; font-weight: bold; font-size: 0.85rem; color: var(--dark-blue); }
+
+        /* Options Configuration */
+        .options-grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .btn-choice-opt {
+            background: white;
+            border: 3px solid var(--dark-blue);
+            border-radius: 20px;
+            padding: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--dark-blue);
+            cursor: pointer;
+            box-shadow: 0 6px 0px var(--dark-blue);
+            transition: all 0.1s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 65px;
+        }
+
+        .btn-choice-opt:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0px var(--dark-blue);
+        }
+
+        .hidden { display: none !important; }
+
+        .btn-replay-action {
+            background: var(--mint);
+            color: white;
+            border: 4px solid var(--dark-blue);
+            font-size: 1.5rem;
+            padding: 12px 45px;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 var(--dark-blue);
+            font-weight: bold;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <img src="assets/logo.png" alt="Education Logo">
+        <h2 style="color: var(--dark-blue); margin-top:15px;">Data handling Explorer 📈</h2>
+    </div>
+
+    <!-- Audio Targets -->
+    <audio id="audioRight" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="audioWrong" src="assets/wrong.mp3" preload="auto"></audio>
+    <audio id="audioApplause" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
+
+    <div class="game-container">
+        <div id="gameplayCorePanel">
+            <h1>Data handling Master 📊</h1>
+            <div id="levelBadgeDisplay" class="level-badge tier-easy">Level 1: Tally & Survey Basics</div>
+
+            <div class="progress-bar-container">
+                <div id="progressBarFill"></div>
+            </div>
+
+            <div class="status-meta">
+                <span id="questionProgressText">Question: 1 / 15</span>
+                <span id="scoreTrackerText">Score: 0🎯</span>
+            </div>
+
+            <div class="chart-display-sandbox">
+                <p class="question-prompt" id="targetQuestionText">Loading...</p>
+                <div id="chartRenderSandbox" style="width:100%; display:flex; justify-content:center; align-items:center;"></div>
+            </div>
+
+            <div class="options-grid-layout" id="optionsContainerLayout"></div>
+        </div>
+
+        <!-- End Panel -->
+        <div id="endEvaluationPanel" class="hidden">
+            <h2 style="font-size: 2.3rem; color: var(--coral); margin-bottom: 10px;">Chapter Clear! 🏆</h2>
+            <div id="awardEmblem" style="font-size: 4.5rem; margin-bottom: 10px;">🥇</div>
+            <p id="totalScoreText" style="font-size: 1.7rem; font-weight: bold; margin-bottom: 15px; color: var(--dark-blue);"></p>
+            <p id="qualitativeFeedbackText" style="font-size: 1.1rem; margin-bottom: 25px; font-weight: bold; color: #4B5563;"></p>
+            <button class="btn-replay-action" onclick="restartDataMission()">Replay Mission</button>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if(splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.remove(), 500);
+                }
+            }, 4000);
+            bootGameEngine();
+        };
+
+        function triggerAudioCue(soundType) {
+            const track = document.getElementById(soundType === 'right' ? 'audioRight' : soundType === 'wrong' ? 'audioWrong' : 'audioApplause');
+            if(track) { track.currentTime = 0; track.play().catch(e => {}); }
+        }
+
+        let pointerIndex = 0;
+        let runningScore = 0;
+        let interactiveLock = true;
+
+        // Structured 15 Questions mapped to the verified Learning Outcomes
+        const curriculumPool = [
+            // LEVEL 1: Tally & Survey Basics (Outcomes: Tally Marks & Questionnaire concepts)
+            { zone: "Level 1: Tally & Survey Basics", css: "tier-easy", q: "What tool should you use to collect data about your classmates' favorite sports?", type: "text", answer: "A Questionnaire", choices: ["A Ruler", "A Scale", "A Questionnaire", "An Eraser"] },
+            { zone: "Level 1: Tally & Survey Basics", css: "tier-easy", q: "What number does this group of tally marks represent?", type: "tally", value: 5, answer: "5", choices: ["4", "5", "6", "10"] },
+            { zone: "Level 1: Tally & Survey Basics", css: "tier-easy", q: "Identify the number shown by these tallies:", type: "tally", value: 7, answer: "7", choices: ["6", "7", "8", "12"] },
+            { zone: "Level 1: Tally & Survey Basics", css: "tier-easy", q: "If you count 13 birds, how many diagonal/slash lines will you draw in total for the tallies?", type: "text", answer: "2", choices: ["1", "2", "3", "4"] },
+            { zone: "Level 1: Tally & Survey Basics", css: "tier-easy", q: "Why do we record data using tally marks instead of long numbers?", type: "text", answer: "To count quickly one by one", choices: ["To make it colorful", "To count quickly one by one", "To do multiplication", "To draw pictures"] },
+
+            // LEVEL 2: Pictograph Production (Outcomes: Interpreting & Designing Pictographs)
+            { zone: "Level 2: Pictograph Production", css: "tier-medium", q: "How many Stars ⭐ were earned by Team A altogether?", type: "pic", labels: ["Team A", "Team B"], elements: ["⭐⭐⭐", "⭐⭐"], key: "Each ⭐ = 1 Star", answer: "3", choices: ["2", "3", "5", "6"] },
+            { zone: "Level 2: Pictograph Production", css: "tier-medium", q: "Look closely at the key! How many Stars ⭐ did Team B earn?", type: "pic", labels: ["Team A", "Team B"], elements: ["⭐⭐⭐", "⭐⭐"], key: "Each ⭐ = 2 Stars", answer: "4", choices: ["2", "4", "6", "8"] },
+            { zone: "Level 2: Pictograph Production", css: "tier-medium", q: "How many total ice creams are represented in this chart?", type: "pic", labels: ["Choco", "Vanilla"], elements: ["🍦🍦", "🍦"], key: "Each 🍦 = 5 Ice creams", answer: "15", choices: ["3", "10", "15", "20"] },
+            { zone: "Level 2: Pictograph Production", css: "tier-medium", q: "To represent 40 cars where each icon equals 10 cars, how many symbols must you design?", type: "text", answer: "4 symbols", choices: ["4 symbols", "10 symbols", "40 symbols", "2 symbols"] },
+            { zone: "Level 2: Pictograph Production", css: "tier-medium", q: "A pictograph has 3 balloon icons. The key says: Each icon = 3 balloons. How many actual balloons are there?", type: "text", answer: "9 balloons", choices: ["3 balloons", "6 balloons", "9 balloons", "12 balloons"] },
+
+            // LEVEL 3: Bar Graph & Interpretation Mastery (Outcomes: Bar graph comparison, effectiveness, and accuracy evaluation)
+            { zone: "Level 3: Graph Interpretation", css: "tier-hard", q: "How many more points did Cats score than Dogs?", type: "bar", labels: ["Dogs", "Cats", "Birds"], heights: [40, 90, 60], values: ["4", "9", "6"], answer: "5", choices: ["3", "4", "5", "6"] },
+            { zone: "Level 3: Graph Interpretation", css: "tier-hard", q: "Which animal scored the minimum/least points according to the bar heights?", type: "bar", labels: ["Dogs", "Cats", "Birds"], heights: [40, 90, 60], values: ["4", "9", "6"], answer: "Dogs", choices: ["Dogs", "Cats", "Birds", "None"] },
+            { zone: "Level 3: Graph Interpretation", css: "tier-hard", q: "Evaluate accuracy: A bar shows 8 units, but the label says '5'. Is this bar graph accurately drawn?", type: "text", answer: "No, it is inaccurate", choices: ["Yes, it is correct", "No, it is inaccurate", "Can't tell", "It doesn't matter"] },
+            { zone: "Level 3: Graph Interpretation", css: "tier-hard", q: "Which method is most effective to quickly compare precise high and low amounts at a single glance?", type: "text", answer: "Bar Graphs", choices: ["Tally lists", "Bar Graphs", "Interview sheets", "Questionnaires"] },
+            { zone: "Level 3: Graph Interpretation", css: "tier-hard", q: "What is the combined total data value of all three bars shown?", type: "bar", labels: ["X", "Y", "Z"], heights: [30, 50, 40], values: ["3", "5", "4"], answer: "12", choices: ["8", "10", "12", "15"] }
+        ];
+
+        function bootGameEngine() {
+            pointerIndex = 0;
+            runningScore = 0;
+            renderNextStage();
+        }
+
+        function renderNextStage() {
+            interactiveLock = true;
+            const stepData = curriculumPool[pointerIndex];
+
+            document.getElementById('questionProgressText').innerText = `Question: ${pointerIndex + 1} / 15`;
+            document.getElementById('scoreTrackerText').innerText = `Score: ${runningScore}🎯`;
+            
+            const badge = document.getElementById('levelBadgeDisplay');
+            badge.innerText = stepData.zone;
+            badge.className = `level-badge ${stepData.css}`;
+
+            document.getElementById('progressBarFill').style.width = `${((pointerIndex + 1) / 15) * 100}%`;
+            document.getElementById('targetQuestionText').innerText = stepData.q;
+
+            const sandbox = document.getElementById('chartRenderSandbox');
+            sandbox.innerHTML = '';
+
+            // 1. TALLY RENDERING ENGINE
+            if(stepData.type === 'tally') {
+                const container = document.createElement('div');
+                container.className = 'tally-container';
+                
+                let val = stepData.value;
+                while(val > 0) {
+                    if(val >= 5) {
+                        const bundle = document.createElement('span');
+                        bundle.className = 'tally-bundle';
+                        bundle.innerText = "||||";
+                        container.appendChild(bundle);
+                        val -= 5;
+                    } else {
+                        const singles = document.createElement('span');
+                        singles.innerText = "|".repeat(val);
+                        container.appendChild(singles);
+                        val = 0;
+                    }
+                }
+                sandbox.appendChild(container);
+            } 
+            // 2. PICTOGRAPH RENDERING ENGINE
+            else if(stepData.type === 'pic') {
+                const table = document.createElement('div');
+                table.className = 'pictograph-table';
+                stepData.labels.forEach((lbl, idx) => {
+                    const row = document.createElement('div');
+                    row.className = 'pictograph-row';
+                    row.innerHTML = `<div class="pic-label">${lbl}</div><div class="pic-icons">${stepData.elements[idx]}</div>`;
+                    table.appendChild(row);
+                });
+                const keyBox = document.createElement('div');
+                keyBox.className = 'pic-key';
+                keyBox.innerText = `🔑 Key: ${stepData.key}`;
+                table.appendChild(keyBox);
+                sandbox.appendChild(table);
+            } 
+            // 3. BAR CHART RENDERING ENGINE
+            else if(stepData.type === 'bar') {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'bar-chart-wrapper';
+                stepData.labels.forEach((lbl, idx) => {
+                    const col = document.createElement('div');
+                    col.className = 'bar-column';
+                    col.innerHTML = `
+                        <div class="bar-fill" style="height: ${stepData.heights[idx]}px;">
+                            <div class="bar-value">${stepData.values[idx]}</div>
+                        </div>
+                        <div class="bar-label">${lbl}</div>
+                    `;
+                    wrapper.appendChild(col);
+                });
+                sandbox.appendChild(wrapper);
+            }
+
+            const gridLayout = document.getElementById('optionsContainerLayout');
+            gridLayout.innerHTML = '';
+
+            stepData.choices.forEach(optionText => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-choice-opt';
+                btn.innerText = optionText;
+                btn.onclick = () => evaluateChoiceIntent(optionText, btn);
+                gridLayout.appendChild(btn);
+            });
+        }
+
+        function evaluateChoiceIntent(selectedStr, btnDOM) {
+            if(!interactiveLock) return;
+            interactiveLock = false;
+
+            const activeStep = curriculumPool[pointerIndex];
+
+            if(selectedStr === activeStep.answer) {
+                runningScore++;
+                btnDOM.style.background = "var(--mint)";
+                btnDOM.style.color = "white";
+                triggerAudioCue('right');
+            } else {
+                btnDOM.style.background = "var(--coral)";
+                btnDOM.style.color = "white";
+                triggerAudioCue('wrong');
+
+                setTimeout(() => {
+                    const optionsList = document.querySelectorAll('.btn-choice-opt');
+                    optionsList.forEach(b => {
+                        if(b.innerText === activeStep.answer) {
+                            b.style.background = "var(--mint)";
+                            b.style.color = "white";
+                        }
+                    });
+                }, 300);
+            }
+
+            setTimeout(() => {
+                pointerIndex++;
+                if(pointerIndex < 15) {
+                    renderNextStage();
+                } else {
+                    terminateAndEvaluateMission();
+                }
+            }, 1500);
+        }
+
+        function terminateAndEvaluateMission() {
+            document.getElementById('gameplayCorePanel').classList.add('hidden');
+            document.getElementById('endEvaluationPanel').classList.remove('hidden');
+
+            const award = document.getElementById('awardEmblem');
+            const scoreDisplay = document.getElementById('totalScoreText');
+            const textualFeedback = document.getElementById('qualitativeFeedbackText');
+
+            scoreDisplay.innerText = `Final Score: ${runningScore} / 15`;
+            triggerAudioCue('applause');
+
+            if(runningScore === 15) {
+                award.innerText = "👑🏆🥇";
+                textualFeedback.innerText = "Exceptional! You've mastered all Chapter 12 learning outcomes flawlessly!";
+            } else if(runningScore >= 11) {
+                award.innerText = "🥈✨";
+                textualFeedback.innerText = "Great job! You successfully read the pictograph keys, tallies, and bar metrics!";
+            } else {
+                award.innerText = "🎯🎒";
+                textualFeedback.innerText = "Good attempt! Let's replay to practice tally groups and icon scales once more.";
+            }
+        }
+
+        function restartDataMission() {
+            document.getElementById('endEvaluationPanel').classList.add('hidden');
+            document.getElementById('gameplayCorePanel').classList.remove('hidden');
+            bootGameEngine();
+        }
+    </script>
+</body>
+</html>
