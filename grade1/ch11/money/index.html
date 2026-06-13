@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grade 1 Math: Mission Toy Shop Adventure!</title>
+    <title>Grade 1 Math: Piggy Bank Money Simulator</title>
     <style>
         :root {
             --text-main: #1A237E;
-            --primary-color: #FF9800;
-            --secondary-color: #4CAF50;
+            --primary: #FF9800;
+            --secondary: #4CAF50;
         }
 
         * {
@@ -26,30 +26,26 @@
             align-items: center;
             min-height: 100vh;
             overflow: hidden;
+            user-select: none;
         }
 
         /* --- SPLASH SCREEN --- */
         #splash-screen {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: #FFFFFF;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: flex; justify-content: center; align-items: center;
             z-index: 9999;
             transition: opacity 0.5s ease-out;
         }
         .splash-logo { max-width: 240px; height: auto; }
 
         /* --- MAIN CONTAINER --- */
-        #game-container {
+        .game-container {
             width: 95%;
-            max-width: 720px;
+            max-width: 750px;
             background: #FFFFFF;
-            padding: 25px;
+            padding: 20px;
             border-radius: 30px;
             box-shadow: 0 15px 30px rgba(0,0,0,0.12);
             border: 6px solid #FFB300;
@@ -60,77 +56,98 @@
             position: relative;
         }
 
-        .mission-text {
-            font-size: 1.2rem; line-height: 1.6; margin-bottom: 25px;
-            background: #FFFDE7; padding: 20px; border-radius: 20px; border: 2px dashed #FFB300;
+        .story-bubble {
+            background: #FFFDE7; padding: 15px; border-radius: 20px; 
+            border: 2px dashed #FFB300; margin-bottom: 15px; font-size: 1.2rem;
         }
         
-        .start-btn {
+        .action-btn {
             background: linear-gradient(135deg, #FF9800, #E65100); color: white;
-            border: none; padding: 15px 45px; font-size: 1.6rem; font-weight: bold;
+            border: none; padding: 15px 40px; font-size: 1.4rem; font-weight: bold;
             border-radius: 50px; cursor: pointer; box-shadow: 0 6px 0 #E65100;
-            transition: transform 0.1s;
+            margin-top: 10px;
         }
-        .start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
+        .action-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #E65100; }
 
-        /* --- DYNAMIC ENVIRONMENT STAGE --- */
-        #eco-stage {
-            width: 100%;
-            height: 240px;
-            border-radius: 20px;
-            margin-bottom: 20px;
-            position: relative;
-            overflow: hidden;
-            border: 4px solid #FFB300;
-            background-color: #E8F5E9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .stage-graphic {
-            font-size: 5rem;
-            animation: bounceFloat 2s infinite alternate ease-in-out;
-        }
-
-        @keyframes bounceFloat {
-            0% { transform: translateY(0px); }
-            100% { transform: translateY(-12px); }
-        }
-
-        /* --- HUD & CONTROL INTERFACE --- */
-        .hud-header {
+        /* --- HUD --- */
+        .game-header {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 12px; font-weight: bold; font-size: 1.1rem;
         }
-        .phase-badge { background: #FFE082; padding: 4px 12px; border-radius: 10px; color: #E65100; font-weight: bold;}
+        .progress-bar { width: 100%; height: 12px; background: #ECEFF1; border-radius: 10px; overflow: hidden; margin-bottom: 15px; }
+        .progress-fill { height: 100%; width: 0%; background: #4CAF50; transition: width 0.3s; }
 
-        .progress-track {
-            width: 100%; height: 14px; background: #ECEFF1; border-radius: 10px;
-            overflow: hidden; margin-bottom: 20px; border: 1px solid #CFD8DC;
+        /* --- SCENERY CANVAS SIMULATOR --- */
+        .scenery-canvas {
+            height: 320px;
+            background: #E8F5E9;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 15px;
+            border: 4px solid #A5D6A7;
         }
-        #progress-bar { height: 100%; width: 0%; background: #4CAF50; transition: width 0.3s; }
 
-        .equation-box {
-            font-size: 1.45rem; font-weight: bold; color: #1B5E20;
-            background: #F1F8E9; padding: 18px; border-radius: 15px;
-            margin-bottom: 20px; border-bottom: 4px solid #C8E6C9;
-            min-height: 85px; display: flex; align-items: center; justify-content: center;
+        /* Simulation Zones */
+        .bank-zone {
+            position: absolute;
+            bottom: 20px; left: 30px;
+            width: 220px; height: 220px;
+            background: rgba(255, 255, 255, 0.65);
+            border: 4px dashed #4CAF50;
+            border-radius: 24px;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+        }
+        .bank-label { font-weight: bold; font-size: 1.1rem; color: #2E7D32; margin-top: 5px; }
+        .bank-art { font-size: 4.5rem; transition: transform 0.2s; }
+        .bank-art.bounce { transform: scale(1.2); }
+
+        .wallet-zone {
+            position: absolute;
+            bottom: 20px; right: 25px;
+            width: 420px; height: 230px;
+            background: #FFF3E0;
+            border: 3px solid #FFB300;
+            border-radius: 20px;
+            padding: 10px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
         }
 
-        .grid-matrix { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 10px; }
-        .box-btn {
-            background: #FFFFFF; border: 3px solid #FFB300; border-radius: 20px;
-            padding: 14px; font-size: 1.2rem; font-weight: bold; color: #E65100;
-            cursor: pointer; box-shadow: 0 5px 0 #FFB300; transition: all 0.1s;
+        /* Draggable Custom Engine Cash Nodes */
+        .money-draggable {
+            background: #FFFFFF;
+            border: 2px solid #FFB300;
+            border-radius: 15px;
+            padding: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #E65100;
+            cursor: grab;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            touch-action: none;
+            z-index: 10;
         }
-        .box-btn:active { transform: translateY(5px); box-shadow: 0 0 0 transparent; }
-        .box-btn.correct { background: #4CAF50 !important; border-color: #2E7D32 !important; color: white !important; box-shadow: 0 5px 0 #2E7D32; }
-        .box-btn.wrong { background: #EF5350 !important; border-color: #C62828 !important; color: white !important; box-shadow: 0 5px 0 #C62828; }
+        .money-draggable:active { cursor: grabbing; transform: scale(1.05); }
+        .money-draggable span { font-size: 1.6rem; }
 
-        .confetti-element {
-            position: absolute; width: 10px; height: 10px; top: 50%; left: 50%;
-            opacity: 0; pointer-events: none; z-index: 99; border-radius: 50%;
+        .equation-container {
+            font-size: 2.2rem; font-weight: bold; margin-bottom: 15px; color: #1B5E20;
+            background: #ffffff; padding: 8px 30px; border-radius: 50px;
+            display: inline-block; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 3px solid #C8E6C9;
+        }
+        .feedback-banner { height: 32px; margin-top: 5px; font-size: 1.3rem; font-weight: bold; }
+
+        .particle {
+            position: absolute; width: 10px; height: 10px; border-radius: 50%;
+            pointer-events: none; z-index: 999; animation: blow-up 0.8s ease-out forwards;
+        }
+        @keyframes blow-up {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+            100% { transform: translate(var(--dx), var(--dy)) scale(0.5) rotate(360deg); opacity: 0; }
         }
     </style>
 </head>
@@ -138,247 +155,293 @@
 
     <!-- Splash Screen -->
     <div id="splash-screen">
-        <img src="assets/logo.png" alt="Innovine Logo" class="splash-logo" onerror="this.src='https://placehold.co/200?text=Innovine'">
+        <img src="assets/logo.png" alt="Logo" class="splash-logo" onerror="this.src='https://placehold.co/200?text=Innovine'">
     </div>
 
-    <!-- Main Game Frame -->
-    <div id="game-container">
-        
-        <!-- Welcome Screen -->
-        <div id="intro-card">
-            <div style="font-size: 4.5rem; margin-bottom: 10px;">🏪💰🧸</div>
-            <h2 style="color: #E65100; font-size: 2.3rem; margin-bottom: 12px;">Mission: Toy Shop Adventure!</h2>
-            <p class="mission-text">
-                Welcome to the local Toy Shop! Let's explore real Indian coins and notes to manage our pocket money.
-                <br><br>
-                <strong>Your Mission:</strong> Identify correct bills at the cash register, then pick the exact money bundles to buy your favorite toys!
-            </p>
-            <button class="start-btn" onclick="engageMission()">Enter Toy Shop! 🚀</button>
+    <!-- Container Frame -->
+    <div class="game-container" id="main-frame">
+        <div class="game-header">
+            <div style="font-size: 1.2rem; font-weight: bold; color: var(--text-main);">
+                ⭐ Score: <span id="score-val">0</span>
+            </div>
+            <div style="font-size: 1.2rem; font-weight: bold; color: var(--text-main);">
+                💰 Task: <span id="progress-val">1/5</span>
+            </div>
+        </div>
+        <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+
+        <!-- Intro Card Screen -->
+        <div id="screen-intro">
+            <div class="story-bubble">
+                <p><strong>Welcome to the Piggy Bank Money Simulator!</strong> 🐷🪙</p>
+                <p style="margin-top: 10px; font-size: 1.15rem; color: #2E7D32;">
+                    Look at the Target Amount below. Drag the correct coins and notes straight into the Piggy Bank to save the exact amount requested!
+                </p>
+            </div>
+            <button class="action-btn" onclick="startGame()">Start Saving Simulator! 🚀</button>
         </div>
 
-        <!-- Interactive Active Playfield -->
-        <div id="active-playfield" style="display: none;">
-            <div class="hud-header">
-                <span id="label-task">Progress Tracker</span>
-                <span class="phase-badge" id="label-phase">Phase 1: Cash Register</span>
-                <span>Score: <span id="label-score">0</span></span>
+        <!-- Simulator Simulation Screen -->
+        <div id="screen-play" style="display: none;">
+            <div class="story-bubble">
+                <p id="story-text">Load Simulation rules...</p>
             </div>
 
-            <div class="progress-track"><div id="progress-bar"></div></div>
+            <!-- Central Simulation Canvas Grid Field -->
+            <div class="scenery-canvas" id="stage-canvas">
+                <!-- Piggy Target Deposit Box Zone -->
+                <div class="bank-zone" id="bank-deposit-target">
+                    <div class="bank-art" id="piggy-character">🐷</div>
+                    <div class="bank-label">Piggy Bank Slot</div>
+                    <div id="live-bank-counter" style="margin-top:5px; font-size:0.95rem; background:#C8E6C9; padding:2px 8px; border-radius:10px; color:#1B5E20; display:none;">Inside: ₹0</div>
+                </div>
 
-            <!-- Dynamic Interactive Visual Stage Area -->
-            <div id="eco-stage">
-                <div id="stage-icon" class="stage-graphic">👛</div>
+                <!-- Infinite Wallet Currency Generating Base -->
+                <div class="wallet-zone" id="source-wallet">
+                    <div class="money-draggable" data-value="1"><span>🪙</span> ₹1 Coin</div>
+                    <div class="money-draggable" data-value="2"><span>🪙</span> ₹2 Coin</div>
+                    <div class="money-draggable" data-value="5"><span>🪙</span> ₹5 Coin</div>
+                    <div class="money-draggable" data-value="10"><span>💵</span> ₹10 Note</div>
+                </div>
             </div>
 
-            <div class="equation-box" id="field-question">Loading shopping assignment...</div>
-            <div class="grid-matrix" id="field-options"></div>
+            <div>
+                <div class="equation-container">
+                    Target Amount: <span style="color: #E65100;" id="target-display">₹0</span>
+                </div>
+            </div>
+
+            <div>
+                <button class="action-btn" style="background: linear-gradient(135deg, #4CAF50, #2E7D32); box-shadow: 0 6px 0 #1B5E20; margin-right: 10px;" onclick="verifyBankTotal()">Check Money 💸</button>
+                <button class="action-btn" style="background: linear-gradient(135deg, #E53935, #B71C1C); box-shadow: 0 6px 0 #7F0000;" onclick="clearActiveBank()">Empty Bank 🔄</button>
+            </div>
+            
+            <div class="feedback-banner" id="feedback-box"></div>
         </div>
 
-        <!-- Victory Card Summary -->
-        <div id="victory-card" style="display: none;">
-            <div style="font-size: 5rem;">🏆⭐💰</div>
-            <h1 style="color: #2E7D32; font-size: 2.5rem; margin: 15px 0;">Junior Money Master!</h1>
-            <p style="font-size: 1.3rem; margin-bottom: 25px; padding: 0 20px;">
-                Incredible job! You mastered your coins and notes, completed the shopping mission, and bought all your toys perfectly.
-            </p>
-            <h2 id="final-stats" style="color: #E65100; margin-bottom: 20px;"></h2>
-            <button class="start-btn" style="background: linear-gradient(135deg, #4CAF50, #2E7D32); box-shadow: 0 6px 0 #1B5E20;" onclick="resetSimulator()">Play Challenge Again 🔄</button>
+        <!-- Completion End Card Screen -->
+        <div id="screen-end" style="display: none;">
+            <div class="story-bubble">
+                <p><strong>🎉 Financial Masterpiece Achieved!</strong></p>
+                <p style="margin-top: 5px;">You simulated all savings workflows accurately. Your money calculations are flawless!</p>
+            </div>
+            <h2 style="font-size: 2.4rem; color: #2E7D32; margin-bottom: 20px;">You Win! ⭐</h2>
+            <button class="action-btn" style="background: #2E7D32; box-shadow: 0 5px 0 #1B5E20;" onclick="resetWholeGame()">Play Simulator Again 🔄</button>
         </div>
-
     </div>
 
     <script>
-        // WEB AUDIO CONTEXT ENGINE SYNTHESIZER (Guarantees zero audio link failure dropouts)
-        let audioCtx = null;
-        function triggerAudio(mode) {
-            try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (mode === 'correct') {
-                    // Play a cheerful high-pitched multi-tone chime chord
-                    let t = audioCtx.currentTime;
-                    let osc1 = audioCtx.createOscillator();
-                    let osc2 = audioCtx.createOscillator();
-                    let gain = audioCtx.createGain();
-                    
-                    osc1.type = 'triangle'; osc1.frequency.setValueAtTime(523.25, t); // C5
-                    osc2.type = 'sine'; osc2.frequency.setValueAtTime(659.25, t); // E5
-                    
-                    gain.gain.setValueAtTime(0.3, t);
-                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
-                    
-                    osc1.connect(gain); osc2.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc1.start(t); osc2.start(t);
-                    osc1.stop(t + 0.4); osc2.stop(t + 0.4);
-                } else if (mode === 'wrong') {
-                    // Play a low double-beep tone
-                    let t = audioCtx.currentTime;
-                    let osc = audioCtx.createOscillator();
-                    let gain = audioCtx.createGain();
-                    
-                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(130.81, t); // C3
-                    gain.gain.setValueAtTime(0.2, t);
-                    gain.gain.setValueAtTime(0, t + 0.1);
-                    gain.gain.setValueAtTime(0.2, t + 0.15);
-                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
-                    
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
-                    osc.start(t);
-                    osc.stop(t + 0.3);
-                }
-            } catch(err) { console.log('Audio Context error caught safely.'); }
-        }
+        let turnIndex = 0;
+        let runningScore = 0;
+        let activeBankTotal = 0;
+        let targetGoal = 0;
+        let simulatorQuestions = [7, 3, 12, 6, 15]; // Exact target values for Grade 1
+        const TOTAL_TURNS = simulatorQuestions.length;
 
-        // CUSTOM DOM PARTICLE GENERATION ENGINE
-        function deployConfettiEngine() {
+        // WEB AUDIO API SYSTEM SYNTHESIZER
+        let audioCtx = null;
+        function playAudio(type) {
             try {
-                var frame = document.getElementById('game-container');
-                if(!frame) return;
-                var palettes = ['#FFEB3B', '#FF9800', '#4CAF50', '#00E5FF', '#FF3D00', '#FFFFFF'];
-                for (var i = 0; i < 35; i++) {
-                    var atom = document.createElement('div');
-                    atom.className = 'confetti-element';
-                    atom.style.backgroundColor = palettes[Math.floor(Math.random() * palettes.length)];
-                    frame.appendChild(atom);
-                    var angle = Math.random() * Math.PI * 2;
-                    var force = Math.random() * 160 + 50;
-                    var shiftX = Math.cos(angle) * force;
-                    var shiftY = Math.sin(angle) * force - 10;
-                    atom.animate([
-                        { transform: 'translate(-50%, -50%) scale(1) rotate(0deg)', opacity: 1 },
-                        { transform: 'translate(calc(-50% + ' + shiftX + 'px), calc(-50% + ' + shiftY + 'px)) scale(0.3) rotate(' + (Math.random() * 360) + 'deg)', opacity: 0 }
-                    ], { duration: Math.random() * 500 + 600, easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)', fill: 'forwards' });
-                    (function(el) { setTimeout(function() { if(el) el.remove(); }, 1200); })(atom);
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                let t = audioCtx.currentTime;
+                let gain = audioCtx.createGain();
+                if (type === 'correct') {
+                    let osc1 = audioCtx.createOscillator(), osc2 = audioCtx.createOscillator();
+                    osc1.type = 'triangle'; osc1.frequency.setValueAtTime(523.25, t);
+                    osc2.type = 'sine'; osc2.frequency.setValueAtTime(659.25, t);
+                    gain.gain.setValueAtTime(0.25, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+                    osc1.connect(gain); osc2.connect(gain); gain.connect(audioCtx.destination);
+                    osc1.start(t); osc2.start(t); osc1.stop(t + 0.4); osc2.stop(t + 0.4);
+                } else {
+                    let osc = audioCtx.createOscillator();
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(140, t);
+                    gain.gain.setValueAtTime(0.2, t); gain.gain.setValueAtTime(0, t + 0.1);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
+                    osc.start(t); osc.stop(t + 0.2);
                 }
             } catch(e){}
         }
 
-        // GAME CURRICULUM QUESTIONS POOL
-        var questionsPool = [
-            // Phase 1 Questions (Identification)
-            { phase: 1, graphic: "🪙", question: "Which coin has the value of 5 Rupees?", answers: ["₹1 Coin", "₹2 Coin", "₹5 Coin", "₹10 Coin"], correct: "₹5 Coin" },
-            { phase: 1, graphic: "💵", question: "Identify the largest value paper note shown below:", answers: ["₹10 Note", "₹5 Note", "₹2 Note", "₹1 Note"], correct: "₹10 Note" },
-            { phase: 1, graphic: "🪙", question: "Which is the smallest coin value listed here?", answers: ["₹10 Coin", "₹5 Coin", "₹2 Coin", "₹1 Coin"], correct: "₹1 Coin" },
-            { phase: 1, graphic: "💵", question: "If you have a paper note with '10' written on it, what is its value?", answers: ["1 Rupee", "2 Rupees", "5 Rupees", "10 Rupees"], correct: "10 Rupees" },
-            { phase: 1, graphic: "👛", question: "Which coin matches the value of a ₹2 paper note?", answers: ["₹1 Coin", "₹2 Coin", "₹5 Coin", "₹10 Coin"], correct: "₹2 Coin" },
-            
-            // Phase 2 Questions (Toy Store Shopping combinations)
-            { phase: 2, graphic: "🧸", question: "A cute Teddy Bear costs ₹7. Which combination pays exactly ₹7?", answers: ["₹5 Coin + ₹2 Coin", "₹5 Coin + ₹1 Coin", "Same as a ₹10 Note", "₹2 Coin + ₹2 Coin"], correct: "₹5 Coin + ₹2 Coin" },
-            { phase: 2, graphic: "🚗", question: "A fast Toy Car costs ₹12. How do you pay for it?", answers: ["₹5 Coin + ₹5 Coin", "₹10 Note + ₹2 Coin", "₹10 Note + ₹5 Coin", "Three ₹2 Coins"], correct: "₹10 Note + ₹2 Coin" },
-            { phase: 2, graphic: "🎨", question: "A Box of Paints costs ₹6. What can you use to buy it?", answers: ["₹5 Coin + ₹1 Coin", "₹2 Coin + ₹2 Coin", "₹10 Note exactly", "₹5 Coin + ₹5 Coin"], correct: "₹5 Coin + ₹1 Coin" },
-            { phase: 2, graphic: "⚽", question: "A bright Football costs ₹15. Choose the correct money option:", answers: ["₹5 Coin + ₹2 Coin", "₹10 Note + ₹2 Coin", "Three ₹1 Coins", "₹10 Note + ₹5 Coin"], correct: "₹10 Note + ₹5 Coin" },
-            { phase: 2, graphic: "🍦", question: "An Ice Cream treat costs ₹4. Which option pays exactly?", answers: ["₹2 Coin + ₹2 Coin", "₹5 Coin + ₹1 Coin", "₹10 Note exactly", "One ₹1 Coin"], correct: "₹2 Coin + ₹2 Coin" }
-        ];
-
-        let gameIndex = 0;
-        let runningScore = 0;
-
-        function engageMission() {
-            document.getElementById('intro-card').style.display = 'none';
-            document.getElementById('active-playfield').style.display = 'block';
-            executeActiveChallenge();
+        function popConfetti() {
+            const container = document.getElementById('main-frame');
+            const rect = container.getBoundingClientRect();
+            for (let i = 0; i < 35; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = (Math.random() * (rect.width * 0.4) + 50) + 'px';
+                p.style.top = (Math.random() * (rect.height * 0.4) + 100) + 'px';
+                p.style.background = ['#FFEB3B','#FF9800','#4CAF50','#00E5FF','#FF5722'][Math.floor(Math.random()*5)];
+                p.style.setProperty('--dx', (Math.random() - 0.5) * 200 + 'px');
+                p.style.setProperty('--dy', (Math.random() - 0.5) * 200 - 40 + 'px');
+                container.appendChild(p);
+                setTimeout(() => p.remove(), 800);
+            }
         }
 
-        function executeActiveChallenge() {
-            let totalQ = questionsPool.length;
-            document.getElementById('label-task').innerText = "Question: " + (gameIndex + 1) + " / " + totalQ;
-            document.getElementById('progress-bar').style.width = ((gameIndex / totalQ) * 100) + "%";
+        function startGame() {
+            document.getElementById('screen-intro').style.display = 'none';
+            document.getElementById('screen-play').style.display = 'block';
+            setupWalletGenerators();
+            renderActiveTurn();
+        }
 
-            let currentData = questionsPool[gameIndex];
-            
-            // Adjust Phase badges and layout backgrounds dynamically based on question level
-            if (currentData.phase === 1) {
-                document.getElementById('label-phase').innerText = "Phase 1: Cash Register";
-                document.getElementById('label-phase').style.background = "#FFE082";
-                document.getElementById('label-phase').style.color = "#E65100";
-                document.getElementById('eco-stage').style.backgroundColor = "#E8F5E9";
-            } else {
-                document.getElementById('label-phase').innerText = "Phase 2: Toy Checkout";
-                document.getElementById('label-phase').style.background = "#C8E6C9";
-                document.getElementById('label-phase').style.color = "#1B5E20";
-                document.getElementById('eco-stage').style.backgroundColor = "#E3F2FD";
+        function renderActiveTurn() {
+            if (turnIndex >= TOTAL_TURNS) {
+                showEndSummary();
+                return;
             }
-
-            // Set Stage Icon and Question Texts
-            document.getElementById('stage-icon').innerText = currentData.graphic;
-            document.getElementById('field-question').innerText = currentData.question;
+            document.getElementById('feedback-box').innerText = "";
+            document.getElementById('feedback-box').style.color = "var(--text-main)";
+            targetGoal = simulatorQuestions[turnIndex];
             
-            // Render Answer Buttons Options Matrix
-            var optionsBox = document.getElementById('field-options');
-            optionsBox.innerHTML = '';
+            document.getElementById('progress-val').innerText = `${turnIndex + 1} / ${TOTAL_TURNS}`;
+            document.getElementById('progress-fill').style.width = `${(turnIndex / TOTAL_TURNS) * 100}%`;
+            document.getElementById('score-val').innerText = runningScore;
+            document.getElementById('target-display').innerText = `₹${targetGoal}`;
+            document.getElementById('story-text').innerHTML = `<strong>Simulation Quest:</strong> Drag your currency tools into the Piggy Bank to make exactly <strong>₹${targetGoal}</strong>!`;
+            
+            clearActiveBank();
+        }
 
-            currentData.answers.forEach(function(ans) {
-                var btn = document.createElement('button');
-                btn.className = 'box-btn';
-                btn.innerText = ans;
-                btn.onclick = function() { processPlayerSelection(btn, ans, currentData.correct); };
-                optionsBox.appendChild(btn);
+        // PHYSICAL DRAG ENGINE SETUP (Custom multi-device bounding intersection algorithm)[cite: 3]
+        function setupWalletGenerators() {
+            const currencyItems = document.querySelectorAll('.money-draggable');
+            currencyItems.forEach(item => {
+                item.addEventListener('mousedown', dragStart, { passive: false });
+                item.addEventListener('touchstart', dragStart, { passive: false });
             });
-        }
 
-        function processPlayerSelection(btnElement, chosenAnswer, correctAnswer) {
-            // Instantly lock options matrices against triple taps
-            document.querySelectorAll('.box-btn').forEach(function(b) { b.disabled = true; });
+            function dragStart(e) {
+                e.preventDefault();
+                const sourceNode = this;
+                const value = parseInt(sourceNode.getAttribute('data-value'));
+                
+                // Clone the dragged item into a temporary absolute object
+                const clone = sourceNode.cloneNode(true);
+                clone.style.position = 'absolute';
+                clone.style.zIndex = '1000';
+                document.body.appendChild(clone);
 
-            if (chosenAnswer === correctAnswer) {
-                btnElement.classList.add('correct');
-                triggerAudio('correct');
-                runningScore++;
-                document.getElementById('label-score').innerText = runningScore;
-                deployConfettiEngine();
-            } else {
-                btnElement.classList.add('wrong');
-                triggerAudio('wrong');
-                document.querySelectorAll('.box-btn').forEach(function(b) {
-                    if (b.innerText === correctAnswer) b.classList.add('correct');
-                });
-            }
+                let clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+                let clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
 
-            // Timed step interval before advancing tasks automatically
-            setTimeout(function() {
-                gameIndex++;
-                if (gameIndex < questionsPool.length) {
-                    executeActiveChallenge();
-                } else {
-                    concludeSimulation();
+                let rect = sourceNode.getBoundingClientRect();
+                let offsetX = clientX - rect.left;
+                let offsetY = clientY - rect.top;
+
+                moveAt(clientX, clientY);
+
+                function moveAt(cx, cy) {
+                    clone.style.left = (cx - offsetX) + 'px';
+                    clone.style.top = (cy - offsetY) + 'px';
                 }
-            }, 1800);
+
+                function onPointerMove(ev) {
+                    let cx = ev.type === 'touchmove' ? ev.touches[0].clientX : ev.clientX;
+                    let cy = ev.type === 'touchmove' ? ev.touches[0].clientY : ev.clientY;
+                    moveAt(cx, cy);
+                }
+
+                document.addEventListener('mousemove', onPointerMove, { passive: false });
+                document.addEventListener('touchmove', onPointerMove, { passive: false });
+
+                // End function handles the spatial drops[cite: 3]
+                function onPointerUp(ev) {
+                    document.removeEventListener('mousemove', onPointerMove);
+                    document.removeEventListener('touchmove', onPointerMove);
+                    document.removeEventListener('mouseup', onPointerUp);
+                    document.removeEventListener('touchend', onPointerUp);
+
+                    const targetBank = document.getElementById('bank-deposit-target');
+                    const bankRect = targetBank.getBoundingClientRect();
+                    const cloneRect = clone.getBoundingClientRect();
+
+                    // High precision collision detection algorithm[cite: 3]
+                    let isDroppedInside = !(cloneRect.right < bankRect.left || 
+                                             cloneRect.left > bankRect.right || 
+                                             cloneRect.bottom < bankRect.top || 
+                                             cloneRect.top > bankRect.bottom);
+
+                    if (isDroppedInside) {
+                        activeBankTotal += value;
+                        animatePiggy();
+                        playAudio('wrong'); // Light click sound effect
+                        updateLiveCounter();
+                    }
+                    clone.remove();
+                }
+
+                document.addEventListener('mouseup', onPointerUp);
+                document.addEventListener('touchend', onPointerUp);
+            }
         }
 
-        function concludeSimulation() {
-            document.getElementById('progress-bar').style.width = "100%";
-            document.getElementById('active-playfield').style.display = 'none';
-            document.getElementById('victory-card').style.display = 'block';
-            document.getElementById('final-stats').innerText = "Score Secured: " + runningScore + " / " + questionsPool.length;
+        function animatePiggy() {
+            let piggy = document.getElementById('piggy-character');
+            piggy.classList.add('bounce');
+            setTimeout(() => piggy.classList.remove('bounce'), 200);
         }
 
-        function resetSimulator() {
-            // Shuffle the order of question selections across loads slightly to maintain randomness rule
-            questionsPool.sort(() => Math.random() - 0.5);
-            gameIndex = 0;
+        function updateLiveCounter() {
+            let cnt = document.getElementById('live-bank-counter');
+            cnt.style.display = activeBankTotal > 0 ? "block" : "none";
+            cnt.innerText = `Inside: ₹${activeBankTotal}`;
+        }
+
+        function clearActiveBank() {
+            activeBankTotal = 0;
+            updateLiveCounter();
+            document.getElementById('feedback-box').innerText = "";
+        }
+
+        function verifyBankTotal() {
+            let feed = document.getElementById('feedback-box');
+            if (activeBankTotal === targetGoal) {
+                runningScore += 10;
+                document.getElementById('score-val').innerText = runningScore;
+                feed.style.color = '#2E7D32';
+                feed.innerText = "Fantastic! You saved the exact target value! 🎉💰";
+                playAudio('correct');
+                popConfetti();
+                turnIndex++;
+                setTimeout(renderActiveTurn, 1800);
+            } else {
+                playAudio('wrong');
+                feed.style.color = '#C62828';
+                if (activeBankTotal > targetGoal) {
+                    feed.innerText = `Oops! That is too much money (₹${activeBankTotal}). Empty the bank and try again!`;
+                } else {
+                    feed.innerText = `Not enough money inside (₹${activeBankTotal}). Keep adding coins or notes!`;
+                }
+            }
+        }
+
+        function showEndSummary() {
+            document.getElementById('screen-play').style.display = 'none';
+            document.getElementById('screen-end').style.display = 'block';
+            document.getElementById('progress-fill').style.width = "100%";
+        }
+
+        function resetWholeGame() {
+            turnIndex = 0;
             runningScore = 0;
-            document.getElementById('label-score').innerText = "0";
-            document.getElementById('victory-card').style.display = 'none';
-            document.getElementById('active-playfield').style.display = 'block';
-            executeActiveChallenge();
+            document.getElementById('screen-end').style.display = 'none';
+            document.getElementById('screen-intro').style.display = 'block';
+            document.getElementById('progress-fill').style.width = "0%";
+            simulatorQuestions.sort(() => Math.random() - 0.5);
         }
 
         /* --- BULLETPROOF INITIALIZER --- */
         window.addEventListener('load', function() {
-            // Guarantee complete layout display transitions precisely after 2500ms
             setTimeout(function() {
                 var splash = document.getElementById('splash-screen');
-                var mainContainer = document.getElementById('game-container');
+                var frame = document.getElementById('main-frame');
                 if (splash) {
                     splash.style.opacity = '0';
-                    if (mainContainer) {
-                        mainContainer.style.display = 'block';
+                    if (frame) {
+                        frame.style.display = 'block';
                         setTimeout(function() { 
-                            mainContainer.style.opacity = '1'; 
+                            frame.style.opacity = '1'; 
                             if (splash.parentNode) splash.parentNode.removeChild(splash);
                         }, 500);
                     }
