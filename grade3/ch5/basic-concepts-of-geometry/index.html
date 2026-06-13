@@ -130,20 +130,21 @@
         }
 
         .question-prompt {
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             font-weight: bold;
             color: var(--white);
-            margin-bottom: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 6px 16px;
+            margin-bottom: 25px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 10px 16px;
             border-radius: 12px;
+            line-height: 1.4;
         }
 
         /* WORKSPACE WORKBENCH */
         .track-frame {
             width: 240px;
             height: 8px;
-            background-color: rgba(255, 255, 255, 0.4);
+            background-color: rgba(255, 255, 255, 0.6);
             border-radius: 4px;
             position: relative;
             display: flex;
@@ -166,14 +167,15 @@
         .drop-zone {
             width: 45px;
             height: 45px;
-            border: 3px dashed rgba(255, 255, 255, 0.8);
+            border: 3px dashed rgba(255, 255, 255, 0.9);
             border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.15);
             position: absolute;
             transition: background 0.2s;
+            cursor: pointer;
         }
 
         .drop-zone.left-end  { left: -25px; top: -18px; }
@@ -191,8 +193,13 @@
         }
 
         .drop-zone.hovered {
-            background: rgba(245, 158, 11, 0.4);
+            background: rgba(245, 158, 11, 0.5);
             border-color: var(--amber);
+        }
+
+        .drop-zone.has-item {
+            border-style: solid;
+            background: rgba(255, 255, 255, 0.25);
         }
 
         /* GEOMETRY ITEM SHAPES */
@@ -275,17 +282,41 @@
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
 
+        /* ACTIONS PANEL CONTROLS */
+        .action-button-group {
+            display: flex;
+            gap: 12px;
+            width: 100%;
+        }
+
+        .btn-reset-drawing {
+            background: #E5E7EB;
+            color: #374151;
+            font-size: 1.1rem;
+            padding: 12px 20px;
+            border: 3px solid #9CA3AF;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #9CA3AF;
+            font-weight: bold;
+            transition: all 0.1s ease;
+        }
+        .btn-reset-drawing:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #9CA3AF;
+        }
+
         .btn-submit-blueprint {
+            flex-grow: 1;
             background: var(--mint);
             color: white;
-            font-size: 1.4rem;
-            padding: 12px 45px;
+            font-size: 1.3rem;
+            padding: 12px 25px;
             border: 3px solid var(--dark-blue);
             border-radius: 50px;
             cursor: pointer;
             box-shadow: 0 6px 0 var(--dark-blue);
             font-weight: bold;
-            width: 100%;
         }
         .btn-submit-blueprint:active {
             transform: translateY(4px);
@@ -338,14 +369,14 @@
         <!-- Milestone Overlay -->
         <div id="encouragementOverlayBox" class="encouragement-overlay hidden">
             <div style="font-size: 4rem;" id="overlayEmoji">🚀</div>
-            <div class="encouragement-title" id="overlayTitle">Excellent Construction!</div>
-            <div class="encouragement-msg" id="overlayMessage">Your geometry blueprint operates flawlessly! Ready for more?</div>
-            <button class="btn-next-level" onclick="dismissLevelOverlay()">Next Blueprint 🏗️</button>
+            <div class="encouragement-title" id="overlayTitle">Excellent!</div>
+            <div class="encouragement-msg" id="overlayMessage">Your geometry blueprint looks wonderful! Ready for the next one?</div>
+            <button class="btn-next-level" onclick="dismissLevelOverlay()">Next Layout 🏗️</button>
         </div>
 
         <div id="gameplayCorePanel">
             <h1>Blueprint Builder 🛠️</h1>
-            <div id="levelBadgeDisplay" class="level-badge">Task: Blueprint Drafting</div>
+            <div id="levelBadgeDisplay" class="level-badge">Task: Line Drawings</div>
 
             <div class="progress-bar-container">
                 <div id="progressBarFill"></div>
@@ -358,24 +389,30 @@
 
             <!-- Canvas Area -->
             <div class="blueprint-canvas">
-                <p class="question-prompt" id="targetQuestionText">Loading layout framework...</p>
+                <p class="question-prompt" id="targetQuestionText">Loading question...</p>
                 <div id="canvasCoreWorkspace"></div>
             </div>
 
             <!-- Drag Options Tray -->
-            <p style="text-align: left; font-weight: bold; color: var(--dark-blue); margin-bottom: 6px;">Drag parts into the dotted rings:</p>
+            <p style="text-align: left; font-weight: bold; color: var(--dark-blue); margin-bottom: 8px; font-size: 0.95rem;">
+                👉 Drag shapes into the dotted circles. (Click a shape to remove it!)
+            </p>
             <div class="parts-tray-wrapper" id="trayContainerLayout"></div>
 
-            <button class="btn-submit-blueprint" onclick="evaluateCanvasBlueprint()">Verify Blueprint Layout ✔️</button>
+            <!-- Action Controls Group with Reset -->
+            <div class="action-button-group">
+                <button class="btn-reset-drawing" onclick="resetCurrentCanvasFrame()">Reset 🔄</button>
+                <button class="btn-submit-blueprint" onclick="evaluateCanvasBlueprint()">Check My Blueprint ✔️</button>
+            </div>
         </div>
 
         <!-- End Panel -->
         <div id="endEvaluationPanel" class="hidden">
-            <h2 style="font-size: 2.3rem; color: var(--purple); margin-bottom: 10px;">Blueprint Certification Clear! 🏆</h2>
+            <h2 style="font-size: 2.3rem; color: var(--purple); margin-bottom: 10px;">Drawing Complete! 🏆</h2>
             <div id="awardEmblem" style="font-size: 4.5rem; margin-bottom: 10px;">👑</div>
             <p id="totalScoreText" style="font-size: 1.7rem; font-weight: bold; margin-bottom: 15px; color: var(--dark-blue);"></p>
             <p id="qualitativeFeedbackText" style="font-size: 1.1rem; margin-bottom: 25px; font-weight: bold; color: #4B5563;"></p>
-            <button class="btn-next-level" onclick="restartGeometryMission()">Draft New Layouts</button>
+            <button class="btn-next-level" onclick="restartGeometryMission()">Play Again</button>
         </div>
     </div>
 
@@ -405,37 +442,38 @@
         let isSecondChanceActive = false;
         let selectedShapeType = null;
 
+        // Cleaned up dataset specifically rewritten for third-grade vocabulary limits
         const taskPool = [
             { 
-                q: "Design a Line Segment! Drag and drop two distinct endpoints to seal both limits.", 
+                q: "Make a Line Segment! A line segment has 2 fixed endpoints. Drag a red dot into BOTH circles!", 
                 frameClass: "horizontal",
                 zones: ["left-end", "right-end"],
                 targets: ["dot", "dot"],
                 tray: ["dot", "arrow-right", "cross"]
             },
             { 
-                q: "Design a Ray pointing right! Place a fixed endpoint on the left, and an infinite arrow scale on the right.", 
+                q: "Make a Ray pointing right! Put a red endpoint dot on the left, and a green arrow on the right.", 
                 frameClass: "horizontal",
                 zones: ["left-end", "right-end"],
                 targets: ["dot", "arrow-right"],
                 tray: ["dot", "arrow-right", "arrow-left"]
             },
             { 
-                q: "Complete the Intersecting Lines blueprint! Drag a crossing line piece right onto the center focus point.", 
+                q: "Make Intersecting Lines! Two lines crossing need a center mark. Drag the orange crossing line right into the center circle.", 
                 frameClass: "horizontal",
                 zones: ["center-intersection"],
                 targets: ["cross"],
                 tray: ["dot", "cross", "arrow-up"]
             },
             { 
-                q: "Create a straight Vertical Line! Add an arrow pointing up on top and an arrow pointing down on the bottom.", 
+                q: "Make a Vertical Line! Put a green arrow pointing up at the top, and a green arrow pointing down at the bottom.", 
                 frameClass: "vertical",
                 zones: ["top-end", "bottom-end"],
                 targets: ["arrow-up", "arrow-down"],
                 tray: ["arrow-up", "arrow-down", "dot"]
             },
             { 
-                q: "Design a slanting Ray pointing up! Place a static endpoint on the bottom, and an infinite arrow on the high right end.", 
+                q: "Make a Slanting Ray pointing up! Put a red endpoint dot at the bottom, and a green arrow at the top right.", 
                 frameClass: "slanting",
                 zones: ["left-end", "right-end"],
                 targets: ["dot", "arrow-right"],
@@ -461,6 +499,11 @@
             document.getElementById('progressBarFill').style.width = `${((pointerIndex + 1) / 5) * 100}%`;
             document.getElementById('targetQuestionText').innerText = layoutData.q;
 
+            renderWorkspaceElements(layoutData);
+            renderTrayOptions(layoutData);
+        }
+
+        function renderWorkspaceElements(layoutData) {
             const workspace = document.getElementById('canvasCoreWorkspace');
             workspace.innerHTML = '';
             
@@ -472,6 +515,7 @@
                 zone.className = `drop-zone ${zoneId}`;
                 zone.id = `zone-${zoneId}`;
                 
+                // Drag and drop events
                 zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('hovered'); });
                 zone.addEventListener('dragleave', () => zone.classList.remove('hovered'));
                 zone.addEventListener('drop', (e) => {
@@ -479,12 +523,21 @@
                     zone.classList.remove('hovered');
                     handleShapeDropProcess(zoneId, zone);
                 });
+
+                // Clear single click option to easily clear single mistake
+                zone.addEventListener('click', () => {
+                    if (standardUserAllocations[zoneId]) {
+                        clearSingleZone(zoneId, zone);
+                    }
+                });
                 
                 frame.appendChild(zone);
                 standardUserAllocations[zoneId] = null;
             });
             workspace.appendChild(frame);
+        }
 
+        function renderTrayOptions(layoutData) {
             const tray = document.getElementById('trayContainerLayout');
             tray.innerHTML = '';
             layoutData.tray.forEach((type, idx) => {
@@ -515,6 +568,8 @@
             if(!selectedShapeType) return;
             
             standardUserAllocations[zoneId] = selectedShapeType;
+            zoneDOMElement.classList.add('has-item');
+            zoneDOMElement.style.borderColor = "transparent";
             
             if(selectedShapeType === 'dot') zoneDOMElement.innerHTML = '<div class="shape-dot"></div>';
             if(selectedShapeType === 'arrow-right') zoneDOMElement.innerHTML = '<div class="shape-arrow-right"></div>';
@@ -522,9 +577,23 @@
             if(selectedShapeType === 'arrow-up') zoneDOMElement.innerHTML = '<div class="shape-arrow-up"></div>';
             if(selectedShapeType === 'arrow-down') zoneDOMElement.innerHTML = '<div class="shape-arrow-down"></div>';
             if(selectedShapeType === 'cross') zoneDOMElement.innerHTML = '<div class="shape-cross-line"></div>';
-            
-            zoneDOMElement.style.border = "none";
-            zoneDOMElement.style.background = "transparent";
+        }
+
+        function clearSingleZone(zoneId, zoneDOMElement) {
+            standardUserAllocations[zoneId] = null;
+            zoneDOMElement.innerHTML = '';
+            zoneDOMElement.classList.remove('has-item');
+            zoneDOMElement.style.borderColor = "rgba(255, 255, 255, 0.9)";
+        }
+
+        function resetCurrentCanvasFrame() {
+            const layoutData = taskPool[pointerIndex];
+            layoutData.zones.forEach(zoneId => {
+                const zone = document.getElementById(`zone-${zoneId}`);
+                if (zone) {
+                    clearSingleZone(zoneId, zone);
+                }
+            });
         }
 
         function evaluateCanvasBlueprint() {
@@ -545,9 +614,9 @@
                 
                 setTimeout(() => {
                     if(pointerIndex === 1) {
-                        showLevelCompletionOverlay("📏 Segment & Ray Mastered!", "Excellent architecture configurations! Your lines are configured flawlessly!", "🎉");
+                        showLevelCompletionOverlay("📏 Segment & Ray Mastered!", "Great job! You know your endpoints and arrows!", "🎉");
                     } else if(pointerIndex === 3) {
-                        showLevelCompletionOverlay("🏗️ Intersection Expert!", "Fantastic Spatial awareness processing! Every crossover vector is solid!", "🎈");
+                        showLevelCompletionOverlay("🏗️ Intersection Expert!", "Fantastic! Your shapes are matching perfectly!", "🎈");
                     } else {
                         advanceQuestionPointer();
                     }
@@ -561,17 +630,17 @@
                         const elem = document.getElementById(`zone-${zoneId}`);
                         if(elem) elem.style.borderColor = "var(--amber)";
                     });
-                    alert("Blueprint alignment mismatch! 🛠️ Check your configuration and adjust your structural choices. You have 1 more chance!");
+                    alert("Not quite right yet! Check your drawing and try changing the shapes. You have 1 more turn!");
                 } else {
                     isSecondChanceActive = false;
                     triggerAudioCue('wrong');
                     
+                    // Show correct answer to guide them visually
                     layoutData.zones.forEach((zoneId, idx) => {
                         const targetDOM = document.getElementById(`zone-${zoneId}`);
                         const correctType = layoutData.targets[idx];
                         if(targetDOM) {
-                            targetDOM.style.border = "none";
-                            targetDOM.style.background = "transparent";
+                            targetDOM.style.borderColor = "transparent";
                             if(correctType === 'dot') targetDOM.innerHTML = '<div class="shape-dot" style="background:#10B981;"></div>';
                             if(correctType === 'arrow-right') targetDOM.innerHTML = '<div class="shape-arrow-right"></div>';
                             if(correctType === 'arrow-up') targetDOM.innerHTML = '<div class="shape-arrow-up"></div>';
@@ -580,8 +649,8 @@
                         }
                     });
                     
-                    alert("Blueprint optimization failed. Inspect the correct design properties on the frame before updating layout frames!");
-                    setTimeout(() => { advanceQuestionPointer(); }, 2000);
+                    alert("Let's look at the correct design before moving to the next task!");
+                    setTimeout(() => { advanceQuestionPointer(); }, 2500);
                 }
             }
         }
@@ -621,13 +690,13 @@
 
             if(runningScore === 5) {
                 award.innerText = "👑🏆🥇";
-                textualFeedback.innerText = "Master Geometry Draftsman! You completed every structural schematic flawlessly!";
+                textualFeedback.innerText = "Wow! You are a master at drawing Lines, Rays, and Segments!";
             } else if(runningScore >= 3) {
                 award.innerText = "🥈✨";
-                textualFeedback.innerText = "Great job! Your understanding of line configurations, infinite vectors, and endpoints is superb!";
+                textualFeedback.innerText = "Super job! You understand how geometric endpoints and vectors work!";
             } else {
                 award.innerText = "🎒📐";
-                textualFeedback.innerText = "Good attempt! Let's redesign these structures to master the rules of Rays, Segments, and Intersections.";
+                textualFeedback.innerText = "Nice try! Let's practice some more to master these lines.";
             }
         }
 
