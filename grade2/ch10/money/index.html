@@ -177,10 +177,11 @@
         .money-tool-item:active { cursor: grabbing; }
         .money-tool-item.restricted-hidden { display: none !important; }
 
-        /* --- DYNAMIC VISUAL FALLBACKS FOR COINS / NOTES --- */
+        /* --- COINS / NOTES IMAGE STYLING --- */
         .currency-asset-img { width: 50px; height: 50px; object-fit: contain; pointer-events: none; mix-blend-mode: multiply; }
         .note-asset-img { width: 80px; height: 44px; object-fit: contain; pointer-events: none; mix-blend-mode: multiply; }
         
+        /* Fallbacks in case individual images fail */
         .currency-fallback-circle {
             width: 46px; height: 46px; border-radius: 50%; background: #ffcc80; border: 2px solid #ef6c00;
             display: flex; align-items: center; justify-content: center; font-size: 0.95rem; color: #e65100; font-weight: bold;
@@ -215,7 +216,7 @@
 </head>
 <body>
 
-    <!-- Splash Screen (Referencing image_c3455c.png assets path) -->
+    <!-- Splash Screen (Referencing image_c2c201.png asset directory path) -->
     <div id="screen-splash">
         <div class="splash-inner">
             <img src="assets/innovine-logo.png" class="splash-logo-img" alt="Innovine Logo">
@@ -226,7 +227,7 @@
 
     <div class="game-container">
         
-        <!-- Welcome Screen with Updated Messaging -->
+        <!-- Welcome Screen -->
         <div class="screen-layer active" id="screen-intro">
             <div class="hero-banner">🏪💰📈</div>
             <h1 style="margin-bottom: 15px; font-size: 2.6rem; color: #4a148c; padding: 0 10px;">Indian Money Adventure – Grade 2</h1>
@@ -266,10 +267,15 @@
                     <div class="quiz-options-matrix" id="l3-quiz-row" style="display: none;"></div>
                 </div>
 
-                <!-- Right Pocket Wallet System Panel -->
+                <!-- Right Pocket Wallet System Panel - Tailored directly to available assets in image_c2c201.png -->
                 <div class="wallet-rack" id="source-wallet-rack">
                     <div class="wallet-title">👛 Your Dynamic Cash Box</div>
                     
+                    <div class="money-tool-item" id="tool-v1" data-value="1">
+                        <img src="assets/coin1.png" class="currency-asset-img" alt="₹1" onerror="replaceWithFallback(this, 'circle', '₹1')">
+                        <span>₹1 Coin</span>
+                    </div>
+
                     <div class="money-tool-item" id="tool-v2" data-value="2">
                         <img src="assets/coin2.png" class="currency-asset-img" alt="₹2" onerror="replaceWithFallback(this, 'circle', '₹2')">
                         <span>₹2 Coin</span>
@@ -294,21 +300,6 @@
                         <img src="assets/note50.png" class="note-asset-img" alt="₹50" onerror="replaceWithFallback(this, 'rect fb-50')">
                         <span>₹50 Note</span>
                     </div>
-
-                    <div class="money-tool-item" id="tool-v100" data-value="100">
-                        <img src="assets/note100.png" class="note-asset-img" alt="₹100" onerror="replaceWithFallback(this, 'rect fb-100')">
-                        <span>₹100 Note</span>
-                    </div>
-
-                    <div class="money-tool-item" id="tool-v200" data-value="200">
-                        <img src="assets/note200.png" class="note-asset-img" alt="₹200" onerror="replaceWithFallback(this, 'rect fb-200')">
-                        <span>₹200 Note</span>
-                    </div>
-
-                    <div class="money-tool-item" id="tool-v500" data-value="500">
-                        <img src="assets/note500.png" class="note-asset-img" alt="₹500" onerror="replaceWithFallback(this, 'rect fb-500')">
-                        <span>₹500 Note</span>
-                    </div>
                 </div>
 
             </div>
@@ -326,7 +317,7 @@
             <div class="hero-banner">🏆🎓🎉</div>
             <h1 style="color: #4a148c; font-size: 2.5rem; margin-bottom: 12px;">Grade 2 Graduated!</h1>
             <div class="story-bubble">
-                <p>Outstanding reasoning skills! You efficiently identified high-value ₹200 and ₹500 notes, balanced denominations via exchange mechanics, and mastered real-world change arithmetic calculations cleanly!</p>
+                <p>Outstanding reasoning skills! You successfully balanced values, broke change totals cleanly, and managed your dynamic cash box like an absolute genius!</p>
             </div>
             <h2 id="final-score-report" style="color: #7b1fa2; margin-bottom: 25px;">Final Score: 120 / 120</h2>
             <button class="cta-btn" onclick="reinitializeSimulation()">Play Again 🔄</button>
@@ -334,7 +325,7 @@
 
     </div>
 
-    <!-- Hidden Audio Preloaders -->
+    <!-- Hidden Audio Preloaders matching verified assets -->
     <audio id="sound-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
@@ -345,24 +336,25 @@
         let currentTargetPrice = 0;
         let customRuleCheck = null;
 
+        // Custom leveled pools fully tailored to existing asset files visible inside image_c2c201.png
         const masterSimulationPool = [
             // LEVEL 1: Denomination Exchange Counter Concepts
-            { mode: 1, label: "Level 1: Exchange Counter (1/4)", color: "#ba68c8", prompt: "Exchange this large ₹50 Note using ONLY ₹10 Notes!", restriction: [10], target: 50 },
-            { mode: 1, label: "Level 1: Exchange Counter (2/4)", color: "#ba68c8", prompt: "Exchange this crisp ₹100 Note using ONLY ₹20 Notes!", restriction: [20], target: 100 },
-            { mode: 1, label: "Level 1: Exchange Counter (3/4)", color: "#ba68c8", prompt: "Break a high-value ₹200 Note! Match it using ONLY ₹50 Notes.", restriction: [50], target: 200 },
-            { mode: 1, label: "Level 1: Exchange Counter (4/4)", color: "#ba68c8", prompt: "Trade a grand ₹500 Note! Match its value using ONLY ₹100 Notes.", restriction: [100], target: 500 },
+            { mode: 1, label: "Level 1: Exchange Counter (1/4)", color: "#ba68c8", prompt: "Exchange this high-value ₹10 Note using ONLY ₹2 Coins!", restriction: [2], target: 10 },
+            { mode: 1, label: "Level 1: Exchange Counter (2/4)", color: "#ba68c8", prompt: "Exchange this crisp ₹20 Note using ONLY ₹5 Coins!", restriction: [5], target: 20 },
+            { mode: 1, label: "Level 1: Exchange Counter (3/4)", color: "#ba68c8", prompt: "Break down a single ₹50 Note using ONLY ₹10 Notes!", restriction: [10], target: 50 },
+            { mode: 1, label: "Level 1: Exchange Counter (4/4)", color: "#ba68c8", prompt: "Change a whole ₹5 Note using ONLY small ₹1 Coins!", restriction: [1], target: 5 },
 
             // LEVEL 2: The Candy Shop Bakery (Subtractions and Change Processing)
-            { mode: 2, label: "Level 2: Making Change (1/4)", color: "#ff8a65", prompt: "The cake costs ₹35. You hand over a ₹50 Note. Drag out the correct CHANGE balance owed to you!", target: 15 },
-            { mode: 2, label: "Level 2: Making Change (2/4)", color: "#ff8a65", prompt: "A sweet treat costs ₹80. You pay with a ₹100 Note. Drag the correct CHANGE balance out onto the tray!", target: 20 },
-            { mode: 2, label: "Level 2: Making Change (3/4)", color: "#ff8a65", prompt: "A gift bundle costs ₹150. You hand over a new ₹200 Note. Give back the exact CHANGE balance required!", target: 50 },
-            { mode: 2, label: "Level 2: Making Change (4/4)", color: "#ff8a65", prompt: "A mega toy set costs ₹300. You pay with a large ₹500 Note. Calculate and drop the CHANGE balance!", target: 200 },
+            { mode: 2, label: "Level 2: Making Change (1/4)", color: "#ff8a65", prompt: "The candy costs ₹7. You hand over a ₹10 Note. Drag out the correct CHANGE balance owed to you!", target: 3 },
+            { mode: 2, label: "Level 2: Making Change (2/4)", color: "#ff8a65", prompt: "A chocolate bar costs ₹15. You pay with a ₹20 Note. Drag out the exact CHANGE balance required!", target: 5 },
+            { mode: 2, label: "Level 2: Making Change (3/4)", color: "#ff8a65", prompt: "A school box notebook costs ₹30. You pay with a ₹50 Note. Give back the right CHANGE!", target: 20 },
+            { mode: 2, label: "Level 2: Making Change (4/4)", color: "#ff8a65", prompt: "A balloon decoration costs ₹18. You pay with a ₹20 Note. Calculate and drop the CHANGE balance!", target: 2 },
 
             // LEVEL 3: Story Problems (Addition, Subtraction, Analytical Thinking)
-            { mode: 3, label: "Level 3: Story Problems (1/4)", color: "#4db6ac", prompt: "Aanya has a ₹200 note. She buys a drawing book for ₹120. How much money does she have left?", options: ["₹60 left", "₹80 left", "₹100 left"], correct: "₹80 left" },
-            { mode: 3, label: "Level 3: Story Problems (2/4)", color: "#4db6ac", prompt: "Rahul wants to buy a toy plane for ₹350. He saves one ₹200 note and one ₹100 note. How much more does he need?", options: ["₹50 more", "₹150 more", "₹70 more"], correct: "₹50 more" },
-            { mode: 3, label: "Level 3: Story Problems (3/4)", color: "#4db6ac", prompt: "Meera brings three ₹50 notes to the general bazaar store. What is the total maximum value she can spend?", options: ["₹100 total", "₹150 total", "₹200 total"], correct: "₹150 total" },
-            { mode: 3, label: "Level 3: Story Problems (4/4)", color: "#4db6ac", prompt: "An object costs ₹500. Which option shows a correct combination to purchase it exactly?", options: ["Two ₹200 notes + One ₹100 note", "Three ₹100 notes + One ₹50 note", "One ₹200 note + One ₹100 note"], correct: "Two ₹200 notes + One ₹100 note" }
+            { mode: 3, label: "Level 3: Story Problems (1/4)", color: "#4db6ac", prompt: "Aarav has a ₹50 note. He buys an ice cream cone for ₹35. How much money does he have left?", options: ["₹10 left", "₹15 left", "₹25 left"], correct: "₹15 left" },
+            { mode: 3, label: "Level 3: Story Problems (2/4)", color: "#4db6ac", prompt: "Sia wants to buy a coloring kit for ₹45. She has one ₹20 note and two ₹10 notes. How much more does she need?", options: ["₹5 more", "₹15 more", "₹10 more"], correct: "₹5 more" },
+            { mode: 3, label: "Level 3: Story Problems (3/4)", color: "#4db6ac", prompt: "Vivaan saves three ₹10 notes inside his home piggy bank. What is the total maximum value he has?", options: ["₹20 total", "₹30 total", "₹40 total"], correct: "₹30 total" },
+            { mode: 3, label: "Level 3: Story Problems (4/4)", color: "#4db6ac", prompt: "An item costs exactly ₹25. Which option shows a perfect combination to buy it without change?", options: ["Two ₹10 notes + One ₹5 coin", "One ₹20 note + Two ₹2 coins", "Three ₹5 coins"], correct: "Two ₹10 notes + One ₹5 coin" }
         ];
 
         const TOTAL_TURNS_MAX = masterSimulationPool.length;
@@ -371,7 +363,7 @@
             const sound = document.getElementById(soundId);
             if (sound) {
                 sound.currentTime = 0;
-                sound.play().catch(e => console.log("Audio play blocked."));
+                sound.play().catch(e => console.log("Audio play deferred."));
             }
         }
 
