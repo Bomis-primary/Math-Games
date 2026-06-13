@@ -32,20 +32,26 @@
             padding: 15px;
         }
 
-        /* 4-Second Splash Screen */
+        /* Clean Solo Logo Splash Screen */
         #splash-screen {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: white;
+            background: #FFFFFF;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
             transition: opacity 0.5s ease;
+        }
+
+        #splash-screen img {
+            max-width: 65%;
+            max-height: 55%;
+            object-fit: contain;
         }
 
         .game-container {
@@ -108,7 +114,7 @@
 
         /* CANVAS DESIGN AREA */
         .blueprint-canvas {
-            background: #1E40AF; /* Blueprint Blue background */
+            background: #1E40AF; 
             background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 0);
             background-size: 20px 20px;
             border: 4px solid var(--dark-blue);
@@ -170,7 +176,6 @@
             transition: background 0.2s;
         }
 
-        /* Dynamic drop zone position offsets */
         .drop-zone.left-end  { left: -25px; top: -18px; }
         .drop-zone.right-end { right: -25px; top: -18px; }
         .drop-zone.top-end   { top: -25px; left: -18px; }
@@ -204,7 +209,6 @@
 
         .geo-shape:active { cursor: grabbing; }
 
-        /* Solid Geometric Figures Rendering */
         .shape-dot {
             width: 18px;
             height: 18px;
@@ -288,7 +292,6 @@
             box-shadow: 0 2px 0 var(--dark-blue);
         }
 
-        /* ENCOURAGEMENT DIALOG OVERLAY POPUP */
         .encouragement-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -321,15 +324,18 @@
 </head>
 <body>
 
+    <!-- Splash Screen - Only Logo -->
     <div id="splash-screen">
-        <h2 style="color: var(--dark-blue); font-size: 2.2rem; text-align: center; padding: 20px;">🏗️ Geometry Blueprint Designer</h2>
+        <img id="splashLogo" src="assets/innovine-logo.png" alt="Innovine Logo">
     </div>
 
-    <audio id="audioRight" src="./assets/correct.mp3" preload="auto"></audio>
-    <audio id="audioWrong" src="./assets/wrong.mp3" preload="auto"></audio>
-    <audio id="audioApplause" src="./assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
+    <!-- Audio Clips -->
+    <audio id="audioRight" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="audioWrong" src="assets/wrong.mp3" preload="auto"></audio>
+    <audio id="audioApplause" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
 
     <div class="game-container">
+        <!-- Milestone Overlay -->
         <div id="encouragementOverlayBox" class="encouragement-overlay hidden">
             <div style="font-size: 4rem;" id="overlayEmoji">🚀</div>
             <div class="encouragement-title" id="overlayTitle">Excellent Construction!</div>
@@ -350,16 +356,286 @@
                 <span id="scoreTrackerText">Score: 0🎯</span>
             </div>
 
+            <!-- Canvas Area -->
             <div class="blueprint-canvas">
                 <p class="question-prompt" id="targetQuestionText">Loading layout framework...</p>
                 <div id="canvasCoreWorkspace"></div>
             </div>
 
+            <!-- Drag Options Tray -->
             <p style="text-align: left; font-weight: bold; color: var(--dark-blue); margin-bottom: 6px;">Drag parts into the dotted rings:</p>
             <div class="parts-tray-wrapper" id="trayContainerLayout"></div>
 
             <button class="btn-submit-blueprint" onclick="evaluateCanvasBlueprint()">Verify Blueprint Layout ✔️</button>
         </div>
 
+        <!-- End Panel -->
         <div id="endEvaluationPanel" class="hidden">
-            <h2 style="font-size: 2.3rem;
+            <h2 style="font-size: 2.3rem; color: var(--purple); margin-bottom: 10px;">Blueprint Certification Clear! 🏆</h2>
+            <div id="awardEmblem" style="font-size: 4.5rem; margin-bottom: 10px;">👑</div>
+            <p id="totalScoreText" style="font-size: 1.7rem; font-weight: bold; margin-bottom: 15px; color: var(--dark-blue);"></p>
+            <p id="qualitativeFeedbackText" style="font-size: 1.1rem; margin-bottom: 25px; font-weight: bold; color: #4B5563;"></p>
+            <button class="btn-next-level" onclick="restartGeometryMission()">Draft New Layouts</button>
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            const imgEl = document.getElementById('splashLogo');
+            if (imgEl) {
+                imgEl.onerror = function() {
+                    this.src = './assets/innovine-logo.png';
+                };
+            }
+
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if(splash) splash.style.display = 'none';
+            }, 3500);
+            bootGameEngine();
+        };
+
+        function triggerAudioCue(soundType) {
+            const track = document.getElementById(soundType === 'right' ? 'audioRight' : soundType === 'wrong' ? 'audioWrong' : 'audioApplause');
+            if(track) { track.currentTime = 0; track.play().catch(e => {}); }
+        }
+
+        let pointerIndex = 0;
+        let runningScore = 0;
+        let isSecondChanceActive = false;
+        let selectedShapeType = null;
+
+        const taskPool = [
+            { 
+                q: "Design a Line Segment! Drag and drop two distinct endpoints to seal both limits.", 
+                frameClass: "horizontal",
+                zones: ["left-end", "right-end"],
+                targets: ["dot", "dot"],
+                tray: ["dot", "arrow-right", "cross"]
+            },
+            { 
+                q: "Design a Ray pointing right! Place a fixed endpoint on the left, and an infinite arrow scale on the right.", 
+                frameClass: "horizontal",
+                zones: ["left-end", "right-end"],
+                targets: ["dot", "arrow-right"],
+                tray: ["dot", "arrow-right", "arrow-left"]
+            },
+            { 
+                q: "Complete the Intersecting Lines blueprint! Drag a crossing line piece right onto the center focus point.", 
+                frameClass: "horizontal",
+                zones: ["center-intersection"],
+                targets: ["cross"],
+                tray: ["dot", "cross", "arrow-up"]
+            },
+            { 
+                q: "Create a straight Vertical Line! Add an arrow pointing up on top and an arrow pointing down on the bottom.", 
+                frameClass: "vertical",
+                zones: ["top-end", "bottom-end"],
+                targets: ["arrow-up", "arrow-down"],
+                tray: ["arrow-up", "arrow-down", "dot"]
+            },
+            { 
+                q: "Design a slanting Ray pointing up! Place a static endpoint on the bottom, and an infinite arrow on the high right end.", 
+                frameClass: "slanting",
+                zones: ["left-end", "right-end"],
+                targets: ["dot", "arrow-right"],
+                tray: ["dot", "arrow-right", "cross"]
+            }
+        ];
+
+        let standardUserAllocations = {};
+
+        function bootGameEngine() {
+            pointerIndex = 0;
+            runningScore = 0;
+            isSecondChanceActive = false;
+            loadNextBlueprintLayout();
+        }
+
+        function loadNextBlueprintLayout() {
+            const layoutData = taskPool[pointerIndex];
+            standardUserAllocations = {};
+
+            document.getElementById('questionProgressText').innerText = `Drawing: ${pointerIndex + 1} / 5`;
+            document.getElementById('scoreTrackerText').innerText = `Score: ${runningScore}🎯`;
+            document.getElementById('progressBarFill').style.width = `${((pointerIndex + 1) / 5) * 100}%`;
+            document.getElementById('targetQuestionText').innerText = layoutData.q;
+
+            const workspace = document.getElementById('canvasCoreWorkspace');
+            workspace.innerHTML = '';
+            
+            const frame = document.createElement('div');
+            frame.className = `track-frame ${layoutData.frameClass}`;
+            
+            layoutData.zones.forEach(zoneId => {
+                const zone = document.createElement('div');
+                zone.className = `drop-zone ${zoneId}`;
+                zone.id = `zone-${zoneId}`;
+                
+                zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('hovered'); });
+                zone.addEventListener('dragleave', () => zone.classList.remove('hovered'));
+                zone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    zone.classList.remove('hovered');
+                    handleShapeDropProcess(zoneId, zone);
+                });
+                
+                frame.appendChild(zone);
+                standardUserAllocations[zoneId] = null;
+            });
+            workspace.appendChild(frame);
+
+            const tray = document.getElementById('trayContainerLayout');
+            tray.innerHTML = '';
+            layoutData.tray.forEach((type, idx) => {
+                const slot = document.createElement('div');
+                slot.className = 'tray-slot';
+                
+                const item = document.createElement('div');
+                item.className = 'geo-shape';
+                item.id = `part-${type}-${idx}`;
+                item.draggable = true;
+                item.setAttribute('data-shape-type', type);
+                
+                if(type === 'dot') item.innerHTML = '<div class="shape-dot"></div>';
+                if(type === 'arrow-right') item.innerHTML = '<div class="shape-arrow-right"></div>';
+                if(type === 'arrow-left') item.innerHTML = '<div class="shape-arrow-left"></div>';
+                if(type === 'arrow-up') item.innerHTML = '<div class="shape-arrow-up"></div>';
+                if(type === 'arrow-down') item.innerHTML = '<div class="shape-arrow-down"></div>';
+                if(type === 'cross') item.innerHTML = '<div class="shape-cross-line"></div>';
+
+                item.addEventListener('dragstart', () => { selectedShapeType = type; });
+                
+                slot.appendChild(item);
+                tray.appendChild(slot);
+            });
+        }
+
+        function handleShapeDropProcess(zoneId, zoneDOMElement) {
+            if(!selectedShapeType) return;
+            
+            standardUserAllocations[zoneId] = selectedShapeType;
+            
+            if(selectedShapeType === 'dot') zoneDOMElement.innerHTML = '<div class="shape-dot"></div>';
+            if(selectedShapeType === 'arrow-right') zoneDOMElement.innerHTML = '<div class="shape-arrow-right"></div>';
+            if(selectedShapeType === 'arrow-left') zoneDOMElement.innerHTML = '<div class="shape-arrow-left"></div>';
+            if(selectedShapeType === 'arrow-up') zoneDOMElement.innerHTML = '<div class="shape-arrow-up"></div>';
+            if(selectedShapeType === 'arrow-down') zoneDOMElement.innerHTML = '<div class="shape-arrow-down"></div>';
+            if(selectedShapeType === 'cross') zoneDOMElement.innerHTML = '<div class="shape-cross-line"></div>';
+            
+            zoneDOMElement.style.border = "none";
+            zoneDOMElement.style.background = "transparent";
+        }
+
+        function evaluateCanvasBlueprint() {
+            const layoutData = taskPool[pointerIndex];
+            let checkFlag = true;
+
+            layoutData.zones.forEach((zoneId, idx) => {
+                const trueSolutionRequirement = layoutData.targets[idx];
+                if(standardUserAllocations[zoneId] !== trueSolutionRequirement) {
+                    checkFlag = false;
+                }
+            });
+
+            if(checkFlag) {
+                runningScore++;
+                triggerAudioCue('right');
+                isSecondChanceActive = false;
+                
+                setTimeout(() => {
+                    if(pointerIndex === 1) {
+                        showLevelCompletionOverlay("📏 Segment & Ray Mastered!", "Excellent architecture configurations! Your lines are configured flawlessly!", "🎉");
+                    } else if(pointerIndex === 3) {
+                        showLevelCompletionOverlay("🏗️ Intersection Expert!", "Fantastic Spatial awareness processing! Every crossover vector is solid!", "🎈");
+                    } else {
+                        advanceQuestionPointer();
+                    }
+                }, 400);
+            } else {
+                if(!isSecondChanceActive) {
+                    isSecondChanceActive = true;
+                    triggerAudioCue('wrong');
+                    
+                    layoutData.zones.forEach(zoneId => {
+                        const elem = document.getElementById(`zone-${zoneId}`);
+                        if(elem) elem.style.borderColor = "var(--amber)";
+                    });
+                    alert("Blueprint alignment mismatch! 🛠️ Check your configuration and adjust your structural choices. You have 1 more chance!");
+                } else {
+                    isSecondChanceActive = false;
+                    triggerAudioCue('wrong');
+                    
+                    layoutData.zones.forEach((zoneId, idx) => {
+                        const targetDOM = document.getElementById(`zone-${zoneId}`);
+                        const correctType = layoutData.targets[idx];
+                        if(targetDOM) {
+                            targetDOM.style.border = "none";
+                            targetDOM.style.background = "transparent";
+                            if(correctType === 'dot') targetDOM.innerHTML = '<div class="shape-dot" style="background:#10B981;"></div>';
+                            if(correctType === 'arrow-right') targetDOM.innerHTML = '<div class="shape-arrow-right"></div>';
+                            if(correctType === 'arrow-up') targetDOM.innerHTML = '<div class="shape-arrow-up"></div>';
+                            if(correctType === 'arrow-down') targetDOM.innerHTML = '<div class="shape-arrow-down"></div>';
+                            if(correctType === 'cross') targetDOM.innerHTML = '<div class="shape-cross-line" style="background:#10B981;"></div>';
+                        }
+                    });
+                    
+                    alert("Blueprint optimization failed. Inspect the correct design properties on the frame before updating layout frames!");
+                    setTimeout(() => { advanceQuestionPointer(); }, 2000);
+                }
+            }
+        }
+
+        function showLevelCompletionOverlay(title, description, emoji) {
+            document.getElementById('overlayTitle').innerText = title;
+            document.getElementById('overlayMessage').innerText = description;
+            document.getElementById('overlayEmoji').innerText = emoji;
+            document.getElementById('encouragementOverlayBox').classList.remove('hidden');
+            triggerAudioCue('applause');
+        }
+
+        function dismissLevelOverlay() {
+            document.getElementById('encouragementOverlayBox').classList.add('hidden');
+            advanceQuestionPointer();
+        }
+
+        function advanceQuestionPointer() {
+            pointerIndex++;
+            if(pointerIndex < 5) {
+                loadNextBlueprintLayout();
+            } else {
+                terminateAndEvaluateMission();
+            }
+        }
+
+        function terminateAndEvaluateMission() {
+            document.getElementById('gameplayCorePanel').classList.add('hidden');
+            document.getElementById('endEvaluationPanel').classList.remove('hidden');
+
+            const award = document.getElementById('awardEmblem');
+            const scoreDisplay = document.getElementById('totalScoreText');
+            const textualFeedback = document.getElementById('qualitativeFeedbackText');
+
+            scoreDisplay.innerText = `Final Score: ${runningScore} / 5`;
+            triggerAudioCue('applause');
+
+            if(runningScore === 5) {
+                award.innerText = "👑🏆🥇";
+                textualFeedback.innerText = "Master Geometry Draftsman! You completed every structural schematic flawlessly!";
+            } else if(runningScore >= 3) {
+                award.innerText = "🥈✨";
+                textualFeedback.innerText = "Great job! Your understanding of line configurations, infinite vectors, and endpoints is superb!";
+            } else {
+                award.innerText = "🎒📐";
+                textualFeedback.innerText = "Good attempt! Let's redesign these structures to master the rules of Rays, Segments, and Intersections.";
+            }
+        }
+
+        function restartGeometryMission() {
+            document.getElementById('endEvaluationPanel').classList.add('hidden');
+            document.getElementById('gameplayCorePanel').classList.remove('hidden');
+            bootGameEngine();
+        }
+    </script>
+</body>
+</html>
