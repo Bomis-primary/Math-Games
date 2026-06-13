@@ -46,6 +46,14 @@
             z-index: 9999;
             transition: opacity 0.6s ease-out;
         }
+        
+        .splash-logo-image {
+            max-width: 280px;
+            max-height: 150px;
+            object-fit: contain;
+            margin-bottom: 35px;
+        }
+
         .timer-loader { width: 140px; height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden; }
         .timer-progress { width: 0%; height: 100%; background: var(--sun-yellow); animation: fillSplashBar 5s linear forwards; }
         @keyframes fillSplashBar { 100% { width: 100%; } }
@@ -194,8 +202,7 @@
 <body>
 
     <div id="splash-screen">
-        <div style="font-size: 4rem; margin-bottom: 12px;">📊🏗️📈</div>
-        <h1 style="color: var(--primary-navy); margin-bottom: 20px;">Loading Textbook Curriculum Module...</h1>
+        <img src="assets/logo.png" alt="Innovine Logo" class="splash-logo-image" id="imgSplashLogo">
         <div class="timer-loader"><div class="timer-progress"></div></div>
     </div>
 
@@ -270,4 +277,210 @@
                 badge: "LO: Multi-Digit by 1-Digit Multiplication",
                 1: { text: "🐈 Siamese Cat Columns (Q1): Exactly 3 Columns of cats are marching. Each long column fits 213 cats inside safely.", prefix: "Total Siamese cats =", suffix: "cats", fA: 3, fB: 213, prod: 639, layout: "card", numText: "3 × 213" },
                 2: { text: "🐶 Puppy Sections (Q2): The care team monitors exactly 4 active Sections. Each section contains 142 puppies inside (Watch for the carry-overs!).", prefix: "Total shelter puppies =", suffix: "puppies", fA: 4, fB: 142, prod: 568, layout: "card", numText: "4 × 142" },
-                3: { text: "🦜 Festive Birds (Q3): Exactly 7 Groups of exotic parrots fly overhead. Each group includes 1,211 trained
+                3: { text: "🦜 Festive Birds (Q3): Exactly 7 Groups of exotic parrots fly overhead. Each group includes 1,211 trained birds inside.", prefix: "Total parade birds =", suffix: "birds", fA: 7, fB: 1211, prod: 8477, layout: "card", numText: "7 × 1211" }
+            },
+            3: {
+                badge: "LO: 2-Digit & 3-Digit by 2-Digit Long Multiplication",
+                1: { text: "💎 Customized Collars (Q1): The crew delivers 24 Boxes of souvenir gear. Each box holds exactly 13 customized pet collars inside.", prefix: "Total metal collars =", suffix: "collars", fA: 24, fB: 13, prod: 312, layout: "card", numText: "24 × 13" },
+                2: { text: "🎪 Animal Floats (Q2): Exactly 12 grand Floats are queued. Each decorative float carries 132 paper banners inside.", prefix: "Total paper banners =", suffix: "banners", fA: 12, fB: 132, prod: 1584, layout: "card", numText: "12 × 132" },
+                3: { text: "📝 Registration Audit (Q3): The park gates open 15 Rows. Each row successfully processes 412 registered pets inside.", prefix: "Total registered pets =", suffix: "pets", fA: 15, fB: 412, prod: 6180, layout: "card", numText: "15 × 412" }
+            },
+            4: {
+                badge: "LO: Alternative Multi-Digit Lattice Method",
+                1: { text: "📐 Lattice Grid Matrix (Q1): Use the diagonal lattice strategy to break down 24 × 13. Fill in all split sub-cell products below!", prefix: "Total lattice product =", suffix: "units", fA: 24, fB: 13, prod: 312, layout: "lattice", topFactor: ["2", "4"], rightFactor: ["1", "3"], keyAnswers: ["0","2","0","4","0","6","1","2"] },
+                2: { text: "📐 Lattice Grid Matrix (Q2): Evaluate 32 lanes cross-multiplying 14 points per block using the visual layout breakdown.", prefix: "Total lattice product =", suffix: "points", fA: 32, fB: 14, prod: 448, layout: "lattice", topFactor: ["3", "2"], rightFactor: ["1", "4"], keyAnswers: ["0","3","0","2","1","2","0","8"] },
+                3: { text: "📐 Lattice Grid Matrix (Q3): Audit 42 distinct feeding zones spread across 23 farm sectors with diagonal layout boxes.", prefix: "Total lattice product =", suffix: "zones", fA: 42, fB: 23, prod: 966, layout: "lattice", topFactor: ["4", "2"], rightFactor: ["2", "3"], keyAnswers: ["0","8","0","4","1","2","0","6"] }
+            }
+        };
+
+        window.onload = function() {
+            // Displays your logo and fills up the bar for exactly 5000 milliseconds
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    document.getElementById('game-container').style.display = 'flex';
+                }, 600);
+            }, 5000);
+        };
+
+        function startGameEngine() {
+            document.getElementById('intro-card').style.display = 'none';
+            loadLevelData();
+        }
+
+        function loadLevelData() {
+            const port = document.getElementById('canvasPort');
+            const dock = document.getElementById('controlsDock');
+            const instText = document.getElementById('txtInstruction');
+            
+            port.innerHTML = '';
+            dock.innerHTML = '';
+
+            document.getElementById('inputFactorA').value = '';
+            document.getElementById('inputFactorB').value = '';
+            document.getElementById('inputProduct').value = '';
+            
+            document.getElementById('txtHudProgress').innerText = `Parade Event: Level ${gameLevel} - Question ${activeQuestionIndex} / 3`;
+            document.getElementById('txtHudScore').innerText = `Parade Stars: ⭐ ${cumulativeStars}`;
+
+            const activeCfg = levelDataMatrix[gameLevel][activeQuestionIndex];
+            document.getElementById('txtModeBadge').innerText = levelDataMatrix[gameLevel].badge;
+            instText.innerText = activeCfg.text;
+            
+            document.getElementById('lblPrefix').innerText = activeCfg.prefix;
+            document.getElementById('lblSuffix').innerText = activeCfg.suffix;
+
+            if (activeCfg.layout === "pv") {
+                let pvWrap = document.createElement('div');
+                pvWrap.className = "pv-container";
+                for (let i = 0; i < activeCfg.blocks; i++) {
+                    let item = document.createElement('div');
+                    item.className = "pv-card";
+                    item.innerHTML = `<div class="pv-counter">${activeCfg.valPerBlock}</div><div style="font-size:0.85rem;color:#64748B;">Cargo Node</div>`;
+                    pvWrap.appendChild(item);
+                }
+                port.appendChild(pvWrap);
+            } else if (activeCfg.layout === "card") {
+                let card = document.createElement('div');
+                card.className = "problem-display-card";
+                card.innerHTML = `<div class="big-sum-text">${activeCfg.numText}</div><p style='color:#64748B;font-weight:bold;'>Match the precise handout structural sequence inside the math boxes above.</p>`;
+                port.appendChild(card);
+            } else if (activeCfg.layout === "lattice") {
+                let latBoard = document.createElement('div');
+                latBoard.className = "lattice-board";
+                
+                let labelT0 = document.createElement('div'); labelT0.className = "lat-label-top"; labelT0.style.left = "45px"; labelT0.innerText = activeCfg.topFactor[0];
+                let labelT1 = document.createElement('div'); labelT1.className = "lat-label-top"; labelT1.style.left = "155px"; labelT1.innerText = activeCfg.topFactor[1];
+                let labelR0 = document.createElement('div'); labelR0.className = "lat-label-right"; labelR0.style.top = "45px"; labelR0.innerText = activeCfg.rightFactor[0];
+                let labelR1 = document.createElement('div'); labelR1.className = "lat-label-right"; labelR1.style.top = "155px"; labelR1.innerText = activeCfg.rightFactor[1];
+
+                latBoard.appendChild(labelT0); latBoard.appendChild(labelT1);
+                latBoard.appendChild(labelR0); latBoard.appendChild(labelR1);
+
+                let cellsGrid = document.createElement('div');
+                cellsGrid.className = "lattice-grid-cells";
+
+                for (let i = 0; i < 4; i++) {
+                    let cell = document.createElement('div');
+                    cell.className = "lattice-cell";
+                    cell.innerHTML = `
+                        <input type="text" maxlength="1" class="lattice-input top-left" id="lat-t-${i}" placeholder="T">
+                        <input type="text" maxlength="1" class="lattice-input bottom-right" id="lat-o-${i}" placeholder="O">
+                    `;
+                    cellsGrid.appendChild(cell);
+                }
+                latBoard.appendChild(cellsGrid);
+                port.appendChild(latBoard);
+            }
+
+            let verifyBtn = document.createElement('button');
+            verifyBtn.className = "dock-btn";
+            verifyBtn.style.background = "var(--park-green)";
+            verifyBtn.innerHTML = "Audit Operations ✔️";
+            verifyBtn.onclick = checkAnswer;
+            dock.appendChild(verifyBtn);
+        }
+
+        function checkAnswer() {
+            const valA = parseInt(document.getElementById('inputFactorA').value);
+            const valB = parseInt(document.getElementById('inputFactorB').value);
+            const valProduct = parseInt(document.getElementById('inputProduct').value);
+            const target = levelDataMatrix[gameLevel][activeQuestionIndex];
+
+            if (isNaN(valA) || isNaN(valB) || isNaN(valProduct)) {
+                alert("Ensure all structural factors and final product fields are completely filled in!");
+                return;
+            }
+
+            const factorsMatch = (valA === target.fA && valB === target.fB);
+            const productMatches = (valProduct === target.prod);
+
+            if (target.layout === "lattice") {
+                let latticeFilledCorrectly = true;
+                let userAnswers = [
+                    document.getElementById('lat-t-0').value, document.getElementById('lat-o-0').value,
+                    document.getElementById('lat-t-1').value, document.getElementById('lat-o-1').value,
+                    document.getElementById('lat-t-2').value, document.getElementById('lat-o-2').value,
+                    document.getElementById('lat-t-3').value, document.getElementById('lat-o-3').value
+                ];
+                
+                for(let i = 0; i < 8; i++) {
+                    if(userAnswers[i] !== target.keyAnswers[i]) {
+                        latticeFilledCorrectly = false;
+                    }
+                }
+                if (!latticeFilledCorrectly) {
+                    alert("Lattice breakdown cells contain errors! Verify individual block split components.");
+                    return;
+                }
+            }
+
+            if (factorsMatch && productMatches) {
+                triggerLevelPassGems(15);
+            } else {
+                alert(`Sequence error! Match structural blueprint: ${target.fA} groups x ${target.fB} items per group = ${target.prod}.`);
+            }
+        }
+
+        function triggerLevelPassGems(rewardPoints) {
+            cumulativeStars += rewardPoints;
+            const viewWidth = window.innerWidth;
+            const viewHeight = window.innerHeight;
+
+            for (let i = 0; i < 35; i++) {
+                createSinglePopcorn(0, viewHeight, 1);       
+                createSinglePopcorn(viewWidth, viewHeight, -1); 
+            }
+
+            document.getElementById('reward-card').classList.remove('hidden');
+        }
+
+        function createSinglePopcorn(xCoord, yCoord, directionSign) {
+            const kernel = document.createElement('div');
+            kernel.className = "popcorn-particle";
+            kernel.innerText = "🍿";
+            kernel.style.left = `${xCoord}px`;
+            kernel.style.top = `${yCoord - 60}px`;
+
+            const targetDistX = (180 + Math.random() * 450) * directionSign;
+            const targetDistY = -(450 + Math.random() * 380);
+            const spinValue = (360 + Math.random() * 600) * directionSign;
+
+            kernel.style.setProperty('--tx', `${targetDistX}px`);
+            kernel.style.setProperty('--ty', `${targetDistY}px`);
+            kernel.style.setProperty('--rot', `${spinValue}deg`);
+
+            document.body.appendChild(kernel);
+            setTimeout(() => kernel.remove(), 1300);
+        }
+
+        function advanceNextLevel() {
+            document.getElementById('reward-card').classList.add('hidden');
+            
+            if (activeQuestionIndex < 3) {
+                activeQuestionIndex++;
+                loadLevelData();
+            } else {
+                if (gameLevel < 4) {
+                    gameLevel++;
+                    activeQuestionIndex = 1;
+                    loadLevelData();
+                } else {
+                    document.getElementById('txtHudScore').innerText = `Parade Stars: ⭐ ${cumulativeStars}`;
+                    document.getElementById('victory-card').classList.remove('hidden');
+                }
+            }
+        }
+
+        function resetWholeGame() {
+            gameLevel = 1;
+            activeQuestionIndex = 1;
+            cumulativeStars = 0;
+            document.getElementById('victory-card').classList.add('hidden');
+            loadLevelData();
+        }
+    </script>
+</body>
+</html>
