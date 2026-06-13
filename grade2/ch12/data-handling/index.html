@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Star-Pet Pictograph Studio!</title>
+    <title>Fruit Survey Pictograph Studio</title>
     <style>
         :root {
-            --space-bg: #090D16;
-            --cosmic-purple: #4F46E5;
-            --neon-pink: #EC4899;
-            --cyan-glow: #06B6D4;
-            --gold-star: #F59E0B;
+            --primary-blue: #1E3A8A;
+            --accent-purple: #7C3AED;
+            --gradient-start: #06B6D4;
+            --gradient-mid: #A855F7;
+            --gradient-end: #F43F5E;
             --mint-green: #10B981;
-            --panel-bg: #1E1B4B;
+            --dark-navy: #0F172A;
+            --text-dark: #1E293B;
         }
 
         * {
@@ -24,16 +25,15 @@
         }
 
         body {
-            background: linear-gradient(180deg, var(--space-bg) 0%, #111827 100%);
+            background: #F0F4F8;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 15px;
-            color: #F3F4F6;
+            padding: 20px;
         }
 
-        /* Splash Screen */
+        /* Splash Screen overlay layout */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -46,113 +46,547 @@
         }
         #splash-screen img { max-width: 60%; max-height: 50%; object-fit: contain; }
 
-        .game-container {
-            background: var(--panel-bg);
-            border: 6px solid var(--cosmic-purple);
-            border-radius: 36px;
+        /* Modern blueprint/card style outer container */
+        .game-wrapper {
+            background: #FFFFFF;
+            border: 8px solid var(--primary-blue);
+            border-radius: 40px;
             width: 100%;
-            max-width: 750px;
-            padding: 22px;
-            box-shadow: 0 16px 0px #090526;
+            max-width: 680px;
+            padding: 25px;
+            box-shadow: 0 20px 0px rgba(30, 58, 138, 0.15);
             position: relative;
         }
 
         h1 {
-            color: var(--gold-star);
-            font-size: 2rem;
+            color: var(--primary-blue);
+            font-size: 2.2rem;
             text-align: center;
-            text-shadow: 2px 2px 0px #000;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
         }
 
-        /* Progress Bar */
-        .progress-container {
-            background: #312E81;
-            border: 3px solid var(--cosmic-purple);
-            height: 22px;
-            border-radius: 15px;
-            margin-bottom: 12px;
+        /* Task description capsule badge style */
+        .task-badge-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        .task-badge {
+            background: var(--accent-purple);
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            padding: 6px 24px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 0px rgba(124, 58, 237, 0.3);
+        }
+
+        /* Precision gradient styling track */
+        .progress-track {
+            background: #E2E8F0;
+            border: 3px solid var(--primary-blue);
+            height: 24px;
+            border-radius: 20px;
+            margin-bottom: 15px;
             overflow: hidden;
+            padding: 2px;
         }
         #progressFill {
             height: 100%;
             width: 20%;
-            background: linear-gradient(90deg, var(--neon-pink), var(--cyan-glow), var(--mint-green));
-            transition: width 0.4s ease;
+            background: linear-gradient(90deg, var(--gradient-start), var(--gradient-mid), var(--gradient-end));
+            border-radius: 20px;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .hud-display {
+        /* Top HUD score and index panels */
+        .hud-row {
             display: flex;
             justify-content: space-between;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: bold;
-            background: #090526;
-            padding: 10px 20px;
-            border-radius: 18px;
-            border: 3px solid #312E81;
+            color: var(--primary-blue);
+            padding: 0 10px;
             margin-bottom: 15px;
         }
 
-        /* Viewport Canvas Panel */
-        .studio-viewport {
-            background: #03001C;
-            border: 5px solid var(--cosmic-purple);
+        /* Main Viewport Card Stage Window */
+        .viewport-board {
+            background: #EDF2F7;
+            border: 4px solid var(--primary-blue);
             border-radius: 24px;
-            min-height: 310px;
+            padding: 20px;
+            min-height: 280px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            padding: 15px;
             position: relative;
-            box-shadow: inset 0 8px 0 rgba(0,0,0,0.6);
         }
 
-        .instruction-bubble {
-            background: #312E81;
-            border: 3px solid var(--cyan-glow);
-            border-radius: 16px;
-            padding: 10px 14px;
-            font-size: 1.1rem;
-            text-align: center;
-            width: 100%;
-            margin-bottom: 15px;
-            line-height: 1.4;
+        /* Rounded instruction description box */
+        .bubble-instruction {
+            background: #FFFFFF;
+            border: 3px solid var(--dark-navy);
+            border-radius: 20px;
+            padding: 14px 18px;
+            font-size: 1.15rem;
+            color: var(--text-dark);
+            font-weight: bold;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            box-shadow: 0 4px 0px rgba(0,0,0,0.05);
         }
 
-        /* PICTOGRAPH GRAPH GRID SHEET */
-        .graph-board {
+        /* GRAPH SHEET WORKSPACE */
+        .pictograph-canvas {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             width: 100%;
-            background: rgba(15, 23, 42, 0.6);
+            background: rgba(255, 255, 255, 0.8);
             padding: 15px;
             border-radius: 18px;
-            border: 2px dashed #4338CA;
+            border: 3px dashed #CBD5E1;
         }
 
-        .graph-row {
+        .graph-track-row {
             display: flex;
             align-items: center;
-            background: rgba(49, 46, 129, 0.4);
-            border-radius: 12px;
-            padding: 8px 12px;
-            min-height: 55px;
+            background: #F8FAFC;
+            border: 2px solid #E2E8F0;
+            border-radius: 16px;
+            padding: 6px 12px;
+            min-height: 65px;
         }
 
-        .row-label {
-            width: 110px;
-            font-size: 1.05rem;
+        .track-label {
+            width: 120px;
+            font-size: 1.1rem;
             font-weight: bold;
-            color: var(--cyan-glow);
+            color: var(--primary-blue);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
 
-        .row-cells-container {
+        .track-label img {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+        }
+
+        .cells-dropzone {
             display: flex;
             flex-grow: 1;
-            gap: 8px;
+            gap: 10px;
             align-items: center;
-            padding-left
+            padding-left: 15px;
+            border-left: 3px solid #CBD5E1;
+            min-height: 50px;
+        }
+
+        .live-plot-img {
+            width: 35px;
+            height: 35px;
+            object-fit: contain;
+            animation: bounceIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.25);
+        }
+        @keyframes bounceIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+        /* DRAWING CONTROL PLOT BUTTONS */
+        .plotter-action-bar {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            width: 100%;
+            margin-top: 15px;
+        }
+        .plot-add-btn {
+            background: #FFFFFF;
+            border: 3px solid var(--accent-purple);
+            color: var(--accent-purple);
+            padding: 10px 20px;
+            border-radius: 16px;
+            font-weight: bold;
+            font-size: 1.05rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 0px rgba(124, 58, 237, 0.15);
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .plot-add-btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        /* INTERACTIVE OPTIONS LAYOUT MODULE */
+        .quiz-options-matrix {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+            width: 100%;
+        }
+        .quiz-choice-btn {
+            background: #FFFFFF;
+            color: var(--text-dark);
+            border: 3px solid #E2E8F0;
+            border-radius: 20px;
+            padding: 16px;
+            font-size: 1.15rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 0px #CBD5E1;
+            text-align: center;
+            transition: all 0.1s;
+        }
+        .quiz-choice-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0px #CBD5E1;
+        }
+
+        /* CORE VERIFY ACTION BUTTONS */
+        .btn-action-gate {
+            width: 100%;
+            padding: 16px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            border-radius: 50px;
+            border: none;
+            cursor: pointer;
+            color: white;
+            margin-top: 20px;
+            background: var(--mint-green);
+            box-shadow: 0 6px 0px #047857;
+            transition: all 0.1s;
+        }
+        .btn-action-gate:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0px #047857;
+        }
+
+        /* SUCCESS OVERLAY PANEL MODAL */
+        .modal-reward-popup {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 30px;
+            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.25);
+        }
+        @keyframes modalPop { from { scale: 0.8; opacity: 0; } to { scale: 1; opacity: 1; } }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <img id="splashLogo" src="assets/logo.png" alt="Logo">
+    </div>
+
+    <audio id="audioRight" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="audioWrong" src="assets/wrong.mp3" preload="auto"></audio>
+    <audio id="audioApplause" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
+
+    <div class="game-wrapper">
+        
+        <div id="gameArena">
+            <h1>Fruit Survey Studio 📊</h1>
+            
+            <div class="task-badge-container">
+                <div class="task-badge" id="lblTaskMode">Task: Drawing Chart</div>
+            </div>
+
+            <div class="progress-track"><div id="progressFill"></div></div>
+            
+            <div class="hud-row">
+                <span id="txtLevelTracker">Survey: 1 / 5</span>
+                <span id="txtScoreCounter">Score: 0 🎯</span>
+            </div>
+
+            <div class="viewport-board">
+                
+                <div id="popupSuccess" class="modal-reward-popup hidden">
+                    <span style="font-size: 5rem; margin-bottom: 10px;">🌟</span>
+                    <h2 style="color: var(--mint-green); font-size: 2.2rem; margin-bottom: 8px;">Superb Handling!</h2>
+                    <p style="color: var(--text-dark); font-size: 1.2rem; text-align: center; margin-bottom: 25px;">You successfully built and evaluated the graph data!</p>
+                    <button class="btn-action-gate" style="width:auto; padding: 10px 40px; margin-top:0;" onclick="advanceNextSurveyLevel()">Next Survey 🚀</button>
+                </div>
+
+                <div class="bubble-instruction" id="txtMainInstruction">Loading telemetry metrics...</div>
+                
+                <div class="pictograph-canvas" id="graphContainer"></div>
+
+                <div class="plotter-action-bar" id="drawingControls"></div>
+            </div>
+
+            <div class="quiz-options-matrix hidden" id="quizAnswersBox">
+                <button class="quiz-choice-btn" onclick="evaluateQuizChoice(0)">Choice A</button>
+                <button class="quiz-choice-btn" onclick="evaluateQuizChoice(1)">Choice B</button>
+                <button class="quiz-choice-btn" onclick="evaluateQuizChoice(2)">Choice C</button>
+                <button class="quiz-choice-btn" onclick="evaluateQuizChoice(3)">Choice D</button>
+            </div>
+
+            <button class="btn-action-gate" id="btnVerifyDrawing" onclick="verifyDrawnPictograph()">Verify Graph Layout ✔️</button>
+        </div>
+
+        <div id="victoryScreen" class="hidden" style="text-align: center; padding: 30px 10px;">
+            <span style="font-size: 6rem;">🏆</span>
+            <h2 style="font-size: 2.6rem; color: var(--primary-blue); margin: 15px 0 10px;">Data Expert Certified!</h2>
+            <p id="txtFinalMetrics" style="font-size: 1.4rem; font-weight: bold; color: var(--text-dark); margin-bottom: 35px;"></p>
+            <button class="btn-action-gate" style="max-width: 320px; display: inline-block;" onclick="restartStudioEngine()">Play Again 🔄</button>
+        </div>
+
+    </div>
+
+    <script>
+        // Splash lifecycle handling sequence
+        window.onload = function() {
+            const logo = document.getElementById('splashLogo');
+            if(logo) {
+                logo.onerror = function() { this.src = 'assets/innovine-logo.png'; };
+            }
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if(splash) {
+                    splash.style.opacity = 0;
+                    setTimeout(() => splash.style.display = 'none', 500);
+                }
+            }, 1500);
+            restartStudioEngine();
+        };
+
+        function playSound(hook) {
+            const track = document.getElementById(hook === 'right' ? 'audioRight' : hook === 'wrong' ? 'audioWrong' : 'audioApplause');
+            if(track) { track.currentTime = 0; track.play().catch(()=>{}); }
+        }
+
+        let surveyIndex = 0;
+        let cumulativeScore = 0;
+        let graphPlotCounts = {};
+
+        // 5 Fully Configured Grade 2 Data Handling Survey Missions
+        const dataSurveysBook = [
+            {
+                prompt: "🍎 Market Survey: The chef counted 5 Apples and 3 Bananas in the basket. Let's make a pictograph! Click the buttons below to draw the icons into the rows. (Each icon = 1 item)",
+                keys: ["Apples", "Bananas"],
+                paths: ["assets/apple.png", "assets/banana.png"],
+                targets: { "Apples": 5, "Bananas": 3 },
+                question: "📊 Data Evaluation: Which fruit type has the most amount of items inside the kitchen basket?",
+                choices: ["Apples 🍎", "Bananas 🍌", "Both match evenly", "Neither item matches"],
+                correctIdx: 0
+            },
+            {
+                prompt: "🍌 Breakfast Counter: The logs show 4 Apples and 7 Bananas were eaten this morning. Draw the simple pictograph to organize the collected survey metrics!",
+                keys: ["Apples", "Bananas"],
+                paths: ["assets/apple.png", "assets/banana.png"],
+                targets: { "Apples": 4, "Bananas": 7 },
+                question: "📊 Quantity Comparison: How many more Bananas were eaten than Apples this morning?",
+                choices: ["2 more", "3 more", "4 more", "7 more"],
+                correctIdx: 1 // 7 - 4 = 3
+            },
+            {
+                prompt: "🍎 Healthy Orchard Pack: We picked 6 Apples and 2 Bananas from the smart greenhouse. Help us make a clear pictograph map layout of this collected data!",
+                keys: ["Apples", "Bananas"],
+                paths: ["assets/apple.png", "assets/banana.png"],
+                targets: { "Apples": 6, "Bananas": 2 },
+                question: "📊 Total Sum Inquiry: What is the combined total number of Apples and Bananas gathered from the orchard?",
+                choices: ["4 fruits", "6 fruits", "8 fruits", "10 fruits"],
+                correctIdx: 2 // 6 + 2 = 8
+            },
+            {
+                prompt: "🍌 Snack Storehouse: The automated tracker registers 3 Apples and 6 Bananas left on shelf A. Plot the pictograph chart layout correctly!",
+                keys: ["Apples", "Bananas"],
+                paths: ["assets/apple.png", "assets/banana.png"],
+                targets: { "Apples": 3, "Bananas": 6 },
+                question: "📊 Data Interpretation: Which item is running the lowest on supplies on the current shelf layout?",
+                choices: ["Bananas 🍌", "Apples 🍎", "They have equal amounts", "None remain"],
+                correctIdx: 1
+            },
+            {
+                prompt: "🍎 Blender Checklist: To mix the mega smoothie, we need exactly 8 Apples and 5 Bananas. Draw the simple pictograph dataset to show the recipe plan clearly!",
+                keys: ["Apples", "Bananas"],
+                paths: ["assets/apple.png", "assets/banana.png"],
+                targets: { "Apples": 8, "Bananas": 5 },
+                question: "📊 Difference Evaluation: How many fewer Bananas are listed on the recipe map than Apples?",
+                choices: ["2 fewer", "3 fewer", "5 fewer", "8 fewer"],
+                correctIdx: 1 // 8 - 5 = 3
+            }
+        ];
+
+        function restartStudioEngine() {
+            surveyIndex = 0;
+            cumulativeScore = 0;
+            document.getElementById('victoryScreen').classList.add('hidden');
+            document.getElementById('gameArena').classList.remove('hidden');
+            loadCurrentSurveyLevel();
+        }
+
+        function loadCurrentSurveyLevel() {
+            const data = dataSurveysBook[surveyIndex];
+            graphPlotCounts = {};
+
+            document.getElementById('lblTaskMode').innerText = "Task: Drawing Chart";
+            document.getElementById('txtLevelTracker').innerText = `Survey: ${surveyIndex + 1} / ${dataSurveysBook.length}`;
+            document.getElementById('txtScoreCounter').innerText = `Score: ${cumulativeScore} 🎯`;
+            document.getElementById('progressFill').style.width = `${((surveyIndex + 1) / dataSurveysBook.length) * 100}%`;
+            document.getElementById('txtMainInstruction').innerText = data.prompt;
+
+            // Interface visibility states for active Phase 1: Drawing
+            document.getElementById('quizAnswersBox').classList.add('hidden');
+            document.getElementById('btnVerifyDrawing').classList.remove('hidden');
+            document.getElementById('drawingControls').classList.remove('hidden');
+
+            // Render fresh graph row framework structures dynamically
+            const canvas = document.getElementById('graphContainer');
+            canvas.innerHTML = '';
+            
+            const ctrlBar = document.getElementById('drawingControls');
+            ctrlBar.innerHTML = '';
+
+            data.keys.forEach((key, idx) => {
+                graphPlotCounts[key] = 0;
+
+                // Build data row track element sheet
+                let row = document.createElement('div');
+                row.className = "graph-track-row";
+
+                let labelBox = document.createElement('div');
+                labelBox.className = "track-label";
+                labelBox.innerHTML = `<img src="${data.paths[idx]}" alt="${key}"> ${key}`;
+                row.appendChild(labelBox);
+
+                let cellZone = document.createElement('div');
+                cellZone.className = "cells-dropzone";
+                cellZone.id = `zone-track-${key}`;
+                row.appendChild(cellZone);
+
+                canvas.appendChild(row);
+
+                // Build canvas plotter tool actions
+                let plotBtn = document.createElement('button');
+                plotBtn.className = "plot-add-btn";
+                plotBtn.innerHTML = `Add ${key}`;
+                plotBtn.onclick = () => addIconToCanvasRow(key, data.paths[idx]);
+                ctrlBar.appendChild(plotBtn);
+            });
+        }
+
+        function addIconToCanvasRow(key, imgUrl) {
+            // Safe upper-limit threshold clip bounds for spacing scaling layout neatness
+            if(graphPlotCounts[key] >= 9) return;
+
+            graphPlotCounts[key]++;
+            const trackZone = document.getElementById(`zone-track-${key}`);
+
+            let iconImg = document.createElement('img');
+            iconImg.className = "live-plot-img";
+            iconImg.src = imgUrl;
+            trackZone.appendChild(iconImg);
+        }
+
+        function verifyDrawnPictograph() {
+            const data = dataSurveysBook[surveyIndex];
+            let graphValid = true;
+
+            // Verify if child item plotting inputs match exact data targets
+            data.keys.forEach(key => {
+                if(graphPlotCounts[key] !== data.targets[key]) {
+                    graphValid = false;
+                }
+            });
+
+            if(graphValid) {
+                playSound('right');
+                alert("Perfect pictograph drawing! Data represents cleanly. Let's interpret and answer the evaluation prompt! 📈");
+                enterSurveyQuizPhase();
+            } else {
+                playSound('wrong');
+                alert("Oops! The number of icons plotted on your rows does not match the survey data values yet. Double-check and adjust carefully!");
+            }
+        }
+
+        function enterSurveyQuizPhase() {
+            document.getElementById('lblTaskMode').innerText = "Task: Evaluate Question";
+            const data = dataSurveysBook[surveyIndex];
+
+            // Hide drawing controls, toggle choice grid interfaces
+            document.getElementById('btnVerifyDrawing').classList.add('hidden');
+            document.getElementById('drawingControls').classList.add('hidden');
+            
+            document.getElementById('txtMainInstruction').innerText = data.question;
+            const optionBox = document.getElementById('quizAnswersBox');
+            optionBox.classList.remove('hidden');
+
+            const optionBtns = optionBox.querySelectorAll('.quiz-choice-btn');
+            data.choices.forEach((text, choiceIdx) => {
+                optionBtns[choiceIdx].innerText = text;
+                optionBtns[choiceIdx].style.borderColor = '#E2E8F0';
+                optionBtns[choiceIdx].style.background = '#FFFFFF';
+                optionBtns[choiceIdx].style.color = 'var(--text-dark)';
+            });
+        }
+
+        function evaluateQuizChoice(selectedIndex) {
+            const data = dataSurveysBook[surveyIndex];
+            const choiceBtns = document.getElementById('quizAnswersBox').querySelectorAll('.quiz-choice-btn');
+
+            if(selectedIndex === data.correctIdx) {
+                cumulativeScore++;
+                playSound('right');
+                choiceBtns[selectedIndex].style.background = '#D1FAE5';
+                choiceBtns[selectedIndex].style.borderColor = 'var(--mint-green)';
+                choiceBtns[selectedIndex].style.color = '#047857';
+
+                setTimeout(() => {
+                    document.getElementById('popupSuccess').classList.remove('hidden');
+                    playSound('applause');
+                }, 500);
+            } else {
+                playSound('wrong');
+                choiceBtns[selectedIndex].style.background = '#FEE2E2';
+                choiceBtns[selectedIndex].style.borderColor = '#EF4444';
+                choiceBtns[selectedIndex].style.color = '#B91C1C';
+
+                // Display guidance auto-highlight help helper sequence
+                choiceBtns[data.correctIdx].style.background = '#D1FAE5';
+                choiceBtns[data.correctIdx].style.borderColor = 'var(--mint-green)';
+                
+                alert("Let's analyze together! Read the height rows across the items on your chart sheet grid to discover the answer value!");
+                setTimeout(advanceNextSurveyLevel, 3500);
+            }
+        }
+
+        function advanceNextSurveyLevel() {
+            document.getElementById('popupSuccess').classList.add('hidden');
+            surveyIndex++;
+
+            if(surveyIndex < dataSurveysBook.length) {
+                loadCurrentSurveyLevel();
+            } else {
+                showFinalSummaryPanel();
+            }
+        }
+
+        function showFinalSummaryPanel() {
+            document.getElementById('gameArena').classList.add('hidden');
+            document.getElementById('victoryScreen').classList.remove('hidden');
+            document.getElementById('txtFinalMetrics').innerText = `Phenomenal data tracking! You compiled and answered ${cumulativeScore} / ${dataSurveysBook.length} data sheets with precise mastery!`;
+            playSound('applause');
+        }
+    </script>
+</body>
+</html>
