@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grade 3 Geometry: Ruler & Bridge Builder</title>
+    <title>Grade 3 Geometry: Blueprint Creator</title>
     <style>
         :root {
-            --bg-color: #F0FDF4; /* Light mint/green bg */
+            --bg-color: #F0FDF4; 
             --dark-blue: #1E3A8A;
             --mint: #10B981;
             --amber: #F59E0B;
@@ -48,19 +48,13 @@
             transition: opacity 0.5s ease;
         }
 
-        #splash-screen img {
-            max-width: 65%;
-            max-height: 55%;
-            object-fit: contain;
-        }
-
         .game-container {
             background: var(--white);
             border: 6px solid var(--dark-blue);
             border-radius: 32px;
             padding: 25px;
             width: 100%;
-            max-width: 580px;
+            max-width: 600px;
             text-align: center;
             box-shadow: 0 16px 0px var(--dark-blue);
             position: relative;
@@ -82,11 +76,8 @@
             font-size: 0.9rem;
             text-transform: uppercase;
             margin-bottom: 15px;
+            background: var(--purple);
         }
-
-        .tier-easy { background: var(--mint); }
-        .tier-medium { background: var(--purple); }
-        .tier-hard { background: var(--coral); }
 
         .progress-bar-container {
             background: #E5E7EB;
@@ -99,7 +90,7 @@
 
         #progressBarFill {
             height: 100%;
-            width: 8.3%;
+            width: 20%;
             background: linear-gradient(90deg, var(--mint), var(--purple), var(--coral));
             transition: width 0.4s ease;
         }
@@ -115,183 +106,192 @@
             border-radius: 12px;
         }
 
-        /* Active Interactive Drawing Sandbox Area */
-        .geometry-sandbox {
-            background: #FAFAFA;
-            border: 4px dashed #9CA3AF;
+        /* CANVAS DESIGN AREA */
+        .blueprint-canvas {
+            background: #1E40AF; /* Blueprint Blue background */
+            background-image: radial-gradient(rgba(255, 255, 255, 0.15) 1px, transparent 0);
+            background-size: 20px 20px;
+            border: 4px solid var(--dark-blue);
             border-radius: 24px;
-            padding: 15px;
+            padding: 20px;
             margin-bottom: 20px;
-            min-height: 240px;
+            min-height: 220px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             position: relative;
-            overflow: hidden;
         }
 
         .question-prompt {
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             font-weight: bold;
-            color: var(--dark-blue);
-            margin-bottom: 15px;
-            z-index: 2;
+            color: var(--white);
+            margin-bottom: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 6px 16px;
+            border-radius: 12px;
         }
 
-        /* --- VISUAL GEOMETRY ELEMENT ENGINE --- */
-        .geo-canvas-render {
-            width: 100%;
-            height: 120px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        /* WORKSPACE WORKBENCH */
+        .track-frame {
+            width: 240px;
+            height: 8px;
+            background-color: rgba(255, 255, 255, 0.4);
+            border-radius: 4px;
             position: relative;
-        }
-
-        /* Line Segment Element */
-        .line-element {
-            height: 6px;
-            background-color: var(--dark-blue);
-            position: relative;
-            transition: width 0.3s ease, transform 0.3s ease;
-        }
-        .endpoint-dot {
-            width: 16px;
-            height: 16px;
-            background-color: var(--coral);
-            border: 3px solid var(--dark-blue);
-            border-radius: 50%;
-            position: absolute;
-            top: -5px;
-        }
-        .endpoint-dot.left { left: -8px; }
-        .endpoint-dot.right { right: -8px; }
-
-        /* Ray Arrow Cap Element */
-        .arrow-cap {
-            width: 0;
-            height: 0;
-            border-top: 10px solid transparent;
-            border-bottom: 10px solid transparent;
-            position: absolute;
-            top: -7px;
-        }
-        .arrow-cap.right {
-            border-left: 14px solid var(--dark-blue);
-            right: -10px;
-        }
-        .arrow-cap.left {
-            border-right: 14px solid var(--dark-blue);
-            left: -10px;
-        }
-
-        /* --- INTERACTIVE SLIDER RULER ENGINE --- */
-        .ruler-container {
-            width: 100%;
-            background: #FEF3C7;
-            border: 3px solid #D97706;
-            border-radius: 10px;
-            padding: 10px 15px;
-            position: relative;
-            margin-top: 10px;
-        }
-        .ruler-ticks {
             display: flex;
             justify-content: space-between;
-            height: 30px;
-            border-bottom: 2px solid #D97706;
-            position: relative;
-        }
-        .tick {
-            width: 2px;
-            height: 15px;
-            background: #D97706;
-            position: relative;
-        }
-        .tick.major { height: 25px; width: 3px; }
-        .tick-label {
-            position: absolute;
-            bottom: -22px;
-            left: -6px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            color: #B45309;
-        }
-        .ruler-slider {
-            width: 100%;
-            margin-top: 25px;
-            cursor: pointer;
-            accent-color: var(--purple);
-        }
-        .ruler-value-bubble {
-            margin-top: 5px;
-            font-weight: bold;
-            color: #B45309;
-            font-size: 1.1rem;
+            align-items: center;
+            transition: all 0.3s ease;
         }
 
-        /* Shape Side Inspector Grid Layout */
-        .shape-attribute-box {
-            font-size: 4.5rem;
-            margin-bottom: 5px;
-            filter: drop-shadow(0px 4px 0px rgba(0,0,0,0.1));
+        .track-frame.vertical {
+            width: 8px;
+            height: 140px;
+            flex-direction: column;
         }
 
-        /* Standard Option Selector Grid Layout */
-        .options-grid-layout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
+        .track-frame.slanting {
+            transform: rotate(-25deg);
         }
 
-        .btn-choice-opt {
-            background: white;
-            border: 3px solid var(--dark-blue);
-            border-radius: 20px;
-            padding: 12px;
-            font-size: 1.15rem;
-            font-weight: bold;
-            color: var(--dark-blue);
-            cursor: pointer;
-            box-shadow: 0 6px 0px var(--dark-blue);
-            transition: all 0.1s ease;
+        /* DROP TARGET ZONES */
+        .drop-zone {
+            width: 45px;
+            height: 45px;
+            border: 3px dashed rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 65px;
-        }
-        .btn-choice-opt:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px 0px var(--dark-blue);
+            background: rgba(255, 255, 255, 0.1);
+            position: absolute;
+            transition: background 0.2s;
         }
 
-        /* Check/Submit Construction Button */
-        .btn-submit-build {
-            background: var(--purple);
-            color: white;
-            font-size: 1.3rem;
-            padding: 12px 35px;
+        /* Dynamic drop zone position offsets */
+        .drop-zone.left-end  { left: -25px; top: -18px; }
+        .drop-zone.right-end { right: -25px; top: -18px; }
+        .drop-zone.top-end   { top: -25px; left: -18px; }
+        .drop-zone.bottom-end { bottom: -25px; left: -18px; }
+
+        .drop-zone.center-intersection {
+            left: 98px;
+            top: -18px;
+        }
+        .track-frame.vertical .drop-zone.center-intersection {
+            top: 48px;
+            left: -18px;
+        }
+
+        .drop-zone.hovered {
+            background: rgba(245, 158, 11, 0.4);
+            border-color: var(--amber);
+        }
+
+        /* GEOMETRY ITEM SHAPES */
+        .geo-shape {
+            width: 36px;
+            height: 36px;
+            cursor: grab;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: none;
+            z-index: 5;
+        }
+
+        .geo-shape:active { cursor: grabbing; }
+
+        /* Solid Geometric Figures Rendering */
+        .shape-dot {
+            width: 18px;
+            height: 18px;
+            background-color: #EF4444;
+            border: 3px solid white;
+            border-radius: 50%;
+        }
+
+        .shape-arrow-right {
+            width: 0; height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-left: 16px solid #10B981;
+        }
+        .shape-arrow-left {
+            width: 0; height: 0;
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            border-right: 16px solid #10B981;
+        }
+        .shape-arrow-up {
+            width: 0; height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 16px solid #10B981;
+        }
+        .shape-arrow-down {
+            width: 0; height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-top: 16px solid #10B981;
+        }
+
+        .shape-cross-line {
+            width: 6px;
+            height: 40px;
+            background: #F59E0B;
+            transform: rotate(45deg);
+        }
+
+        /* OPTIONS SHAPES PARTS TRAY BOX */
+        .parts-tray-wrapper {
+            background: #F3F4F6;
             border: 3px solid var(--dark-blue);
             border-radius: 20px;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+            min-height: 80px;
+            align-items: center;
+        }
+
+        .tray-slot {
+            background: white;
+            border: 2px solid #D1D5DB;
+            border-radius: 14px;
+            width: 55px;
+            height: 55px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .btn-submit-blueprint {
+            background: var(--mint);
+            color: white;
+            font-size: 1.4rem;
+            padding: 12px 45px;
+            border: 3px solid var(--dark-blue);
+            border-radius: 50px;
             cursor: pointer;
             box-shadow: 0 6px 0 var(--dark-blue);
             font-weight: bold;
-            margin-top: 10px;
             width: 100%;
         }
-        .btn-submit-build:active {
+        .btn-submit-blueprint:active {
             transform: translateY(4px);
             box-shadow: 0 2px 0 var(--dark-blue);
         }
 
-        /* Level Encouragement Overlay Popup Setup */
+        /* ENCOURAGEMENT DIALOG OVERLAY POPUP */
         .encouragement-overlay {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255, 255, 255, 0.97);
             border-radius: 26px;
             display: flex;
@@ -308,50 +308,21 @@
             to { transform: scale(1); opacity: 1; }
         }
 
-        .encouragement-title {
-            font-size: 1.9rem;
-            color: var(--dark-blue);
-            margin-bottom: 10px;
-        }
-        .encouragement-msg {
-            font-size: 1.15rem;
-            color: #4B5563;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
+        .encouragement-title { font-size: 1.9rem; color: var(--dark-blue); margin-bottom: 10px; }
+        .encouragement-msg { font-size: 1.15rem; color: #4B5563; margin-bottom: 20px; font-weight: bold; }
         .btn-next-level {
-            background: var(--mint);
-            color: white;
-            border: 3px solid var(--dark-blue);
-            border-radius: 20px;
-            padding: 10px 30px;
-            font-size: 1.3rem;
-            font-weight: bold;
-            cursor: pointer;
+            background: var(--mint); color: white; border: 3px solid var(--dark-blue);
+            border-radius: 20px; padding: 10px 30px; font-size: 1.3rem; font-weight: bold; cursor: pointer;
             box-shadow: 0 5px 0 var(--dark-blue);
         }
 
         .hidden { display: none !important; }
-
-        .btn-replay-action {
-            background: var(--mint);
-            color: white;
-            border: 4px solid var(--dark-blue);
-            font-size: 1.5rem;
-            padding: 12px 45px;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 6px 0 var(--dark-blue);
-            font-weight: bold;
-            margin-top: 15px;
-        }
     </style>
 </head>
 <body>
 
     <div id="splash-screen">
-        <img src="./assets/logo.png" alt="Education Logo" onerror="this.style.display='none'">
-        <h2 style="color: var(--dark-blue); margin-top:15px;">Geometry Sandbox Builder 📐</h2>
+        <h2 style="color: var(--dark-blue); font-size: 2.2rem; text-align: center; padding: 20px;">🏗️ Geometry Blueprint Designer</h2>
     </div>
 
     <audio id="audioRight" src="./assets/correct.mp3" preload="auto"></audio>
@@ -360,342 +331,35 @@
 
     <div class="game-container">
         <div id="encouragementOverlayBox" class="encouragement-overlay hidden">
-            <div style="font-size: 4rem;" id="overlayEmoji">📐</div>
-            <div class="encouragement-title" id="overlayTitle">Zone Cleared!</div>
-            <div class="encouragement-msg" id="overlayMessage">Outstanding tracking skills! Ready for the next phase?</div>
-            <button class="btn-next-level" onclick="dismissLevelOverlay()">Let's Draw! 🚀</button>
+            <div style="font-size: 4rem;" id="overlayEmoji">🚀</div>
+            <div class="encouragement-title" id="overlayTitle">Excellent Construction!</div>
+            <div class="encouragement-msg" id="overlayMessage">Your geometry blueprint operates flawlessly! Ready for more?</div>
+            <button class="btn-next-level" onclick="dismissLevelOverlay()">Next Blueprint 🏗️</button>
         </div>
 
         <div id="gameplayCorePanel">
-            <h1>Geometry Explorer 📐</h1>
-            <div id="levelBadgeDisplay" class="level-badge tier-easy">Level 1: Line Profiles</div>
+            <h1>Blueprint Builder 🛠️</h1>
+            <div id="levelBadgeDisplay" class="level-badge">Task: Blueprint Drafting</div>
 
             <div class="progress-bar-container">
                 <div id="progressBarFill"></div>
             </div>
 
             <div class="status-meta">
-                <span id="questionProgressText">Task: 1 / 12</span>
+                <span id="questionProgressText">Drawing: 1 / 5</span>
                 <span id="scoreTrackerText">Score: 0🎯</span>
             </div>
 
-            <div class="geometry-sandbox">
-                <p class="question-prompt" id="targetQuestionText">Loading geometry parameters...</p>
-                
-                <div id="canvasBoxArea" class="geo-canvas-render"></div>
-                
-                <div id="sliderRulerBoxWrapper" class="ruler-container hidden">
-                    <div class="ruler-ticks" id="rulerTicksContainer"></div>
-                    <input type="range" min="1" max="10" value="4" class="ruler-slider" id="rulerRangeSlider" oninput="updateRulerRenderValue(this.value)">
-                    <div class="ruler-value-bubble" id="rulerBubbleMetricDisplay">4 cm</div>
-                </div>
+            <div class="blueprint-canvas">
+                <p class="question-prompt" id="targetQuestionText">Loading layout framework...</p>
+                <div id="canvasCoreWorkspace"></div>
             </div>
 
-            <div class="options-grid-layout" id="optionsContainerLayout"></div>
-            <button id="submitBuildActionBtn" class="btn-submit-build hidden" onclick="evaluateMeasurementSubmission()">Verify Segment Length ✔️</button>
+            <p style="text-align: left; font-weight: bold; color: var(--dark-blue); margin-bottom: 6px;">Drag parts into the dotted rings:</p>
+            <div class="parts-tray-wrapper" id="trayContainerLayout"></div>
+
+            <button class="btn-submit-blueprint" onclick="evaluateCanvasBlueprint()">Verify Blueprint Layout ✔️</button>
         </div>
 
         <div id="endEvaluationPanel" class="hidden">
-            <h2 style="font-size: 2.3rem; color: var(--purple); margin-bottom: 10px;">Geometry Clear! 🏆</h2>
-            <div id="awardEmblem" style="font-size: 4.5rem; margin-bottom: 10px;">🥇</div>
-            <p id="totalScoreText" style="font-size: 1.7rem; font-weight: bold; margin-bottom: 15px; color: var(--dark-blue);"></p>
-            <p id="qualitativeFeedbackText" style="font-size: 1.1rem; margin-bottom: 25px; font-weight: bold; color: #4B5563;"></p>
-            <button class="btn-replay-action" onclick="restartGeometryMission()">Replay Mission</button>
-        </div>
-    </div>
-
-    <script>
-        window.onload = function() {
-            setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                if(splash) {
-                    splash.style.opacity = '0';
-                    setTimeout(() => splash.remove(), 500);
-                }
-            }, 4000);
-            generateRulerTicksStructure();
-            bootGameEngine();
-        };
-
-        function triggerAudioCue(soundType) {
-            const track = document.getElementById(soundType === 'right' ? 'audioRight' : soundType === 'wrong' ? 'audioWrong' : 'audioApplause');
-            if(track) { track.currentTime = 0; track.play().catch(e => {}); }
-        }
-
-        function generateRulerTicksStructure() {
-            const container = document.getElementById('rulerTicksContainer');
-            container.innerHTML = '';
-            for(let i = 0; i <= 10; i++) {
-                const tick = document.createElement('div');
-                tick.className = 'tick major';
-                tick.innerHTML = `<span class="tick-label">${i}</span>`;
-                container.appendChild(tick);
-                if(i < 10) {
-                    const subTick = document.createElement('div');
-                    subTick.className = 'tick';
-                    container.appendChild(subTick);
-                }
-            }
-        }
-
-        let pointerIndex = 0;
-        let runningScore = 0;
-        let isSecondChanceActive = false;
-        let interactiveLock = true;
-
-        // 12 Tasks targeting Chapter 5 Learning Outcomes completely out of MCQ structure where applicable
-        const curriculumPool = [
-            // LEVEL 1: Recognition & Profiles (Lines, Rays, Segments, Orientations)
-            { zone: "Level 1: Line Profiles", css: "tier-easy", q: "Identify this figure. It has two distinct endpoints!", mode: "click", drawType: "segment", answer: "Line Segment", choices: ["Line", "Ray", "Line Segment", "Point"] },
-            { zone: "Level 1: Line Profiles", css: "tier-easy", q: "Look closely at the arrow caps. What is this figure extending infinitely in both directions?", mode: "click", drawType: "line", answer: "Line", choices: ["Line", "Ray", "Line Segment", "Point"] },
-            { zone: "Level 1: Line Profiles", css: "tier-easy", q: "This figure has one fixed endpoint and one arrow heading out infinitely. What is it?", mode: "click", drawType: "ray", answer: "Ray", choices: ["Line", "Ray", "Line Segment", "Intersecting Lines"] },
-            { zone: "Level 1: Line Profiles", css: "tier-easy", q: "What profile alignment does this flat, sleeping layout represent?", mode: "click", drawType: "horizontal", answer: "Horizontal Line", choices: ["Vertical Line", "Horizontal Line", "Slanting Line", "Intersecting Lines"] },
-            
-            // LEVEL 2: Advanced Interaction & Intersections
-            { zone: "Level 2: Structural Junctions", css: "tier-medium", q: "What profile layout style does this standing-up beam line show?", mode: "click", drawType: "vertical", answer: "Vertical Line", choices: ["Vertical Line", "Horizontal Line", "Slanting Line", "Point"] },
-            { zone: "Level 2: Structural Junctions", css: "tier-medium", q: "Look at the junction where these two lines cross over each other. What are they called?", mode: "click", drawType: "intersecting", answer: "Intersecting Lines", choices: ["Parallel Lines", "Horizontal Lines", "Intersecting Lines", "Rays"] },
-            { zone: "Level 2: Structural Junctions", css: "tier-medium", q: "What do we call the precise position label where two lines cross each other?", mode: "click", drawType: "point", answer: "Point of Intersection", choices: ["Ray Center", "Point of Intersection", "Endpoint", "Line Joint"] },
-            { zone: "Level 2: Structural Junctions", css: "tier-medium", q: "What profile alignment does this tilted, leaning layout display?", mode: "click", drawType: "slanting", answer: "Slanting Line", choices: ["Vertical Line", "Horizontal Line", "Slanting Line", "Ray Line"] },
-
-            // LEVEL 3: Practical Measurement & Spatial Attributes (Active Slider Ruler Construction)
-            { zone: "Level 3: Drawing & Geometry Shapes", css: "tier-hard", q: "Construct a Line Segment that is exactly 7 cm long on your ruler scale blueprint!", mode: "measure", answer: 7 },
-            { zone: "Level 3: Drawing & Geometry Shapes", css: "tier-hard", q: "Construct a Line Segment that is exactly 3 cm long to seal the bridge clearance!", mode: "measure", answer: 3 },
-            { zone: "Level 3: Drawing & Geometry Shapes", css: "tier-hard", q: "Count the total number of straight outer edges on this plane figure shape!", mode: "click", drawType: "triangle", answer: "3 Edges", choices: ["2 Edges", "3 Edges", "4 Edges", "5 Edges"] },
-            { zone: "Level 3: Drawing & Geometry Shapes", css: "tier-hard", q: "How many corners/vertices does this square layout shape contain?", mode: "click", drawType: "square", answer: "4 Corners", choices: ["3 Corners", "4 Corners", "5 Corners", "6 Corners"] }
-        ];
-
-        function bootGameEngine() {
-            pointerIndex = 0;
-            runningScore = 0;
-            isSecondChanceActive = false;
-            renderNextStage();
-        }
-
-        function updateRulerRenderValue(val) {
-            document.getElementById('rulerBubbleMetricDisplay').innerText = `${val} cm`;
-            const graphicLine = document.getElementById('activeDynamicLineWidget');
-            if(graphicLine) {
-                // Map centimeter units directly onto element widths visually
-                graphicLine.style.width = `${val * 30}px`;
-            }
-        }
-
-        function renderNextStage() {
-            interactiveLock = true;
-            const stepData = curriculumPool[pointerIndex];
-
-            document.getElementById('questionProgressText').innerText = `Task: ${pointerIndex + 1} / 12`;
-            document.getElementById('scoreTrackerText').innerText = `Score: ${runningScore}🎯`;
-            
-            const badge = document.getElementById('levelBadgeDisplay');
-            badge.innerText = stepData.zone;
-            badge.className = `level-badge ${stepData.css}`;
-
-            document.getElementById('progressBarFill').style.width = `${((pointerIndex + 1) / 12) * 100}%`;
-            document.getElementById('targetQuestionText').innerText = stepData.q;
-
-            const canvas = document.getElementById('canvasBoxArea');
-            const gridLayout = document.getElementById('optionsContainerLayout');
-            const sliderBox = document.getElementById('sliderRulerBoxWrapper');
-            const submitBtn = document.getElementById('submitBuildActionBtn');
-
-            canvas.innerHTML = '';
-            gridLayout.innerHTML = '';
-
-            if(stepData.mode === "click") {
-                sliderBox.classList.add('hidden');
-                submitBtn.classList.add('hidden');
-                gridLayout.classList.remove('hidden');
-
-                // BUILD VISUAL ENGINE GRAPHICS FOR DISCOVERY
-                if(stepData.drawType === "segment") {
-                    canvas.innerHTML = `<div class="line-element" style="width: 200px;"><div class="endpoint-dot left"></div><div class="endpoint-dot right"></div></div>`;
-                } else if(stepData.drawType === "line") {
-                    canvas.innerHTML = `<div class="line-element" style="width: 200px;"><div class="arrow-cap left"></div><div class="arrow-cap right"></div></div>`;
-                } else if(stepData.drawType === "ray") {
-                    canvas.innerHTML = `<div class="line-element" style="width: 200px;"><div class="endpoint-dot left"></div><div class="arrow-cap right"></div></div>`;
-                } else if(stepData.drawType === "horizontal") {
-                    canvas.innerHTML = `<div class="line-element" style="width: 220px; background: #2563EB;"></div>`;
-                } else if(stepData.drawType === "vertical") {
-                    canvas.innerHTML = `<div class="line-element" style="width: 6px; height: 120px; background: #2563EB;"></div>`;
-                } else if(stepData.drawType === "slanting") {
-                    canvas.innerHTML = `<div class="line-element" style="width: 200px; transform: rotate(-25deg); background: #2563EB;"></div>`;
-                } else if(stepData.drawType === "intersecting") {
-                    canvas.innerHTML = `
-                        <div class="line-element" style="width: 200px; position:absolute; transform: rotate(30deg); background:#7C3AED;"></div>
-                        <div class="line-element" style="width: 200px; position:absolute; transform: rotate(-40deg); background:#7C3AED;"></div>
-                    `;
-                } else if(stepData.drawType === "point") {
-                    canvas.innerHTML = `
-                        <div class="line-element" style="width: 180px; position:absolute; transform: rotate(45deg); background:#9CA3AF;"></div>
-                        <div class="line-element" style="width: 180px; position:absolute; transform: rotate(-45deg); background:#9CA3AF;"></div>
-                        <div class="endpoint-dot" style="position:absolute; top:52px; background:var(--coral); width:20px; height:20px;"></div>
-                    `;
-                } else if(stepData.drawType === "triangle") {
-                    canvas.innerHTML = `<div class="shape-attribute-box">🔺</div>`;
-                } else if(stepData.drawType === "square") {
-                    canvas.innerHTML = `<div class="shape-attribute-box">🟦</div>`;
-                }
-
-                // Append Options
-                stepData.choices.forEach(optionText => {
-                    const btn = document.createElement('button');
-                    btn.className = 'btn-choice-opt';
-                    btn.innerText = optionText;
-                    btn.onclick = () => evaluateChoiceIntent(optionText, btn);
-                    gridLayout.appendChild(btn);
-                });
-            } 
-            // ACTIVE SLIDER MEASURING MODE
-            else if(stepData.mode === "measure") {
-                gridLayout.classList.add('hidden');
-                sliderBox.classList.remove('hidden');
-                submitBtn.classList.remove('hidden');
-
-                // Initialize canvas tool with standard variable width line segment component
-                canvas.innerHTML = `
-                    <div class="line-element" id="activeDynamicLineWidget" style="width: 120px; background: var(--purple);">
-                        <div class="endpoint-dot left"></div>
-                        <div class="endpoint-dot right"></div>
-                    </div>
-                `;
-                document.getElementById('rulerRangeSlider').value = 4;
-                updateRulerRenderValue(4);
-            }
-        }
-
-        function evaluateChoiceIntent(selectedStr, btnDOM) {
-            if(!interactiveLock) return;
-            const activeStep = curriculumPool[pointerIndex];
-
-            if(selectedStr === activeStep.answer) {
-                interactiveLock = false;
-                runningScore++;
-                btnDOM.style.background = "var(--mint)";
-                btnDOM.style.color = "white";
-                triggerAudioCue('right');
-                isSecondChanceActive = false;
-                proceedToNextStepSequencer();
-            } else {
-                if(!isSecondChanceActive) {
-                    isSecondChanceActive = true;
-                    btnDOM.style.background = "var(--amber)";
-                    btnDOM.style.color = "var(--dark-blue)";
-                    btnDOM.innerText = "Try Again! 🌟";
-                    triggerAudioCue('wrong');
-                } else {
-                    interactiveLock = false;
-                    isSecondChanceActive = false;
-                    btnDOM.style.background = "var(--coral)";
-                    btnDOM.style.color = "white";
-                    triggerAudioCue('wrong');
-
-                    setTimeout(() => {
-                        const optionsList = document.querySelectorAll('.btn-choice-opt');
-                        optionsList.forEach(b => {
-                            if(b.innerText === activeStep.answer) {
-                                b.style.background = "var(--mint)";
-                                b.style.color = "white";
-                            }
-                        });
-                    }, 300);
-                    proceedToNextStepSequencer();
-                }
-            }
-        }
-
-        function evaluateMeasurementSubmission() {
-            if(!interactiveLock) return;
-            const activeStep = curriculumPool[pointerIndex];
-            const studentValue = parseInt(document.getElementById('rulerRangeSlider').value);
-
-            if(studentValue === activeStep.answer) {
-                interactiveLock = false;
-                runningScore++;
-                triggerAudioCue('right');
-                isSecondChanceActive = false;
-                document.getElementById('rulerBubbleMetricDisplay').innerText = "Perfect Length! 🌟";
-                proceedToNextStepSequencer();
-            } else {
-                if(!isSecondChanceActive) {
-                    isSecondChanceActive = true;
-                    triggerAudioCue('wrong');
-                    document.getElementById('rulerBubbleMetricDisplay').innerText = "Incorrect length. Adjust and try again! 🔍";
-                } else {
-                    interactiveLock = false;
-                    isSecondChanceActive = false;
-                    triggerAudioCue('wrong');
-                    document.getElementById('rulerBubbleMetricDisplay').innerText = `Target was ${activeStep.answer} cm!`;
-                    // Snap slider to solution visually
-                    document.getElementById('rulerRangeSlider').value = activeStep.answer;
-                    updateRulerRenderValue(activeStep.answer);
-                    proceedToNextStepSequencer();
-                }
-            }
-        }
-
-        function proceedToNextStepSequencer() {
-            setTimeout(() => {
-                if(pointerIndex === 3) {
-                    showLevelCompletionOverlay("🏆 Zone 1 Complete!", "Sensational! You are an expert at identifying Lines, Rays, and Segments! 🌟", "🎉");
-                } else if(pointerIndex === 7) {
-                    showLevelCompletionOverlay("🚀 Zone 2 Complete!", "Incredible! You understand intersections and line orientations flawlessly! 📐", "🎈");
-                } else {
-                    advanceQuestionPointer();
-                }
-            }, 1800);
-        }
-
-        function showLevelCompletionOverlay(title, description, emoji) {
-            document.getElementById('overlayTitle').innerText = title;
-            document.getElementById('overlayMessage').innerText = description;
-            document.getElementById('overlayEmoji').innerText = emoji;
-            document.getElementById('encouragementOverlayBox').classList.remove('hidden');
-            triggerAudioCue('applause');
-        }
-
-        function dismissLevelOverlay() {
-            document.getElementById('encouragementOverlayBox').classList.add('hidden');
-            advanceQuestionPointer();
-        }
-
-        function advanceQuestionPointer() {
-            pointerIndex++;
-            if(pointerIndex < 12) {
-                renderNextStage();
-            } else {
-                terminateAndEvaluateMission();
-            }
-        }
-
-        function terminateAndEvaluateMission() {
-            document.getElementById('gameplayCorePanel').classList.add('hidden');
-            document.getElementById('endEvaluationPanel').classList.remove('hidden');
-
-            const award = document.getElementById('awardEmblem');
-            const scoreDisplay = document.getElementById('totalScoreText');
-            const textualFeedback = document.getElementById('qualitativeFeedbackText');
-
-            scoreDisplay.innerText = `Final Score: ${runningScore} / 12`;
-            triggerAudioCue('applause');
-
-            if(runningScore === 12) {
-                award.innerText = "👑👑👑";
-                textualFeedback.innerText = "Master Architect! You've successfully processed every structural geometry task correctly!";
-            } else if(runningScore >= 9) {
-                award.innerText = "🥈✨";
-                textualFeedback.innerText = "Wonderful job! Your line measurements and side properties are highly accurate!";
-            } else {
-                award.innerText = "📐🎒";
-                textualFeedback.innerText = "Good effort! Let's practice drawing lines and counting corners once more.";
-            }
-        }
-
-        function restartGeometryMission() {
-            document.getElementById('endEvaluationPanel').classList.add('hidden');
-            document.getElementById('gameplayCorePanel').classList.remove('hidden');
-            bootGameEngine();
-        }
-    </script>
-</body>
-</html>
+            <h2 style="font-size: 2.3rem;
