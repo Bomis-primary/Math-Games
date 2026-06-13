@@ -267,16 +267,16 @@
     <div id="game-container">
         
         <div id="intro-card" class="overlay-card">
-            <div style="font-size: 5.5rem; margin-bottom: 10px;">🐾🐕🐈🐰</div>
+            <div style="font-size: 5.5rem; margin-bottom: 10px;">🐾🐕🐈🦜🐰</div>
             <h2 style="color: var(--primary-navy); font-size: 2.3rem; margin-bottom: 12px;">The Great Pet Festival Parade</h2>
             <div class="story-capsule">
-                Welcome, Grand Marshal! Let's clear up the parade formations. Interact with each level's workspace task below, fill in the blanks matching the counts, and verify your master metrics!
+                Welcome, Grand Marshal! Let's arrange all parade formations. Interact with each level's workspace task below, fill in the blanks matching the counts, and verify your master metrics!
             </div>
             <button class="action-btn" onclick="startGameEngine()">Start Parade Quest 🚀</button>
         </div>
 
         <div class="hud-header">
-            <span id="txtHudProgress">Parade Event: Level 1 / 4</span>
+            <span id="txtHudProgress">Parade Event: Level 1 - Question 1 / 3</span>
             <span class="badge-mode" id="txtModeBadge">Task: Equal Groups</span>
             <span id="txtHudScore" style="color: var(--sun-yellow);">Parade Stars: ⭐ 0</span>
         </div>
@@ -312,7 +312,7 @@
             <div style="font-size: 6rem;">👑🎖️🐾</div>
             <h2 style="color: var(--sun-yellow); font-size: 2.6rem; margin-top: 15px;">Parade Grand Master!</h2>
             <div class="story-capsule" style="background: #FFFBEB; border-color: var(--sun-yellow); color: #92400E;">
-                Unbelievable job, Marshal! You solved all 4 mathematical challenges of the festival. Every single pet is perfectly grouped, aligned, and celebrating in harmony!
+                Unbelievable job, Marshal! You solved all 12 mathematical challenges of the festival. Every single pet is perfectly grouped, aligned, and celebrating in harmony!
             </div>
             <button class="action-btn" style="background: linear-gradient(135deg, var(--park-green), #047857); box-shadow: 0 6px 0 #065F46;" onclick="resetWholeGame()">Play Again 🔄</button>
         </div>
@@ -340,14 +340,44 @@
             if (el) { el.currentTime = 0; el.play().catch(()=>{}); }
         }
 
+        // Expanded Level Schema Architecture (3 Questions per Level)
         let gameLevel = 1;
+        let activeQuestionIndex = 1; 
         let cumulativeStars = 0;
         
-        // Level Variables
+        // Dynamic Tracking State Variables
         let level1WagonsCount = 0;
         let level1PuppiesPerWagon = [];
         let level3SelectedValue = null;
         let level4MilestonesVisited = [];
+
+        // Question Parameter Lookup Matrix
+        const levelDataMatrix = {
+            1: {
+                badge: "Task: Equal Groups",
+                1: { text: "🐶 Dog Packing Station (Q1): Create exactly 3 Wagons with 4 dogs inside each wagon to build the block!", prefix: "Total number of dogs =", suffix: "dogs", wagons: 3, dogs: 4 },
+                2: { text: "🐶 Dog Packing Station (Q2): Build exactly 2 Wagons with 5 dogs inside each wagon to expand the fleet!", prefix: "Total number of dogs =", suffix: "dogs", wagons: 2, dogs: 5 },
+                3: { text: "🐶 Dog Packing Station (Q3): Arrange exactly 4 Wagons with 3 dogs inside each wagon for the grand tier!", prefix: "Total number of dogs =", suffix: "dogs", wagons: 4, dogs: 3 }
+            },
+            2: {
+                badge: "Task: Array Formation",
+                1: { text: "🐈 March of the Kitty Battalion (Q1): Highlight the grid field to layout a block of exactly 5 rows down with 3 cats each (5 × 3).", prefix: "Total number of cats =", suffix: "cats", rows: 5, cols: 3, product: 15 },
+                2: { text: "🐈 March of the Kitty Battalion (Q2): Rearrange the grid to create a neat formation of exactly 3 rows down with 4 cats each (3 × 4).", prefix: "Total number of cats =", suffix: "cats", rows: 3, cols: 4, product: 12 },
+                3: { text: "🐈 March of the Kitty Battalion (Q3): Align the column units to make a grand block of exactly 4 rows down with 4 cats each (4 × 4).", prefix: "Total number of cats =", suffix: "cats", rows: 4, cols: 4, product: 16 }
+            },
+            3: {
+                badge: "Task: Word Problem",
+                1: { text: "🦜 The Treat Counter (Q1): Bluebirds ate 6 treat snacks. Parrots ate 3 times as many treats as bluebirds. Pick the matching total bag!", prefix: "Total parrot treats =", suffix: "snacks", choices: [9, 18, 24], correctChoice: 18, fA: 3, fB: 6, prod: 18 },
+                2: { text: "🦜 The Treat Counter (Q2): Canaries ate 4 treat snacks. Macaws ate 5 times as many treats as canaries. Choose the proper payload!", prefix: "Total macaw treats =", suffix: "snacks", choices: [12, 16, 20], correctChoice: 20, fA: 5, fB: 4, prod: 20 },
+                3: { text: "🦜 The Treat Counter (Q3): Finches ate 7 treat snacks. Cockatoos ate 2 times as many treats as finches. Select the proper bag!", prefix: "Total cockatoos treats =", suffix: "snacks", choices: [14, 21, 28], correctChoice: 14, fA: 2, fB: 7, prod: 14 }
+            },
+            4: {
+                badge: "Task: Number Line Jump",
+                1: { text: "🐰 Agility Skip-Hop Relay (Q1): Help the bunny perform 4 consecutive hops of 5 spaces each from 0. Tap nodes and calculate!", prefix: "Total number of spaces =", suffix: "spaces", steps: 5, endpoints: [5, 10, 15, 20], fA: 4, fB: 5, prod: 20 },
+                2: { text: "🐰 Agility Skip-Hop Relay (Q2): Direct the bunny to manage 3 consecutive hops of 6 spaces each starting from 0. Toggle targets!", prefix: "Total number of spaces =", suffix: "spaces", steps: 6, endpoints: [6, 12, 18], fA: 3, fB: 6, prod: 18 },
+                3: { text: "🐰 Agility Skip-Hop Relay (Q3): Lead the bunny through 5 consecutive hops of 4 spaces each launching from 0. Mark nodes!", prefix: "Total number of spaces =", suffix: "spaces", steps: 4, endpoints: [4, 8, 12, 16, 20], fA: 5, fB: 4, prod: 20 }
+            }
+        };
 
         function startGameEngine() {
             document.getElementById('intro-card').style.display = 'none';
@@ -362,23 +392,24 @@
             port.innerHTML = '';
             dock.innerHTML = '';
 
-            // Reset fill blanks inputs on changing level
+            // Clean previous input entries
             document.getElementById('inputFactorA').value = '';
             document.getElementById('inputFactorB').value = '';
             document.getElementById('inputProduct').value = '';
             
-            document.getElementById('txtHudProgress').innerText = `Parade Event: Level ${gameLevel} / 4`;
+            // Sync HUD displays
+            document.getElementById('txtHudProgress').innerText = `Parade Event: Level ${gameLevel} - Question ${activeQuestionIndex} / 3`;
             document.getElementById('txtHudScore').innerText = `Parade Stars: ⭐ ${cumulativeStars}`;
 
-            if (gameLevel === 1) {
-                document.getElementById('txtModeBadge').innerText = "Task: Equal Groups";
-                instText.innerText = "🐶 Dog Packing Station: We need exactly 3 Wagons with 4 dogs inside each wagon to build a parade block!";
-                
-                // Multiplication Statement Sentences Configuration
-                document.getElementById('lblPrefix').innerText = "Total number of dogs =";
-                document.getElementById('lblJoinWord').innerText = "x";
-                document.getElementById('lblSuffix').innerText = "dogs";
+            const activeCfg = levelDataMatrix[gameLevel][activeQuestionIndex];
+            document.getElementById('txtModeBadge').innerText = levelDataMatrix[gameLevel].badge;
+            instText.innerText = activeCfg.text;
+            
+            document.getElementById('lblPrefix').innerText = activeCfg.prefix;
+            document.getElementById('lblJoinWord').innerText = "x";
+            document.getElementById('lblSuffix').innerText = activeCfg.suffix;
 
+            if (gameLevel === 1) {
                 level1WagonsCount = 0;
                 level1PuppiesPerWagon = [];
 
@@ -410,14 +441,6 @@
                 dock.appendChild(verifyBtn);
 
             } else if (gameLevel === 2) {
-                document.getElementById('txtModeBadge').innerText = "Task: Array Formation";
-                instText.innerText = "🐈 March of the Kitty Battalion: Highlight the grid field below to layout a block of exactly 5 rows down with 3 cats each (5 × 3).";
-                
-                // Multiplication Statement Sentences Configuration
-                document.getElementById('lblPrefix').innerText = "Total number of cats =";
-                document.getElementById('lblJoinWord').innerText = "x";
-                document.getElementById('lblSuffix').innerText = "cats";
-
                 let board = document.createElement('div');
                 board.className = "grid-march-board";
                 
@@ -441,30 +464,18 @@
                 dock.appendChild(checkBtn);
 
             } else if (gameLevel === 3) {
-                document.getElementById('txtModeBadge').innerText = "Task: Word Problem";
-                instText.innerText = "🦜 The Treat Counter: Bluebirds ate 6 treat snacks. Parrots ate 3 times as many treats as bluebirds. Pick the bag and update the calculation!";
-                
-                // Multiplication Statement Sentences Configuration
-                document.getElementById('lblPrefix').innerText = "Total parrot treats =";
-                document.getElementById('lblJoinWord').innerText = "x";
-                document.getElementById('lblSuffix').innerText = "snacks";
-
                 level3SelectedValue = null;
                 let row = document.createElement('div');
                 row.className = "quiz-choice-row";
 
-                const alternatives = [
-                    { val: 9 }, { val: 18 }, { val: 24 }
-                ];
-
-                alternatives.forEach(alt => {
+                activeCfg.choices.forEach(val => {
                     let card = document.createElement('div');
                     card.className = "choice-card";
-                    card.id = `choice-val-${alt.val}`;
-                    card.onclick = () => selectChoiceL3(alt.val, card);
+                    card.id = `choice-val-${val}`;
+                    card.onclick = () => selectChoiceL3(val, card);
                     card.innerHTML = `
                         <img src="assets/seed.png" onerror="this.src='https://cdn-icons-png.flaticon.com/512/2763/2763444.png'" alt="Seed Bag">
-                        <div>${alt.val} Snacks</div>
+                        <div>${val} Snacks</div>
                     `;
                     row.appendChild(card);
                 });
@@ -478,14 +489,6 @@
                 dock.appendChild(checkBtn);
 
             } else if (gameLevel === 4) {
-                document.getElementById('txtModeBadge').innerText = "Task: Number Line Jump";
-                instText.innerText = "🐰 Agility Skip-Hop Relay: Help the bunny complete 4 consecutive hops of 5 spaces each from 0. Tap the milestone nodes and write the product!";
-                
-                // Multiplication Statement Sentences Configuration
-                document.getElementById('lblPrefix').innerText = "Total number of spaces =";
-                document.getElementById('lblJoinWord').innerText = "x";
-                document.getElementById('lblSuffix').innerText = "spaces";
-
                 level4MilestonesVisited = [];
 
                 let lineWrapper = document.createElement('div');
@@ -494,7 +497,8 @@
                 let axis = document.createElement('div');
                 axis.className = "axis-line";
 
-                for (let i = 0; i <= 25; i += 5) {
+                // Generate intervals adaptively up to a ceiling layout boundary
+                for (let i = 0; i <= 25; i += activeCfg.steps) {
                     let node = document.createElement('div');
                     node.className = "axis-node";
                     node.innerText = i;
@@ -517,7 +521,7 @@
 
         // --- LEVEL 1 ENGINE OPERATIONS ---
         function addWagonL1() {
-            if (level1WagonsCount >= 4) return;
+            if (level1WagonsCount >= 5) return;
             level1WagonsCount++;
             level1PuppiesPerWagon.push(0);
 
@@ -537,193 +541,4 @@
                 if (level1PuppiesPerWagon[i] >= 6) continue;
                 level1PuppiesPerWagon[i]++;
                 
-                let wBox = document.getElementById(`wagon-idx-${i}`);
-                let puppy = document.createElement('img');
-                puppy.className = "pet-token-icon";
-                puppy.src = "assets/dog.png";
-                puppy.onerror = function() { this.src = "https://cdn-icons-png.flaticon.com/512/616/616408.png"; };
-                wBox.appendChild(puppy);
-            }
-        }
-
-        function checkLevel1() {
-            const valA = parseInt(document.getElementById('inputFactorA').value);
-            const valB = parseInt(document.getElementById('inputFactorB').value);
-            const valProduct = parseInt(document.getElementById('inputProduct').value);
-
-            if (isNaN(valA) || isNaN(valB) || isNaN(valProduct)) {
-                alert("Please fill in all blanks in the calculation bar first!");
-                return;
-            }
-
-            if (level1WagonsCount === 3 && level1PuppiesPerWagon.every(count => count === 4) && valA === 3 && valB === 4 && valProduct === 12) {
-                triggerLevelPassGems(10);
-            } else {
-                playAudio('wrong');
-                alert("Incorrect entry! Create exactly 3 wagons with 4 dogs each, and fill out the statement with 3, 4, and 12.");
-            }
-        }
-
-        // --- LEVEL 2 ENGINE OPERATIONS ---
-        function toggleGridCellL2(cell) {
-            if (cell.classList.contains('highlighted')) {
-                cell.classList.remove('highlighted');
-                cell.innerHTML = '';
-            } else {
-                cell.classList.add('highlighted');
-                let cat = document.createElement('img');
-                cat.src = "assets/cat.png";
-                cat.onerror = function() { this.src = "https://cdn-icons-png.flaticon.com/512/616/616430.png"; };
-                cell.appendChild(cat);
-            }
-        }
-
-        function checkLevel2() {
-            const highlightedCells = document.querySelectorAll('.grid-cell.highlighted');
-            const valA = parseInt(document.getElementById('inputFactorA').value);
-            const valB = parseInt(document.getElementById('inputFactorB').value);
-            const valProduct = parseInt(document.getElementById('inputProduct').value);
-
-            if (isNaN(valA) || isNaN(valB) || isNaN(valProduct)) {
-                alert("Please fill in all blanks in the calculation bar first!");
-                return;
-            }
-            
-            let minR = 6, maxR = -1, minC = 6, maxC = -1;
-            highlightedCells.forEach(cell => {
-                let r = parseInt(cell.dataset.row);
-                let c = parseInt(cell.dataset.col);
-                if (r < minR) minR = r; if (r > maxR) maxR = r;
-                if (c < minC) minC = c; if (c > maxC) maxC = c;
-            });
-
-            let rowCount = (maxR - minR) + 1;
-            let colCount = (maxC - minC) + 1;
-            let totalExpectedCount = rowCount * colCount;
-
-            if (rowCount === 5 && colCount === 3 && highlightedCells.length === totalExpectedCount && valA === 5 && valB === 3 && valProduct === 15) {
-                triggerLevelPassGems(10);
-            } else {
-                playAudio('wrong');
-                alert("Alignment error! Highlight a block measuring exactly 5 rows down and 3 columns across, then input 5, 3, and 15 into the blanks!");
-            }
-        }
-
-        // --- LEVEL 3 ENGINE OPERATIONS ---
-        function selectChoiceL3(val, cardElement) {
-            document.querySelectorAll('.choice-card').forEach(c => c.classList.remove('selected'));
-            cardElement.classList.add('selected');
-            level3SelectedValue = val;
-        }
-
-        function checkLevel3() {
-            const valA = parseInt(document.getElementById('inputFactorA').value);
-            const valB = parseInt(document.getElementById('inputFactorB').value);
-            const valProduct = parseInt(document.getElementById('inputProduct').value);
-
-            if (isNaN(valA) || isNaN(valB) || isNaN(valProduct) || !level3SelectedValue) {
-                alert("Please select a snack bag option and complete all mathematical entry blanks first!");
-                return;
-            }
-
-            if (level3SelectedValue === 18 && valA === 3 && valB === 6 && valProduct === 18) {
-                triggerLevelPassGems(10);
-            } else {
-                playAudio('wrong');
-                alert("Recalculation needed! Parrots ate 3 times as many treats as bluebirds (6 treats). Select the 18 snack container and fill blanks with 3, 6, and 18.");
-            }
-        }
-
-        // --- LEVEL 4 ENGINE OPERATIONS ---
-        function tapMilestoneNodeL4(numValue, nodeElement) {
-            if (numValue === 0) return;
-            if (nodeElement.classList.contains('passed')) {
-                nodeElement.classList.remove('passed');
-                level4MilestonesVisited = level4MilestonesVisited.filter(v => v !== numValue);
-            } else {
-                nodeElement.classList.add('passed');
-                level4MilestonesVisited.push(numValue);
-                level4MilestonesVisited.sort((a,b) => a - b);
-            }
-        }
-
-        function checkLevel4() {
-            const valA = parseInt(document.getElementById('inputFactorA').value);
-            const valB = parseInt(document.getElementById('inputFactorB').value);
-            const valProduct = parseInt(document.getElementById('inputProduct').value);
-
-            if (isNaN(valA) || isNaN(valB) || isNaN(valProduct)) {
-                alert("Please fill in all blanks in the calculation bar first!");
-                return;
-            }
-
-            const expected = [5, 10, 15, 20];
-            let matching = level4MilestonesVisited.length === expected.length && 
-                           level4MilestonesVisited.every((val, i) => val === expected[i]);
-
-            if (matching && valA === 4 && valB === 5 && valProduct === 20) {
-                triggerLevelPassGems(10);
-            } else {
-                playAudio('wrong');
-                alert("Incorrect tracking! Select 5, 10, 15, and 20 on the track line, then log 4 hops of 5 spaces = 20 total inside the blanks bar!");
-            }
-        }
-
-        // --- POPCORN EXPLOSION MECHANIC (Fountains from both sides of the viewport) ---
-        function triggerLevelPassGems(rewardPoints) {
-            cumulativeStars += rewardPoints;
-            playAudio('right');
-
-            const viewWidth = window.innerWidth;
-            const viewHeight = window.innerHeight;
-
-            // Generate particles sprouting outwards from left side and right side corners
-            for (let i = 0; i < 30; i++) {
-                createSinglePopcorn(0, viewHeight, 1);       // Left Corner Fountain
-                createSinglePopcorn(viewWidth, viewHeight, -1); // Right Corner Fountain
-            }
-
-            document.getElementById('reward-card').classList.remove('hidden');
-        }
-
-        function createSinglePopcorn(xCoord, yCoord, directionSign) {
-            const kernel = document.createElement('div');
-            kernel.className = "popcorn-particle";
-            kernel.innerText = "🍿";
-            kernel.style.left = `${xCoord}px`;
-            kernel.style.top = `${yCoord - 60}px`;
-
-            // Dynamic physics vectors targeting inward towards upper center arena space
-            const targetDistX = (150 + Math.random() * 400) * directionSign;
-            const targetDistY = -(450 + Math.random() * 350);
-            const spinValue = (360 + Math.random() * 540) * directionSign;
-
-            kernel.style.setProperty('--tx', `${targetDistX}px`);
-            kernel.style.setProperty('--ty', `${targetDistY}px`);
-            kernel.style.setProperty('--rot', `${spinValue}deg`);
-
-            document.body.appendChild(kernel);
-            setTimeout(() => kernel.remove(), 1300);
-        }
-
-        function advanceNextLevel() {
-            document.getElementById('reward-card').classList.add('hidden');
-            gameLevel++;
-            
-            if (gameLevel <= 4) {
-                loadLevelData();
-            } else {
-                document.getElementById('txtHudScore').innerText = `Parade Stars: ⭐ ${cumulativeStars}`;
-                document.getElementById('victory-card').classList.remove('hidden');
-            }
-        }
-
-        function resetWholeGame() {
-            gameLevel = 1;
-            cumulativeStars = 0;
-            document.getElementById('victory-card').classList.add('hidden');
-            loadLevelData();
-        }
-    </script>
-</body>
-</html>
+                let wBox = document.getElementById(`wagon-
