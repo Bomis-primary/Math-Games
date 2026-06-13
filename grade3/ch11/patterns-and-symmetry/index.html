@@ -31,7 +31,7 @@
             overflow-x: hidden;
         }
 
-        /* 5-Second Logo Splash Screen */
+        /* 5-Second Logo Splash Screen Wrapper */
         #splash-screen {
             position: fixed;
             top: 0;
@@ -40,16 +40,31 @@
             height: 100%;
             background-color: white;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
             transition: opacity 0.5s ease;
+            gap: 15px;
         }
 
         #splash-screen img {
-            max-width: 80%;
-            max-height: 80%;
+            max-width: 70%;
+            max-height: 60%;
             object-fit: contain;
+        }
+
+        .loading-text {
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+            font-weight: bold;
+            animation: pulseText 1.5s infinite;
+        }
+
+        @keyframes pulseText {
+            0% { opacity: 0.4; }
+            50% { opacity: 1; }
+            100% { opacity: 0.4; }
         }
 
         .game-card {
@@ -112,7 +127,6 @@
             margin-bottom: 20px;
         }
 
-        /* Interactive Target Screen Display Area */
         .display-zone {
             background: #FFF;
             border: 4px dashed var(--secondary-color);
@@ -127,7 +141,6 @@
             flex-wrap: wrap;
         }
 
-        /* SVG / CSS Element Art Stylings */
         .game-item {
             width: 60px;
             height: 60px;
@@ -174,7 +187,6 @@
             color: var(--primary-color);
         }
 
-        /* Symmetry Display Component */
         .symmetry-box {
             position: relative;
             width: 120px;
@@ -203,7 +215,6 @@
             transform: rotate(15deg);
         }
 
-        /* Interactive Choice Buttons */
         .options-box {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -256,7 +267,6 @@
             box-shadow: 0 0px 0px var(--dark-color);
         }
 
-        /* Confetti Elements */
         .confetti-particle {
             position: absolute;
             width: 8px;
@@ -274,17 +284,16 @@
 </head>
 <body>
 
-    <!-- 5-Second Splash Screen Container -->
     <div id="splash-screen">
-        <img src="logo.png" alt="Game Logo">
+        <img src="assets/logo.png" alt="Game Logo">
+        <div class="loading-text">Loading Mission...</div>
     </div>
 
-    <!-- Hidden Audio Elements using your correct.mp3 and wrong.mp3 -->
-    <audio id="audioCorrect" src="correct.mp3" preload="auto"></audio>
-    <audio id="audioWrong" src="wrong.mp3" preload="auto"></audio>
+    <audio id="audioCorrect" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="audioWrong" src="assets/wrong.mp3" preload="auto"></audio>
+    <audio id="audioClaps" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
 
     <div class="game-card" id="mainCard">
-        <!-- Game Screen -->
         <div id="playContainer">
             <h1>Pattern Detective 🕵️‍♂️</h1>
             <div id="missionBadge" class="mission-badge">Mission 1: Find the Missing Piece</div>
@@ -299,16 +308,10 @@
 
             <p class="instruction-text" id="promptText">Complete the repeating sequence:</p>
 
-            <div class="display-zone" id="renderArea">
-                <!-- Programmatically filled -->
-            </div>
-
-            <div class="options-box" id="optionsArea">
-                <!-- Programmatically filled -->
-            </div>
+            <div class="display-zone" id="renderArea"></div>
+            <div class="options-box" id="optionsArea"></div>
         </div>
 
-        <!-- End Score Screen -->
         <div id="endContainer" class="hidden">
             <h2 style="font-size: 2.5rem; color: var(--primary-color); margin-bottom: 15px;">Mission Complete! 🌟</h2>
             <p id="scoreSummary" style="font-size: 1.8rem; font-weight: bold; margin-bottom: 10px;">Final Score: 0 / 10</p>
@@ -318,19 +321,20 @@
     </div>
 
     <script>
-        // Audio playback handlers
-        function triggerSound(isCorrect) {
-            const player = document.getElementById(isCorrect ? 'audioCorrect' : 'audioWrong');
+        function triggerSound(type) {
+            let player;
+            if (type === 'correct') player = document.getElementById('audioCorrect');
+            else if (type === 'wrong') player = document.getElementById('audioWrong');
+            else if (type === 'claps') player = document.getElementById('audioClaps');
+
             const volumeSetting = parseFloat(document.getElementById('volControl').value);
-            
             if (player) {
                 player.volume = volumeSetting;
-                player.currentTime = 0; // Rewind to start
-                player.play().catch(e => console.log("Audio play blocked by browser policies: ", e));
+                player.currentTime = 0;
+                player.play().catch(e => console.log("Audio play blocked: ", e));
             }
         }
 
-        // Particle confetti fx burst
         function executeConfetti() {
             const boundary = document.getElementById('mainCard');
             const colorMix = ['#FF5964', '#35A7FF', '#FFC857', '#20BF55', '#E0FF4F'];
@@ -351,7 +355,6 @@
             }
         }
 
-        // 10 Conceptual questions mapped directly to image_fde5dd.png LOs
         const totalMissionQuestions = 10;
         let indexPointer = 0;
         let totalScore = 0;
@@ -359,18 +362,13 @@
         let lockingMechanism = true;
 
         const masterQuestionPool = [
-            // Level 1: Find Missing Pieces (Repeating & Growing Patterns)
             { mission: "Mission 1: Missing Piece", text: "Complete the repeating sequence:", type: "missing", layout: ['circle', 'square', 'circle', 'square', 'blank'], target: "circle", choices: ['circle', 'square', 'triangle', 'number-3'] },
             { mission: "Mission 1: Missing Piece", text: "Complete the growing pattern:", type: "missing", layout: ['number-2', 'number-4', 'number-6', 'number-8', 'blank'], target: "10", choices: ['9', '10', '12', '14'] },
             { mission: "Mission 1: Missing Piece", text: "Complete the repeating pattern:", type: "missing", layout: ['triangle', 'triangle', 'circle', 'triangle', 'triangle', 'blank'], target: "circle", choices: ['circle', 'square', 'triangle', 'number-5'] },
             { mission: "Mission 1: Missing Piece", text: "Complete the growing pattern:", type: "missing", layout: ['number-5', 'number-10', 'number-15', 'blank'], target: "20", choices: ['16', '25', '20', '30'] },
-            
-            // Level 2: Find the Secret Pattern Rule
             { mission: "Mission 2: Rule Detective", text: "What is the core rule of this number pattern?", type: "rule", layout: ['number-3', 'number-6', 'number-9', 'number-12'], target: "Count by 3s (+3)", choices: ["Count by 2s (+2)", "Count by 3s (+3)", "Count by 5s (+5)", "Pattern subtracts"] },
             { mission: "Mission 2: Rule Detective", text: "What is the pattern rule here?", type: "rule", layout: ['number-10', 'number-20', 'number-30', 'number-40'], target: "Count by 10s (+10)", choices: ["Count by 5s (+5)", "Count by 10s (+10)", "Count by 2s (+2)", "Count by 4s (+4)"] },
             { mission: "Mission 2: Rule Detective", text: "What repeats in this shape sequence?", type: "rule", layout: ['circle', 'square', 'square', 'circle', 'square', 'square'], target: "1 Circle, 2 Squares", choices: ["1 Circle, 1 Square", "1 Circle, 2 Squares", "2 Circles, 1 Square", "Triangle repeats"] },
-            
-            // Level 3: Symmetry Check
             { mission: "Mission 3: Symmetry Patrol", text: "Is the line a perfect line of symmetry?", type: "symmetry", subType: "vertical", target: "Yes! Perfect Match", choices: ["Yes! Perfect Match", "No! Not Equal"] },
             { mission: "Mission 3: Symmetry Patrol", text: "Is the line dividing the shape into mirror-image halves?", type: "symmetry", subType: "crooked", target: "No! Not Equal", choices: ["Yes! Perfect Match", "No! Not Equal"] },
             { mission: "Mission 3: Symmetry Patrol", text: "Is this dotted line an accurate line of symmetry?", type: "symmetry", subType: "vertical", target: "Yes! Perfect Match", choices: ["Yes! Perfect Match", "No! Not Equal"] }
@@ -379,21 +377,21 @@
         let activelyShuffledPool = [];
 
         function bootstrapper() {
-            // Splash Screen removal after exactly 5 seconds
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
-                splash.style.opacity = '0';
-                setTimeout(() => splash.remove(), 500);
+                if(splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.remove(), 500);
+                }
             }, 5000);
 
             activelyShuffledPool = [...masterQuestionPool].sort(() => Math.random() - 0.5);
             buildQuestion();
         }
 
-        function spawnVisualElement(itemStr, isInteractive = false, targetIdx = -1) {
+        function spawnVisualElement(itemStr) {
             const div = document.createElement('div');
             div.classList.add('game-item');
-            
             if (itemStr.startsWith('number-')) {
                 div.classList.add('shape-num');
                 div.innerText = itemStr.replace('number-', '');
@@ -402,10 +400,6 @@
                 div.innerText = '?';
             } else {
                 div.classList.add(`item-${itemStr}`);
-            }
-
-            if (isInteractive) {
-                div.onclick = () => verifySelectedAnswer(itemStr.replace('number-', ''), targetIdx);
             }
             return div;
         }
@@ -423,7 +417,6 @@
             renderArea.innerHTML = '';
             optionsArea.innerHTML = '';
 
-            // Setup display zone according to challenge type
             if (liveQuestion.type === "missing" || liveQuestion.type === "rule") {
                 liveQuestion.layout.forEach(item => {
                     renderArea.appendChild(spawnVisualElement(item));
@@ -432,7 +425,6 @@
                 const box = document.createElement('div');
                 box.classList.add('symmetry-box');
                 
-                // Toggle a standard circle or square target to challenge line detection
                 const shapeClass = (indexPointer % 2 === 0) ? 'item-circle' : 'item-square';
                 const innerShape = document.createElement('div');
                 innerShape.className = `game-item ${shapeClass}`;
@@ -447,10 +439,9 @@
                 renderArea.appendChild(box);
             }
 
-            // Setup options area
             liveQuestion.choices.forEach(choice => {
                 const btn = document.createElement('button');
-                btn.classList.add('btn-choice');
+                btn.className = 'btn-choice';
                 
                 if (liveQuestion.type === "missing" && !choice.startsWith('number-') && choice !== 'circle' && choice !== 'square' && choice !== 'triangle') {
                     btn.innerText = choice;
@@ -475,15 +466,14 @@
 
             if (chosenString === correctValue) {
                 totalScore++;
-                triggerSound(true);
+                triggerSound('correct');
                 executeConfetti();
                 if (targetBlankSpace) targetBlankSpace.style.backgroundColor = "var(--success-color)";
             } else {
-                triggerSound(false);
+                triggerSound('wrong');
                 if (targetBlankSpace) targetBlankSpace.style.backgroundColor = "var(--primary-color)";
             }
 
-            // Move forward automatically after 1.2 seconds
             setTimeout(() => {
                 indexPointer++;
                 if (indexPointer < totalMissionQuestions) {
@@ -500,8 +490,13 @@
             document.getElementById('scoreSummary').innerText = `Final Score: ${totalScore} / ${totalMissionQuestions}`;
             
             let message = "Keep learning, detective! Practice makes patterns easy! 💪";
-            if (totalScore === totalMissionQuestions) message = "Brilliant! You cracked every pattern rule perfectly! 🏆🔎";
-            else if (totalScore >= 7) message = "Great intuition! Fantastic logical tracking skills! 🚀💥";
+            if (totalScore === totalMissionQuestions) {
+                message = "Brilliant! You cracked every pattern rule perfectly! 🏆🔎";
+                triggerSound('claps');
+            } else if (totalScore >= 7) {
+                message = "Great intuition! Fantastic logical tracking skills! 🚀💥";
+                triggerSound('claps');
+            }
             
             document.getElementById('motivationalMessage').innerText = message;
         }
