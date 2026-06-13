@@ -1,238 +1,390 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>G1 Money Master</title>
-<style>
-  body {
-    margin: 0;
-    font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #fff7cc, #ccf0ff);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100vh;
-  }
-  #game-container {
-    width: 100%;
-    max-width: 600px;
-    text-align: center;
-    position: relative;
-  }
-  #logo-slide, #end-slide {
-    display: none;
-  }
-  #question-slide {
-    display: none;
-  }
-  .option {
-    background-color: #fff;
-    border: 2px solid #cfa;
-    border-radius: 10px;
-    padding: 15px 25px;
-    margin: 10px;
-    display: inline-block;
-    cursor: pointer;
-    font-size: 1.2em;
-    transition: transform 0.2s;
-  }
-  .option:hover {
-    transform: scale(1.05);
-  }
-  .correct {
-    border-color: green;
-    background-color: #cfc;
-  }
-  .wrong {
-    border-color: red;
-    background-color: #fcc;
-    animation: jiggle 0.3s;
-  }
-  @keyframes jiggle {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-5px); }
-    50% { transform: translateX(5px); }
-    75% { transform: translateX(-5px); }
-    100% { transform: translateX(0); }
-  }
-  #confetti-canvas {
-    position: absolute;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-  }
-  #instruction {
-    background-color: #ffd;
-    padding: 10px;
-    border-radius: 8px;
-    font-weight: bold;
-    margin-bottom: 15px;
-  }
-  #play-again-btn {
-    padding: 12px 25px;
-    font-size: 1.2em;
-    border-radius: 12px;
-    border: none;
-    background-color: #ffcc66;
-    cursor: pointer;
-    margin-top: 20px;
-  }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 1 Math: Mission Toy Shop Adventure!</title>
+    <style>
+        :root {
+            --text-main: #1A237E;
+            --primary-color: #FF9800;
+            --secondary-color: #4CAF50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #FFF9C4;
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #FFFFFF;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+        .splash-logo { max-width: 240px; height: auto; }
+
+        /* --- MAIN CONTAINER --- */
+        #game-container {
+            width: 95%;
+            max-width: 720px;
+            background: #FFFFFF;
+            padding: 25px;
+            border-radius: 30px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.12);
+            border: 6px solid #FFB300;
+            text-align: center;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease-in;
+            position: relative;
+        }
+
+        .mission-text {
+            font-size: 1.2rem; line-height: 1.6; margin-bottom: 25px;
+            background: #FFFDE7; padding: 20px; border-radius: 20px; border: 2px dashed #FFB300;
+        }
+        
+        .start-btn {
+            background: linear-gradient(135deg, #FF9800, #E65100); color: white;
+            border: none; padding: 15px 45px; font-size: 1.6rem; font-weight: bold;
+            border-radius: 50px; cursor: pointer; box-shadow: 0 6px 0 #E65100;
+            transition: transform 0.1s;
+        }
+        .start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
+
+        /* --- DYNAMIC ENVIRONMENT STAGE --- */
+        #eco-stage {
+            width: 100%;
+            height: 240px;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            border: 4px solid #FFB300;
+            background-color: #E8F5E9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .stage-graphic {
+            font-size: 5rem;
+            animation: bounceFloat 2s infinite alternate ease-in-out;
+        }
+
+        @keyframes bounceFloat {
+            0% { transform: translateY(0px); }
+            100% { transform: translateY(-12px); }
+        }
+
+        /* --- HUD & CONTROL INTERFACE --- */
+        .hud-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 12px; font-weight: bold; font-size: 1.1rem;
+        }
+        .phase-badge { background: #FFE082; padding: 4px 12px; border-radius: 10px; color: #E65100; font-weight: bold;}
+
+        .progress-track {
+            width: 100%; height: 14px; background: #ECEFF1; border-radius: 10px;
+            overflow: hidden; margin-bottom: 20px; border: 1px solid #CFD8DC;
+        }
+        #progress-bar { height: 100%; width: 0%; background: #4CAF50; transition: width 0.3s; }
+
+        .equation-box {
+            font-size: 1.45rem; font-weight: bold; color: #1B5E20;
+            background: #F1F8E9; padding: 18px; border-radius: 15px;
+            margin-bottom: 20px; border-bottom: 4px solid #C8E6C9;
+            min-height: 85px; display: flex; align-items: center; justify-content: center;
+        }
+
+        .grid-matrix { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 10px; }
+        .box-btn {
+            background: #FFFFFF; border: 3px solid #FFB300; border-radius: 20px;
+            padding: 14px; font-size: 1.2rem; font-weight: bold; color: #E65100;
+            cursor: pointer; box-shadow: 0 5px 0 #FFB300; transition: all 0.1s;
+        }
+        .box-btn:active { transform: translateY(5px); box-shadow: 0 0 0 transparent; }
+        .box-btn.correct { background: #4CAF50 !important; border-color: #2E7D32 !important; color: white !important; box-shadow: 0 5px 0 #2E7D32; }
+        .box-btn.wrong { background: #EF5350 !important; border-color: #C62828 !important; color: white !important; box-shadow: 0 5px 0 #C62828; }
+
+        .confetti-element {
+            position: absolute; width: 10px; height: 10px; top: 50%; left: 50%;
+            opacity: 0; pointer-events: none; z-index: 99; border-radius: 50%;
+        }
+    </style>
 </head>
 <body>
-<div id="game-container">
 
-  <!-- Slide 1: Logo -->
-  <div id="logo-slide">
-    <img src="logo.png" alt="Innovine Logo" style="width:200px;">
-  </div>
+    <!-- Splash Screen -->
+    <div id="splash-screen">
+        <img src="assets/logo.png" alt="Innovine Logo" class="splash-logo" onerror="this.src='https://placehold.co/200?text=Innovine'">
+    </div>
 
-  <!-- Question Slide -->
-  <div id="question-slide">
-    <div id="instruction"></div>
-    <div id="options-container"></div>
-  </div>
+    <!-- Main Game Frame -->
+    <div id="game-container">
+        
+        <!-- Welcome Screen -->
+        <div id="intro-card">
+            <div style="font-size: 4.5rem; margin-bottom: 10px;">🏪💰🧸</div>
+            <h2 style="color: #E65100; font-size: 2.3rem; margin-bottom: 12px;">Mission: Toy Shop Adventure!</h2>
+            <p class="mission-text">
+                Welcome to the local Toy Shop! Let's explore real Indian coins and notes to manage our pocket money.
+                <br><br>
+                <strong>Your Mission:</strong> Identify correct bills at the cash register, then pick the exact money bundles to buy your favorite toys!
+            </p>
+            <button class="start-btn" onclick="engageMission()">Enter Toy Shop! 🚀</button>
+        </div>
 
-  <!-- End Slide -->
-  <div id="end-slide">
-    <h2>🎉 Well Done! 🎉</h2>
-    <button id="play-again-btn">Play Again</button>
-  </div>
+        <!-- Interactive Active Playfield -->
+        <div id="active-playfield" style="display: none;">
+            <div class="hud-header">
+                <span id="label-task">Progress Tracker</span>
+                <span class="phase-badge" id="label-phase">Phase 1: Cash Register</span>
+                <span>Score: <span id="label-score">0</span></span>
+            </div>
 
-</div>
+            <div class="progress-track"><div id="progress-bar"></div></div>
 
-<audio id="correct-sound" src="correct.mp3"></audio>
-<audio id="wrong-sound" src="wrong.mp3"></audio>
-<audio id="applause-sound" src="freesound_community-claps-44774.mp3"></audio>
+            <!-- Dynamic Interactive Visual Stage Area -->
+            <div id="eco-stage">
+                <div id="stage-icon" class="stage-graphic">👛</div>
+            </div>
 
-<canvas id="confetti-canvas"></canvas>
+            <div class="equation-box" id="field-question">Loading shopping assignment...</div>
+            <div class="grid-matrix" id="field-options"></div>
+        </div>
 
-<script>
-// --- Game Data ---
-const rounds = [
-  { instruction: "Identify the coin: ₹1", options: ["₹1", "₹2", "₹5"], answer: 0 },
-  { instruction: "Identify the note: ₹50", options: ["₹10", "₹50", "₹100"], answer: 1 },
-  { instruction: "Add coins: ₹5 + ₹2 = ?", options: ["₹6", "₹7", "₹8"], answer: 1 },
-  { instruction: "Add coin and note: ₹10 + ₹50 = ?", options: ["₹50", "₹60", "₹70"], answer: 2 },
-  { instruction: "Which item is more expensive?", options: ["₹20", "₹50"], answer: 1 },
-  { instruction: "Mixed: ₹2 + ₹2 + ₹5 = ?", options: ["₹8", "₹9", "₹10"], answer: 2 }
-];
+        <!-- Victory Card Summary -->
+        <div id="victory-card" style="display: none;">
+            <div style="font-size: 5rem;">🏆⭐💰</div>
+            <h1 style="color: #2E7D32; font-size: 2.5rem; margin: 15px 0;">Junior Money Master!</h1>
+            <p style="font-size: 1.3rem; margin-bottom: 25px; padding: 0 20px;">
+                Incredible job! You mastered your coins and notes, completed the shopping mission, and bought all your toys perfectly.
+            </p>
+            <h2 id="final-stats" style="color: #E65100; margin-bottom: 20px;"></h2>
+            <button class="start-btn" style="background: linear-gradient(135deg, #4CAF50, #2E7D32); box-shadow: 0 6px 0 #1B5E20;" onclick="resetSimulator()">Play Challenge Again 🔄</button>
+        </div>
 
-let currentRound = -1;
-let attempt = 0;
+    </div>
 
-// --- Elements ---
-const logoSlide = document.getElementById("logo-slide");
-const questionSlide = document.getElementById("question-slide");
-const endSlide = document.getElementById("end-slide");
-const instructionEl = document.getElementById("instruction");
-const optionsContainer = document.getElementById("options-container");
-const correctSound = document.getElementById("correct-sound");
-const wrongSound = document.getElementById("wrong-sound");
-const applauseSound = document.getElementById("applause-sound");
-const playAgainBtn = document.getElementById("play-again-btn");
-const confettiCanvas = document.getElementById("confetti-canvas");
+    <script>
+        // WEB AUDIO CONTEXT ENGINE SYNTHESIZER (Guarantees zero audio link failure dropouts)
+        let audioCtx = null;
+        function triggerAudio(mode) {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (mode === 'correct') {
+                    // Play a cheerful high-pitched multi-tone chime chord
+                    let t = audioCtx.currentTime;
+                    let osc1 = audioCtx.createOscillator();
+                    let osc2 = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    
+                    osc1.type = 'triangle'; osc1.frequency.setValueAtTime(523.25, t); // C5
+                    osc2.type = 'sine'; osc2.frequency.setValueAtTime(659.25, t); // E5
+                    
+                    gain.gain.setValueAtTime(0.3, t);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.4);
+                    
+                    osc1.connect(gain); osc2.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc1.start(t); osc2.start(t);
+                    osc1.stop(t + 0.4); osc2.stop(t + 0.4);
+                } else if (mode === 'wrong') {
+                    // Play a low double-beep tone
+                    let t = audioCtx.currentTime;
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(130.81, t); // C3
+                    gain.gain.setValueAtTime(0.2, t);
+                    gain.gain.setValueAtTime(0, t + 0.1);
+                    gain.gain.setValueAtTime(0.2, t + 0.15);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+                    
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.3);
+                }
+            } catch(err) { console.log('Audio Context error caught safely.'); }
+        }
 
-// --- Game Flow ---
-function startGame() {
-  logoSlide.style.display = "block";
-  questionSlide.style.display = "none";
-  endSlide.style.display = "none";
-  currentRound = -1;
-  attempt = 0;
-  setTimeout(nextRound, 3000);
-}
+        // CUSTOM DOM PARTICLE GENERATION ENGINE
+        function deployConfettiEngine() {
+            try {
+                var frame = document.getElementById('game-container');
+                if(!frame) return;
+                var palettes = ['#FFEB3B', '#FF9800', '#4CAF50', '#00E5FF', '#FF3D00', '#FFFFFF'];
+                for (var i = 0; i < 35; i++) {
+                    var atom = document.createElement('div');
+                    atom.className = 'confetti-element';
+                    atom.style.backgroundColor = palettes[Math.floor(Math.random() * palettes.length)];
+                    frame.appendChild(atom);
+                    var angle = Math.random() * Math.PI * 2;
+                    var force = Math.random() * 160 + 50;
+                    var shiftX = Math.cos(angle) * force;
+                    var shiftY = Math.sin(angle) * force - 10;
+                    atom.animate([
+                        { transform: 'translate(-50%, -50%) scale(1) rotate(0deg)', opacity: 1 },
+                        { transform: 'translate(calc(-50% + ' + shiftX + 'px), calc(-50% + ' + shiftY + 'px)) scale(0.3) rotate(' + (Math.random() * 360) + 'deg)', opacity: 0 }
+                    ], { duration: Math.random() * 500 + 600, easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)', fill: 'forwards' });
+                    (function(el) { setTimeout(function() { if(el) el.remove(); }, 1200); })(atom);
+                }
+            } catch(e){}
+        }
 
-function nextRound() {
-  currentRound++;
-  attempt = 0;
-  if(currentRound >= rounds.length) {
-    showEndSlide();
-    return;
-  }
-  showQuestion(rounds[currentRound]);
-}
+        // GAME CURRICULUM QUESTIONS POOL
+        var questionsPool = [
+            // Phase 1 Questions (Identification)
+            { phase: 1, graphic: "🪙", question: "Which coin has the value of 5 Rupees?", answers: ["₹1 Coin", "₹2 Coin", "₹5 Coin", "₹10 Coin"], correct: "₹5 Coin" },
+            { phase: 1, graphic: "💵", question: "Identify the largest value paper note shown below:", answers: ["₹10 Note", "₹5 Note", "₹2 Note", "₹1 Note"], correct: "₹10 Note" },
+            { phase: 1, graphic: "🪙", question: "Which is the smallest coin value listed here?", answers: ["₹10 Coin", "₹5 Coin", "₹2 Coin", "₹1 Coin"], correct: "₹1 Coin" },
+            { phase: 1, graphic: "💵", question: "If you have a paper note with '10' written on it, what is its value?", answers: ["1 Rupee", "2 Rupees", "5 Rupees", "10 Rupees"], correct: "10 Rupees" },
+            { phase: 1, graphic: "👛", question: "Which coin matches the value of a ₹2 paper note?", answers: ["₹1 Coin", "₹2 Coin", "₹5 Coin", "₹10 Coin"], correct: "₹2 Coin" },
+            
+            // Phase 2 Questions (Toy Store Shopping combinations)
+            { phase: 2, graphic: "🧸", question: "A cute Teddy Bear costs ₹7. Which combination pays exactly ₹7?", answers: ["₹5 Coin + ₹2 Coin", "₹5 Coin + ₹1 Coin", "Same as a ₹10 Note", "₹2 Coin + ₹2 Coin"], correct: "₹5 Coin + ₹2 Coin" },
+            { phase: 2, graphic: "🚗", question: "A fast Toy Car costs ₹12. How do you pay for it?", answers: ["₹5 Coin + ₹5 Coin", "₹10 Note + ₹2 Coin", "₹10 Note + ₹5 Coin", "Three ₹2 Coins"], correct: "₹10 Note + ₹2 Coin" },
+            { phase: 2, graphic: "🎨", question: "A Box of Paints costs ₹6. What can you use to buy it?", answers: ["₹5 Coin + ₹1 Coin", "₹2 Coin + ₹2 Coin", "₹10 Note exactly", "₹5 Coin + ₹5 Coin"], correct: "₹5 Coin + ₹1 Coin" },
+            { phase: 2, graphic: "⚽", question: "A bright Football costs ₹15. Choose the correct money option:", answers: ["₹5 Coin + ₹2 Coin", "₹10 Note + ₹2 Coin", "Three ₹1 Coins", "₹10 Note + ₹5 Coin"], correct: "₹10 Note + ₹5 Coin" },
+            { phase: 2, graphic: "🍦", question: "An Ice Cream treat costs ₹4. Which option pays exactly?", answers: ["₹2 Coin + ₹2 Coin", "₹5 Coin + ₹1 Coin", "₹10 Note exactly", "One ₹1 Coin"], correct: "₹2 Coin + ₹2 Coin" }
+        ];
 
-function showQuestion(round) {
-  logoSlide.style.display = "none";
-  questionSlide.style.display = "block";
-  endSlide.style.display = "none";
-  instructionEl.textContent = round.instruction;
-  optionsContainer.innerHTML = "";
-  round.options.forEach((opt, idx) => {
-    const btn = document.createElement("div");
-    btn.classList.add("option");
-    btn.textContent = opt;
-    btn.addEventListener("click", () => handleAnswer(idx));
-    optionsContainer.appendChild(btn);
-  });
-}
+        let gameIndex = 0;
+        let runningScore = 0;
 
-function handleAnswer(selectedIdx) {
-  const round = rounds[currentRound];
-  const buttons = optionsContainer.children;
-  if(selectedIdx === round.answer) {
-    buttons[selectedIdx].classList.add("correct");
-    correctSound.play();
-    setTimeout(nextRound, 1000);
-  } else {
-    buttons[selectedIdx].classList.add("wrong");
-    wrongSound.play();
-    attempt++;
-    if(attempt >= 2) {
-      buttons[round.answer].classList.add("correct");
-      setTimeout(nextRound, 1500);
-    }
-  }
-}
+        function engageMission() {
+            document.getElementById('intro-card').style.display = 'none';
+            document.getElementById('active-playfield').style.display = 'block';
+            executeActiveChallenge();
+        }
 
-function showEndSlide() {
-  questionSlide.style.display = "none";
-  endSlide.style.display = "block";
-  applauseSound.play();
-  launchConfetti();
-}
+        function executeActiveChallenge() {
+            let totalQ = questionsPool.length;
+            document.getElementById('label-task').innerText = "Question: " + (gameIndex + 1) + " / " + totalQ;
+            document.getElementById('progress-bar').style.width = ((gameIndex / totalQ) * 100) + "%";
 
-// --- Play Again ---
-playAgainBtn.addEventListener("click", () => {
-  clearConfetti();
-  startGame();
-});
+            let currentData = questionsPool[gameIndex];
+            
+            // Adjust Phase badges and layout backgrounds dynamically based on question level
+            if (currentData.phase === 1) {
+                document.getElementById('label-phase').innerText = "Phase 1: Cash Register";
+                document.getElementById('label-phase').style.background = "#FFE082";
+                document.getElementById('label-phase').style.color = "#E65100";
+                document.getElementById('eco-stage').style.backgroundColor = "#E8F5E9";
+            } else {
+                document.getElementById('label-phase').innerText = "Phase 2: Toy Checkout";
+                document.getElementById('label-phase').style.background = "#C8E6C9";
+                document.getElementById('label-phase').style.color = "#1B5E20";
+                document.getElementById('eco-stage').style.backgroundColor = "#E3F2FD";
+            }
 
-// --- Confetti ---
-let confettiCtx = confettiCanvas.getContext('2d');
-confettiCanvas.width = window.innerWidth;
-confettiCanvas.height = window.innerHeight;
-let confettiPieces = [];
-function launchConfetti() {
-  confettiPieces = [];
-  for(let i=0;i<150;i++){
-    confettiPieces.push({x:Math.random()*confettiCanvas.width, y:Math.random()*confettiCanvas.height, r:Math.random()*6+2, d:Math.random()*20, color:`hsl(${Math.random()*360},100%,50%)`, tilt:Math.random()*10-10});
-  }
-  requestAnimationFrame(drawConfetti);
-}
-function drawConfetti() {
-  confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
-  confettiPieces.forEach(p=>{
-    confettiCtx.beginPath();
-    confettiCtx.lineWidth = p.r/2;
-    confettiCtx.strokeStyle = p.color;
-    confettiCtx.moveTo(p.x+p.tilt+ p.r/4, p.y);
-    confettiCtx.lineTo(p.x+p.tilt, p.y+p.r);
-    confettiCtx.stroke();
-    p.y += Math.cos(0.1+p.d)*2+1;
-    p.x += Math.sin(0.05)*2;
-    if(p.y > confettiCanvas.height){p.y=0;p.x=Math.random()*confettiCanvas.width;}
-  });
-  if(endSlide.style.display==="block") requestAnimationFrame(drawConfetti);
-}
-function clearConfetti() {
-  confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
-}
+            // Set Stage Icon and Question Texts
+            document.getElementById('stage-icon').innerText = currentData.graphic;
+            document.getElementById('field-question').innerText = currentData.question;
+            
+            // Render Answer Buttons Options Matrix
+            var optionsBox = document.getElementById('field-options');
+            optionsBox.innerHTML = '';
 
-window.onload = startGame;
-</script>
+            currentData.answers.forEach(function(ans) {
+                var btn = document.createElement('button');
+                btn.className = 'box-btn';
+                btn.innerText = ans;
+                btn.onclick = function() { processPlayerSelection(btn, ans, currentData.correct); };
+                optionsBox.appendChild(btn);
+            });
+        }
+
+        function processPlayerSelection(btnElement, chosenAnswer, correctAnswer) {
+            // Instantly lock options matrices against triple taps
+            document.querySelectorAll('.box-btn').forEach(function(b) { b.disabled = true; });
+
+            if (chosenAnswer === correctAnswer) {
+                btnElement.classList.add('correct');
+                triggerAudio('correct');
+                runningScore++;
+                document.getElementById('label-score').innerText = runningScore;
+                deployConfettiEngine();
+            } else {
+                btnElement.classList.add('wrong');
+                triggerAudio('wrong');
+                document.querySelectorAll('.box-btn').forEach(function(b) {
+                    if (b.innerText === correctAnswer) b.classList.add('correct');
+                });
+            }
+
+            // Timed step interval before advancing tasks automatically
+            setTimeout(function() {
+                gameIndex++;
+                if (gameIndex < questionsPool.length) {
+                    executeActiveChallenge();
+                } else {
+                    concludeSimulation();
+                }
+            }, 1800);
+        }
+
+        function concludeSimulation() {
+            document.getElementById('progress-bar').style.width = "100%";
+            document.getElementById('active-playfield').style.display = 'none';
+            document.getElementById('victory-card').style.display = 'block';
+            document.getElementById('final-stats').innerText = "Score Secured: " + runningScore + " / " + questionsPool.length;
+        }
+
+        function resetSimulator() {
+            // Shuffle the order of question selections across loads slightly to maintain randomness rule
+            questionsPool.sort(() => Math.random() - 0.5);
+            gameIndex = 0;
+            runningScore = 0;
+            document.getElementById('label-score').innerText = "0";
+            document.getElementById('victory-card').style.display = 'none';
+            document.getElementById('active-playfield').style.display = 'block';
+            executeActiveChallenge();
+        }
+
+        /* --- BULLETPROOF INITIALIZER --- */
+        window.addEventListener('load', function() {
+            // Guarantee complete layout display transitions precisely after 2500ms
+            setTimeout(function() {
+                var splash = document.getElementById('splash-screen');
+                var mainContainer = document.getElementById('game-container');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    if (mainContainer) {
+                        mainContainer.style.display = 'block';
+                        setTimeout(function() { 
+                            mainContainer.style.opacity = '1'; 
+                            if (splash.parentNode) splash.parentNode.removeChild(splash);
+                        }, 500);
+                    }
+                }
+            }, 2500);
+        });
+    </script>
 </body>
 </html>
