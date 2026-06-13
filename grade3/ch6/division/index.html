@@ -1,275 +1,517 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chef Dyna's Magical Bakery - Division Game</title>
-<style>
-  body { margin:0; font-family: 'Arial', sans-serif; background: #FFF8F0; }
-  .screen { display: none; width: 100vw; height: 100vh; justify-content: center; align-items: center; flex-direction: column; text-align: center; position: relative; }
-  .active { display: flex; }
-  .logo { width: 200px; margin-top: 50px; }
-  .game-bg { width: 100%; height: 100%; position: absolute; top:0; left:0; z-index: -1; object-fit: cover; }
-  .items { display: flex; flex-wrap: wrap; justify-content: center; margin-top:20px; }
-  .item { width:60px; height:60px; margin:10px; cursor: pointer; }
-  .tray { width:80px; height:80px; margin:15px; border: 2px dashed #8A2BE2; display:flex; justify-content:center; align-items:center; font-weight:bold; color:#8A2BE2; }
-  button { margin-top:20px; padding:10px 20px; font-size:18px; background:#8A2BE2; color:white; border:none; border-radius:10px; cursor:pointer; }
-  input { font-size:18px; padding:5px; width:100px; text-align:center; }
-  .feedback { margin-top:10px; font-size:20px; font-weight:bold; color:#8A2BE2; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Space Cargo Divider!</title>
+    <style>
+        :root {
+            --space-dark: #0B0F19;
+            --alien-green: #22C55E;
+            --neon-pink: #EC4899;
+            --cosmic-blue: #3B82F6;
+            --star-yellow: #EAB308;
+            --card-bg: #1E293B;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(180deg, #020617 0%, #0F172A 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+            color: #F8FAFC;
+        }
+
+        /* Splash Screen */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #FFFFFF;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        #splash-screen img { max-width: 60%; max-height: 50%; object-fit: contain; }
+
+        .game-container {
+            background: var(--card-bg);
+            border: 6px solid #475569;
+            border-radius: 36px;
+            width: 100%;
+            max-width: 720px;
+            padding: 25px;
+            box-shadow: 0 20px 0px #0F172A;
+            position: relative;
+        }
+
+        h1 {
+            color: var(--star-yellow);
+            font-size: 2.2rem;
+            text-align: center;
+            text-shadow: 2px 2px 0px #000;
+            margin-bottom: 10px;
+        }
+
+        /* Progress Bar */
+        .progress-bar-container {
+            background: #334155;
+            border: 3px solid #64748B;
+            height: 24px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        #progressFill {
+            height: 100%;
+            width: 25%;
+            background: linear-gradient(90deg, #A855F7, #EC4899, #3B82F6);
+            transition: width 0.4s ease;
+        }
+
+        .hud-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.1rem;
+            font-weight: bold;
+            background: #0F172A;
+            padding: 10px 20px;
+            border-radius: 20px;
+            border: 3px solid #475569;
+            margin-bottom: 15px;
+        }
+
+        /* COSMIC VIEWPORT PANEL */
+        .viewport-panel {
+            background: #020617;
+            border: 5px solid #475569;
+            border-radius: 24px;
+            min-height: 280px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px;
+            overflow: hidden;
+            box-shadow: inset 0 8px 0 rgba(0,0,0,0.5);
+            background-image: radial-gradient(white 1px, transparent 0);
+            background-size: 24px 24px;
+        }
+
+        .mission-bubble {
+            background: #1E293B;
+            border: 3px solid var(--cosmic-blue);
+            border-radius: 16px;
+            padding: 10px 15px;
+            font-size: 1.15rem;
+            text-align: center;
+            width: 100%;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        /* ACTIVE VISUAL VISUALIZER ITEMS */
+        .visual-display-area {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            margin: 15px 0;
+            max-height: 110px;
+            overflow-y: auto;
+        }
+        .cargo-item {
+            font-size: 2rem;
+            animation: float-item 3s ease-in-out infinite alternate;
+        }
+        @keyframes float-item {
+            from { transform: translateY(0px) rotate(0deg); }
+            to { transform: translateY(-5px) rotate(5deg); }
+        }
+
+        /* MATH INPUT SYSTEM BOXES */
+        .workspace-calculator {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin: 20px 0;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .math-input-box {
+            width: 85px;
+            height: 70px;
+            background: #0F172A;
+            border: 4px solid #64748B;
+            border-radius: 16px;
+            text-align: center;
+            color: #FFFFFF;
+            font-size: 2.2rem;
+            font-weight: bold;
+            outline: none;
+            transition: all 0.2s;
+        }
+        .math-input-box:focus {
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 10px rgba(236, 72, 153, 0.5);
+        }
+        .math-input-box.remainder-box {
+            border-color: var(--star-yellow);
+        }
+
+        .label-sub {
+            font-size: 0.9rem;
+            color: #94A3B8;
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        /* INTERACTIVE NUMBER PAD FOR TABLETS */
+        .control-room {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .numpad-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            background: #0F172A;
+            padding: 12px;
+            border-radius: 20px;
+            border: 3px solid #334155;
+        }
+        .num-btn {
+            background: #334155;
+            color: white;
+            border: none;
+            font-size: 1.4rem;
+            font-weight: bold;
+            padding: 12px;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #1E293B;
+        }
+        .num-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #1E293B;
+        }
+        .num-btn.clear-btn { background: #EF4444; }
+
+        .btn-action-row {
+            display: flex;
+            gap: 15px;
+        }
+        .btn-action {
+            flex-grow: 1;
+            padding: 15px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            border-radius: 50px;
+            border: 4px solid #000;
+            cursor: pointer;
+            color: white;
+            text-shadow: 1px 1px 0 #000;
+        }
+        .btn-reset { background: #64748B; box-shadow: 0 5px 0 #334155; }
+        .btn-verify { background: var(--alien-green); box-shadow: 0 5px 0 #166534; }
+        .btn-action:active { transform: translateY(4px); box-shadow: none; }
+
+        /* WIN POPUP POP OVERLAY */
+        .fun-popup {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.98);
+            border-radius: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            padding: 20px;
+            border: 6px solid var(--alien-green);
+            animation: popUpArt 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.25);
+        }
+        @keyframes popUpArt { from { scale: 0.7; opacity: 0; } to { scale: 1; opacity: 1; } }
+
+        .hidden { display: none !important; }
+    </style>
 </head>
 <body>
 
-<!-- Splash Screen -->
-<div id="splash" class="screen active">
-  <img src="assets/innovine-logo.png" alt="Logo" class="logo">
-</div>
+    <div id="splash-screen">
+        <img id="splashLogo" src="assets/innovine-logo.png" alt="Logo">
+    </div>
 
-<!-- Mission Intro -->
-<div id="intro" class="screen">
-  <img src="assets/bg.png" class="game-bg" alt="Background">
-  <h2 style="z-index:1; color:#333;">Welcome to Chef Dyna's Magical Bakery!</h2>
-  <p style="z-index:1; color:#333;">Help Chef Dyna divide magical treats equally.</p>
-  <button onclick="startGame()">Start Mission</button>
-</div>
+    <audio id="audioRight" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="audioWrong" src="assets/wrong.mp3" preload="auto"></audio>
+    <audio id="audioApplause" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
 
-<!-- Game Screens -->
-<div id="gameContainer">
+    <div class="game-container">
+        
+        <div id="popupCelebration" class="fun-popup hidden">
+            <div style="font-size: 5rem; animation: float-item 0.5s infinite alternate;" id="popEmoji">🛸</div>
+            <h2 style="font-size: 2.2rem; color: var(--alien-green); margin: 10px 0;">Cargo Distributed!</h2>
+            <p style="font-size: 1.2rem; color: #94A3B8; margin-bottom: 25px;" id="popMsg">Excellent mathematical sorting!</p>
+            <button class="btn-action btn-verify" style="flex-grow:0; padding: 10px 40px;" onclick="nextMissionLevel()">Next Cargo Run 🚀</button>
+        </div>
 
-  <!-- Game 1: Basic Division -->
-  <div id="game1" class="screen">
-    <img src="assets/bg.png" class="game-bg" alt="Background">
-    <h2>Mission 1: Divide 12 cupcakes into 4 trays</h2>
-    <div class="items" id="cupcakes"></div>
-    <div class="items" id="trays"></div>
-    <div class="feedback" id="feedback1"></div>
-  </div>
+        <div id="arenaStage">
+            <h1>Space Cargo Divider! 🍕🛸</h1>
+            
+            <div class="progress-bar-container"><div id="progressFill"></div></div>
+            
+            <div class="hud-stats">
+                <span id="txtMissionNum">Mission: 1 / 4</span>
+                <span id="txtScore">Score: 0 ⭐</span>
+            </div>
 
-  <!-- Game 2: Long Division -->
-  <div id="game2" class="screen">
-    <img src="assets/bg.png" class="game-bg" alt="Background">
-    <h2>Mission 2: Divide 126 cookies into 6 boxes</h2>
-    <p>How many cookies in each box?</p>
-    <input type="number" id="cookiesInput" placeholder="Enter number">
-    <button onclick="checkCookies()">Submit</button>
-    <div class="feedback" id="feedback2"></div>
-  </div>
+            <div class="viewport-panel">
+                <div class="mission-bubble" id="txtInstruction">Loading space log...</div>
+                
+                <div class="visual-display-area" id="cargoDisplayBox"></div>
+            </div>
 
-  <!-- Game 3: Division with Remainder -->
-  <div id="game3" class="screen">
-    <img src="assets/bg.png" class="game-bg" alt="Background">
-    <h2>Mission 3: Divide 458 candies among 7 wizards</h2>
-    <div class="items" id="candies"></div>
-    <div class="items" id="wizards"></div>
-    <div class="feedback" id="feedback3"></div>
-  </div>
+            <div class="workspace-calculator">
+                <span id="valDividend">24</span>
+                <span>÷</span>
+                <span id="valDivisor">4</span>
+                <span>=</span>
+                <div>
+                    <input type="number" class="math-input-box" id="inputQuotient" readonly placeholder="?">
+                    <div class="label-sub">Quotient</div>
+                </div>
+                <span id="labelRSign" class="hidden">R</span>
+                <div id="wrapperRemainder" class="hidden">
+                    <input type="number" class="math-input-box remainder-box" id="inputRemainder" readonly placeholder="?">
+                    <div class="label-sub">Remainder</div>
+                </div>
+            </div>
 
-  <!-- Game 4: Division by 10 -->
-  <div id="game4" class="screen">
-    <img src="assets/bg.png" class="game-bg" alt="Background">
-    <h2>Mission 4: Divide 250 muffins into packs of 10</h2>
-    <div class="items" id="muffins"></div>
-    <div class="items" id="packs"></div>
-    <div class="feedback" id="feedback4"></div>
-  </div>
+            <div class="control-room">
+                <div class="numpad-grid">
+                    <button class="num-btn" onclick="typeNumber(1)">1</button>
+                    <button class="num-btn" onclick="typeNumber(2)">2</button>
+                    <button class="num-btn" onclick="typeNumber(3)">3</button>
+                    <button class="num-btn" onclick="typeNumber(4)">4</button>
+                    <button class="num-btn" onclick="typeNumber(5)">5</button>
+                    <button class="num-btn" onclick="typeNumber(6)">6</button>
+                    <button class="num-btn" onclick="typeNumber(7)">7</button>
+                    <button class="num-btn" onclick="typeNumber(8)">8</button>
+                    <button class="num-btn" onclick="typeNumber(9)">9</button>
+                    <button class="num-btn" onclick="typeNumber(0)">0</button>
+                </div>
 
-</div>
+                <div class="btn-action-row">
+                    <button class="btn-action btn-reset" onclick="clearActiveInputs()">Clear ❌</button>
+                    <button class="btn-action btn-verify" onclick="verifyCargoDivision()">Verify Distribution ✔️</button>
+                </div>
+            </div>
+        </div>
 
-<!-- End Screen -->
-<div id="endScreen" class="screen">
-  <img src="assets/bg.png" class="game-bg" alt="Background">
-  <h2>Congratulations!</h2>
-  <p>You helped Chef Dyna divide all treats perfectly!</p>
-  <img src="assets/muffin.png" alt="Celebration" style="width:200px;">
-  <button onclick="restartGame()">Play Again</button>
-</div>
+        <div id="endStudioPanel" class="hidden" style="text-align: center; padding: 20px;">
+            <h2 style="font-size: 2.6rem; color: var(--star-yellow);">Fleet Fleet Commander! 🏆</h2>
+            <div style="font-size: 5.5rem; margin: 15px 0;">🪐🛸⭐</div>
+            <p id="endScoreValue" style="font-size: 1.8rem; font-weight: bold; margin-bottom: 30px;"></p>
+            <button class="btn-action btn-verify" style="flex-grow:0;" onclick="replayCargoEngine()">Play Mission Again! 🎉</button>
+        </div>
 
-<!-- Audio -->
-<audio id="correctAudio" src="assets/correct.mp3"></audio>
-<audio id="wrongAudio" src="assets/wrong.mp3"></audio>
-<audio id="clapAudio" src="assets/freesound_community-claps-44774.mp3"></audio>
+    </div>
 
-<script>
-  // Splash screen timer
-  setTimeout(() => {
-    document.getElementById('splash').classList.remove('active');
-    document.getElementById('intro').classList.add('active');
-  }, 3000);
+    <script>
+        window.onload = function() {
+            // Handles automatic asset mapping check
+            const logo = document.getElementById('splashLogo');
+            if(logo) { logo.onerror = function() { this.src = 'assets/logo.png'; }; }
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if(splash) {
+                    splash.style.opacity = 0;
+                    setTimeout(() => splash.style.display = 'none', 500);
+                }
+            }, 1800);
+            startCargoEngine();
+        };
 
-  function startGame() {
-    document.getElementById('intro').classList.remove('active');
-    document.getElementById('game1').classList.add('active');
-    initGame1();
-  }
+        function playSound(type) {
+            const el = document.getElementById(type === 'right' ? 'audioRight' : type === 'wrong' ? 'audioWrong' : 'audioApplause');
+            if(el) { el.currentTime = 0; el.play().catch(()=>{}); }
+        }
 
-  // ---------------- GAME 1 ----------------
-  let draggedItem = null;
-  let game1Attempts = 0;
+        let levelIndex = 0;
+        let totalScore = 0;
+        let attemptTracking = false;
+        let activeFocusedInput = 'quotient';
 
-  function initGame1() {
-    const cupcakesDiv = document.getElementById('cupcakes');
-    cupcakesDiv.innerHTML = '';
-    for (let i=0;i<12;i++){
-      const c = document.createElement('img');
-      c.src = 'assets/cupcake.png';
-      c.className = 'item';
-      c.draggable = true;
-      c.id = 'cupcake'+i;
-      c.addEventListener('dragstart', e => draggedItem=e.target);
-      cupcakesDiv.appendChild(c);
-    }
-    const traysDiv = document.getElementById('trays');
-    traysDiv.innerHTML='';
-    for (let i=0;i<4;i++){
-      const t = document.createElement('div');
-      t.className='tray';
-      t.id='tray'+i;
-      t.textContent='0';
-      t.addEventListener('dragover', e => e.preventDefault());
-      t.addEventListener('drop', drop1);
-      traysDiv.appendChild(t);
-    }
-    document.getElementById('feedback1').textContent='';
-  }
+        // Custom curriculum-mapped progressive division tasks
+        const missionBook = [
+            {
+                task: "🍕 Recall Division Facts: Share 15 space pizzas equally among 3 hungry crew members. How many pizzas does each alien get?",
+                dividend: 15, divisor: 3, correctQ: 5, correctR: 0, hasR: false, icon: "🍕"
+            },
+            {
+                task: "🍩 Handle the Leftovers! Divide 23 space donuts equally between 4 maintenance droids. What is each share and the remainder left over?",
+                dividend: 23, divisor: 4, correctQ: 5, correctR: 3, hasR: true, icon: "🍩"
+            },
+            {
+                task: "⚡ Cosmic Division by 10 shortcut! Distribute 80 energy batteries among 10 ship propulsion stations. How many batteries does each station get?",
+                dividend: 80, divisor: 10, correctQ: 8, correctR: 0, hasR: false, icon: "⚡"
+            },
+            {
+                task: "⭐ Advanced Star Flight Log! Divide 148 hyperdrive star medals among 6 fleet commanders. Work out the quotient and remainder!",
+                dividend: 148, divisor: 6, correctQ: 24, correctR: 4, hasR: true, icon: "⭐"
+            }
+        ];
 
-  function drop1(e){
-    e.preventDefault();
-    let tray = e.target;
-    tray.textContent = parseInt(tray.textContent)+1;
-    tray.appendChild(draggedItem);
-    checkGame1Complete();
-  }
+        function startCargoEngine() {
+            levelIndex = 0; totalScore = 0;
+            loadMissionLevel();
+        }
 
-  function checkGame1Complete(){
-    let total=0;
-    for(let i=0;i<4;i++){
-      total+=parseInt(document.getElementById('tray'+i).textContent);
-    }
-    if(total===12){
-      document.getElementById('feedback1').textContent='Great Job!';
-      document.getElementById('correctAudio').play();
-      setTimeout(()=>{ nextGame(2); },1500);
-    }
-  }
+        function loadMissionLevel() {
+            const data = missionBook[levelIndex];
+            attemptTracking = false;
+            activeFocusedInput = 'quotient';
 
-  // ---------------- GAME 2 ----------------
-  function checkCookies(){
-    const val=parseInt(document.getElementById('cookiesInput').value);
-    if(val===21){
-      document.getElementById('feedback2').textContent='Correct! 126 ÷ 6 = 21';
-      document.getElementById('correctAudio').play();
-      setTimeout(()=>{ nextGame(3); },1500);
-    } else {
-      document.getElementById('feedback2').textContent='Try again!';
-      document.getElementById('wrongAudio').play();
-    }
-  }
+            document.getElementById('txtMissionNum').innerText = `Mission: ${levelIndex + 1} / 4`;
+            document.getElementById('txtScore').innerText = `Score: ${totalScore} ⭐`;
+            document.getElementById('progressFill').style.width = `${((levelIndex + 1) / 4) * 100}%`;
+            document.getElementById('txtInstruction').innerText = data.task;
 
-  // ---------------- GAME 3 ----------------
-  let game3Distributed=0;
-  function initGame3(){
-    const candiesDiv = document.getElementById('candies');
-    candiesDiv.innerHTML='';
-    for(let i=0;i<458;i++){
-      const c = document.createElement('img');
-      c.src='assets/candy.png';
-      c.className='item';
-      c.style.width='20px';
-      c.style.height='20px';
-      c.draggable=true;
-      c.addEventListener('dragstart', e=>draggedItem=e.target);
-      candiesDiv.appendChild(c);
-    }
-    const wizardsDiv=document.getElementById('wizards');
-    wizardsDiv.innerHTML='';
-    for(let i=0;i<7;i++){
-      const w=document.createElement('div');
-      w.className='tray';
-      w.id='wizard'+i;
-      w.textContent='0';
-      w.addEventListener('dragover', e=>e.preventDefault());
-      w.addEventListener('drop', drop3);
-      wizardsDiv.appendChild(w);
-    }
-    game3Distributed=0;
-    document.getElementById('feedback3').textContent='';
-  }
+            // Display math formula numbers
+            document.getElementById('valDividend').innerText = data.dividend;
+            document.getElementById('valDivisor').innerText = data.divisor;
 
-  function drop3(e){
-    e.preventDefault();
-    let wizard=e.target;
-    wizard.textContent=parseInt(wizard.textContent)+1;
-    wizard.appendChild(draggedItem);
-    game3Distributed++;
-    if(game3Distributed>=458){
-      document.getElementById('feedback3').textContent='Perfect! All candies distributed.';
-      document.getElementById('correctAudio').play();
-      setTimeout(()=>{ nextGame(4); },1500);
-    }
-  }
+            // Clear inputs
+            const qBox = document.getElementById('inputQuotient');
+            const rBox = document.getElementById('inputRemainder');
+            qBox.value = '';
+            rBox.value = '';
+            qBox.style.borderColor = 'var(--neon-pink)';
+            rBox.style.borderColor = '#64748B';
 
-  // ---------------- GAME 4 ----------------
-  let packsCreated=0;
-  function initGame4(){
-    const muffinsDiv=document.getElementById('muffins');
-    muffinsDiv.innerHTML='';
-    for(let i=0;i<250;i++){
-      const m=document.createElement('img');
-      m.src='assets/muffin.png';
-      m.className='item';
-      m.style.width='25px'; m.style.height='25px';
-      m.draggable=true;
-      m.addEventListener('dragstart', e=>draggedItem=e.target);
-      muffinsDiv.appendChild(m);
-    }
-    const packsDiv=document.getElementById('packs');
-    packsDiv.innerHTML='';
-    for(let i=0;i<25;i++){
-      const p=document.createElement('div');
-      p.className='tray';
-      p.id='pack'+i;
-      p.textContent='0';
-      p.addEventListener('dragover', e=>e.preventDefault());
-      p.addEventListener('drop', drop4);
-      packsDiv.appendChild(p);
-    }
-    packsCreated=0;
-    document.getElementById('feedback4').textContent='';
-  }
+            // Show or hide remainders components dynamically
+            if(data.hasR) {
+                document.getElementById('labelRSign').classList.remove('hidden');
+                document.getElementById('wrapperRemainder').classList.remove('hidden');
+            } else {
+                document.getElementById('labelRSign').classList.add('hidden');
+                document.getElementById('wrapperRemainder').classList.add('hidden');
+            }
 
-  function drop4(e){
-    e.preventDefault();
-    let pack=e.target;
-    pack.textContent=parseInt(pack.textContent)+1;
-    pack.appendChild(draggedItem);
-    packsCreated++;
-    if(packsCreated>=250){
-      document.getElementById('feedback4').textContent='Excellent! All muffins packed.';
-      document.getElementById('correctAudio').play();
-      setTimeout(()=>{ endGame(); },1500);
-    }
-  }
+            // Build item icons on screen area
+            const cargoDisplay = document.getElementById('cargoDisplayBox');
+            cargoDisplay.innerHTML = '';
+            // Render up to 30 elements to prevent screen cluttering on big dividends
+            let visualCount = Math.min(data.dividend, 30);
+            for(let i=0; i<visualCount; i++) {
+                let span = document.createElement('span');
+                span.className = "cargo-item";
+                span.innerText = data.icon;
+                cargoDisplay.appendChild(span);
+            }
+            if(data.dividend > 30) {
+                let infoText = document.createElement('span');
+                infoText.style = "font-size:0.9rem; color:#94A3B8; align-self:center;";
+                infoText.innerText = ` (+${data.dividend - 30} more items)`;
+                cargoDisplay.appendChild(infoText);
+            }
 
-  // ---------------- Navigation ----------------
-  function nextGame(num){
-    for(let i=1;i<=4;i++) document.getElementById('game'+i).classList.remove('active');
-    document.getElementById('game'+num).classList.add('active');
-    if(num===3) initGame3();
-    if(num===4) initGame4();
-  }
+            // Bind click switching directly into the input nodes
+            qBox.onclick = () => {
+                activeFocusedInput = 'quotient';
+                qBox.style.borderColor = 'var(--neon-pink)';
+                rBox.style.borderColor = '#64748B';
+            };
+            rBox.onclick = () => {
+                activeFocusedInput = 'remainder';
+                rBox.style.borderColor = 'var(--star-yellow)';
+                qBox.style.borderColor = '#64748B';
+            };
+        }
 
-  function endGame(){
-    for(let i=1;i<=4;i++) document.getElementById('game'+i).classList.remove('active');
-    document.getElementById('endScreen').classList.add('active');
-  }
+        function typeNumber(num) {
+            const box = activeFocusedInput === 'quotient' ? document.getElementById('inputQuotient') : document.getElementById('inputRemainder');
+            if(box.value.length < 3) {
+                box.value += num;
+            }
+        }
 
-  function restartGame(){
-    document.getElementById('endScreen').classList.remove('active');
-    startGame();
-  }
+        function clearActiveInputs() {
+            document.getElementById('inputQuotient').value = '';
+            document.getElementById('inputRemainder').value = '';
+        }
 
-  initGame1();
-</script>
+        function verifyCargoDivision() {
+            const data = missionBook[levelIndex];
+            const userQ = parseInt(document.getElementById('inputQuotient').value) || 0;
+            const userR = data.hasR ? (parseInt(document.getElementById('inputRemainder').value) || 0) : 0;
 
+            if(userQ === data.correctQ && userR === data.correctR) {
+                totalScore++;
+                playSound('right');
+                showWinModal();
+            } else {
+                if(!attemptTracking) {
+                    attemptTracking = true;
+                    playSound('wrong');
+                    alert("Cargo values don't match up exactly! Re-count the groups or check your calculations!");
+                } else {
+                    playSound('wrong');
+                    // Step-by-step visual demonstration guide auto-fill
+                    document.getElementById('inputQuotient').value = data.correctQ;
+                    if(data.hasR) document.getElementById('inputRemainder').value = data.correctR;
+                    alert(`Let's see the perfect allocation: ${data.dividend} ÷ ${data.divisor} = ${data.correctQ} with ${data.correctR} left over!`);
+                    setTimeout(nextMissionLevel, 3000);
+                }
+            }
+        }
+
+        function showWinModal() {
+            const popup = document.getElementById('popupCelebration');
+            const emojis = ["🍕👽", "🍩🤖", "⚡🛸", "🏅🚀"];
+            document.getElementById('popEmoji').innerText = emojis[levelIndex];
+            popup.classList.remove('hidden');
+            playSound('applause');
+        }
+
+        function nextMissionLevel() {
+            document.getElementById('popupCelebration').classList.add('hidden');
+            levelIndex++;
+            if(levelIndex < 4) {
+                loadMissionLevel();
+            } else {
+                showFinalSummaryScreen();
+            }
+        }
+
+        function showFinalSummaryScreen() {
+            document.getElementById('arenaStage').classList.add('hidden');
+            document.getElementById('endStudioPanel').classList.remove('hidden');
+            document.getElementById('endScoreValue').innerText = `Final Score: ${totalScore} / 4 Space Missions Completed!`;
+            playSound('applause');
+        }
+
+        function replayCargoEngine() {
+            document.getElementById('endStudioPanel').classList.add('hidden');
+            document.getElementById('arenaStage').classList.remove('hidden');
+            startCargoEngine();
+        }
+    </script>
 </body>
 </html>
