@@ -137,7 +137,7 @@
             font-size: 1.3rem; line-height: 1.5; font-weight: bold; text-align: center;
         }
 
-        /* DYNAMIC CONTROLS */
+        /* --- WORKSPACE & CONTROLS --- */
         .workspace { display: flex; justify-content: center; align-items: center; min-height: 120px; }
         .options-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; width: 100%; }
         
@@ -153,21 +153,33 @@
         .option-button.good-pick { background: #e8f5e9 !important; border-color: var(--grass-green) !important; color: #2e7d32 !important; box-shadow: 0 4px 0 #a5d6a7 !important; }
         .option-button.bad-pick { background: #ffebee !important; border-color: var(--brick-red) !important; color: #c62828 !important; box-shadow: 0 4px 0 #ef9a9a !important; }
 
-        /* CHILD-FRIENDLY INPUT FIELDS */
+        /* --- CHILD-FRIENDLY INPUT FIELDS --- */
         .input-number-box { width: 120px; padding: 8px; font-size: 2.2rem; font-weight: bold; text-align: center; border: 4px solid #37474f; border-radius: 20px; outline: none; box-shadow: inset 0 4px 6px rgba(0,0,0,0.1); }
         .input-number-box:focus { border-color: var(--safety-orange); background: #fffde7; }
         .unit-text { font-size: 1.6rem; font-weight: bold; margin: 0 15px 0 8px; vertical-align: middle; }
 
         .banner-msg { text-align: center; height: 32px; font-size: 1.4rem; font-weight: bold; margin-top: 15px; }
 
-        /* RENDER LIVE VISUAL HELPERS */
+        /* --- LIVE VISUAL GRAPHICS --- */
         #visual-helper-zone { width: 100%; display: flex; justify-content: center; margin-bottom: 15px; }
+        
+        /* Interactive Child-Friendly Ruler */
+        .visual-ruler {
+            width: 320px; height: 60px; background: #ffe082; border: 3px solid #ffb300;
+            border-radius: 10px; position: relative; display: flex; align-items: flex-end; padding-bottom: 4px;
+        }
+        .ruler-mark { position: absolute; bottom: 0; width: 3px; background: #5d4037; height: 15px; }
+        .ruler-mark.major { height: 25px; }
+        .ruler-mark.major::after { content: attr(data-val); position: absolute; top: -22px; left: -5px; font-size: 0.9rem; font-weight: bold; color: #5d4037; }
+        .visual-object-bar { position: absolute; top: 12px; left: 2px; height: 18px; background: #66bb6a; border-radius: 6px; border: 2px solid #2e7d32; }
+
+        /* Liquids buckets */
         .water-bucket-row { display: flex; gap: 20px; align-items: flex-end; }
         .bucket-art { width: 65px; height: 80px; border: 4px solid #37474f; border-top: none; border-radius: 0 0 15px 15px; position: relative; background: #fff; overflow: hidden; }
         .bucket-fill { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--sky-blue); transition: height 0.5s ease; }
         .bucket-text { position: absolute; top: -25px; width: 100%; text-align: center; font-size: 0.85rem; font-weight: bold; color: #37474f; }
 
-        /* ANIMATED REWARD PARTICLES */
+        /* --- ANIMATED REWARD PARTICLES --- */
         .tool-particle { position: fixed; font-size: 2.2rem; z-index: 9999; pointer-events: none; top: -50px; animation: tumble var(--dur) linear forwards; }
         @keyframes tumble { 0% { top: -50px; transform: translateX(0) rotate(0deg); opacity: 1; } 100% { top: 105vh; transform: translateX(var(--drift)) rotate(360deg); opacity: 0; } }
     </style>
@@ -256,11 +268,11 @@
             },
             {
                 type: "choice",
-                phase: "📏 Choosing the Best Tool",
-                question: "We need to measure the length of a giant steel support pole across the dirt lot. Which tool is the absolute best choice for the job?",
-                options: ["A tiny 30-centimeter pocket ruler", "A long 10-meter rolling tape measure", "A little kitchen food scale", "A water drinking cup"],
-                correct: "A long 10-meter rolling tape measure",
-                makeVisual: () => ""
+                phase: "📏 Measuring the Green Bar",
+                question: "Look at the little green board sitting on the builder's ruler below. Exactly how many centimeters long is this piece?",
+                options: ["5 centimeters", "10 centimeters", "12 centimeters", "15 centimeters"],
+                correct: "10 centimeters",
+                makeVisual: () => "ruler-10"
             },
             {
                 type: "input",
@@ -284,13 +296,7 @@
                 question: "To make wet concrete, Bob pours a 400 mL cup of water and a 500 mL cup of glue-liquid into a big tub. How many mL of total liquid are inside the tub now?",
                 correct: "900",
                 unit: "mL",
-                makeVisual: () => {
-                    return `<div class="water-bucket-row">
-                        <div class="bucket-art"><div class="bucket-fill" style="height:44%"></div><div class="bucket-text">400mL</div></div>
-                        <div style="font-size:2.2rem; font-weight:bold; align-self:center; color: var(--safety-orange);">+</div>
-                        <div class="bucket-art"><div class="bucket-fill" style="height:55%"></div><div class="bucket-text">500mL</div></div>
-                    </div>`;
-                }
+                makeVisual: () => "buckets-400-500"
             },
             {
                 type: "choice",
@@ -367,14 +373,40 @@
             document.getElementById('text-feedback').innerText = "";
             let data = buildingBlueprints[currentJobIndex];
 
-            // Update user metrics
+            // Update HUD text markers
             document.getElementById('hud-turn').innerText = `${currentJobIndex + 1} / ${buildingBlueprints.length}`;
             document.getElementById('hud-bolts').innerText = goldenBoltsCount;
             document.getElementById('hud-phase').innerText = data.phase;
             document.getElementById('text-question').innerText = data.question;
 
-            // Draw extra hints if helpful
-            document.getElementById('visual-helper-zone').innerHTML = data.makeVisual();
+            // Render Dynamic Visual Support
+            let helperZone = document.getElementById('visual-helper-zone');
+            helperZone.innerHTML = "";
+            
+            let visualMode = data.makeVisual();
+            if (visualMode === "ruler-10") {
+                let ruler = document.createElement('div');
+                ruler.className = "visual-ruler";
+                for(let i=0; i<=15; i++) {
+                    let tick = document.createElement('div');
+                    tick.className = "ruler-mark" + (i % 5 === 0 ? " major" : "");
+                    tick.style.left = `${(i / 15) * 300 + 8}px`;
+                    if(i % 5 === 0) tick.setAttribute('data-val', i);
+                    ruler.appendChild(tick);
+                }
+                let bar = document.createElement('div');
+                bar.className = "visual-object-bar";
+                bar.style.width = `${(10 / 15) * 300}px`;
+                ruler.appendChild(bar);
+                helperZone.appendChild(ruler);
+            } else if (visualMode === "buckets-400-500") {
+                helperZone.innerHTML = `
+                    <div class="water-bucket-row">
+                        <div class="bucket-art"><div class="bucket-fill" style="height:44%"></div><div class="bucket-text">400mL</div></div>
+                        <div style="font-size:2.2rem; font-weight:bold; align-self:center; color: var(--safety-orange);">+</div>
+                        <div class="bucket-art"><div class="bucket-fill" style="height:55%"></div><div class="bucket-text">500mL</div></div>
+                    </div>`;
+            }
 
             let interactArea = document.getElementById('input-controls-zone');
             interactArea.innerHTML = "";
@@ -441,38 +473,4 @@
 
             if(inputField.value.trim() === answerKey) {
                 inputField.style.backgroundColor = "#c8e6c9";
-                feedback.style.color = "var(--grass-green)";
-                feedback.innerText = "Perfect building number! Bridge parts locked in! 🏗️";
-                goldenBoltsCount++; playSoundTrack('win-bolt'); launchCelebrationShower();
-                document.getElementById(`bridge-unit-${currentJobIndex}`).classList.add('fixed');
-            } else {
-                inputField.style.backgroundColor = "#ffcdd2";
-                feedback.style.color = "var(--brick-red)";
-                feedback.innerText = `The secret builder number was: ${answerKey}`;
-                playSoundTrack('check-blueprint');
-            }
-            currentJobIndex++; setTimeout(loadNextJobSpecs, 2300);
-        }
-
-        function showVictoryScreen() {
-            document.getElementById('page-play').classList.remove('active');
-            document.getElementById('page-end').classList.add('active');
-            document.getElementById('final-bolts-report').innerText = `Golden Bolts Earned: ${goldenBoltsCount} / ${buildingBlueprints.length}`;
-            playSoundTrack('project-complete');
-        }
-
-        function restartGameSession() {
-            goldenBoltsCount = 0; currentJobIndex = 0;
-            document.getElementById('page-end').classList.remove('active');
-            document.getElementById('page-welcome').classList.add('active');
-        }
-
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                let layer = document.getElementById('loading-screen');
-                if(layer) { layer.style.opacity = 0; setTimeout(() => layer.remove(), 500); }
-            }, 1200);
-        });
-    </script>
-</body>
-</html>
+                feedback.style.color = "
