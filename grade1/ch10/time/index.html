@@ -1,300 +1,454 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Grade 1 Time Game</title>
-<style>
-body, html {
-  margin:0; padding:0;
-  font-family: 'Arial', sans-serif;
-  height:100%; width:100%;
-  display:flex; justify-content:center; align-items:center;
-  background:#FDF6EC;
-  overflow: hidden;
-}
-#logoScreen, #clockScreen, #cardScreen, #endScreen {
-  width:100%; height:100%;
-  position:absolute; top:0; left:0;
-  display:flex; flex-direction:column;
-  justify-content:center; align-items:center;
-}
-#logoScreen { background:#fff; z-index:5; }
-#logoScreen img { width:200px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 1: Time Master Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif;
+        }
 
-#clockScreen, #cardScreen { display:none; z-index:1; position:relative; }
-#endScreen { display:none; z-index:1; background:#fff; }
+        body {
+            background: linear-gradient(135deg, #FFDEE9 0%, #B5FFFC 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            overflow-x: hidden;
+        }
 
-.bg-image { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; z-index:-1; }
+        /* --- SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
 
-.question-text {
-  font-size:22px; color:#fff; text-align:left;
-  background: rgba(0,0,0,0.6);
-  padding: 15px 20px; border-radius:10px;
-  position:absolute; top:10%; left:3%; max-width:40%;
-  z-index:5;
-}
+        #splash-logo {
+            max-width: 220px;
+            width: 60%;
+            height: auto;
+            animation: pulse 1.5s infinite ease-in-out;
+        }
 
-.button-container {
-  position:absolute;
-  top:40%; left:3%;
-  display:flex; flex-direction:column; gap:20px;
-  z-index:5;
-}
-button.option-btn {
-  padding:20px 30px;
-  font-size:24px;
-  border:none; border-radius:10px;
-  cursor:pointer;
-  background:#9b59b6; color:white;
-  width:100%;
-  box-shadow: 2px 4px 6px rgba(0,0,0,0.4);
-  border: 2px solid #fff;
-  transition: background 0.2s;
-}
-button.option-btn.wrong { background:red !important; }
-button.option-btn.correct { background:green !important; }
+        #splash-text {
+            margin-top: 25px;
+            font-size: 24px;
+            color: #4A4A4A;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
 
-.card-container {
-  position:absolute;
-  top:30%; left:3%;
-  display:flex; gap:20px;
-  z-index:5;
-}
-.card {
-  width:150px; height:150px;
-  border:3px solid transparent; border-radius:10px;
-  cursor:pointer;
-  background: white;
-  object-fit: contain;
-  transition: transform 0.2s, border 0.2s;
-}
-.card:hover { transform: scale(1.05); }
-.card.shake, button.option-btn.shake { animation: shake 0.3s; }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
 
-@keyframes shake {
-  0% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  50% { transform: translateX(5px); }
-  75% { transform: translateX(-5px); }
-  100% { transform: translateX(0); }
-}
+        /* --- CONTAINER & UI --- */
+        .game-container {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 25px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+            border: 4px solid #FFB7B2;
+            text-align: center;
+            display: none;
+            position: relative;
+        }
 
-.feedback-banner {
-  font-size:26px; font-weight:bold;
-  color:#fff; background-color:#001f4d;
-  padding:10px 15px; border-radius:8px;
-  position:absolute; top:70%; left:3%; max-width:40%;
-  z-index:5; text-align:center;
-}
+        .header-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: #F0F4F8;
+            padding: 10px 15px;
+            border-radius: 16px;
+        }
 
-.nav-btn {
-  margin-top:20px; font-size:20px; padding:10px 20px;
-  background:#FF69B4; color:#fff; border:none; border-radius:5px;
-  cursor:pointer; display:none; position:absolute; top:82%; left:3%;
-  z-index:5;
-}
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            color: #555;
+            font-weight: bold;
+        }
 
-#playAgainBtn {
-  margin-top:20px; font-size:20px; padding:12px 25px;
-  background:#FF69B4; color:#fff; border:none; border-radius:8px;
-  cursor:pointer; z-index:5;
-}
+        .volume-slider {
+            width: 70px;
+            accent-color: #FF6B6B;
+            cursor: pointer;
+        }
 
-#confetti {
-  position:absolute; top:0; left:0; width:100%; height:100%;
-  pointer-events:none; display:none; z-index:4;
-}
-.confetti-piece {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  animation: fall 3s linear infinite;
-}
-@keyframes fall {
-  0% { transform: translateY(-50px) rotate(0deg); opacity: 1; }
-  100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
-}
-</style>
+        .progress-bar {
+            background: #E0E0E0;
+            border-radius: 12px;
+            height: 14px;
+            width: 100%;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(90deg, #FF9AA2, #FFB7B2);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .score-counter {
+            font-size: 16px;
+            color: #6C5CE7;
+            font-weight: bold;
+        }
+
+        /* --- QUESTION & OPTIONS --- */
+        .question-box {
+            font-size: 22px;
+            color: #2D3436;
+            margin-bottom: 25px;
+            font-weight: bold;
+            line-height: 1.4;
+            min-height: 60px;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            background: #FFFFFF;
+            border: 3px solid #E2E8F0;
+            border-radius: 16px;
+            padding: 16px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #4A5568;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .option-btn:active {
+            transform: scale(0.98);
+        }
+
+        .option-btn.correct {
+            background-color: #C1E1C1 !important;
+            border-color: #77DD77 !important;
+            color: #1B4332 !important;
+        }
+
+        .option-btn.wrong {
+            background-color: #FFB3B3 !important;
+            border-color: #FF6961 !important;
+            color: #5C0000 !important;
+        }
+
+        /* --- RESTART BUTTON --- */
+        .restart-btn {
+            margin-top: 15px;
+            background: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+            transition: transform 0.2s;
+            width: 100%;
+        }
+
+        .restart-btn:active {
+            transform: scale(0.97);
+        }
+
+        /* --- CANVAS CONFETTI --- */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* --- RESPONSIVE ADJUSTMENTS --- */
+        @media (max-width: 400px) {
+            .question-box { font-size: 19px; }
+            .option-btn { padding: 14px 16px; font-size: 16px; }
+            .game-container { padding: 18px; }
+        }
+    </style>
 </head>
 <body>
 
-<div id="logoScreen">
-  <img src="assets/logo.png" alt="Logo">
-</div>
+    <!-- Splash Screen Layout -->
+    <div id="splash-screen">
+        <img id="splash-logo" src="assets/logo.png" alt="School Logo" onerror="this.style.display='none'; document.getElementById('splash-text').innerText='⏰ TIME MASTER ⏰';">
+        <div id="splash-text">Loading Game...</div>
+    </div>
 
-<div id="clockScreen">
-  <img class="bg-image" src="assets/bedroom-bg.jpg" alt="Bedroom Background">
-  <div class="question-text">Click the correct time as shown on the clock.</div>
-  <div class="button-container">
-    <button class="option-btn" onclick="checkClock(this,true)">7:00 AM</button>
-    <button class="option-btn" onclick="checkClock(this,false)">6:00 AM</button>
-  </div>
-  <div id="clockFeedback" class="feedback-banner"></div>
-  <button id="clockNextBtn" class="nav-btn" onclick="goToCardScreen()">Next</button>
-</div>
+    <!-- Confetti Graphic Canvas Engine -->
+    <canvas id="confetti-canvas"></canvas>
 
-<div id="cardScreen">
-  <img class="bg-image" src="assets/bedroom-bg.jpg" alt="Background">
-  <div class="question-text">What does Riya do next after waking up?</div>
-  <div class="card-container">
-    <img src="assets/brushing.png" class="card" alt="Brushing" onclick="checkCard(this,true)">
-    <img src="assets/breakfast.jpg" class="card" alt="Breakfast" onclick="checkCard(this,false)">
-    <img src="assets/ready.png" class="card" alt="Ready" onclick="checkCard(this,false)">
-  </div>
-  <div id="cardFeedback" class="feedback-banner"></div>
-  <button id="cardNextBtn" class="nav-btn" onclick="nextTask()">Next</button>
-</div>
+    <!-- Interactive Game Box Container -->
+    <div class="game-container" id="game-card">
+        <div class="header-controls">
+            <div class="score-counter">Score: <span id="score-text">0</span>/10</div>
+            <div class="volume-container">
+                <span>🔊</span>
+                <input type="range" class="volume-slider" id="volume-control" min="0" max="1" step="0.1" value="0.8">
+            </div>
+        </div>
 
-<div id="endScreen">
-  <div id="confetti"></div>
-  <h1 style="font-size: 3rem; color: #2c3e50; margin-bottom: 20px;">Well Done! 🎉</h1>
-  <button id="playAgainBtn" onclick="restartGame()">Play Again</button>
-</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-indicator"></div>
+        </div>
 
-<script>
-let attemptsClock = 0;
-let attemptsCard = 0;
+        <div id="quiz-view">
+            <div class="question-box" id="question-text">Question text goes here?</div>
+            <div class="options-grid" id="options-box">
+                <!-- Dynamically Rendered Option Nodes -->
+            </div>
+        </div>
 
-// Show logo for 3 seconds
-setTimeout(()=>{
-  document.getElementById('logoScreen').style.display='none';
-  document.getElementById('clockScreen').style.display='flex';
-},3000);
+        <div id="end-view" style="display: none;">
+            <h2 style="font-size: 28px; color: #6C5CE7; margin-bottom: 10px;">Great Job! 🎉</h2>
+            <p id="final-message" style="font-size: 18px; margin-bottom: 20px; color: #4A4A4A;">You finished the Time Master game.</p>
+            <button class="restart-btn" onclick="resetGame()">Play Again 🔄</button>
+        </div>
+    </div>
 
-// Clock screen logic
-function checkClock(button, isCorrect){
-  attemptsClock++;
-  const feedback = document.getElementById('clockFeedback');
-  if(isCorrect){
-    button.classList.add('correct');
-    feedback.textContent = "Good Job!";
-    playSound('correct');
-    document.getElementById('clockNextBtn').style.display = 'inline-block';
-    disableClockButtons();
-  } else {
-    button.classList.add('wrong');
-    feedback.textContent = "Try again!";
-    playSound('wrong');
-    button.classList.add('shake');
-    setTimeout(()=>button.classList.remove('shake'),300);
-    
-    if(attemptsClock >= 2){
-      feedback.textContent = "Correct answer is 7:00 AM";
-      disableClockButtons();
-      document.getElementById('clockNextBtn').style.display = 'inline-block';
-    }
-  }
-}
+    <script>
+        // Master Question Bank Aligning to 'image_2a14e2.png' Learning Outcomes
+        const itemPool = [
+            { q: "What do we use to see the time?", a: ["Clock", "Book", "Mirror", "Ruler"], c: 0 },
+            { q: "Which hand on a clock is the short hand?", a: ["Hour hand", "Minute hand", "Second hand", "Day hand"], c: 0 },
+            { q: "Which hand on a clock is the long hand?", a: ["Minute hand", "Hour hand", "Number hand", "Night hand"], c: 0 },
+            { q: "If today is Monday, what day was yesterday?", a: ["Sunday", "Tuesday", "Wednesday", "Saturday"], c: 0 },
+            { q: "If today is Friday, what day is tomorrow?", a: ["Saturday", "Thursday", "Sunday", "Monday"], c: 0 },
+            { q: "How many days are in a whole week?", a: ["7 days", "5 days", "10 days", "12 days"], c: 0 },
+            { q: "Which activity takes MORE time?", a: ["Sleeping at night", "Brushing teeth", "Washing hands", "Drinking water"], c: 0 },
+            { q: "Which activity takes LESS time?", a: ["Blinking your eyes", "Eating dinner", "Watching a movie", "Writing a story"], c: 0 },
+            { q: "What is the first month of the year?", a: ["January", "March", "May", "December"], c: 0 },
+            { q: "What is the last month of the year?", a: ["December", "October", "January", "August"], c: 0 },
+            { q: "Which day comes right after Tuesday?", a: ["Wednesday", "Monday", "Thursday", "Friday"], c: 0 },
+            { q: "What is missing on a digital clock display? (10:00)", a: ["Hands", "Numbers", "Screen", "Dots"], c: 0 },
+            { q: "How many months are in a whole year?", a: ["12 months", "7 months", "10 months", "30 months"], c: 0 },
+            { q: "Which month comes right after February?", a: ["March", "January", "April", "June"], c: 0 },
+            { q: "We eat breakfast in the ________.", a: ["Morning", "Afternoon", "Evening", "Night"], c: 0 }
+        ];
 
-function disableClockButtons(){
-  const buttons = document.querySelectorAll('#clockScreen .option-btn');
-  buttons.forEach(b=>b.disabled = true);
-}
+        let activeItems = [];
+        let indexTrack = 0;
+        let runningScore = 0;
+        let selectionLocked = false;
+        let volumeLevel = 0.8;
 
-function goToCardScreen(){
-  document.getElementById('clockScreen').style.display = 'none';
-  document.getElementById('cardScreen').style.display = 'flex';
-  attemptsCard = 0;
-  document.getElementById('cardFeedback').textContent = '';
-  const cards = document.querySelectorAll('#cardScreen .card');
-  cards.forEach(c=>{
-    c.style.border = '3px solid transparent';
-    c.style.pointerEvents = 'auto';
-  });
-  document.getElementById('cardNextBtn').style.display = 'none';
-}
+        // Sound System Web Audio Synthesis API Engine
+        function audioBeep(freq, type, duration) {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const amp = ctx.createGain();
+                
+                osc.type = type;
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                
+                amp.gain.setValueAtTime(volumeLevel, ctx.currentTime);
+                amp.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + duration);
+                
+                osc.connect(amp);
+                amp.connect(ctx.destination);
+                
+                osc.start();
+                osc.stop(ctx.currentTime + duration);
+            } catch(e) { console.log("Audio not supported context window"); }
+        }
 
-// Card screen logic
-function checkCard(card, isCorrect){
-  attemptsCard++;
-  const feedback = document.getElementById('cardFeedback');
-  if(isCorrect){
-    card.style.border = "3px solid green";
-    feedback.textContent = "Good Job!";
-    playSound('correct');
-    document.getElementById('cardNextBtn').style.display = 'inline-block';
-    disableCards();
-  } else {
-    card.style.border = "3px solid red";
-    feedback.textContent = "Try again!";
-    playSound('wrong');
-    card.classList.add('shake');
-    setTimeout(()=>card.classList.remove('shake'),300);
-    
-    if(attemptsCard >= 2){
-      feedback.textContent = "Correct answer is brushing teeth!";
-      disableCards();
-      document.getElementById('cardNextBtn').style.display = 'inline-block';
-    }
-  }
-}
+        function signalCorrectSound() {
+            audioBeep(523.25, 'triangle', 0.15); // C5 Node
+            setTimeout(() => audioBeep(659.25, 'triangle', 0.25), 100); // E5 Node
+        }
 
-function disableCards(){
-  const cards = document.querySelectorAll('#cardScreen .card');
-  cards.forEach(c=>c.style.pointerEvents = 'none');
-}
+        function signalWrongSound() {
+            audioBeep(220.00, 'sawtooth', 0.3); // A3 Node
+        }
 
-// End screen
-function nextTask(){
-  document.getElementById('cardScreen').style.display = 'none';
-  document.getElementById('endScreen').style.display = 'flex';
-  showConfetti();
-}
+        // Canvas Confetti Animation Code Block
+        const canvas = document.getElementById("confetti-canvas");
+        const ctx = canvas.getContext("2d");
+        let activeConfetti = [];
 
-// Restart game
-function restartGame(){
-  document.getElementById('endScreen').style.display = 'none';
-  document.getElementById('clockScreen').style.display = 'flex';
-  
-  attemptsClock = 0; 
-  attemptsCard = 0;
-  
-  document.getElementById('clockFeedback').textContent = '';
-  document.getElementById('cardFeedback').textContent = '';
-  
-  const buttons = document.querySelectorAll('#clockScreen .option-btn');
-  buttons.forEach(b=>{ b.disabled = false; b.classList.remove('wrong','correct'); });
-  
-  const cards = document.querySelectorAll('#cardScreen .card');
-  cards.forEach(c=>{ c.style.border = '3px solid transparent'; c.style.pointerEvents = 'auto'; });
-  
-  document.getElementById('clockNextBtn').style.display = 'none';
-  document.getElementById('cardNextBtn').style.display = 'none';
-  
-  const conf = document.getElementById("confetti");
-  conf.innerHTML = '';
-  conf.style.display = 'none';
-}
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
-// Confetti Engine
-function showConfetti(){
-  const conf = document.getElementById("confetti");
-  conf.innerHTML = '';
-  conf.style.display = 'block';
-  const colors = ['#FF69B4','#FFD700','#8E44AD','#00CED1'];
-  
-  for(let i=0; i<100; i++){
-    let dot = document.createElement('div');
-    dot.className = 'confetti-piece';
-    dot.style.background = colors[Math.floor(Math.random()*colors.length)];
-    dot.style.left = Math.random() * 100 + '%';
-    // Stagger start times so they drift down smoothly
-    dot.style.animationDelay = (Math.random() * 2) + 's';
-    conf.appendChild(dot);
-  }
-}
+        function dropConfetti() {
+            for(let i = 0; i < 60; i++) {
+                activeConfetti.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2 - 50,
+                    vx: (Math.random() - 0.5) * 12,
+                    vy: (Math.random() - 0.7) * 15,
+                    color: `hsl(${Math.random() * 360}, 90%, 65%)`,
+                    size: Math.random() * 8 + 6,
+                    rotation: Math.random() * 360,
+                    rSpeed: (Math.random() - 0.5) * 10
+                });
+            }
+            animateConfettiStream();
+        }
 
-// Web-safe Audio Handler
-function playSound(type){
-  try {
-    const audio = new Audio(type === 'correct' ? 'assets/correct.mp3' : 'assets/wrong.mp3');
-    audio.play().catch(e => console.log("Audio play blocked or file missing: ", e));
-  } catch(err) {
-    console.log("Audio not supported or error: ", err);
-  }
-}
-</script>
+        function animateConfettiStream() {
+            if (activeConfetti.length === 0) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            for(let i = activeConfetti.length - 1; i >= 0; i--) {
+                let p = activeConfetti[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.4; // Gravity weight
+                p.rotation += p.rSpeed;
+                
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rotation * Math.PI / 180);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+                ctx.restore();
+                
+                if(p.y > canvas.height) activeConfetti.splice(i, 1);
+            }
+            requestAnimationFrame(animateConfettiStream);
+        }
+
+        // App & Game Loop Architecture Control Setup
+        window.addEventListener('DOMContentLoaded', () => {
+            // Splash hold rule sequence for 5 seconds total duration
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = 0;
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    document.getElementById('game-card').style.display = 'block';
+                    initializeGameSession();
+                }, 500);
+            }, 5000);
+
+            document.getElementById('volume-control').addEventListener('input', (e) => {
+                volumeLevel = parseFloat(e.target.value);
+            });
+        });
+
+        function initializeGameSession() {
+            // Shuffle and pick 10 random distinct question objects from source data
+            const scrambled = [...itemPool].sort(() => Math.random() - 0.5);
+            activeItems = scrambled.slice(0, 10);
+            indexTrack = 0;
+            runningScore = 0;
+            
+            document.getElementById('score-text').innerText = runningScore;
+            document.getElementById('quiz-view').style.display = 'block';
+            document.getElementById('end-view').style.display = 'none';
+            
+            renderActiveQuestion();
+        }
+
+        function renderActiveQuestion() {
+            selectionLocked = false;
+            const currentItem = activeItems[indexTrack];
+            
+            // Render structural layout state tracker bars
+            document.getElementById('progress-indicator').style.width = `${(indexTrack / 10) * 100}%`;
+            document.getElementById('question-text').innerText = currentItem.q;
+            
+            const optionsBox = document.getElementById('options-box');
+            optionsBox.innerHTML = '';
+
+            // Construct variant indices arrays tracking configurations map
+            let indices = [0, 1, 2, 3];
+            let variantAnswers = indices.map(i => currentItem.a[i]);
+            
+            // Render interactive option elements securely
+            variantAnswers.forEach((ansText, originalIndex) => {
+                if(!ansText) return; 
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = ansText;
+                btn.onclick = () => processUserSelection(btn, originalIndex, currentItem.c);
+                optionsBox.appendChild(btn);
+            });
+        }
+
+        function processUserSelection(selectedButton, selectedIdx, solutionIdx) {
+            if (selectionLocked) return;
+            selectionLocked = true;
+
+            const children = document.getElementById('options-box').children;
+
+            if (selectedIdx === solutionIdx) {
+                selectedButton.classList.add('correct');
+                runningScore++;
+                document.getElementById('score-text').innerText = runningScore;
+                signalCorrectSound();
+                dropConfetti();
+            } else {
+                selectedButton.classList.add('wrong');
+                children[solutionIdx].classList.add('correct');
+                signalWrongSound();
+            }
+
+            // Move to next question after a 2-second delay to show feedback
+            setTimeout(() => {
+                indexTrack++;
+                if (indexTrack < 10) {
+                    renderActiveQuestion();
+                } else {
+                    terminateGameView();
+                }
+            }, 2000);
+        }
+
+        function terminateGameView() {
+            document.getElementById('progress-indicator').style.width = '100%';
+            document.getElementById('quiz-view').style.display = 'none';
+            document.getElementById('end-view').style.display = 'block';
+            document.getElementById('final-message').innerText = `You scored ${runningScore} out of 10 answers right! 🎉`;
+        }
+
+        function resetGame() {
+            initializeGameSession();
+        }
+    </script>
 </body>
 </html>
