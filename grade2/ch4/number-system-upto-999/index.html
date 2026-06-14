@@ -1,561 +1,660 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gems Explorer: Number System up to 999</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #160a2a 0%, #2a124d 50%, #0f051c 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
 
-<title>Space Number Explorer</title>
+        /* Splash Screen Configuration */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #0d0418;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.5s ease;
+        }
+        .splash-logo-img {
+            max-width: 240px;
+            max-height: 240px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+        }
+        .splash-subtitle {
+            font-size: 1.4rem;
+            color: #00e5ff;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px #000;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+        .splash-loading-bar {
+            width: 280px;
+            height: 16px;
+            background: #1c0b30;
+            border: 3px solid #4a2182;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .splash-progress {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #00e5ff, #9d4edd);
+            box-shadow: 0 0 10px #00e5ff;
+            animation: fillProgress 5s linear forwards;
+        }
+        @keyframes fillProgress {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
 
-<style>
+        /* Main Workspace Container */
+        #game-container {
+            display: none; 
+            width: 95%;
+            max-width: 700px;
+            background: rgba(22, 11, 42, 0.96);
+            border: 4px solid #6e3cbc;
+            border-radius: 16px;
+            margin: 20px auto;
+            padding: 20px;
+            box-shadow: 0 0 30px rgba(110, 60, 188, 0.4);
+            text-align: center;
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 2rem;
+            margin: 5px 0 15px 0;
+            color: #00e5ff;
+            text-shadow: 2px 2px #000;
+            text-transform: uppercase;
+        }
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
-}
+        .controls-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0f051c;
+            padding: 10px 18px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 2px solid #3d1773;
+        }
+        .status-item {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #ffcd2b;
+            text-shadow: 1.5px 1.5px #000;
+        }
+        .volume-container {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .volume-container label {
+            font-size: 0.95rem;
+            color: #bbb;
+            font-weight: bold;
+        }
+        .volume-slider {
+            width: 90px;
+            height: 8px;
+            cursor: pointer;
+        }
 
-body{
-background:linear-gradient(180deg,#0b1d51,#1b3b87,#4b6cb7);
-min-height:100vh;
-text-align:center;
-color:white;
-}
+        /* Collected Gems Display Tray */
+        #gem-tray {
+            background: #0b0214;
+            border: 2px dashed #52258f;
+            border-radius: 10px;
+            padding: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            min-height: 56px;
+            flex-wrap: wrap;
+        }
+        .tray-slot {
+            font-size: 1.6rem;
+            filter: drop-shadow(0 0 5px rgba(0,229,255,0.5));
+            animation: gemPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes gemPop {
+            0% { transform: scale(0); }
+            70% { transform: scale(1.4); }
+            100% { transform: scale(1); }
+        }
 
-.header{
-background:white;
-padding:10px;
-box-shadow:0 2px 6px rgba(0,0,0,0.15);
-}
+        /* Mining Grid Interface */
+        #mine-grid-screen {
+            background: #0f051c;
+            border: 3px solid #3d1773;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+        }
+        .grid-instruction {
+            font-size: 1.25rem;
+            color: #fff;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 1px 1px #000;
+        }
+        .tiles-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            justify-content: center;
+            max-width: 460px;
+            margin: 0 auto;
+        }
+        .tile {
+            aspect-ratio: 1;
+            background: linear-gradient(135deg, #52258f, #2c0e54);
+            border: 3px solid #7b3fd4;
+            border-radius: 10px;
+            box-shadow: inset 2px 2px 0 rgba(255,255,255,0.2), 0 4px 6px rgba(0,0,0,0.4);
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            transition: transform 0.1s, filter 0.2s;
+        }
+        .tile:hover {
+            filter: brightness(1.2);
+            transform: translateY(-2px);
+        }
+        .tile:active {
+            transform: scale(0.95);
+        }
+        .tile.broken {
+            background: #07010f;
+            border-color: #1a0830;
+            box-shadow: none;
+            cursor: not-allowed;
+            pointer-events: none;
+            animation: breakTile 0.3s ease-out;
+        }
+        @keyframes breakTile {
+            0% { transform: scale(1); filter: brightness(2); }
+            50% { transform: scale(0.8); }
+            100% { transform: scale(1); }
+        }
 
-.logo{
-height:70px;
-}
+        /* Question Box Styling */
+        #quiz-workspace {
+            background: #0f051c;
+            border: 3px solid #3d1773;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        #question-box {
+            background: #07010f;
+            border: 2px solid #52258f;
+            border-radius: 12px;
+            padding: 25px 15px;
+            margin-bottom: 20px;
+            min-height: 160px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .instructions {
+            font-size: 1.35rem;
+            margin-bottom: 20px;
+            color: #fff;
+            font-weight: bold;
+            text-shadow: 1.5px 1.5px #000;
+            line-height: 1.4;
+        }
+        .instructions.hint-mode {
+            color: #ffcd2b;
+        }
+        .math-display {
+            font-size: 2.4rem;
+            font-weight: bold;
+            color: #00e5ff;
+            text-shadow: 2px 2px #000;
+            letter-spacing: 1px;
+            background: #140624;
+            padding: 10px 30px;
+            border-radius: 8px;
+            border: 1px solid #3d1773;
+        }
 
-.container{
-max-width:900px;
-margin:auto;
-padding:20px;
-}
+        /* Options Layout */
+        #options-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        .btn-option {
+            background: #371861;
+            border: 3px solid #140429;
+            border-bottom: 7px solid #0a0117;
+            border-radius: 12px;
+            padding: 18px;
+            color: #fff;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+            text-shadow: 1px 1px #000;
+        }
+        .btn-option:active {
+            transform: scale(0.97);
+            border-bottom-width: 3px;
+            margin-top: 4px;
+        }
+        .btn-option.disabled-option {
+            opacity: 0.35;
+            cursor: not-allowed;
+            pointer-events: none;
+            text-decoration: line-through;
+        }
+        .btn-option.correct-flash {
+            background-color: #2e7d32 !important;
+            border-color: #1b5e20 !important;
+            border-bottom-color: #113e14 !important;
+        }
+        .btn-option.wrong-flash {
+            background-color: #c62828 !important;
+            border-color: #b71c1c !important;
+            border-bottom-color: #7f1010 !important;
+        }
 
-.screen{
-display:none;
-}
+        /* End Screen Victory Configuration */
+        #end-screen {
+            display: none;
+            text-align: center;
+            padding: 30px 10px;
+        }
+        .victory-title {
+            font-size: 2.6rem;
+            color: #00e5ff;
+            text-shadow: 3px 3px #000;
+            margin-bottom: 20px;
+        }
+        .final-score {
+            font-size: 1.5rem;
+            color: #fff;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+        #btn-restart {
+            background: linear-gradient(180deg, #ff9800, #e65100);
+            border: 3px solid #b33600;
+            border-bottom: 7px solid #801f00;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 16px 40px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            text-shadow: 1px 1px #000;
+        }
+        #btn-restart:active {
+            transform: scale(0.97);
+            border-bottom-width: 3px;
+        }
 
-.active{
-display:block;
-}
-
-.card{
-background:white;
-color:black;
-padding:25px;
-border-radius:20px;
-box-shadow:0 5px 15px rgba(0,0,0,0.3);
-margin-top:20px;
-}
-
-.btn{
-background:#3498db;
-color:white;
-border:none;
-padding:14px 25px;
-border-radius:10px;
-font-size:18px;
-cursor:pointer;
-margin-top:15px;
-}
-
-.btn:hover{
-background:#2980b9;
-}
-
-.question{
-font-size:24px;
-margin-bottom:20px;
-}
-
-.option{
-display:block;
-width:100%;
-margin:10px 0;
-padding:15px;
-border:none;
-border-radius:10px;
-background:#3498db;
-color:white;
-font-size:18px;
-cursor:pointer;
-}
-
-.option:hover{
-background:#2980b9;
-}
-
-.progress-container{
-width:100%;
-background:#ddd;
-border-radius:20px;
-overflow:hidden;
-margin:15px 0;
-}
-
-.progress-bar{
-height:22px;
-width:0%;
-background:#2ecc71;
-transition:.4s;
-}
-
-#message{
-font-size:20px;
-font-weight:bold;
-height:30px;
-margin-top:10px;
-}
-
-#fuel{
-font-size:32px;
-margin-top:10px;
-min-height:40px;
-}
-
-.score{
-font-size:22px;
-font-weight:bold;
-color:#27ae60;
-}
-
-.instructions{
-text-align:left;
-line-height:1.8;
-font-size:18px;
-}
-
-.win-text{
-font-size:30px;
-color:#e67e22;
-}
-
-</style>
+        #confetti-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            border-radius: 16px;
+            z-index: 10;
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="header">
-<img src="assets/innovine-logo.png" class="logo">
-</div>
-
-<div class="container">
-
-<div id="startScreen" class="screen active">
-
-<div class="card">
-
-<h1>🚀 Space Number Explorer 🚀</h1>
-
-<p>
-Help Captain Nova collect fuel cells and reach Planet 999.
-</p>
-
-<button class="btn" onclick="showInstructions()">
-Start Mission
-</button>
-
-</div>
-
-</div>
-
-<div id="instructionScreen" class="screen">
-
-<div class="card">
-
-<h2>📖 How to Play</h2>
-
-<div class="instructions">
-
-✔ Solve number challenges up to 999.<br>
-✔ Collect 10 fuel cells.<br>
-✔ Launch your rocket.<br>
-✔ Reach Planet 999.
-
-</div>
-
-<button class="btn" onclick="startGame()">
-Play
-</button>
-
-</div>
-
-</div>
-
-<div id="gameScreen" class="screen">
-
-<div class="card">
-
-<div class="score" id="score">
-Fuel Cells Collected: 0 / 10
-</div>
-
-<div class="progress-container">
-<div class="progress-bar" id="progressBar"></div>
-</div>
-
-<div id="fuel"></div>
-
-<div id="question" class="question"></div>
-
-<div id="options"></div>
-
-<div id="message"></div>
-
-</div>
-
-</div>
-
-<div id="winScreen" class="screen">
-
-<div class="card">
-
-<div class="win-text">
-🏆 Mission Complete!
-</div>
-
-<br>
-
-<p>
-You reached Planet 999!
-</p>
-
-<br>
-
-<div id="finalFuel"></div>
-
-<br>
-
-<button class="btn" onclick="location.reload()">
-Play Again
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-<audio id="correctSound" src="assets/correct.mp3"></audio>
-<audio id="wrongSound" src="assets/wrong.mp3"></audio>
-<audio id="winSound" src="assets/freesound_community-claps-44774.mp3"></audio>
-
-<script>
-
-let fuelCells = 0;
-let correctAnswer = "";
-
-const fuelIcons = [
-"🔋","🚀","🛰️","🌎","🌕",
-"⭐","☄️","🛸","🌠","🚀"
-];
-
-function switchScreen(id){
-
-document.querySelectorAll(".screen").forEach(screen=>{
-screen.classList.remove("active");
-});
-
-document.getElementById(id).classList.add("active");
-
-}
-
-function showInstructions(){
-switchScreen("instructionScreen");
-}
-
-function startGame(){
-switchScreen("gameScreen");
-generateQuestion();
-}
-
-function random(min,max){
-return Math.floor(Math.random()*(max-min+1))+min;
-}
-
-function shuffle(array){
-return array.sort(()=>Math.random()-0.5);
-}
-  function generateQuestion(){
-
-if(fuelCells>=10){
-showWinScreen();
-return;
-}
-
-document.getElementById("message").innerHTML="";
-
-let type=random(1,10);
-
-let question="";
-let answer="";
-let options=[];
-
-if(type===1){
-
-let n=random(100,999);
-
-question=`What number is shown?<br><br><b>${n}</b>`;
-
-answer=n.toString();
-
-options=[
-answer,
-(n+1).toString(),
-(n-1).toString(),
-(n+10).toString()
-];
-
-}
-
-if(type===2){
-
-let n=random(101,999);
-
-question=`What comes before ${n}?`;
-
-answer=(n-1).toString();
-
-options=[
-answer,
-(n+1).toString(),
-(n-2).toString(),
-(n+10).toString()
-];
-
-}
-
-if(type===3){
-
-let n=random(100,998);
-
-question=`What comes after ${n}?`;
-
-answer=(n+1).toString();
-
-options=[
-answer,
-(n-1).toString(),
-(n+2).toString(),
-(n+10).toString()
-];
-
-}
-
-if(type===4){
-
-let n=random(100,997);
-
-question=`${n} __ ${n+2}`;
-
-answer=(n+1).toString();
-
-options=[
-answer,
-n.toString(),
-(n+2).toString(),
-(n+3).toString()
-];
-
-}
-
-if(type===5){
-
-let n=random(100,999);
-
-let digit=n.toString()[1];
-
-question=`What is the place value of ${digit} in ${n}?`;
-
-answer=(digit*10).toString();
-
-options=[
-answer,
-digit,
-(digit*100).toString(),
-random(1,99).toString()
-];
-
-}
-
-if(type===6){
-
-let n=random(100,999);
-
-let digit=n.toString()[random(0,2)];
-
-question=`What is the face value of ${digit} in ${n}?`;
-
-answer=digit;
-
-options=[
-answer,
-(digit*10).toString(),
-(digit*100).toString(),
-random(1,9).toString()
-];
-
-}
-
-if(type===7){
-
-let n=random(100,999);
-
-let h=Math.floor(n/100);
-let t=Math.floor((n%100)/10);
-let o=n%10;
-
-question=`Expanded form of ${n}`;
-
-answer=`${h*100} + ${t*10} + ${o}`;
-
-options=[
-answer,
-`${h}+${t}+${o}`,
-`${h*100}+${o}`,
-`${h*10}+${t*10}+${o}`
-];
-
-}
-
-if(type===8){
-
-let h=random(1,9)*100;
-let t=random(0,9)*10;
-let o=random(0,9);
-
-question=`Convert to standard form:<br><br>${h} + ${t} + ${o}`;
-
-answer=(h+t+o).toString();
-
-options=[
-answer,
-(h+t).toString(),
-(h+o).toString(),
-(h+t+o+10).toString()
-];
-
-}
-
-if(type===9){
-
-let a=random(100,999);
-let b=random(100,999);
-
-answer=a>b?">":"<";
-
-if(a===b) answer="=";
-
-question=`Choose the correct symbol:<br><br>${a} ___ ${b}`;
-
-options=[">","<","=","≠"];
-
-}
-
-if(type===10){
-
-let n=random(1,29);
-
-question=`Which ordinal number comes after ${n}th?`;
-
-answer=(n+1)+"th";
-
-options=[
-answer,
-(n+2)+"th",
-(n)+"th",
-(n+3)+"th"
-];
-
-}
-
-correctAnswer=answer;
-
-options=shuffle(options);
-
-document.getElementById("question").innerHTML=question;
-
-let html="";
-
-options.forEach(option=>{
-
-html += `
-<button class="option"
-onclick="checkAnswer('${option}')">
-${option}
-</button>
-`;
-
-});
-
-document.getElementById("options").innerHTML=html;
-
-}
-
-function checkAnswer(selected){
-
-if(selected==correctAnswer){
-
-document.getElementById("correctSound").play();
-
-fuelCells++;
-
-document.getElementById("message").innerHTML=
-"✅ Fuel Cell Collected!";
-
-document.getElementById("score").innerHTML=
-`Fuel Cells Collected: ${fuelCells} / 10`;
-
-let display="";
-
-for(let i=0;i<fuelCells;i++){
-display += fuelIcons[i];
-}
-
-document.getElementById("fuel").innerHTML=
-display;
-
-document.getElementById("progressBar").style.width=
-(fuelCells*10)+"%";
-
-}
-else{
-  document.getElementById("wrongSound").play();
-
-document.getElementById("message").innerHTML=
-`❌ Correct Answer: ${correctAnswer}`;
-
-}
-
-setTimeout(generateQuestion,1200);
-
-}
-
-function showWinScreen(){
-
-document.getElementById("winSound").play();
-
-switchScreen("winScreen");
-
-let finalDisplay="";
-
-fuelIcons.forEach(icon=>{
-finalDisplay += icon;
-});
-
-document.getElementById("finalFuel").innerHTML=
-finalDisplay;
-
-}
-
-</script>
-
+    <!-- 5-Second Splash Screen Panel -->
+    <div id="splash-screen">
+        <img class="splash-logo-img" src="assets/innovine-logo.png" alt="Innovine Logo">
+        <div class="splash-subtitle">Gems Explorer: Numbers up to 999</div>
+        <div class="splash-loading-bar">
+            <div class="splash-progress"></div>
+        </div>
+    </div>
+
+    <!-- Main Game Interface -->
+    <div id="game-container">
+        <canvas id="confetti-canvas"></canvas>
+        
+        <h1>Gems Explorer</h1>
+        
+        <div class="controls-row">
+            <div class="status-item" id="progress-text">Gems Collected: 0/15</div>
+            <div class="volume-container">
+                <label for="volume">🔊 Vol</label>
+                <input type="range" id="volume" class="volume-slider" min="0" max="1" step="0.1" value="0.8">
+            </div>
+        </div>
+
+        <!-- Upper Gem Gathering Display Tray -->
+        <div id="gem-tray"></div>
+
+        <!-- STAGE 1: Mining Tile Grid Field -->
+        <div id="mine-grid-screen">
+            <div class="grid-instruction" id="grid-instruction-text">Tap a purple crystal block to mine it!</div>
+            <div class="tiles-grid" id="tiles-grid-container"></div>
+        </div>
+
+        <!-- STAGE 2: Learning Question Prompt Space -->
+        <div id="quiz-workspace" style="display: none;">
+            <div id="question-box">
+                <div class="instructions" id="instructions-text">Solve to unlock the gem!</div>
+                <div class="math-display" id="math-question-render">---</div>
+            </div>
+            <div id="options-container"></div>
+        </div>
+
+        <!-- Final Finish Summary Interface -->
+        <div id="end-screen">
+            <div class="victory-title">💎 Grand Master Explorer!</div>
+            <div class="final-score" id="score-text">Sensational work! You successfully mined and uncovered all 15 rare crystals!</div>
+            <button id="btn-restart">Explore Again</button>
+        </div>
+    </div>
+
+    <!-- Standard Repository Audio Hooks -->
+    <audio id="audio-correct" src="assets/correct.mp3"></audio>
+    <audio id="audio-wrong" src="assets/wrong.mp3"></audio>
+
+    <script>
+        // Formulate 15 unique Chapter 4 challenges across standard Grade 2 syllabus benchmarks
+        const QUESTION_POOL = [
+            { query: 'What number comes BEFORE 400?', display: '___ , 400', options: ['399', '300', '401', '390'], answer: '399', hint: 'Think: What is 400 minus 1?' },
+            { query: 'What number comes AFTER 299?', display: '299 , ___', options: ['300', '298', '200', '301'], answer: '300', hint: 'What comes next immediately when counting past 299?' },
+            { query: 'What number fits in BETWEEN?', display: '598 , ___ , 600', options: ['599', '589', '601', '597'], answer: '599', hint: 'Count along: 597, 598, ...' },
+            { query: 'Choose the correct comparison sign:', display: '142  [ ? ]  124', options: ['>', '<', '='], answer: '>', hint: 'Look at the tens place value: 142 has 4 tens, 124 has 2 tens!' },
+            { query: 'Choose the correct comparison sign:', display: '705  [ ? ]  750', options: ['<', '>', '='], answer: '<', hint: 'Look at the tens place value: 705 has 0 tens, 750 has 5 tens!' },
+            { query: 'Choose the correct comparison sign:', display: '888  [ ? ]  888', options: ['=', '>', '<'], answer: '=', hint: 'Both sides match perfectly. They are equal!' },
+            { query: 'Convert the expanded form to short form:', display: '300 + 40 + 7', options: ['347', '3047', '374', '437'], answer: '347', hint: 'Combine the hundreds, tens, and ones together.' },
+            { query: 'Convert the expanded form to short form:', display: '900 + 5', options: ['905', '950', '95', '9005'], answer: '905', hint: 'Be careful! There are 0 tens in this number.' },
+            { query: 'What is the place value of the bracketed digit?', display: '2 [6] 3', options: ['60', '6', '600', '63'], answer: '60', hint: 'The 6 is in the middle, which means it represents Tens!' },
+            { query: 'What is the place value of the bracketed digit?', display: '[5] 1 2', options: ['500', '50', '5', '502'], answer: '500', hint: 'The 5 is in the hundreds column!' },
+            { query: 'What is the word form for the ordinal number 12th?', display: '12th Position', options: ['Twelfth', 'Second', 'Twelve', 'Twelth'], answer: 'Twelfth', hint: 'Watch the special spelling for 12th!' },
+            { query: 'What position comes right after 19th?', display: '19th ➔ [ ? ]', options: ['20th', '18th', '21st', '30th'], answer: '20th', hint: 'Add one step to nineteenth.' },
+            { query: 'Find the missing pattern step value:', display: '150, 200, 250, ___', options: ['300', '260', '275', '400'], answer: '300', hint: 'The pattern is growing up by adding 50 each time!' },
+            { query: 'Find the missing pattern step value:', display: '900, 800, 700, ___', options: ['600', '500', '800', '650'], answer: '600', hint: 'The pattern is shrinking down by subtracting 100 each time!' },
+            { query: 'Which of the three numbers is the LARGEST?', display: '341 , 413 , 143', options: ['413', '341', '143'], answer: '413', hint: 'Compare the hundreds digit first: 400 is larger than 300 or 100.' }
+        ];
+
+        const GEM_EMOJIS = ['💎', '✨', '🔮', '⭐', '💎', '🌟', '🔷', '🟢', '🔶', '🔮', '💎', '🔥', '✨', '⚡', '🏆'];
+
+        let activeQuestions = [];
+        let totalGemsCollected = 0;
+        let selectedQuestionIdx = null;
+        let selectedTileElement = null;
+        let currentQuestionAttempts = 0;
+        let acceptsInput = true;
+
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let confettiParticles = [];
+        let confettiAnimationId = null;
+
+        const splashScreen = document.getElementById('splash-screen');
+        const gameContainer = document.getElementById('game-container');
+        const progressText = document.getElementById('progress-text');
+        const gemTray = document.getElementById('gem-tray');
+        const mineGridScreen = document.getElementById('mine-grid-screen');
+        const tilesGridContainer = document.getElementById('tiles-grid-container');
+        const quizWorkspace = document.getElementById('quiz-workspace');
+        const instructionsText = document.getElementById('instructions-text');
+        const mathQuestionRender = document.getElementById('math-question-render');
+        const optionsContainer = document.getElementById('options-container');
+        const endScreen = document.getElementById('end-screen');
+        const btnRestart = document.getElementById('btn-restart');
+        const volumeSlider = document.getElementById('volume');
+        const audioCorrect = document.getElementById('audio-correct');
+        const audioWrong = document.getElementById('audio-wrong');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                splashScreen.style.opacity = '0';
+                setTimeout(() => {
+                    splashScreen.style.display = 'none';
+                    gameContainer.style.display = 'block';
+                    initGame();
+                }, 500);
+            }, 5000); 
+        });
+
+        function initGame() {
+            totalGemsCollected = 0;
+            acceptsInput = true;
+            activeQuestions = [...QUESTION_POOL].sort(() => Math.random() - 0.5);
+            
+            gemTray.innerHTML = '';
+            mineGridScreen.style.display = 'block';
+            quizWorkspace.style.display = 'none';
+            endScreen.style.display = 'none';
+            
+            progressText.innerText = `Gems Collected: 0/15`;
+            stopConfetti();
+            buildTileGrid();
+        }
+
+        function buildTileGrid() {
+            tilesGridContainer.innerHTML = '';
+            for (let i = 0; i < 15; i++) {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.dataset.index = i;
+                tile.innerText = '💎';
+                tile.addEventListener('click', () => handleTileClick(i, tile));
+                tilesGridContainer.appendChild(tile);
+            }
+        }
+
+        function handleTileClick(index, tileElement) {
+            if (!acceptsInput || tileElement.classList.contains('broken')) return;
+            
+            selectedQuestionIdx = index;
+            selectedTileElement = tileElement;
+            currentQuestionAttempts = 0;
+            
+            mineGridScreen.style.display = 'none';
+            quizWorkspace.style.display = 'block';
+            
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            acceptsInput = true;
+            instructionsText.classList.remove('hint-mode');
+            
+            const q = activeQuestions[selectedQuestionIdx];
+            instructionsText.innerText = q.query;
+            mathQuestionRender.innerText = q.display;
+            
+            optionsContainer.innerHTML = '';
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-option';
+                btn.innerText = opt;
+                btn.addEventListener('click', () => checkAnswer(opt, btn));
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedOption, clickedBtn) {
+            if (!acceptsInput || clickedBtn.classList.contains('disabled-option')) return;
+            
+            const q = activeQuestions[selectedQuestionIdx];
+            const vol = volumeSlider.value;
+            audioCorrect.volume = vol;
+            audioWrong.volume = vol;
+
+            if (selectedOption === q.answer) {
+                acceptsInput = false;
+                clickedBtn.className = 'btn-option correct-flash';
+                audioCorrect.play().catch(e => {});
+                
+                startConfetti();
+                setTimeout(() => stopConfetti(), 1200);
+
+                setTimeout(() => {
+                    collectGemReward();
+                }, 1600);
+            } else {
+                currentQuestionAttempts++;
+                audioWrong.play().catch(e => {});
+
+                if (currentQuestionAttempts === 1) {
+                    // Turn current button red and cross it off, but don't freeze the screen input yet!
+                    clickedBtn.className = 'btn-option wrong-flash disabled-option';
+                    
+                    instructionsText.innerText = `💡 Try again! ${q.hint}`;
+                    instructionsText.classList.add('hint-mode');
+                } else {
+                    // Out of chances on this try
+                    acceptsInput = false;
+                    clickedBtn.className = 'btn-option wrong-flash';
+                    
+                    // Light up the correct target button green so they learn from it
+                    Array.from(optionsContainer.children).forEach(btn => {
+                        if (btn.innerText === q.answer) {
+                            btn.className = 'btn-option correct-flash';
+                        }
+                    });
+
+                    setTimeout(() => {
+                        returnToGridWithoutGem();
+                    }, 2000);
+                }
+            }
+        }
+
+        function collectGemReward() {
+            totalGemsCollected++;
+            progressText.innerText = `Gems Collected: ${totalGemsCollected}/15`;
+            
+            const chosenGem = GEM_EMOJIS[selectedQuestionIdx % GEM_EMOJIS.length];
+            
+            // Append collected item to active tray
+            const gemSlot = document.createElement('span');
+            gemSlot.className = 'tray-slot';
+            gemSlot.innerText = chosenGem;
+            gemTray.appendChild(gemSlot);
+            
+            // Break block element inside mining grid matrix layout
+            selectedTileElement.className = 'tile broken';
+            selectedTileElement.innerText = chosenGem;
+
+            verifyGameProgress();
+        }
+
+        function returnToGridWithoutGem() {
+            // Keep the mineral block intact so they can return and tackle it later
+            selectedTileElement.className = 'tile';
+            selectedTileElement.innerText = '💎';
+            
+            verifyGameProgress();
+        }
+
+        function verifyGameProgress() {
+            quizWorkspace.style.display = 'none';
+            
+            if (totalGemsCollected >= 15) {
+                mineGridScreen.style.display = 'none';
+                endScreen.style.display = 'block';
+                startConfetti();
+            } else {
+                mineGridScreen.style.display = 'block';
+                acceptsInput = true;
+            }
+        }
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+
+        function startConfetti() {
+            resizeCanvas();
+            confettiParticles = [];
+            for (let i = 0; i < 70; i++) {
+                confettiParticles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 7 + 4,
+                    color: `hsl(${Math.random() * 360}, 100%, 65%)`,
+                    speedX: Math.random() * 2 - 1,
+                    speedY: Math.random() * 3 + 3
+                });
+            }
+            if (!confettiAnimationId) {
+                animateConfetti();
+            }
+        }
+
+        function stopConfetti() {
+            if (confettiAnimationId) {
+                cancelAnimationFrame(confettiAnimationId);
+                confettiAnimationId = null;
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let livingParticles = false;
+            
+            confettiParticles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+                p.y += p.speedY;
+                p.x += p.speedX;
+                if (p.y < canvas.height) livingParticles = true;
+            });
+
+            if (livingParticles) {
+                confettiAnimationId = requestAnimationFrame(animateConfetti);
+            } else {
+                confettiAnimationId = null;
+            }
+        }
+
+        btnRestart.addEventListener('click', initGame);
+        window.addEventListener('resize', resizeCanvas);
+    </script>
 </body>
 </html>
