@@ -1,137 +1,622 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>G3 Fraction Fun</title>
-<style>
-body {
-  margin:0;
-  font-family:'Arial', sans-serif;
-  background: linear-gradient(135deg, #ffe0cc, #ccf0ff);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  height:100vh;
-}
-#game-container { width:100%; max-width:700px; text-align:center; position:relative; }
-#logo-slide, #end-slide { display:none; }
-#question-slide { display:none; }
-.option {
-  background-color:#fff;
-  border:2px solid #cfa;
-  border-radius:10px;
-  padding:15px 25px;
-  margin:10px;
-  display:inline-block;
-  cursor:pointer;
-  font-size:1.2em;
-  transition:transform 0.2s;
-}
-.option:hover { transform:scale(1.05); }
-.correct { border-color:green; background-color:#cfc; }
-.wrong { border-color:red; background-color:#fcc; animation:jiggle 0.3s; }
-@keyframes jiggle {
-  0%{transform:translateX(0);} 25%{transform:translateX(-5px);} 50%{transform:translateX(5px);}
-  75%{transform:translateX(-5px);} 100%{transform:translateX(0);}
-}
-#confetti-canvas { position:absolute; top:0; left:0; pointer-events:none; }
-#instruction { background-color:#ffd; padding:10px; border-radius:8px; font-weight:bold; margin-bottom:15px; }
-#play-again-btn { padding:12px 25px; font-size:1.2em; border-radius:12px; border:none; background-color:#ffcc66; cursor:pointer; margin-top:20px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Landscape Architect: The Master Garden Designer</title>
+    <style>
+        :root {
+            --garden-green: #2e7d32;
+            --garden-dark: #1b5e20;
+            --blossom-pink: #ec407a;
+            --sky-blue: #0288d1;
+            --terracotta: #d84315;
+            --bg-canvas: #e8f5e9;
+            --text-main: #263238;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--bg-canvas);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            user-select: none;
+            overflow-x: hidden;
+        }
+
+        /* --- SPLASH LAUNCH SCREEN --- */
+        #screen-splash {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #ffffff;
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+        .splash-inner { text-align: center; }
+        .splash-logo { 
+            max-width: 240px; 
+            height: auto; 
+            margin-bottom: 25px; 
+            display: block; 
+            margin-left: auto; 
+            margin-right: auto; 
+        }
+        .splash-loader { 
+            width: 160px; height: 10px; background: #e0e0e0; 
+            border-radius: 5px; margin: 0 auto; overflow: hidden; 
+        }
+        .splash-bar { 
+            width: 100%; height: 100%; background: var(--garden-green); 
+            transform: translateX(-100%); animation: loadStep 1.2s forwards ease-in-out; 
+        }
+        @keyframes loadStep { 100% { transform: translateX(0); } }
+
+        /* --- MAIN CONTAINER --- */
+        .game-container {
+            width: 100%;
+            max-width: 850px;
+            background: #ffffff;
+            border-radius: 24px;
+            box-shadow: 0 16px 40px rgba(27, 94, 32, 0.15);
+            border: 4px solid var(--garden-green);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 620px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* --- SCREEN LAYER ARCHITECTURE --- */
+        .screen-layer {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding: 35px;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+        .screen-layer.active { display: flex; opacity: 1; }
+
+        /* --- INTRO SCREEN --- */
+        #screen-intro { justify-content: center; align-items: center; text-align: center; }
+        .hero-banner { 
+            font-size: 5.5rem; 
+            margin-bottom: 20px; 
+            text-align: center;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: floatAnim 3s infinite alternate ease-in-out; 
+        }
+        @keyframes floatAnim { 0% { transform: translateY(0); } 100% { transform: translateY(-10px); } }
+
+        .story-bubble {
+            background: #f1f8e9; padding: 25px; border-radius: 20px;
+            border: 3px dashed var(--garden-green); max-width: 720px; margin-bottom: 30px;
+            font-size: 1.1rem; line-height: 1.6; text-align: left; box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+        }
+        .story-bubble h2 { text-align: center; margin-bottom: 12px; color: var(--garden-dark); }
+
+        .cta-btn {
+            background: linear-gradient(135deg, var(--garden-green), var(--garden-dark));
+            border: none; color: white; font-size: 1.25rem; font-weight: bold;
+            padding: 14px 40px; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 6px 15px rgba(27, 94, 32, 0.2); transition: all 0.2s;
+        }
+        .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(27, 94, 32, 0.3); }
+        .cta-btn:active { transform: translateY(2px); box-shadow: 0 3px 8px rgba(27, 94, 32, 0.3); }
+
+        /* --- HUD TRACKER BAR --- */
+        .hud-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; font-size: 1.15rem; font-weight: bold; color: var(--garden-dark);
+            border-bottom: 2px solid #e8f5e9; padding-bottom: 10px;
+        }
+        .level-badge {
+            color: white; padding: 6px 20px; border-radius: 30px; font-size: 1rem; 
+            font-weight: bold; box-shadow: 0 3px 6px rgba(0,0,0,0.1); background-color: var(--garden-green);
+        }
+        .progress-track { width: 100%; height: 12px; background: #e0e0e0; border-radius: 10px; overflow: hidden; margin-bottom: 25px; }
+        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #81c784, var(--garden-green)); transition: width 0.4s ease; }
+
+        /* --- INTERACTIVE STAGE --- */
+        .workspace-layout { display: flex; flex-direction: column; flex: 1; justify-content: space-between; }
+        
+        .interactive-stage {
+            background: #fafafa; border: 2px solid #c8e6c9; border-radius: 20px;
+            padding: 25px; min-height: 250px; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; margin-bottom: 25px; position: relative;
+        }
+        .stage-avatar { font-size: 4rem; margin-bottom: 5px; text-align: center; width: 100%; display: flex; justify-content: center; }
+        .stage-prompt { font-size: 1.3rem; font-weight: bold; text-align: center; color: var(--text-main); line-height: 1.5; margin-bottom: 15px; width: 100%; }
+
+        /* --- OPTIONS MATRIX GRID --- */
+        .options-matrix { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 15px; 
+            width: 100%; 
+            justify-content: center; 
+            align-items: center;
+        }
+        
+        .option-card-btn {
+            background: #ffffff; 
+            border: 3px solid #c8e6c9; 
+            border-radius: 16px;
+            padding: 16px 25px; 
+            font-size: 1.2rem; 
+            font-weight: bold; 
+            color: var(--text-main);
+            cursor: pointer; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.04); 
+            text-align: left;
+            transition: all 0.2s; 
+            display: flex; 
+            align-items: center;
+            flex: 1 1 calc(50% - 15px);
+            min-width: 260px;
+        }
+        .option-card-btn:hover { border-color: var(--garden-green); background: #f1f8e9; transform: translateY(-2px); }
+        .option-card-btn .prefix { background: #e8f5e9; color: var(--garden-dark); width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; margin-right: 15px; font-size: 0.95rem; flex-shrink: 0; }
+        
+        @media (max-width: 700px) {
+            .option-card-btn { flex: 1 1 100%; }
+        }
+
+        /* Input Fields */
+        .text-input-field {
+            width: 100%; max-width: 160px; padding: 12px 20px; font-size: 1.5rem; font-weight: bold;
+            border: 3px solid #c8e6c9; border-radius: 14px; text-align: center; color: var(--garden-dark);
+            outline: none; transition: border-color 0.2s; margin: 0 10px 15px 10px;
+        }
+        .text-input-field:focus { border-color: var(--garden-green); box-shadow: 0 0 10px rgba(46, 125, 50, 0.15); }
+
+        /* Feedback styling */
+        .option-card-btn.correct { background: #e8f5e9 !important; border-color: #2e7d32 !important; color: #1b5e20 !important; }
+        .option-card-btn.wrong { background: #ffebee !important; border-color: #c62828 !important; color: #b71c1c !important; }
+        .banner-feedback { text-align: center; height: 30px; font-size: 1.25rem; font-weight: bold; margin-top: 15px; }
+
+        /* --- SHAPE FRACTION GENERATORS --- */
+        #element-stage-visualizer {
+            width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 10px;
+        }
+        
+        /* Circle Bed Component */
+        .garden-shape-circle {
+            width: 120px; height: 120px; border-radius: 50%; border: 3px solid var(--garden-dark);
+            position: relative; overflow: hidden; background: #ffffff;
+        }
+        .shape-line-abs { position: absolute; background: var(--garden-dark); }
+        .shape-shade-abs { position: absolute; background: var(--blossom-pink); opacity: 0.85; }
+
+        /* Square Bed Component */
+        .garden-shape-square {
+            width: 120px; height: 120px; border: 3px solid var(--garden-dark);
+            position: relative; overflow: hidden; background: #ffffff;
+        }
+
+        /* Rectangle Bed Component */
+        .garden-shape-rectangle {
+            width: 180px; height: 90px; border: 3px solid var(--garden-dark);
+            position: relative; display: flex; background: #ffffff;
+        }
+        .rect-col { flex: 1; border-right: 2px solid var(--garden-dark); height: 100%; }
+        .rect-col:last-child { border-right: none; }
+        .rect-col.shaded { background: #ffb300; opacity: 0.85; }
+
+        /* Triangle Bed Component */
+        .garden-shape-triangle {
+            width: 0; height: 0;
+            border-left: 70px solid transparent;
+            border-right: 70px solid transparent;
+            border-bottom: 120px solid var(--garden-dark);
+            position: relative;
+        }
+        .triangle-inner-white {
+            position: absolute; top: 4px; left: -64px; width: 0; height: 0;
+            border-left: 64px solid transparent;
+            border-right: 64px solid transparent;
+            border-bottom: 110px solid #ffffff;
+        }
+        .triangle-divider {
+            position: absolute; top: 4px; left: 0; width: 2px; height: 110px; background: var(--garden-dark);
+        }
+
+        /* Fraction Wall Component */
+        .fraction-wall {
+            width: 100%; max-width: 380px; border: 2px solid var(--garden-dark); display: flex; flex-direction: column; gap: 4px; padding: 4px; background: #fff;
+        }
+        .wall-row { display: flex; width: 100%; height: 30px; }
+        .wall-block { border: 1px solid var(--garden-dark); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem; height: 100%; }
+
+        /* Reward animations */
+        .falling-key-token {
+            position: fixed; font-size: 2.2rem; z-index: 9999; pointer-events: none;
+            top: -50px; animation: fallAnimAction var(--dur) linear forwards;
+        }
+        @keyframes fallAnimAction {
+            0% { top: -50px; transform: translateX(0) rotate(0deg); opacity: 1; }
+            100% { top: 105vh; transform: translateX(var(--deviation)) rotate(360deg); opacity: 0; }
+        }
+    </style>
 </head>
 <body>
-<div id="game-container">
 
-<!-- Logo Slide -->
-<div id="logo-slide">
-<img src="logo.png" alt="Innovine Logo" style="width:200px;">
-</div>
+    <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
-<!-- Question Slide -->
-<div id="question-slide">
-<div id="instruction"></div>
-<div id="options-container"></div>
-</div>
+    <div id="screen-splash">
+        <div class="splash-inner">
+            <img src="assets/innovine-logo.png" class="splash-logo" alt="Innovine Logo">
+            <div class="splash-loader"><div class="splash-bar"></div></div>
+        </div>
+    </div>
 
-<!-- End Slide -->
-<div id="end-slide">
-<h2>🎉 Well Done! 🎉</h2>
-<button id="play-again-btn">Play Again</button>
-</div>
+    <div class="game-container">
+        
+        <div class="screen-layer active" id="screen-intro">
+            <div class="hero-banner">🏡🌻📐</div>
+            <h1 style="margin-bottom: 12px; font-size: 2.4rem; color: var(--garden-dark); text-align: center;">The Landscape Architect</h1>
+            <h3 style="margin-bottom: 20px; color: var(--terracotta); font-style: italic; text-align: center;">Chapter 10: Multi-Shape Garden Fractions</h3>
+            <div class="story-bubble">
+                <h2>Your Design Mission</h2>
+                <p>Welcome, Head Architect! You have been commissioned to design a grand botanical layout using beautiful contrasting shapes. Circular greenhouse pods, square grass lawns, and rectangular flower tracks must be mapped into precise fraction blocks.</p>
+                <br>
+                <p>Solve each spatial blueprint conundrum to build out the garden zones correctly. Every correct answer earns you an **Architect Merit Star ⭐**.</p>
+                <br>
+                <p style="font-weight: bold; color: var(--garden-dark);">Complete all 8 blueprints to finalize the layout and open the gates to the public!</p>
+            </div>
+            <button class="cta-btn" onclick="switchActiveLayer('screen-play')">Start Designing 🚀</button>
+        </div>
 
-</div>
+        <div class="screen-layer" id="screen-play">
+            <div class="hud-row">
+                <div>⭐ Merits: <span id="label-score-val">0</span></div>
+                <div class="level-badge" id="label-level-badge">Blueprint 1</div>
+                <div>Progress: <span id="label-turn-val">1 / 8</span></div>
+            </div>
+            <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
 
-<audio id="correct-sound" src="correct.mp3"></audio>
-<audio id="wrong-sound" src="wrong.mp3"></audio>
-<audio id="applause-sound" src="freesound_community-claps-44774.mp3"></audio>
+            <div class="workspace-layout">
+                <div class="interactive-stage">
+                    <div class="stage-avatar" id="element-stage-icon">🌿</div>
+                    <div class="stage-prompt" id="element-stage-question">Analyzing landscape requirements...</div>
+                    <div id="element-stage-visualizer"></div>
+                </div>
 
-<canvas id="confetti-canvas"></canvas>
+                <div id="wrapper-input-mechanisms"></div>
 
-<script>
-// --- Game Data ---
-const rounds = [
-  { instruction:"What fraction of the circle is shaded?", options:["1/2","1/4","3/4"], answer:0 },
-  { instruction:"Half of a pizza is eaten. How much is left?", options:["1/4","1/2","1/3"], answer:1 },
-  { instruction:"Which fraction is larger?", options:["1/4","3/4","1/2"], answer:1 },
-  { instruction:"Which fraction is smaller?", options:["2/4","3/4","1/4"], answer:2 },
-  { instruction:"3 friends share 1/2 of a cake equally. How much does each get?", options:["1/6","1/2","1/3"], answer:2 },
-  { instruction:"Is 2/4 equal to 1/2?", options:["Yes","No"], answer:0 }
-];
+                <div class="banner-feedback" id="element-status-feedback"></div>
+            </div>
+        </div>
 
-let currentRound=-1, attempt=0;
+        <div class="screen-layer" id="screen-end">
+            <div class="hero-banner">🌳🌸⛲</div>
+            <h1 style="color: var(--garden-dark); font-size: 2.5rem; margin-bottom: 15px; text-align: center; width: 100%;">Garden Completed!</h1>
+            <div class="story-bubble" style="text-align: center; margin-left: auto; margin-right: auto;">
+                <h2>🏆 Master Designer Badge</h2>
+                <p>Magnificent! Your calculations successfully organized the different shapes flawlessly. The circles, squares, and rectangles balance perfectly, and you have completely mastered parts of a whole.</p>
+            </div>
+            <h2 id="final-score-report" style="color: var(--terracotta); text-align: center; margin-bottom: 30px; font-size: 1.8rem; width: 100%;">Total Merits Earned: 8 / 8</h2>
+            <button class="cta-btn" style="margin: 0 auto; display: block;" onclick="reinitializeSimulation()">Design Anew 🔄</button>
+        </div>
 
-// --- Elements ---
-const logoSlide=document.getElementById("logo-slide");
-const questionSlide=document.getElementById("question-slide");
-const endSlide=document.getElementById("end-slide");
-const instructionEl=document.getElementById("instruction");
-const optionsContainer=document.getElementById("options-container");
-const correctSound=document.getElementById("correct-sound");
-const wrongSound=document.getElementById("wrong-sound");
-const applauseSound=document.getElementById("applause-sound");
-const playAgainBtn=document.getElementById("play-again-btn");
-const confettiCanvas=document.getElementById("confetti-canvas");
+    </div>
 
-// --- Game Flow ---
-function startGame(){
-  logoSlide.style.display="block"; questionSlide.style.display="none"; endSlide.style.display="none";
-  currentRound=-1; attempt=0; setTimeout(nextRound,3000);
-}
+    <script>
+        let currentScore = 0;
+        let activeTurnIndex = 0;
+        
+        const masterSimulationPool = [
+            { 
+                type: "choice", 
+                level: "🌱 Blueprint 1: Circular Pods", 
+                color: "#2e7d32", icon: "⭕", 
+                question: "You segment a circular greenhouse into 4 equal plots, planting pink tulips in 1 plot. What fraction of the circle has tulips?", 
+                options: ["1/2 (Half)", "1/4 (One-fourth)", "3/4 (Three-fourths)", "1/3"], 
+                answer: "1/4 (One-fourth)", 
+                visual: "circle-4-1" 
+            },
+            { 
+                type: "choice", 
+                level: "🟩 Blueprint 2: Square Lawn Bed", 
+                color: "#1b5e20", icon: "🟩", 
+                question: "An architect wants to split a square hedge section straight down the middle into two equal parts. Which term correctly defines each split section?", 
+                options: ["One-fourth", "Three-fourths", "Half", "Whole"], 
+                answer: "Half", 
+                visual: "square-2-1" 
+            },
+            { 
+                type: "input-fraction", 
+                level: "🟨 Blueprint 3: Rectangular Tracks", 
+                color: "#ec407a", icon: "▭", 
+                question: "A rectangular flower track design reserves three-fourths of its area for marigolds. Write the numeric fraction (3 over 4) for this allocation.", 
+                numAns: "3", denAns: "4",
+                visual: "rectangle-4-3"
+            },
+            { 
+                type: "choice", 
+                level: "🔺 Blueprint 4: Triangular Tiles", 
+                color: "#0288d1", icon: "🔺", 
+                question: "Look at the fraction values of your paving lines: (1/4 and 3/4) vs (1/2 and 1/4). Which pair contains LIKE fractions because they share the same denominator?", 
+                options: ["1/4 and 3/4", "1/2 and 1/4"], 
+                answer: "1/4 and 3/4", 
+                visual: "triangle" 
+            },
+            { 
+                type: "choice", 
+                level: "🧱 Blueprint 5: Retaining Wall Block", 
+                color: "#d84315", icon: "🧱", 
+                question: "Inspecting a retaining layout brick row on the fraction wall, which segment block is physically larger?", 
+                options: ["1/2", "1/4", "They are identical in length"], 
+                answer: "1/2", 
+                visual: "wall" 
+            },
+            { 
+                type: "choice", 
+                level: "🌹 Blueprint 6: Linear Planter Boxes", 
+                color: "#ec407a", icon: "🌹", 
+                question: "Out of 4 adjacent planter slots, 3 are filled with roses. What fraction represents the slots filled with roses?", 
+                options: ["Half", "One-fourth", "Three-fourths"], 
+                answer: "Three-fourths", 
+                visual: "none" 
+            },
+            { 
+                type: "choice", 
+                level: "🌾 Blueprint 7: Size Justification", 
+                color: "#2e7d32", icon: "🌾", 
+                question: "When comparing crop yields covering 3/4 and 1/4 of identical square patches, which comparison expression evaluates correctly?", 
+                options: ["3/4 > 1/4", "3/4 < 1/4", "3/4 = 1/4"], 
+                answer: "3/4 > 1/4", 
+                visual: "none" 
+            },
+            { 
+                type: "input-fraction", 
+                level: "⛲ Blueprint 8: Balanced Layouts", 
+                color: "#0288d1", icon: "⛲", 
+                question: "A stone water feature block covers exactly 2 out of 4 total section modules. Enter the fraction matching this plan.", 
+                numAns: "2", denAns: "4",
+                visual: "rectangle-4-2"
+            }
+        ];
 
-function nextRound(){
-  currentRound++; attempt=0;
-  if(currentRound>=rounds.length){ showEndSlide(); return; }
-  showQuestion(rounds[currentRound]);
-}
+        const TOTAL_TURNS_MAX = masterSimulationPool.length;
 
-function showQuestion(round){
-  logoSlide.style.display="none"; questionSlide.style.display="block"; endSlide.style.display="none";
-  instructionEl.textContent=round.instruction;
-  optionsContainer.innerHTML="";
-  round.options.forEach((opt,idx)=>{
-    const btn=document.createElement("div"); btn.classList.add("option"); btn.textContent=opt;
-    btn.addEventListener("click",()=>handleAnswer(idx)); optionsContainer.appendChild(btn);
-  });
-}
+        function playSound(type) {
+            const track = document.getElementById(type === 'success' ? 'audio-correct' : 'audio-wrong');
+            if (track) { track.currentTime = 0; track.play().catch(() => {}); }
+        }
 
-function handleAnswer(selectedIdx){
-  const round=rounds[currentRound]; const buttons=optionsContainer.children;
-  if(selectedIdx===round.answer){ buttons[selectedIdx].classList.add("correct"); correctSound.play(); setTimeout(nextRound,1000); }
-  else{ buttons[selectedIdx].classList.add("wrong"); wrongSound.play(); attempt++; if(attempt>=2){ buttons[round.answer].classList.add("correct"); setTimeout(nextRound,1500); } }
-}
+        function triggerRewardShower() {
+            let spawnDuration = 1000; let intervalTime = 90;
+            let timerId = setInterval(() => {
+                let token = document.createElement('div');
+                token.className = 'falling-key-token';
+                token.innerText = '🌻';
+                token.style.left = Math.random() * 90 + 'vw';
+                token.style.setProperty('--deviation', (Math.random() - 0.5) * 160 + 'px');
+                token.style.setProperty('--dur', (Math.random() * 0.8 + 1.2) + 's');
+                document.body.appendChild(token);
+                setTimeout(() => token.remove(), 2000);
+            }, intervalTime);
+            setTimeout(() => clearInterval(timerId), spawnDuration);
+        }
 
-function showEndSlide(){ questionSlide.style.display="none"; endSlide.style.display="block"; applauseSound.play(); launchConfetti(); }
-playAgainBtn.addEventListener("click",()=>{ clearConfetti(); startGame(); });
+        function switchActiveLayer(screenId) {
+            document.querySelectorAll('.screen-layer').forEach(layer => layer.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            if (screenId === 'screen-play') buildActiveAssessmentItem();
+        }
 
-// --- Confetti ---
-let confettiCtx=confettiCanvas.getContext('2d'); confettiCanvas.width=window.innerWidth; confettiCanvas.height=window.innerHeight; let confettiPieces=[];
-function launchConfetti(){ confettiPieces=[]; for(let i=0;i<150;i++){ confettiPieces.push({x:Math.random()*confettiCanvas.width,y:Math.random()*confettiCanvas.height,r:Math.random()*6+2,d:Math.random()*20,color:`hsl(${Math.random()*360},100%,50%)`,tilt:Math.random()*10-10}); } requestAnimationFrame(drawConfetti);}
-function drawConfetti(){ confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height); confettiPieces.forEach(p=>{ confettiCtx.beginPath(); confettiCtx.lineWidth=p.r/2; confettiCtx.strokeStyle=p.color; confettiCtx.moveTo(p.x+p.tilt+p.r/4,p.y); confettiCtx.lineTo(p.x+p.tilt,p.y+p.r); confettiCtx.stroke(); p.y+=Math.cos(0.1+p.d)*2+1; p.x+=Math.sin(0.05)*2; if(p.y>confettiCanvas.height){p.y=0;p.x=Math.random()*confettiCanvas.width;} }); if(endSlide.style.display==="block") requestAnimationFrame(drawConfetti);}
-function clearConfetti(){ confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height); }
+        function buildActiveAssessmentItem() {
+            if (activeTurnIndex >= TOTAL_TURNS_MAX) {
+                concludeSimulationWorkflow();
+                return;
+            }
 
-window.onload=startGame;
-</script>
+            document.getElementById('element-status-feedback').innerText = "";
+            let data = masterSimulationPool[activeTurnIndex];
+
+            document.getElementById('label-turn-val').innerText = `${activeTurnIndex + 1} / ${TOTAL_TURNS_MAX}`;
+            document.getElementById('progress-fill').style.width = `${(activeTurnIndex / TOTAL_TURNS_MAX) * 100}%`;
+            document.getElementById('label-score-val').innerText = currentScore;
+            
+            let badge = document.getElementById('label-level-badge');
+            badge.innerText = data.level;
+            badge.style.background = data.color;
+
+            document.getElementById('element-stage-icon').innerText = data.icon;
+            document.getElementById('element-stage-question').innerText = data.question;
+
+            let visualBox = document.getElementById('element-stage-visualizer');
+            visualBox.innerHTML = "";
+            
+            // SHAPE CONTROLLER ENGINE
+            if (data.visual === "circle-4-1") {
+                let circ = document.createElement('div');
+                circ.className = "garden-shape-circle";
+                circ.innerHTML = `
+                    <div class="shape-shade-abs" style="width:50%; height:50%; left:50%; top:0;"></div>
+                    <div class="shape-line-abs" style="width:100%; height:2px; top:50%; left:0;"></div>
+                    <div class="shape-line-abs" style="width:2px; height:100%; left:50%; top:0;"></div>
+                `;
+                visualBox.appendChild(circ);
+            } else if (data.visual === "square-2-1") {
+                let sq = document.createElement('div');
+                sq.className = "garden-shape-square";
+                sq.innerHTML = `
+                    <div class="shape-shade-abs" style="width:50%; height:100%; left:0; top:0; background-color:#4caf50;"></div>
+                    <div class="shape-line-abs" style="width:2px; height:100%; left:50%; top:0;"></div>
+                `;
+                visualBox.appendChild(sq);
+            } else if (data.visual === "rectangle-4-3") {
+                let rect = document.createElement('div');
+                rect.className = "garden-shape-rectangle";
+                rect.innerHTML = `
+                    <div class="rect-col shaded"></div>
+                    <div class="rect-col shaded"></div>
+                    <div class="rect-col shaded"></div>
+                    <div class="rect-col"></div>
+                `;
+                visualBox.appendChild(rect);
+            } else if (data.visual === "rectangle-4-2") {
+                let rect = document.createElement('div');
+                rect.className = "garden-shape-rectangle";
+                rect.innerHTML = `
+                    <div class="rect-col shaded" style="background:#0288d1;"></div>
+                    <div class="rect-col shaded" style="background:#0288d1;"></div>
+                    <div class="rect-col"></div>
+                    <div class="rect-col"></div>
+                `;
+                visualBox.appendChild(rect);
+            } else if (data.visual === "triangle") {
+                let tri = document.createElement('div');
+                tri.className = "garden-shape-triangle";
+                tri.innerHTML = `
+                    <div class="triangle-inner-white">
+                        <div class="triangle-divider"></div>
+                    </div>
+                `;
+                visualBox.appendChild(tri);
+            } else if (data.visual === "wall") {
+                let wall = document.createElement('div');
+                wall.className = "fraction-wall";
+                wall.innerHTML = `
+                    <div class="wall-row"><div class="wall-block" style="width:100%; background:#fff59d;">1 Whole Strip</div></div>
+                    <div class="wall-row">
+                        <div class="wall-block" style="width:50%; background:#c8e6c9;">1/2 Area</div>
+                        <div class="wall-block" style="width:50%;">1/2 Area</div>
+                    </div>
+                    <div class="wall-row">
+                        <div class="wall-block" style="width:25%; background:#ff8a80;">1/4 Area</div>
+                        <div class="wall-block" style="width:25%;">1/4 Area</div>
+                        <div class="wall-block" style="width:25%;">1/4 Area</div>
+                        <div class="wall-block" style="width:25%;">1/4 Area</div>
+                    </div>
+                `;
+                visualBox.appendChild(wall);
+            }
+
+            let mechanistZone = document.getElementById('wrapper-input-mechanisms');
+            mechanistZone.innerHTML = "";
+
+            if (data.type === "choice") {
+                let matrix = document.createElement('div');
+                matrix.className = "options-matrix";
+                const prefixes = ["A", "B", "C", "D"];
+                data.options.forEach((opt, idx) => {
+                    let btn = document.createElement('button');
+                    btn.className = "option-card-btn";
+                    btn.innerHTML = `<span class="prefix">${prefixes[idx]}</span> <span class="txt-lbl">${opt}</span>`;
+                    btn.onclick = function() { evaluateChoiceResponse(btn, opt, data.answer); };
+                    matrix.appendChild(btn);
+                });
+                mechanistZone.appendChild(matrix);
+            } else if (data.type === "input-fraction") {
+                let wrap = document.createElement('div');
+                wrap.style.textAlign = "center";
+                
+                let numIn = document.createElement('input');
+                numIn.type = "number"; numIn.className = "text-input-field"; numIn.placeholder = "Num";
+                
+                let divisionLine = document.createElement('hr');
+                divisionLine.style.width = "140px"; divisionLine.style.margin = "4px auto 12px auto"; divisionLine.style.border = "2px solid var(--garden-dark)";
+                
+                let denIn = document.createElement('input');
+                denIn.type = "number"; denIn.className = "text-input-field"; denIn.placeholder = "Den";
+                
+                let sBtn = document.createElement('button');
+                sBtn.className = "cta-btn"; sBtn.style.padding = "10px 30px"; sBtn.innerText = "Apply Blueprint";
+                sBtn.onclick = function() { evaluateFractionInput(numIn, denIn, data.numAns, data.denAns); };
+
+                wrap.appendChild(numIn);
+                wrap.appendChild(divisionLine);
+                wrap.appendChild(denIn);
+                wrap.appendChild(document.createElement('br'));
+                wrap.appendChild(sBtn);
+                mechanistZone.appendChild(wrap);
+                numIn.focus();
+            }
+        }
+
+        function evaluateChoiceResponse(selectedButton, chosenVal, exactAnswer) {
+            document.querySelectorAll('.option-card-btn').forEach(b => b.disabled = true);
+            let feedbackNode = document.getElementById('element-status-feedback');
+
+            if (chosenVal === exactAnswer) {
+                selectedButton.classList.add('correct');
+                feedbackNode.style.color = "#2e7d32";
+                feedbackNode.innerText = "Perfect plot alignment! ⭐🌿";
+                currentScore++; playSound('success'); triggerRewardShower();
+            } else {
+                selectedButton.classList.add('wrong');
+                feedbackNode.style.color = "#c62828";
+                feedbackNode.innerText = "Plot misaligned. Keep an eye on total segments.";
+                playSound('wrong');
+                document.querySelectorAll('.option-card-btn').forEach(b => {
+                    if (b.querySelector('.txt-lbl').innerText === exactAnswer) b.classList.add('correct');
+                });
+            }
+            activeTurnIndex++; setTimeout(buildActiveAssessmentItem, 2000);
+        }
+
+        function evaluateFractionInput(nField, dField, correctNum, correctDen) {
+            if (!nField.value || !dField.value) return;
+            nField.disabled = true; dField.disabled = true;
+            let feedbackNode = document.getElementById('element-status-feedback');
+
+            if (nField.value.trim() === correctNum && dField.value.trim() === correctDen) {
+                nField.style.background = "#e8f5e9"; dField.style.background = "#e8f5e9";
+                feedbackNode.style.color = "#2e7d32";
+                feedbackNode.innerText = "Blueprint successfully logged! ⭐🌻";
+                currentScore++; playSound('success'); triggerRewardShower();
+            } else {
+                nField.style.background = "#ffebee"; dField.style.background = "#ffebee";
+                feedbackNode.style.color = "#c62828";
+                feedbackNode.innerText = `The required measurement partition was: ${correctNum}/${correctDen}`;
+                playSound('wrong');
+            }
+            activeTurnIndex++; setTimeout(buildActiveAssessmentItem, 2500);
+        }
+
+        function concludeSimulationWorkflow() {
+            document.getElementById('progress-fill').style.width = "100%";
+            document.getElementById('screen-play').classList.remove('active');
+            document.getElementById('screen-end').classList.add('active');
+            document.getElementById('final-score-report').innerText = `Total Architect Merits: ${currentScore} / ${TOTAL_TURNS_MAX}`;
+        }
+
+        function reinitializeSimulation() {
+            activeTurnIndex = 0; currentScore = 0;
+            switchActiveLayer('screen-intro');
+        }
+
+        window.addEventListener('load', function() {
+            const splash = document.getElementById('screen-splash');
+            if (splash) {
+                setTimeout(() => {
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.remove(), 500);
+                }, 1200);
+            }
+        });
+    </script>
 </body>
 </html>
