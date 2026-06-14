@@ -3,17 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grade 1: Time Master Game</title>
+    <title>Grade 1 Math - Time Master Challenge</title>
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
             font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif;
+            user-select: none;
         }
 
         body {
-            background: linear-gradient(135deg, #FFDEE9 0%, #B5FFFC 100%);
+            background: linear-gradient(135deg, #FFF5CC 0%, #CCFFFA 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -50,7 +51,6 @@
             font-size: 24px;
             color: #4A4A4A;
             font-weight: bold;
-            letter-spacing: 1px;
         }
 
         @keyframes pulse {
@@ -59,15 +59,15 @@
             100% { transform: scale(1); }
         }
 
-        /* --- CONTAINER & UI --- */
+        /* --- MAIN GAME CARD --- */
         .game-container {
             background: #ffffff;
             border-radius: 24px;
-            padding: 25px;
+            padding: 20px;
             width: 100%;
-            max-width: 500px;
+            max-width: 480px;
             box-shadow: 0 12px 28px rgba(0,0,0,0.12);
-            border: 4px solid #FFB7B2;
+            border: 4px solid #FFD166;
             text-align: center;
             display: none;
             position: relative;
@@ -77,117 +77,222 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            background: #F0F4F8;
-            padding: 10px 15px;
+            margin-bottom: 15px;
+            background: #F8F9FA;
+            padding: 8px 12px;
             border-radius: 16px;
+        }
+
+        .level-badge {
+            background-color: #06D6A0;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
         }
 
         .volume-container {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             font-size: 14px;
-            color: #555;
-            font-weight: bold;
         }
 
         .volume-slider {
-            width: 70px;
-            accent-color: #FF6B6B;
+            width: 60px;
+            accent-color: #EF476F;
             cursor: pointer;
         }
 
         .progress-bar {
             background: #E0E0E0;
             border-radius: 12px;
-            height: 14px;
+            height: 12px;
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             overflow: hidden;
         }
 
         .progress-fill {
-            background: linear-gradient(90deg, #FF9AA2, #FFB7B2);
+            background: linear-gradient(90deg, #FFD166, #EF476F);
             height: 100%;
             width: 0%;
             transition: width 0.3s ease;
         }
 
-        .score-counter {
-            font-size: 16px;
-            color: #6C5CE7;
-            font-weight: bold;
-        }
-
-        /* --- QUESTION & OPTIONS --- */
-        .question-box {
-            font-size: 22px;
+        .prompt-box {
+            font-size: 20px;
             color: #2D3436;
-            margin-bottom: 25px;
+            margin-bottom: 15px;
             font-weight: bold;
-            line-height: 1.4;
-            min-height: 60px;
+            min-height: 55px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        .options-grid {
+        /* --- LEVEL 1: INTERACTIVE CLOCKFACE --- */
+        .clock-wrapper {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            align-items: center;
+            gap: 15px;
             margin-bottom: 20px;
         }
 
-        .option-btn {
-            background: #FFFFFF;
-            border: 3px solid #E2E8F0;
-            border-radius: 16px;
-            padding: 16px 20px;
-            font-size: 18px;
+        .clock {
+            width: 180px;
+            height: 180px;
+            border: 8px solid #118AB2;
+            border-radius: 50%;
+            position: relative;
+            background: #FFF;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .clock-center {
+            width: 12px;
+            height: 12px;
+            background: #06D6A0;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom center;
+            border-radius: 4px;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .hour-hand {
+            width: 6px;
+            height: 50px;
+            background: #EF476F;
+            z-index: 5;
+            margin-left: -3px;
+        }
+
+        .minute-hand {
+            width: 4px;
+            height: 70px;
+            background: #073B4C;
+            z-index: 4;
+            margin-left: -2px;
+        }
+
+        .clock-number {
+            position: absolute;
+            font-size: 14px;
             font-weight: bold;
-            color: #4A5568;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            outline: none;
-            -webkit-tap-highlight-color: transparent;
+            color: #333;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            line-height: 20px;
         }
 
-        .option-btn:active {
-            transform: scale(0.98);
+        .stepper-controls {
+            display: flex;
+            gap: 20px;
+            align-items: center;
         }
 
-        .option-btn.correct {
-            background-color: #C1E1C1 !important;
-            border-color: #77DD77 !important;
-            color: #1B4332 !important;
-        }
-
-        .option-btn.wrong {
-            background-color: #FFB3B3 !important;
-            border-color: #FF6961 !important;
-            color: #5C0000 !important;
-        }
-
-        /* --- RESTART BUTTON --- */
-        .restart-btn {
-            margin-top: 15px;
-            background: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%);
+        .step-btn {
+            background-color: #118AB2;
             color: white;
             border: none;
-            padding: 15px 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .step-btn:active { transform: scale(0.95); }
+
+        .time-display-bubble {
+            background: #F0F4F8;
+            padding: 6px 15px;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 18px;
+            color: #118AB2;
+            border: 2px dashed #118AB2;
+        }
+
+        /* --- LEVEL 2 & 3: DRAG/DROP & SEQUENCING --- */
+        .cards-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+            min-height: 75px;
+            padding: 10px;
+            background: #F8F9FA;
+            border-radius: 16px;
+            border: 2px dashed #CED4DA;
+        }
+
+        .flashcard {
+            background: white;
+            border: 3px solid #118AB2;
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #073B4C;
+            cursor: grab;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            transition: transform 0.2s, background-color 0.2s;
+            touch-action: none;
+        }
+
+        .flashcard.sortable-ghost {
+            opacity: 0.4;
+            background-color: #E2E8F0;
+        }
+
+        /* --- ACTION SUBMIT SYSTEM --- */
+        .submit-btn {
+            background: linear-gradient(135deg, #06D6A0 0%, #4BF3C5 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
             font-size: 18px;
             font-weight: bold;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
-            transition: transform 0.2s;
             width: 100%;
+            box-shadow: 0 4px 10px rgba(6, 214, 160, 0.3);
+            margin-top: 10px;
+        }
+        .submit-btn:active { transform: scale(0.98); }
+
+        .restart-btn {
+            background: linear-gradient(135deg, #118AB2 0%, #06D6A0 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
         }
 
-        .restart-btn:active {
-            transform: scale(0.97);
-        }
-
-        /* --- CANVAS CONFETTI --- */
+        /* --- CONFETTI CANVAS --- */
         #confetti-canvas {
             position: fixed;
             top: 0;
@@ -197,30 +302,25 @@
             pointer-events: none;
             z-index: 999;
         }
-
-        /* --- RESPONSIVE ADJUSTMENTS --- */
-        @media (max-width: 400px) {
-            .question-box { font-size: 19px; }
-            .option-btn { padding: 14px 16px; font-size: 16px; }
-            .game-container { padding: 18px; }
-        }
     </style>
+    <!-- Include SortableJS for flawless mobile/tablet touch sequencing drags -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 </head>
 <body>
 
     <!-- Splash Screen Layout -->
     <div id="splash-screen">
-        <img id="splash-logo" src="assets/logo.png" alt="School Logo" onerror="this.style.display='none'; document.getElementById('splash-text').innerText='⏰ TIME MASTER ⏰';">
+        <img id="splash-logo" src="assets/logo.png" alt="School Logo" onerror="this.style.display='none'; document.getElementById('splash-text').innerText='⏰ TIME CHAMP ⏰';">
         <div id="splash-text">Loading Game...</div>
     </div>
 
-    <!-- Confetti Graphic Canvas Engine -->
+    <!-- Feedback Particles Canvas -->
     <canvas id="confetti-canvas"></canvas>
 
-    <!-- Interactive Game Box Container -->
+    <!-- Main Game Window Box -->
     <div class="game-container" id="game-card">
         <div class="header-controls">
-            <div class="score-counter">Score: <span id="score-text">0</span>/10</div>
+            <div class="level-badge" id="level-indicator">Level 1: Set Time</div>
             <div class="volume-container">
                 <span>🔊</span>
                 <input type="range" class="volume-slider" id="volume-control" min="0" max="1" step="0.1" value="0.8">
@@ -231,77 +331,96 @@
             <div class="progress-fill" id="progress-indicator"></div>
         </div>
 
-        <div id="quiz-view">
-            <div class="question-box" id="question-text">Question text goes here?</div>
-            <div class="options-grid" id="options-box">
-                <!-- Dynamically Rendered Option Nodes -->
+        <div id="game-playground">
+            <div class="prompt-box" id="question-prompt">Loading puzzle prompt...</div>
+
+            <!-- VIEW FOR LEVEL 1: CLOCKFACE INTERACTION -->
+            <div id="clock-view" class="clock-wrapper">
+                <div class="clock" id="analog-clock">
+                    <div class="clock-center"></div>
+                    <div class="hand hour-hand" id="hour-hand"></div>
+                    <div class="hand minute-hand" id="minute-hand"></div>
+                </div>
+                <div class="time-display-bubble" id="digital-bubble">12:00 O'clock</div>
+                <div class="stepper-controls">
+                    <button class="step-btn" onclick="adjustClockTime(-1)">−</button>
+                    <button class="step-btn" onclick="adjustClockTime(1)">+</button>
+                </div>
             </div>
+
+            <!-- VIEW FOR LEVEL 2 & LEVEL 3: SEQUENCING CONTAINER -->
+            <div id="sequence-view" style="display: none;">
+                <p style="font-size: 14px; color: #666; margin-bottom: 8px;">Drag and arrange items in order (Left to Right / Top to Bottom):</p>
+                <div class="cards-container" id="sortable-list"></div>
+            </div>
+
+            <button class="submit-btn" onclick="verifyCurrentAnswer()">Check Answer Check ✔</button>
         </div>
 
+        <!-- RESTART & END GAME CONTROLS -->
         <div id="end-view" style="display: none;">
-            <h2 style="font-size: 28px; color: #6C5CE7; margin-bottom: 10px;">Great Job! 🎉</h2>
-            <p id="final-message" style="font-size: 18px; margin-bottom: 20px; color: #4A4A4A;">You finished the Time Master game.</p>
-            <button class="restart-btn" onclick="resetGame()">Play Again 🔄</button>
+            <h2 style="font-size: 26px; color: #118AB2; margin-bottom: 10px;">You are a Time Master! 🌟</h2>
+            <p style="font-size: 18px; color: #4A4A4A;">Fantastic job finishing all levels successfully.</p>
+            <button class="restart-btn" onclick="restartEntireGame()">Play Again 🔄</button>
         </div>
     </div>
 
     <script>
-        // Master Question Bank Aligning to 'image_2a14e2.png' Learning Outcomes
-        const itemPool = [
-            { q: "What do we use to see the time?", a: ["Clock", "Book", "Mirror", "Ruler"], c: 0 },
-            { q: "Which hand on a clock is the short hand?", a: ["Hour hand", "Minute hand", "Second hand", "Day hand"], c: 0 },
-            { q: "Which hand on a clock is the long hand?", a: ["Minute hand", "Hour hand", "Number hand", "Night hand"], c: 0 },
-            { q: "If today is Monday, what day was yesterday?", a: ["Sunday", "Tuesday", "Wednesday", "Saturday"], c: 0 },
-            { q: "If today is Friday, what day is tomorrow?", a: ["Saturday", "Thursday", "Sunday", "Monday"], c: 0 },
-            { q: "How many days are in a whole week?", a: ["7 days", "5 days", "10 days", "12 days"], c: 0 },
-            { q: "Which activity takes MORE time?", a: ["Sleeping at night", "Brushing teeth", "Washing hands", "Drinking water"], c: 0 },
-            { q: "Which activity takes LESS time?", a: ["Blinking your eyes", "Eating dinner", "Watching a movie", "Writing a story"], c: 0 },
-            { q: "What is the first month of the year?", a: ["January", "March", "May", "December"], c: 0 },
-            { q: "What is the last month of the year?", a: ["December", "October", "January", "August"], c: 0 },
-            { q: "Which day comes right after Tuesday?", a: ["Wednesday", "Monday", "Thursday", "Friday"], c: 0 },
-            { q: "What is missing on a digital clock display? (10:00)", a: ["Hands", "Numbers", "Screen", "Dots"], c: 0 },
-            { q: "How many months are in a whole year?", a: ["12 months", "7 months", "10 months", "30 months"], c: 0 },
-            { q: "Which month comes right after February?", a: ["March", "January", "April", "June"], c: 0 },
-            { q: "We eat breakfast in the ________.", a: ["Morning", "Afternoon", "Evening", "Night"], c: 0 }
+        // Game Mission Structures Across 3 Levels
+        const level1Missions = [
+            { text: "I get up early for school at _____ o'clock.", target: 7 },
+            { text: "I eat my tasty lunch at _____ o'clock.", target: 1 },
+            { text: "I return home from school at _____ o'clock.", target: 3 },
+            { text: "I go out to play with my friends at _____ o'clock.", target: 5 },
+            { text: "It is night! I jump into bed to sleep at _____ o'clock.", target: 9 }
         ];
 
-        let activeItems = [];
-        let indexTrack = 0;
-        let runningScore = 0;
-        let selectionLocked = false;
-        let volumeLevel = 0.8;
+        const level2Missions = [
+            { text: "Arrange these days of the week in correct order!", items: ["Monday", "Tuesday", "Wednesday", "Thursday"], correctOrder: ["Monday", "Tuesday", "Wednesday", "Thursday"] },
+            { text: "Put these days starting right after Thursday!", items: ["Saturday", "Friday", "Sunday"], correctOrder: ["Friday", "Saturday", "Sunday"] },
+            { text: "Put these early months of the year in order!", items: ["March", "January", "February", "April"], correctOrder: ["January", "February", "March", "April"] },
+            { text: "Sort these late months of the year correctly!", items: ["November", "September", "October", "December"], correctOrder: ["September", "October", "November", "December"] }
+        ];
 
-        // Sound System Web Audio Synthesis API Engine
+        const level3Missions = [
+            { text: "Sequence your morning routine activities step-by-step!", items: ["Wake Up", "Brush Teeth", "Eat Breakfast", "Go to School"], correctOrder: ["Wake Up", "Brush Teeth", "Eat Breakfast", "Go to School"] },
+            { text: "Sequence your evening routine activities step-by-step!", items: ["Do Homework", "Play Outside", "Eat Dinner", "Go to Bed"], correctOrder: ["Play Outside", "Do Homework", "Eat Dinner", "Go to Bed"] }
+        ];
+
+        let currentLevel = 1; 
+        let internalStep = 0; 
+        let currentLevel1Hour = 12; 
+        let sortableInstance = null;
+        let volumeLevel = 0.8;
+        let runningMission = null;
+
+        // Native Web Audio API Sound Generator Block
         function audioBeep(freq, type, duration) {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = ctx.createOscillator();
                 const amp = ctx.createGain();
-                
                 osc.type = type;
                 osc.frequency.setValueAtTime(freq, ctx.currentTime);
-                
                 amp.gain.setValueAtTime(volumeLevel, ctx.currentTime);
                 amp.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + duration);
-                
                 osc.connect(amp);
                 amp.connect(ctx.destination);
-                
                 osc.start();
                 osc.stop(ctx.currentTime + duration);
-            } catch(e) { console.log("Audio not supported context window"); }
+            } catch(e) { console.log(e); }
         }
 
-        function signalCorrectSound() {
-            audioBeep(523.25, 'triangle', 0.15); // C5 Node
-            setTimeout(() => audioBeep(659.25, 'triangle', 0.25), 100); // E5 Node
+        function playCorrectSound() {
+            audioBeep(523.25, 'triangle', 0.15);
+            setTimeout(() => audioBeep(659.25, 'triangle', 0.25), 100);
         }
 
-        function signalWrongSound() {
-            audioBeep(220.00, 'sawtooth', 0.3); // A3 Node
+        function playWrongSound() {
+            audioBeep(220.00, 'sawtooth', 0.3);
         }
 
-        // Canvas Confetti Animation Code Block
+        // Particle Canvas Graphics Layout Control Engine
         const canvas = document.getElementById("confetti-canvas");
         const ctx = canvas.getContext("2d");
         let activeConfetti = [];
@@ -316,13 +435,10 @@
         function dropConfetti() {
             for(let i = 0; i < 60; i++) {
                 activeConfetti.push({
-                    x: canvas.width / 2,
-                    y: canvas.height / 2 - 50,
-                    vx: (Math.random() - 0.5) * 12,
-                    vy: (Math.random() - 0.7) * 15,
+                    x: canvas.width / 2, y: canvas.height / 2 - 50,
+                    vx: (Math.random() - 0.5) * 12, vy: (Math.random() - 0.7) * 15,
                     color: `hsl(${Math.random() * 360}, 90%, 65%)`,
-                    size: Math.random() * 8 + 6,
-                    rotation: Math.random() * 360,
+                    size: Math.random() * 8 + 6, rotation: Math.random() * 360,
                     rSpeed: (Math.random() - 0.5) * 10
                 });
             }
@@ -332,36 +448,32 @@
         function animateConfettiStream() {
             if (activeConfetti.length === 0) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
             for(let i = activeConfetti.length - 1; i >= 0; i--) {
                 let p = activeConfetti[i];
-                p.x += p.vx;
-                p.y += p.vy;
-                p.vy += 0.4; // Gravity weight
-                p.rotation += p.rSpeed;
-                
+                p.x += p.vx; p.y += p.vy; p.vy += 0.4; p.rotation += p.rSpeed;
                 ctx.save();
                 ctx.translate(p.x, p.y);
                 ctx.rotate(p.rotation * Math.PI / 180);
                 ctx.fillStyle = p.color;
                 ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
                 ctx.restore();
-                
                 if(p.y > canvas.height) activeConfetti.splice(i, 1);
             }
             requestAnimationFrame(animateConfettiStream);
         }
 
-        // App & Game Loop Architecture Control Setup
+        // Set up the app on window load
         window.addEventListener('DOMContentLoaded', () => {
-            // Splash hold rule sequence for 5 seconds total duration
+            generateClockTicks();
+            
+            // Hard hold splash timer matching 'Simple Steps to Create a QR Learning Game.docx' workflow rules
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 splash.style.opacity = 0;
                 setTimeout(() => {
                     splash.style.display = 'none';
                     document.getElementById('game-card').style.display = 'block';
-                    initializeGameSession();
+                    launchCoreGameEngine();
                 }, 500);
             }, 5000);
 
@@ -370,84 +482,152 @@
             });
         });
 
-        function initializeGameSession() {
-            // Shuffle and pick 10 random distinct question objects from source data
-            const scrambled = [...itemPool].sort(() => Math.random() - 0.5);
-            activeItems = scrambled.slice(0, 10);
-            indexTrack = 0;
-            runningScore = 0;
-            
-            document.getElementById('score-text').innerText = runningScore;
-            document.getElementById('quiz-view').style.display = 'block';
-            document.getElementById('end-view').style.display = 'none';
-            
-            renderActiveQuestion();
+        // Procedural Face Layout Rendering for Numbers 1-12
+        function generateClockTicks() {
+            const face = document.getElementById('analog-clock');
+            const radius = 72; 
+            for (let i = 1; i <= 12; i++) {
+                const angle = (i * 30) * Math.PI / 180;
+                const num = document.createElement('div');
+                num.className = 'clock-number';
+                num.innerText = i;
+                const x = 90 + radius * Math.sin(angle) - 10;
+                const y = 90 - radius * Math.cos(angle) - 10;
+                num.style.left = `${x}px`;
+                num.style.top = `${y}px`;
+                face.appendChild(num);
+            }
         }
 
-        function renderActiveQuestion() {
-            selectionLocked = false;
-            const currentItem = activeItems[indexTrack];
-            
-            // Render structural layout state tracker bars
-            document.getElementById('progress-indicator').style.width = `${(indexTrack / 10) * 100}%`;
-            document.getElementById('question-text').innerText = currentItem.q;
-            
-            const optionsBox = document.getElementById('options-box');
-            optionsBox.innerHTML = '';
-
-            // Construct variant indices arrays tracking configurations map
-            let indices = [0, 1, 2, 3];
-            let variantAnswers = indices.map(i => currentItem.a[i]);
-            
-            // Render interactive option elements securely
-            variantAnswers.forEach((ansText, originalIndex) => {
-                if(!ansText) return; 
-                const btn = document.createElement('button');
-                btn.className = 'option-btn';
-                btn.innerText = ansText;
-                btn.onclick = () => processUserSelection(btn, originalIndex, currentItem.c);
-                optionsBox.appendChild(btn);
-            });
+        // Master Game Session Orchestration
+        function launchCoreGameEngine() {
+            currentLevel = 1;
+            internalStep = 0;
+            updateGlobalProgressBar();
+            loadCurrentMission();
         }
 
-        function processUserSelection(selectedButton, selectedIdx, solutionIdx) {
-            if (selectionLocked) return;
-            selectionLocked = true;
+        function updateGlobalProgressBar() {
+            // Total of 9 steps (5 in L1, 2 in L2, 2 in L3)
+            let rawProgress = 0;
+            if (currentLevel === 1) rawProgress = internalStep;
+            else if (currentLevel === 2) rawProgress = 5 + internalStep;
+            else if (currentLevel === 3) rawProgress = 7 + internalStep;
+            
+            document.getElementById('progress-indicator').style.width = `${(rawProgress / 9) * 100}%`;
+        }
 
-            const children = document.getElementById('options-box').children;
+        function loadCurrentMission() {
+            updateGlobalProgressBar();
+            
+            if (currentLevel === 1) {
+                document.getElementById('level-indicator').innerText = "Level 1: Set Clock Time 🕒";
+                document.getElementById('clock-view').style.display = 'flex';
+                document.getElementById('sequence-view').style.display = 'none';
+                
+                runningMission = level1Missions[internalStep];
+                document.getElementById('question-prompt').innerText = runningMission.text;
+                
+                // Start with hands pointing to 12 as requested
+                currentLevel1Hour = 12; 
+                refreshClockHandNodePositions();
+            } 
+            else if (currentLevel === 2 || currentLevel === 3) {
+                document.getElementById('level-indicator').innerText = currentLevel === 2 ? "Level 2: Ordering Time 🗓️" : "Level 3: Daily Routines 🔄";
+                document.getElementById('clock-view').style.display = 'none';
+                document.getElementById('sequence-view').style.display = 'block';
+                
+                const setPool = currentLevel === 2 ? level2Missions : level3Missions;
+                runningMission = setPool[internalStep];
+                document.getElementById('question-prompt').innerText = runningMission.text;
+                
+                // Shuffle array items securely before presenting to student
+                const scrambledItems = [...runningMission.items].sort(() => Math.random() - 0.5);
+                const listbox = document.getElementById('sortable-list');
+                listbox.innerHTML = '';
+                
+                scrambledItems.forEach(itemText => {
+                    const el = document.createElement('div');
+                    el.className = 'flashcard';
+                    el.innerText = itemText;
+                    listbox.appendChild(el);
+                });
 
-            if (selectedIdx === solutionIdx) {
-                selectedButton.classList.add('correct');
-                runningScore++;
-                document.getElementById('score-text').innerText = runningScore;
-                signalCorrectSound();
-                dropConfetti();
-            } else {
-                selectedButton.classList.add('wrong');
-                children[solutionIdx].classList.add('correct');
-                signalWrongSound();
+                if (sortableInstance) sortableInstance.destroy();
+                sortableInstance = new Sortable(listbox, {
+                    animation: 150,
+                    ghostClass: 'sortable-ghost'
+                });
+            }
+        }
+
+        // Stepper Mechanics controlling + - button interactions
+        function adjustClockTime(delta) {
+            currentLevel1Hour += delta;
+            if (currentLevel1Hour > 12) currentLevel1Hour = 1;
+            if (currentLevel1Hour < 1) currentLevel1Hour = 12;
+            refreshClockHandNodePositions();
+        }
+
+        function refreshClockHandNodePositions() {
+            const hrDeg = currentLevel1Hour * 30;
+            document.getElementById('hour-hand').style.transform = `translate(-50%, 0) rotate(${hrDeg}deg)`;
+            // Keep minute hand at 12 (0 degrees) for direct hourly evaluations
+            document.getElementById('minute-hand').style.transform = `translate(-50%, 0) rotate(0deg)`;
+            document.getElementById('digital-bubble').innerText = `${currentLevel1Hour}:00 O'clock`;
+        }
+
+        // Core Mission Verification Matrix
+        function verifyCurrentAnswer() {
+            let userIsCorrect = false;
+
+            if (currentLevel === 1) {
+                if (currentLevel1Hour === runningMission.target) {
+                    userIsCorrect = true;
+                }
+            } 
+            else {
+                const currentCards = Array.from(document.getElementById('sortable-list').children);
+                const userOrder = currentCards.map(c => c.innerText.trim());
+                userIsCorrect = userOrder.length === runningMission.correctOrder.length && 
+                                userOrder.every((val, index) => val === runningMission.correctOrder[index]);
             }
 
-            // Move to next question after a 2-second delay to show feedback
-            setTimeout(() => {
-                indexTrack++;
-                if (indexTrack < 10) {
-                    renderActiveQuestion();
-                } else {
-                    terminateGameView();
-                }
-            }, 2000);
+            if (userIsCorrect) {
+                playCorrectSound();
+                dropConfetti();
+                advanceGamePipeline();
+            } else {
+                playWrongSound();
+                alert("Try again! Move the pieces or change the clock to find the right order! ✨");
+            }
         }
 
-        function terminateGameView() {
-            document.getElementById('progress-indicator').style.width = '100%';
-            document.getElementById('quiz-view').style.display = 'none';
-            document.getElementById('end-view').style.display = 'block';
-            document.getElementById('final-message').innerText = `You scored ${runningScore} out of 10 answers right! 🎉`;
+        // Pipeline Advance Route State Machine
+        function advanceGamePipeline() {
+            internalStep++;
+            
+            if (currentLevel === 1 && internalStep >= level1Missions.length) {
+                currentLevel = 2;
+                internalStep = 0;
+            } else if (currentLevel === 2 && internalStep >= level2Missions.length) {
+                currentLevel = 3;
+                internalStep = 0;
+            } else if (currentLevel === 3 && internalStep >= level3Missions.length) {
+                // Game completely finished! Show end screen
+                document.getElementById('progress-indicator').style.width = '100%';
+                document.getElementById('game-playground').style.display = 'none';
+                document.getElementById('end-view').style.display = 'block';
+                return;
+            }
+            
+            setTimeout(loadCurrentMission, 1000);
         }
 
-        function resetGame() {
-            initializeGameSession();
+        function restartEntireGame() {
+            document.getElementById('game-playground').style.display = 'block';
+            document.getElementById('end-view').style.display = 'none';
+            launchCoreGameEngine();
         }
     </script>
 </body>
