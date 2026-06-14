@@ -39,19 +39,22 @@
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: #ffffff;
-            display: flex; justify-content: center; align-items: center;
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center;
             z-index: 9999;
             transition: opacity 0.5s ease-out;
         }
         .splash-inner { text-align: center; }
-        .splash-logo { max-width: 220px; height: auto; margin-bottom: 25px; display: block; margin-left: auto; margin-right: auto; }
+        .splash-logo { max-width: 240px; height: auto; margin-bottom: 25px; display: block; margin-left: auto; margin-right: auto; }
         .splash-loader { 
             width: 160px; height: 10px; background: #e0e0e0; 
             border-radius: 5px; margin: 0 auto; overflow: hidden; 
         }
         .splash-bar { 
             width: 100%; height: 100%; background: var(--wonderland-purple); 
-            transform: translateX(-100%); animation: loadStep 1.8s forwards ease-in-out; 
+            transform: translateX(-100%); animation: loadStep 1.5s forwards ease-in-out; 
         }
         @keyframes loadStep { 100% { transform: translateX(0); } }
 
@@ -197,22 +200,18 @@
 </head>
 <body>
 
-    <!-- AUDIO ASSETS SAFETY ASSIGNMENTS -->
     <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
-    <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></preload>
+    <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
-    <!-- MANDATORY BRAND SPLASH SEQUENCE WITH ASSIGNED LOGO FILE IDENTIFICATION -->
     <div id="screen-splash">
         <div class="splash-inner">
-            <img src="assets/logo.png" class="splash-logo" alt="Innovine Logo" onerror="this.style.display='none';">
+            <img src="assets/innovine-logo.png" class="splash-logo" alt="Innovine Logo" id="brand-logo-img">
             <div class="splash-loader"><div class="splash-bar"></div></div>
         </div>
     </div>
 
-    <!-- MAIN MATRIX CONTAINER CONTEXT -->
     <div class="game-container">
         
-        <!-- LAYER 1: STORY TELLING INTRO SCREEN -->
         <div class="screen-layer active" id="screen-intro">
             <div class="hero-banner">⏰🕳️🐇</div>
             <h1 style="margin-bottom: 12px; font-size: 2.4rem; color: var(--wonderland-dark);">Alice in Wonderland</h1>
@@ -228,7 +227,6 @@
             <button class="cta-btn" onclick="switchActiveLayer('screen-play')">Begin Adventure 🚀</button>
         </div>
 
-        <!-- LAYER 2: INTERACTIVE GAME ASSESSMENT CONTROLLER -->
         <div class="screen-layer" id="screen-play">
             <div class="hud-row">
                 <div>🔑 Keys: <span id="label-score-val">0</span></div>
@@ -244,16 +242,12 @@
                     <div id="element-stage-visualizer"></div>
                 </div>
 
-                <!-- DYNAMIC ANSWER MOUNT PANELS -->
-                <div id="wrapper-input-mechanisms">
-                    <!-- Target generation areas managed programmatically below -->
-                </div>
+                <div id="wrapper-input-mechanisms"></div>
 
                 <div class="banner-feedback" id="element-status-feedback"></div>
             </div>
         </div>
 
-        <!-- LAYER 3: END SCREEN WRAPPER -->
         <div class="screen-layer" id="screen-end">
             <div class="hero-banner">👑✨🔮</div>
             <h1 style="color: var(--wonderland-dark); font-size: 2.5rem; margin-bottom: 15px; text-align: center;">Wonderland Restored!</h1>
@@ -271,7 +265,6 @@
         let currentScore = 0;
         let activeTurnIndex = 0;
         
-        // MASTER CURATED DATABASE TRACKING ASSESSMENT SPECIFICATIONS METICULOUSLY
         const masterSimulationPool = [
             // LEVEL 1: LENGTH
             { type: "choice", level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🔑", question: "Alice finds a tiny golden key. Which unit is best to measure its length?", options: ["m", "cm"], answer: "cm", cols: 2, visual: "none" },
@@ -313,11 +306,9 @@
                 let keyToken = document.createElement('div');
                 keyToken.className = 'falling-key-token';
                 keyToken.innerText = '🔑';
-                
                 keyToken.style.left = Math.random() * 90 + 'vw';
                 keyToken.style.setProperty('--deviation', (Math.random() - 0.5) * 150 + 'px');
                 keyToken.style.setProperty('--dur', (Math.random() * 0.8 + 1.2) + 's');
-                
                 document.body.appendChild(keyToken);
                 setTimeout(() => keyToken.remove(), 2000);
             }, intervalTime);
@@ -342,7 +333,6 @@
             document.getElementById('element-status-feedback').innerText = "";
             let data = masterSimulationPool[activeTurnIndex];
 
-            // Render HUD Updates
             document.getElementById('label-turn-val').innerText = `${activeTurnIndex + 1} / ${TOTAL_TURNS_MAX}`;
             document.getElementById('progress-fill').style.width = `${(activeTurnIndex / TOTAL_TURNS_MAX) * 100}%`;
             document.getElementById('label-score-val').innerText = currentScore;
@@ -351,11 +341,9 @@
             badge.innerText = data.level;
             badge.style.background = data.color;
 
-            // Render Stage Elements
             document.getElementById('element-stage-icon').innerText = data.icon;
             document.getElementById('element-stage-question').innerText = data.question;
 
-            // Mount Stage Structural Context Vectors
             let visualBox = document.getElementById('element-stage-visualizer');
             visualBox.innerHTML = "";
             if (data.visual === "ruler") {
@@ -365,29 +353,24 @@
             } else if (data.visual && data.visual.startsWith("scale")) {
                 let container = document.createElement('div');
                 container.className = "balance-scale-fallback";
-                
                 let beam = document.createElement('div');
                 beam.className = "balance-beam";
                 if (data.visual === "scale-left") beam.style.transform = "rotate(12deg)";
                 if (data.visual === "scale-right") beam.style.transform = "rotate(-12deg)";
-                
                 let base = document.createElement('div');
                 base.className = "balance-base";
-                
                 container.appendChild(base);
                 container.appendChild(beam);
                 visualBox.appendChild(container);
             }
 
-            // Mount Form Control Mechanisms
             let mechanistZone = document.getElementById('wrapper-input-mechanisms');
             mechanistZone.innerHTML = "";
 
             if (data.type === "choice") {
                 let matrix = document.createElement('div');
                 matrix.className = "options-matrix";
-                if (data.cols === 2) matrix.classList.add('matrix-two-col');
-                if (data.cols === 3) matrix.classList.add('matrix-two-col'); // fallback grid config styling
+                if (data.cols >= 2) matrix.classList.add('matrix-two-col');
 
                 const prefixes = ["A", "B", "C", "D"];
                 data.options.forEach((opt, idx) => {
@@ -426,9 +409,7 @@
         }
 
         function evaluateChoiceResponse(selectedButton, chosenVal, exactAnswer) {
-            // Lock UI Controls immediately
             document.querySelectorAll('.option-card-btn').forEach(b => b.disabled = true);
-
             let feedbackNode = document.getElementById('element-status-feedback');
 
             if (chosenVal === exactAnswer) {
@@ -443,11 +424,8 @@
                 feedbackNode.style.color = "#c62828";
                 feedbackNode.innerText = "Oh dear! That wasn't quite right.";
                 playSound('wrong');
-                
-                // Highlight exact answer framework visually for pedagogical alignment
                 document.querySelectorAll('.option-card-btn').forEach(b => {
-                    let textLabel = b.querySelector('.txt-lbl').innerText;
-                    if (textLabel === exactAnswer) b.classList.add('correct');
+                    if (b.querySelector('.txt-lbl').innerText === exactAnswer) b.classList.add('correct');
                 });
             }
 
@@ -497,16 +475,15 @@
             switchActiveLayer('screen-intro');
         }
 
-        // Standardized Splash Window Event Safety Loops
+        // FORCE SCREEN SAFETY TIMEOUT TO PREVENT INTERFACE LOCKS
         window.addEventListener('load', function() {
-            function purgeSplashOverlay() {
-                const splash = document.getElementById('screen-splash');
-                if (splash) {
+            const splash = document.getElementById('screen-splash');
+            if (splash) {
+                setTimeout(() => {
                     splash.style.opacity = '0';
                     setTimeout(() => splash.remove(), 500);
-                }
+                }, 1600);
             }
-            setTimeout(purgeSplashOverlay, 1900);
         });
     </script>
 </body>
