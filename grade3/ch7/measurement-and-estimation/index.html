@@ -1,185 +1,582 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Measurement & Estimation Game</title>
-<style>
-body { margin:0; font-family: Arial, sans-serif; background: #FFF8F0; display:flex; flex-direction:column; align-items:center; }
-h2 { color:#8A2BE2; text-align:center; margin-top:20px; }
-#game, #estimationGame { display:flex; flex-wrap: wrap; justify-content:center; margin-top:30px; }
-.card { width:100px; height:100px; border:2px solid #8A2BE2; margin:10px; display:flex; justify-content:center; align-items:center; cursor:pointer; background:white; border-radius:10px; }
-.card img { max-width:80%; max-height:80%; }
-.matched { border:3px solid #4CAF50; background:#C8E6C9; cursor:default; }
-#feedback { margin-top:20px; font-size:18px; color:#8A2BE2; }
-button { margin-top:20px; padding:10px 20px; font-size:16px; background:#8A2BE2; color:white; border:none; border-radius:10px; cursor:pointer; }
-.option { margin:10px; padding:10px 20px; background:#FF9800; color:white; border-radius:8px; cursor:pointer; }
-.option:hover { background:#FFB74D; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Master Builder: Measurement & Estimation</title>
+    <style>
+        :root {
+            --primary-blue: #0288d1;
+            --dark-blue: #01579b;
+            --light-blue: #b3e5fc;
+            --accent-orange: #f57c00;
+            --construction-yellow: #ffb300;
+            --bg-canvas: #e1f5fe;
+            --text-main: #263238;
+            --card-shadow: 0 12px 28px rgba(1, 87, 155, 0.12);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: var(--bg-canvas);
+            background-image: linear-gradient(rgba(2, 136, 209, 0.04) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(2, 136, 209, 0.04) 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            user-select: none;
+            overflow-x: hidden;
+        }
+
+        /* --- LAUNCH SPLASH SCREEN --- */
+        #screen-splash {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(1, 87, 155, 0.85), rgba(0, 0, 0, 0.9)), 
+                        url('https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=1200&q=80');
+            background-size: cover;
+            background-position: center;
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.6s ease-out;
+        }
+        .splash-card {
+            background: rgba(255, 255, 255, 0.96);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            max-width: 400px;
+            width: 90%;
+        }
+        .splash-logo { 
+            max-width: 180px; 
+            height: auto; 
+            margin-bottom: 25px; 
+            display: block; 
+            margin-left: auto; 
+            margin-right: auto; 
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.06));
+        }
+        .splash-loader { 
+            width: 100%; height: 6px; background: #e0e0e0; 
+            border-radius: 10px; margin: 15px auto 0 auto; overflow: hidden; 
+        }
+        .splash-bar { 
+            width: 100%; height: 100%; background: var(--primary-blue); 
+            transform: translateX(-100%); animation: loadStep 1.5s forwards ease-in-out; 
+        }
+        @keyframes loadStep { 100% { transform: translateX(0); } }
+
+        /* --- APP CORE CONTAINER --- */
+        .game-container {
+            width: 100%;
+            max-width: 850px;
+            background: #ffffff;
+            border-radius: 32px;
+            box-shadow: var(--card-shadow);
+            border: 1px solid rgba(2, 136, 209, 0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 650px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .screen-layer {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding: 40px;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+        .screen-layer.active { display: flex; opacity: 1; }
+
+        /* --- INTRO LANDING LAYER --- */
+        #screen-intro { justify-content: center; align-items: center; text-align: center; }
+        .hero-banner { 
+            font-size: 5rem; 
+            margin-bottom: 15px; 
+            animation: floatAnim 3s infinite alternate ease-in-out; 
+        }
+        @keyframes floatAnim { 0% { transform: translateY(0); } 100% { transform: translateY(-8px); } }
+
+        .story-bubble {
+            background: #f1fbfd; padding: 30px; border-radius: 24px;
+            border: 2px solid var(--light-blue); max-width: 720px; margin-bottom: 30px;
+            font-size: 1.1rem; line-height: 1.6; text-align: left;
+        }
+        .story-bubble h2 { text-align: center; margin-bottom: 12px; color: var(--dark-blue); font-size: 1.6rem; }
+
+        .cta-btn {
+            background: linear-gradient(135deg, var(--primary-blue), var(--dark-blue));
+            border: none; color: white; font-size: 1.25rem; font-weight: 700;
+            padding: 16px 45px; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 6px 20px rgba(2, 136, 209, 0.25); transition: var(--transition-smooth);
+        }
+        .cta-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(2, 136, 209, 0.35); }
+
+        /* --- RUNTIME STATISTICS HEADER --- */
+        .hud-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; font-size: 1.15rem; font-weight: 700; color: var(--dark-blue);
+            padding-bottom: 12px; border-bottom: 2px solid #e1f5fe;
+        }
+        .level-badge {
+            color: white; padding: 6px 22px; border-radius: 30px; font-size: 0.95rem; 
+            font-weight: 700; background-color: var(--primary-blue);
+        }
+        .progress-track { width: 100%; height: 10px; background: #eef2f3; border-radius: 10px; overflow: hidden; margin-bottom: 30px; }
+        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #4fc3f7, var(--dark-blue)); transition: width 0.4s ease; }
+
+        /* --- INTERACTIVE ASSESSMENT INTERFACE --- */
+        .workspace-layout { display: flex; flex-direction: column; flex: 1; justify-content: space-between; }
+        
+        .interactive-stage {
+            background: #fafafa; border: 1px solid rgba(2, 136, 209, 0.12); border-radius: 24px;
+            padding: 30px; min-height: 240px; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; margin-bottom: 30px;
+        }
+        .stage-avatar { font-size: 3.5rem; margin-bottom: 8px; }
+        .stage-prompt { font-size: 1.35rem; font-weight: 700; text-align: center; color: var(--text-main); line-height: 1.5; margin-bottom: 20px; }
+
+        /* --- CONTROL SYSTEM INTERACTIVE LAYOUTS --- */
+        .options-matrix { display: flex; flex-wrap: wrap; gap: 16px; width: 100%; justify-content: center; }
+        
+        .option-card-btn {
+            background: #ffffff; border: 2px solid #e0e0e0; border-radius: 18px;
+            padding: 18px 25px; font-size: 1.15rem; font-weight: 700; color: var(--text-main);
+            cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.02); text-align: left;
+            transition: var(--transition-smooth); display: flex; align-items: center;
+            flex: 1 1 calc(50% - 16px); min-width: 270px;
+        }
+        .option-card-btn:hover { border-color: var(--primary-blue); background: #e1f5fe; transform: translateY(-2px); }
+        .option-card-btn .prefix { background: #e1f5fe; color: var(--dark-blue); width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; margin-right: 15px; font-weight: 800; }
+        
+        @media (max-width: 700px) { .option-card-btn { flex: 1 1 100%; } }
+
+        /* Input Field Configuration */
+        .text-input-field {
+            width: 100%; max-width: 160px; padding: 12px; font-size: 1.6rem; font-weight: 700;
+            border: 2px solid #e0e0e0; border-radius: 16px; text-align: center; color: var(--dark-blue);
+            outline: none; transition: var(--transition-smooth); margin: 0 10px;
+        }
+        .text-input-field:focus { border-color: var(--primary-blue); }
+
+        .unit-label-tag { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
+
+        /* Status Colors */
+        .option-card-btn.correct { background: #e8f5e9 !important; border-color: #2e7d32 !important; color: #1b5e20 !important; }
+        .option-card-btn.wrong { background: #ffebee !important; border-color: #c62828 !important; color: #b71c1c !important; }
+        .banner-feedback { text-align: center; height: 35px; font-size: 1.3rem; font-weight: 700; margin-top: 20px; }
+
+        /* --- REAL-TIME GRAPHICAL INTERFACE GENERATORS --- */
+        #element-stage-visualizer { width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 10px; }
+        
+        /* Ruler Geometry Layout */
+        .visual-ruler {
+            width: 320px; height: 60px; background: #fff9c4; border: 2px solid #fbc02d;
+            border-radius: 6px; position: relative; display: flex; align-items: flex-end; padding-bottom: 4px;
+        }
+        .ruler-mark { position: absolute; bottom: 0; width: 2px; background: #000; height: 15px; }
+        .ruler-mark.major { height: 30px; }
+        .ruler-mark.major::after { content: attr(data-val); position: absolute; top: -22px; left: -5px; font-size: 0.8rem; font-weight: 700; }
+        
+        .visual-object-bar {
+            position: absolute; top: 12px; left: 2px; height: 16px; background: var(--accent-orange);
+            border-radius: 4px; border: 1px solid #e65100; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* Scale Balance View */
+        .visual-scale-system {
+            width: 240px; height: 110px; position: relative; display: flex; flex-direction: column; align-items: center;
+        }
+        .scale-beam { width: 200px; height: 6px; background: #78909c; border-radius: 4px; }
+        .scale-base { width: 12px; height: 80px; background: #455a64; }
+        .scale-foot { width: 80px; height: 10px; background: #37474f; border-radius: 4px; }
+        .scale-pan {
+            position: absolute; top: 6px; width: 50px; height: 35px;
+            border: 2px solid #90a4ae; border-top: none; border-radius: 0 0 20px 20px;
+            display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 700; background: #fafafa;
+        }
+
+        /* Measuring Beaker */
+        .visual-beaker {
+            width: 90px; height: 130px; border: 3px solid #78909c; border-top: none;
+            border-radius: 0 0 12px 12px; position: relative; background: #ffffff; overflow: hidden;
+        }
+        .beaker-liquid {
+            position: absolute; bottom: 0; left: 0; width: 100%; background: #29b6f6;
+            opacity: 0.85; transition: height 0.5s ease;
+        }
+        .beaker-graduation {
+            position: absolute; right: 4px; width: 15px; height: 2px; background: #37474f;
+        }
+        .beaker-graduation::before {
+            content: attr(data-lbl); position: absolute; right: 18px; top: -6px; font-size: 0.65rem; font-weight: 700; color: #37474f;
+        }
+
+        /* Particles */
+        .falling-reward-particle {
+            position: fixed; font-size: 2.5rem; z-index: 9999; pointer-events: none;
+            top: -50px; animation: fallAnimAction var(--dur) linear forwards;
+        }
+        @keyframes fallAnimAction {
+            0% { top: -50px; transform: translateX(0) rotate(0deg); opacity: 1; }
+            100% { top: 105vh; transform: translateX(var(--deviation)) rotate(360deg); opacity: 0; }
+        }
+    </style>
 </head>
 <body>
 
-<h2>Measurement & Estimation Game</h2>
-<p id="instruction">Match each object to its measurement category!</p>
+    <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+    <audio id="audio-celebration" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
 
-<!-- Part 1: Category Matching -->
-<div id="game"></div>
-<div id="feedback"></div>
-<button id="nextButton" onclick="startEstimation()" style="display:none;">Next → Estimation</button>
+    <div id="screen-splash">
+        <div class="splash-card">
+            <img src="assets/innovine-logo.png" class="splash-logo" alt="Innovine Logo">
+            <h4 style="color: #555; letter-spacing: 1px; text-transform: uppercase; font-size: 0.8rem; font-weight: 800;">Studio Module Launching</h4>
+            <div class="splash-loader"><div class="splash-bar"></div></div>
+        </div>
+    </div>
 
-<!-- Part 2: Estimation -->
-<div id="estimationGame" style="display:none;"></div>
-<div id="estimationFeedback" style="font-size:18px; color:#8A2BE2; margin-top:10px;"></div>
+    <div class="game-container">
+        
+        <div class="screen-layer active" id="screen-intro">
+            <div class="hero-banner">📐⚖️🧪</div>
+            <h1 style="margin-bottom: 8px; font-size: 2.6rem; color: var(--dark-blue); text-align: center; font-weight: 800;">The Master Builder</h1>
+            <h3 style="margin-bottom: 25px; color: var(--accent-orange); font-style: italic; text-align: center; font-weight: 700;">Chapter 7: Measurement & Estimation Laboratory</h3>
+            <div class="story-bubble">
+                <h2>Your Engineering Brief</h2>
+                <p>Welcome, Junior Logistics Engineer! To build stadium zones, cook specialized rations, and map sports arenas, you must master standard tools of dimension, mass weight, and liquid volume capacity.</p>
+                <br>
+                <p>Verify blueprint conversions, choose the correct structural equipment, and isolate precise values to complete the tracking deck. Every perfect diagnostic saves resources and earns an **Estimation Merit Star ⭐**.</p>
+            </div>
+            <button class="cta-btn" onclick="switchActiveLayer('screen-play')">Enter Testing Lab 🚀</button>
+        </div>
 
-<button id="restartButton" onclick="restartGame()" style="display:none;">Restart Game</button>
+        <div class="screen-layer" id="screen-play">
+            <div class="hud-row">
+                <div>⭐ Merits: <span id="label-score-val">0</span></div>
+                <div class="level-badge" id="label-level-badge">Task 1</div>
+                <div>Progress: <span id="label-turn-val">1 / 8</span></div>
+            </div>
+            <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
 
-<script>
-let firstCard=null, secondCard=null, lock=false, matchedCount=0;
+            <div class="workspace-layout">
+                <div class="interactive-stage">
+                    <div class="stage-avatar" id="element-stage-icon">📏</div>
+                    <div class="stage-prompt" id="element-stage-question">Initializing verification protocol...</div>
+                    <div id="element-stage-visualizer"></div>
+                </div>
 
-// ----------- PART 1: Category Matching -------------
-const categories = [
-  {name:'Length', img:'assets/length.png'},
-  {name:'Weight', img:'assets/weight.png'},
-  {name:'Capacity', img:'assets/capacity.png'}
-];
+                <div id="wrapper-input-mechanisms"></div>
 
-const objects = [
-  {img:'assets/ruler.png', category:'Length'},
-  {img:'assets/tape.png', category:'Length'},
-  {img:'assets/ribbon.png', category:'Length'},
-  {img:'assets/apple.png', category:'Weight'},
-  {img:'assets/bag_flour.png', category:'Weight'},
-  {img:'assets/bottle.png', category:'Capacity'},
-  {img:'assets/measuring_cup.png', category:'Capacity'},
-  {img:'assets/milk_carton.png', category:'Capacity'}
-];
+                <div class="banner-feedback" id="element-status-feedback"></div>
+            </div>
+        </div>
 
-function startGame(){
-  firstCard=null; secondCard=null; lock=false; matchedCount=0;
-  document.getElementById('feedback').textContent='';
-  document.getElementById('nextButton').style.display='none';
-  document.getElementById('restartButton').style.display='none';
-  document.getElementById('instruction').textContent='Match each object to its measurement category!';
-  
-  let cards=[];
-  objects.forEach(o=>cards.push({...o, type:'object'}));
-  categories.forEach(c=>cards.push({...c, type:'category', category:c.name}));
-  
-  shuffle(cards);
-  
-  const gameDiv=document.getElementById('game');
-  gameDiv.innerHTML='';
-  cards.forEach((c,i)=>{
-    const cardDiv=document.createElement('div');
-    cardDiv.className='card';
-    cardDiv.dataset.category=c.category;
-    cardDiv.dataset.index=i;
-    const img=document.createElement('img'); img.src=c.img;
-    cardDiv.appendChild(img);
-    cardDiv.addEventListener('click',()=>flipCard(cardDiv));
-    gameDiv.appendChild(cardDiv);
-  });
-  document.getElementById('game').style.display='flex';
-  document.getElementById('estimationGame').style.display='none';
-}
+        <div class="screen-layer" id="screen-end">
+            <div class="hero-banner">🏆⚡🏅</div>
+            <h1 style="color: var(--dark-blue); font-size: 2.6rem; margin-bottom: 15px; text-align: center; font-weight: 800;">Module Complete!</h1>
+            <div class="story-bubble" style="text-align: center; margin-left: auto; margin-right: auto;">
+                <h2>🏆 Certified Estimator Badge</h2>
+                <p>Incredible execution! You safely identified appropriate standard tools, completed metric factor transformations, and processed logistical calculations smoothly across all real-world scenarios.</p>
+            </div>
+            <h2 id="final-score-report" style="color: var(--accent-orange); text-align: center; margin-bottom: 30px; font-size: 1.9rem; font-weight: 700;">Total Diagnostics Logged: 8 / 8</h2>
+            <button class="cta-btn" style="margin: 0 auto; display: block;" onclick="reinitializeSimulation()">Reset Workspace 🔄</button>
+        </div>
 
-function shuffle(array){ for(let i=array.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [array[i],array[j]]=[array[j],array[i]]; } }
+    </div>
 
-function flipCard(card){
-  if(lock || card.classList.contains('matched') || card===firstCard) return;
-  card.style.border='3px solid #FF9800';
-  if(!firstCard){ firstCard=card; } else { secondCard=card; checkMatch(); }
-}
+    <script>
+        let currentScore = 0;
+        let activeTurnIndex = 0;
+        
+        const masterSimulationPool = [
+            { 
+                type: "choice", 
+                level: "📏 Linear Bounds: Tool Selection", 
+                color: "#0288d1", icon: "📏", 
+                question: "An engineer needs to plan out the standard length of a brand-new concrete sports arena. Which standard tool is most appropriate for this task?", 
+                options: ["A 15-centimeter plastic pocket ruler", "A long heavy-duty structural survey tape measure", "A liquid beaker", "A kitchen balance scale"], 
+                answer: "A long heavy-duty structural survey tape measure", 
+                visual: "none" 
+            },
+            { 
+                type: "choice", 
+                level: "🔍 Length Measurement: Metric Rulers", 
+                color: "#01579b", icon: "📐", 
+                question: "Examine the testing apparatus bar carefully on the ruler tool below. What is the accurate direct length of the orange structural bracket?", 
+                options: ["5 cm", "8 cm", "11 cm", "15 cm"], 
+                answer: "11 cm", 
+                visual: "ruler-11" 
+            },
+            { 
+                type: "input-value", 
+                level: "⚡ Dimensional Logic: Metric Conversion", 
+                color: "#f57c00", icon: "⚙️", 
+                question: "Your construction manifest notes that exactly 1 meter of alloy framing wire is required. To match the factory cutting machine config, convert this to centimeters.", 
+                targetAns: "100", unitTag: "cm",
+                visual: "none"
+            },
+            { 
+                type: "choice", 
+                level: "⚖️ Mass Properties: Unit Matching", 
+                color: "#37474f", icon: "⚖️", 
+                question: "A heavy distribution crate filled with metal rivets is set onto the cargo deck. Which standard unit correctly measures the weight of this heavy object?", 
+                options: ["Grams (g)", "Kilograms (kg)", "Millilitres (ml)", "Metres (m)"], 
+                answer: "Kilograms (kg)", 
+                visual: "scale-balanced" 
+            },
+            { 
+                type: "choice", 
+                level: "🍎 Estimation Logic: Reasonable Weight", 
+                color: "#ffb300", icon: "🍏", 
+                question: "During field ration packaging, a chef sets aside a single fresh whole apple. Choose the most realistic estimation for its weight.", 
+                options: ["About 150 grams", "About 150 kilograms", "About 5 litres"], 
+                answer: "About 150 grams", 
+                visual: "none" 
+            },
+            { 
+                type: "choice", 
+                level: "🧪 Capacity Logic: Fluid Dynamics", 
+                color: "#00b0ff", icon: "🧪", 
+                question: "Look at the fluid layout inside the diagnostic test beaker. How much total chemical agent capacity is currently contained inside the unit?", 
+                options: ["200 ml", "400 ml", "600 ml", "800 ml"], 
+                answer: "600 ml", 
+                visual: "beaker-600" 
+            },
+            { 
+                type: "input-value", 
+                level: "💧 Logistical Mapping: Volume Conversion", 
+                color: "#0091ea", icon: "🚰", 
+                question: "A primary irrigation tank holding exactly 3 Litres of structural fluid needs to be fully logged in smaller testing units. How many Millilitres is this?", 
+                targetAns: "3000", unitTag: "ml",
+                visual: "none"
+            },
+            { 
+                type: "choice", 
+                level: "🏃 System Analysis: Data Evaluation", 
+                color: "#e65100", icon: "🏆", 
+                question: "While preparing a sports fitness log, three athletic gear setups were weighed: Setup A = 12 kg, Setup B = 950 g, Setup C = 4 kg. Which setup is the absolute heaviest?", 
+                options: ["Setup A (12 kg)", "Setup B (950 g)", "Setup C (4 kg)", "They are all equivalent weight"], 
+                answer: "Setup A (12 kg)", 
+                visual: "none" 
+            }
+        ];
 
-function checkMatch(){
-  lock=true;
-  if(firstCard.dataset.category===secondCard.dataset.category){
-    firstCard.classList.add('matched'); secondCard.classList.add('matched');
-    matchedCount+=2;
-    document.getElementById('feedback').textContent='✅ Correct match!';
-    resetTurn();
-    if(matchedCount===objects.length + categories.length){
-      document.getElementById('feedback').textContent='🎉 All matched! Click Next to continue.';
-      document.getElementById('nextButton').style.display='inline-block';
-    }
-  } else {
-    document.getElementById('feedback').textContent='❌ Try again!';
-    setTimeout(()=>{
-      firstCard.style.border='2px solid #8A2BE2';
-      secondCard.style.border='2px solid #8A2BE2';
-      resetTurn();
-    },1000);
-  }
-}
+        const TOTAL_TURNS_MAX = masterSimulationPool.length;
 
-function resetTurn(){ firstCard=null; secondCard=null; lock=false; }
+        function playSound(type) {
+            const id = type === 'success' ? 'audio-correct' : (type === 'wrong' ? 'audio-wrong' : 'audio-celebration');
+            const track = document.getElementById(id);
+            if (track) { track.currentTime = 0; track.play().catch(() => {}); }
+        }
 
-// ----------- PART 2: Estimation -------------
-const estimationQuestions=[
-  {img:'assets/tree.png', full:50, scale:0.5, unit:'m', options:[25,50,75], answer:25},
-  {img:'assets/plant.png', full:1, scale:0.5, unit:'m', options:[0.5,1,2], answer:0.5},
-  {img:'assets/flagpole.png', full:5, scale:0.5, unit:'m', options:[2,5,7], answer:2},
-  {img:'assets/pencil.png', full:15, scale:0.5, unit:'cm', options:[10,15,20], answer:10},
-  {img:'assets/apple.png', full:150, scale:0.5, unit:'g', options:[50,100,150], answer:75},
-  {img:'assets/bag_flour.png', full:1000, scale:0.5, unit:'g', options:[500,1000,2000], answer:500},
-  {img:'assets/bottle.png', full:500, scale:0.5, unit:'ml', options:[250,500,750], answer:250},
-  {img:'assets/milk_carton.png', full:1000, scale:0.5, unit:'ml', options:[500,1000,2000], answer:500},
-  {img:'assets/measuring_cup.png', full:250, scale:0.5, unit:'ml', options:[100,125,250], answer:125},
-  {img:'assets/toy_car.png', full:500, scale:0.5, unit:'g', options:[250,500,750], answer:250}
-];
+        function triggerRewardShower() {
+            let spawnDuration = 1000; let intervalTime = 90;
+            let timerId = setInterval(() => {
+                let token = document.createElement('div');
+                token.className = 'falling-reward-particle';
+                token.innerText = '⚡';
+                token.style.left = Math.random() * 90 + 'vw';
+                token.style.setProperty('--deviation', (Math.random() - 0.5) * 160 + 'px');
+                token.style.setProperty('--dur', (Math.random() * 0.8 + 1.2) + 's');
+                document.body.appendChild(token);
+                setTimeout(() => token.remove(), 2000);
+            }, intervalTime);
+            setTimeout(() => clearInterval(timerId), spawnDuration);
+        }
 
-let estimationIndex=0;
+        function switchActiveLayer(screenId) {
+            document.querySelectorAll('.screen-layer').forEach(layer => layer.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            if (screenId === 'screen-play') buildActiveAssessmentItem();
+        }
 
-function startEstimation(){
-  document.getElementById('game').style.display='none';
-  document.getElementById('nextButton').style.display='none';
-  document.getElementById('instruction').textContent='Estimate the measurement of the object!';
-  estimationIndex=0;
-  showEstimationQuestion();
-  document.getElementById('estimationGame').style.display='flex';
-}
+        function buildActiveAssessmentItem() {
+            if (activeTurnIndex >= TOTAL_TURNS_MAX) {
+                concludeSimulationWorkflow();
+                return;
+            }
 
-function showEstimationQuestion(){
-  const q=estimationQuestions[estimationIndex];
-  const container=document.getElementById('estimationGame');
-  container.innerHTML='';
-  
-  const img=document.createElement('img'); img.src=q.img; img.style.width=(q.scale*200)+'px';
-  container.appendChild(img);
-  
-  q.options.forEach(opt=>{
-    const btn=document.createElement('button');
-    btn.className='option';
-    btn.textContent=opt + ' ' + q.unit;
-    btn.onclick=()=>checkEstimationAnswer(opt);
-    container.appendChild(btn);
-  });
-  
-  document.getElementById('estimationFeedback').textContent='';
-}
+            document.getElementById('element-status-feedback').innerText = "";
+            let data = masterSimulationPool[activeTurnIndex];
 
-function checkEstimationAnswer(opt){
-  const q=estimationQuestions[estimationIndex];
-  if(opt===q.answer){
-    document.getElementById('estimationFeedback').textContent='✅ Correct!';
-  } else {
-    document.getElementById('estimationFeedback').textContent=`❌ Incorrect! Correct answer: ${q.answer} ${q.unit}`;
-  }
-  estimationIndex++;
-  setTimeout(()=>{
-    if(estimationIndex<estimationQuestions.length){
-      showEstimationQuestion();
-    } else {
-      document.getElementById('estimationFeedback').textContent='🎉 Estimation game completed! Well done!';
-      document.getElementById('restartButton').style.display='inline-block';
-    }
-  },1500);
-}
+            document.getElementById('label-turn-val').innerText = `${activeTurnIndex + 1} / ${TOTAL_TURNS_MAX}`;
+            document.getElementById('progress-fill').style.width = `${(activeTurnIndex / TOTAL_TURNS_MAX) * 100}%`;
+            document.getElementById('label-score-val').innerText = currentScore;
+            
+            let badge = document.getElementById('label-level-badge');
+            badge.innerText = data.level;
+            badge.style.background = data.color;
 
-function restartGame(){ startGame(); document.getElementById('restartButton').style.display='none'; }
+            document.getElementById('element-stage-icon').innerText = data.icon;
+            document.getElementById('element-stage-question').innerText = data.question;
 
-startGame();
-</script>
+            let visualBox = document.getElementById('element-stage-visualizer');
+            visualBox.innerHTML = "";
+            
+            // GRAPHICAL BLUEPRINT BUILDERS
+            if (data.visual === "ruler-11") {
+                let ruler = document.createElement('div');
+                ruler.className = "visual-ruler";
+                for(let i=0; i<=15; i++) {
+                    let tick = document.createElement('div');
+                    tick.className = "ruler-mark" + (i % 5 === 0 ? " major" : "");
+                    tick.style.left = `${(i / 15) * 300 + 8}px`;
+                    if(i % 5 === 0) tick.setAttribute('data-val', i);
+                    ruler.appendChild(tick);
+                }
+                let bar = document.createElement('div');
+                bar.className = "visual-object-bar";
+                bar.style.width = `${(11 / 15) * 300}px`;
+                ruler.appendChild(bar);
+                visualBox.appendChild(ruler);
+            } else if (data.visual === "scale-balanced") {
+                let scale = document.createElement('div');
+                scale.className = "visual-scale-system";
+                scale.innerHTML = `
+                    <div class="scale-beam"></div>
+                    <div class="scale-base"></div>
+                    <div class="scale-foot"></div>
+                    <div class="scale-pan" style="left:0;">Crate</div>
+                    <div class="scale-pan" style="right:0;">Weights</div>
+                `;
+                visualBox.appendChild(scale);
+            } else if (data.visual === "beaker-600") {
+                let beaker = document.createElement('div');
+                beaker.className = "visual-beaker";
+                beaker.innerHTML = `<div class="beaker-liquid" style="height: 75%;"></div>`;
+                for(let j=1; j<=4; j++) {
+                    let grad = document.createElement('div');
+                    grad.className = "beaker-graduation";
+                    grad.style.bottom = `${j * 25}px`;
+                    grad.setAttribute('data-lbl', (j * 200) + "ml");
+                    beaker.appendChild(grad);
+                }
+                visualBox.appendChild(beaker);
+            }
 
+            let mechanistZone = document.getElementById('wrapper-input-mechanisms');
+            mechanistZone.innerHTML = "";
+
+            if (data.type === "choice") {
+                let matrix = document.createElement('div');
+                matrix.className = "options-matrix";
+                const prefixes = ["A", "B", "C", "D"];
+                data.options.forEach((opt, idx) => {
+                    let btn = document.createElement('button');
+                    btn.className = "option-card-btn";
+                    btn.innerHTML = `<span class="prefix">${prefixes[idx]}</span> <span class="txt-lbl">${opt}</span>`;
+                    btn.onclick = function() { evaluateChoiceResponse(btn, opt, data.answer); };
+                    matrix.appendChild(btn);
+                });
+                mechanistZone.appendChild(matrix);
+            } else if (data.type === "input-value") {
+                let wrap = document.createElement('div');
+                wrap.style.textAlign = "center";
+                
+                let valIn = document.createElement('input');
+                valIn.type = "number"; valIn.className = "text-input-field"; valIn.placeholder = "Value";
+                
+                let lbl = document.createElement('span');
+                lbl.className = "unit-label-tag"; lbl.innerText = " " + data.unitTag;
+                
+                let sBtn = document.createElement('button');
+                sBtn.className = "cta-btn"; sBtn.style.padding = "12px 35px"; sBtn.style.marginLeft = "15px"; sBtn.innerText = "Lock Value";
+                sBtn.onclick = function() { evaluateDirectInput(valIn, data.targetAns); };
+
+                wrap.appendChild(valIn);
+                wrap.appendChild(lbl);
+                wrap.appendChild(sBtn);
+                mechanistZone.appendChild(wrap);
+                valIn.focus();
+            }
+        }
+
+        function evaluateChoiceResponse(selectedButton, chosenVal, exactAnswer) {
+            document.querySelectorAll('.option-card-btn').forEach(b => b.disabled = true);
+            let feedbackNode = document.getElementById('element-status-feedback');
+
+            if (chosenVal === exactAnswer) {
+                selectedButton.classList.add('correct');
+                feedbackNode.style.color = "#2e7d32";
+                feedbackNode.innerText = "Data point verified! ⭐⚡";
+                currentScore++; playSound('success'); triggerRewardShower();
+            } else {
+                selectedButton.classList.add('wrong');
+                feedbackNode.style.color = "#c62828";
+                feedbackNode.innerText = "Calibration mismatch. Check unit scale metrics.";
+                playSound('wrong');
+                document.querySelectorAll('.option-card-btn').forEach(b => {
+                    if (b.querySelector('.txt-lbl').innerText === exactAnswer) b.classList.add('correct');
+                });
+            }
+            activeTurnIndex++; setTimeout(buildActiveAssessmentItem, 2000);
+        }
+
+        function evaluateDirectInput(valField, correctTarget) {
+            if (!valField.value) return;
+            valField.disabled = true;
+            let feedbackNode = document.getElementById('element-status-feedback');
+
+            if (valField.value.trim() === correctTarget) {
+                valField.style.background = "#e8f5e9";
+                feedbackNode.style.color = "#2e7d32";
+                feedbackNode.innerText = "Perfect parameter conversion! ⭐🛠️";
+                currentScore++; playSound('success'); triggerRewardShower();
+            } else {
+                valField.style.background = "#ffebee";
+                feedbackNode.style.color = "#c62828";
+                feedbackNode.innerText = `The precise required matrix target was: ${correctTarget}`;
+                playSound('wrong');
+            }
+            activeTurnIndex++; setTimeout(buildActiveAssessmentItem, 2500);
+        }
+
+        function concludeSimulationWorkflow() {
+            document.getElementById('progress-fill').style.width = "100%";
+            document.getElementById('screen-play').classList.remove('active');
+            document.getElementById('screen-end').classList.add('active');
+            document.getElementById('final-score-report').innerText = `Total Diagnostics Logged: ${currentScore} / ${TOTAL_TURNS_MAX}`;
+            playSound('celebration');
+        }
+
+        function reinitializeSimulation() {
+            activeTurnIndex = 0; currentScore = 0;
+            switchActiveLayer('screen-intro');
+        }
+
+        window.addEventListener('load', function() {
+            const splash = document.getElementById('screen-splash');
+            if (splash) {
+                setTimeout(() => {
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.remove(), 600);
+                }, 1500);
+            }
+        });
+    </script>
 </body>
 </html>
