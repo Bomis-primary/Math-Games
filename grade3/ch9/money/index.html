@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Indian Money Adventure – Grade 3</title>
+    <title>Grade 1 Math: Golden Coin Money Simulator</title>
     <style>
         :root {
-            --text-dark: #1a237e;
+            --text-dark: #1b5e20;
+            --btn-gold-light: #fff176;
+            --btn-gold-dark: #fbc02d;
             --accent-blue: #0288d1;
-            --level-color: #0288d1;
-            --wood-dark: #5d4037;
-            --wood-light: #8d6e63;
+            --level-color: #81c784;
         }
 
         * {
@@ -21,7 +21,7 @@
         }
 
         body {
-            background: linear-gradient(135deg, #b3e5fc 0%, #e1f5fe 100%);
+            background: #e8f5e9;
             color: var(--text-dark);
             min-height: 100vh;
             display: flex;
@@ -30,45 +30,42 @@
             padding: 15px;
             overflow: hidden;
             user-select: none;
+            position: relative;
         }
 
         /* --- SPLASH SCREEN --- */
         #screen-splash {
             position: fixed;
-            top: 0; 
-            left: 0; 
-            width: 100vw; 
-            height: 100vh;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: #ffffff;
-            display: flex; 
-            justify-content: center; 
-            align-items: center;
-            z-index: 99999;
-            opacity: 1;
-            visibility: visible;
-            transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
         }
-        .splash-logo-img {
-            max-width: 320px;
-            max-height: 160px;
-            object-fit: contain;
-            display: block;
+        .splash-inner { text-align: center; }
+        .splash-loader { 
+            width: 140px; height: 12px; background: #e0e0e0; 
+            border-radius: 6px; margin: 15px auto 0 auto; overflow: hidden; 
         }
+        .splash-bar { 
+            width: 100%; height: 100%; background: var(--btn-gold-dark); 
+            transform: translateX(-100%); animation: loadStep 2s forwards ease-in-out; 
+        }
+        @keyframes loadStep { 100% { transform: translateX(0); } }
 
-        /* --- MAIN CONTAINER --- */
+        /* --- MAIN CONTAINER MATRIX --- */
         .game-container {
             width: 100%;
-            max-width: 1020px;
-            background: #ffffff;
-            border-radius: 32px;
-            box-shadow: 0 20px 50px rgba(1, 87, 155, 0.25);
+            max-width: 920px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 12px 35px rgba(0,0,0,0.15);
             overflow: hidden;
             display: flex;
             flex-direction: column;
             position: relative;
-            min-height: 720px;
+            min-height: 650px;
             z-index: 10;
-            border: 6px solid #81d4fa;
         }
 
         /* --- INTERFACE SCREENS --- */
@@ -76,165 +73,730 @@
             display: none;
             flex-direction: column;
             flex: 1;
-            padding: 30px;
+            padding: 25px;
             opacity: 0;
             transition: opacity 0.4s ease-in-out;
         }
         .screen-layer.active { display: flex; opacity: 1; }
 
-        #screen-intro { justify-content: center; align-items: center; text-align: center; background: radial-gradient(circle, #ffffff 0%, #f0faff 100%); }
-        .hero-banner { font-size: 5rem; margin-bottom: 20px; animation: bounce 2s infinite alternate cubic-bezier(0.455, 0.03, 0.515, 0.955); }
-        @keyframes bounce { 0% { transform: translateY(0) scale(1); } 100% { transform: translateY(-12px) scale(1.05); } }
+        #screen-intro { justify-content: center; align-items: center; text-align: center; }
+        .hero-banner { font-size: 5rem; margin-bottom: 15px; animation: bounce 2s infinite alternate; }
+        @keyframes bounce { 0% { transform: translateY(0); } 100% { transform: translateY(-12px); } }
 
         .story-bubble {
-            background: #ffffff; padding: 30px; border-radius: 24px;
-            border: 3px dashed #4fc3f7; max-width: 780px; margin-bottom: 30px;
-            font-size: 1.3rem; line-height: 1.6; text-align: center;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            background: #f1f8e9; padding: 20px; border-radius: 16px;
+            border: 2px dashed #81c784; max-width: 700px; margin-bottom: 25px;
+            font-size: 1.2rem; line-height: 1.6; text-align: center;
         }
 
         .cta-btn {
-            background: linear-gradient(135deg, #4fc3f7, #0288d1);
-            border: 2px solid #01579b; color: white; font-size: 1.35rem; font-weight: bold;
-            padding: 14px 45px; border-radius: 50px; cursor: pointer;
-            box-shadow: 0 6px 0 #01579b, 0 10px 20px rgba(2, 136, 209, 0.3); transition: all 0.1s ease;
+            background: linear-gradient(135deg, var(--btn-gold-light), var(--btn-gold-dark));
+            border: 2px solid #f57f17; color: #5d4037; font-size: 1.35rem; font-weight: bold;
+            padding: 12px 38px; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 6px 0 #f57f17; transition: transform 0.1s;
         }
-        .cta-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #01579b; }
-        .cta-btn:hover { filter: brightness(1.05); }
+        .cta-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #f57f17; }
+        .cta-btn:disabled { background: #e0e0e0; border-color: #9e9e9e; color: #9e9e9e; box-shadow: none; cursor: default; }
 
         /* --- HUD --- */
         .hud-row {
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 15px; font-size: 1.3rem; font-weight: bold;
-            background: #f5fbfd; padding: 12px 20px; border-radius: 16px; border: 1px solid #e0f7fa;
+            margin-bottom: 12px; font-size: 1.15rem; font-weight: bold;
         }
         .level-badge {
-            background: var(--level-color); color: white; padding: 8px 22px;
-            border-radius: 30px; font-size: 1.15rem; box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.2); transition: background 0.3s;
+            background: var(--level-color); color: white; padding: 4px 16px;
+            border-radius: 30px; font-size: 1.05rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .progress-track { width: 100%; height: 14px; background: #e0e0e0; border-radius: 10px; overflow: hidden; margin-bottom: 20px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
-        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #4fc3f7, #0288d1); transition: width 0.4s ease; }
+        .progress-track { width: 100%; height: 12px; background: #e0e0e0; border-radius: 10px; overflow: hidden; margin-bottom: 15px; }
+        .progress-fill { height: 100%; width: 0%; background: #4caf50; transition: width 0.3s; }
 
         /* --- WORKSPACE LAYOUTS --- */
-        .workspace-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 25px; flex: 1; }
-        
+        .workspace-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 20px; flex: 1; }
         .counter-shelf {
-            background: linear-gradient(180deg, var(--wood-light) 0%, var(--wood-dark) 100%); 
-            border: 4px solid #3e2723; border-radius: 24px;
-            padding: 20px; display: flex; flex-direction: column; position: relative;
-            box-shadow: inset 0 4px 20px rgba(0,0,0,0.4), 0 10px 20px rgba(0,0,0,0.15);
+            background: #f9f9f9; border: 3px solid #cfd8dc; border-radius: 20px;
+            padding: 15px; display: flex; flex-direction: column; position: relative;
         }
         
         .target-display-card {
-            min-height: 110px; background: rgba(255, 255, 255, 0.95); border-radius: 18px; 
-            box-shadow: 0 6px 15px rgba(0,0,0,0.2);
-            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; margin-bottom: 20px;
-            padding: 15px; text-align: center; border: 2px solid #ffffff;
+            height: 110px; background: #ffffff; border-radius: 15px; border: 2px solid #eceff1;
+            display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 15px;
         }
-        .instruction-text { font-size: 1.2rem; font-weight: bold; color: #1a237e; line-height: 1.4; }
+        .toy-avatar { font-size: 3.8rem; transition: transform 0.2s; }
         .price-tag {
-            background: linear-gradient(135deg, #e53935, #b71c1c); color: white; padding: 6px 22px; border-radius: 12px;
-            font-size: 1.5rem; font-weight: bold; box-shadow: 0 4px 8px rgba(0,0,0,0.3); display: inline-block;
-            border: 1px solid #ff8a80; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            background: #e53935; color: white; padding: 6px 18px; border-radius: 10px;
+            font-size: 1.45rem; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.15);
         }
 
         .drop-counter-zone {
-            flex: 1; background: radial-gradient(circle, #1b5e20 0%, #0d5314 100%); border: 4px dashed #81c784;
-            border-radius: 18px; display: flex; flex-direction: row; flex-wrap: wrap;
-            justify-content: center; align-content: center; gap: 14px; position: relative; padding: 20px;
-            min-height: 240px; box-shadow: inset 0 6px 15px rgba(0,0,0,0.5);
+            flex: 1; background: #e3f2fd; border: 3px dashed var(--accent-blue);
+            border-radius: 15px; display: flex; flex-direction: row; flex-wrap: wrap;
+            justify-content: center; align-content: center; gap: 12px; position: relative; padding: 15px;
+            min-height: 200px;
         }
-        .drop-label { position: absolute; font-size: 1.3rem; color: #a5d6a7; font-weight: bold; pointer-events: none; text-align: center; width: 90%; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
-        
+        .drop-label { position: absolute; font-size: 1.15rem; color: #1565c0; font-weight: bold; pointer-events: none; text-align: center; width: 90%; }
         .live-math-feed { 
-            position: absolute; bottom: 12px; right: 15px; font-size: 1.25rem; 
-            color: #ffffff; font-weight: bold; background: #00e676; padding: 4px 16px; border-radius: 20px;
-            box-shadow: 0 0 12px #00e676; border: 1px solid #ffffff; text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
-            color: #004d40;
+            position: absolute; bottom: 8px; right: 12px; font-size: 1.15rem; 
+            color: #0d47a1; font-weight: bold; background: #bbdefb; padding: 2px 12px; border-radius: 20px;
         }
 
         .quiz-options-matrix {
-            display: grid; grid-template-columns: 1fr; gap: 14px; width: 100%; margin-top: 10px;
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; width: 100%; margin-top: 10px;
         }
         .quiz-card-btn {
-            background: #ffffff; border: 3px solid #4fc3f7; border-radius: 18px;
-            padding: 18px; font-size: 1.25rem; font-weight: bold; color: #01579b;
-            cursor: pointer; box-shadow: 0 6px 0 #4fc3f7; text-align: left; transition: all 0.1s ease;
+            background: #ffffff; border: 3px solid #ffb300; border-radius: 16px;
+            padding: 15px; font-size: 1.4rem; font-weight: bold; color: #e65100;
+            cursor: pointer; box-shadow: 0 5px 0 #ffb300; text-align: center;
         }
-        .quiz-card-btn:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
-        .quiz-card-btn:hover { background: #f4fdff; }
-        .quiz-card-btn.correct { background: #4caf50 !important; border-color: #2e7d32 !important; color: white !important; box-shadow: 0 6px 0 #2e7d32 !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
-        .quiz-card-btn.wrong { background: #ef5350 !important; border-color: #c62828 !important; color: white !important; box-shadow: 0 6px 0 #c62828 !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
+        .quiz-card-btn:active { transform: translateY(5px); box-shadow: 0 0 0 transparent; }
+        .quiz-card-btn.correct { background: #4caf50 !important; border-color: #2e7d32 !important; color: white !important; box-shadow: 0 5px 0 #2e7d32 !important; }
+        .quiz-card-btn.wrong { background: #ef5350 !important; border-color: #c62828 !important; color: white !important; box-shadow: 0 5px 0 #c62828 !important; }
 
-        .wallet-rack {
-            background: #eceff1; border: 4px solid #b0bec5; border-radius: 24px;
-            padding: 15px; display: flex; flex-direction: column; justify-content: flex-start; gap: 10px;
-            overflow-y: auto; max-height: 490px; box-shadow: inset 0 4px 10px rgba(0,0,0,0.08);
+        /* Level 3 Shop Row */
+        .level3-carousel-shelf {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 15px;
         }
-        .wallet-title { text-align: center; font-weight: bold; font-size: 1.25rem; color: #37474f; margin-bottom: 5px; }
+        .carousel-item-card {
+            background: #ffffff; border: 2px solid #cfd8dc; border-radius: 15px;
+            padding: 8px; text-align: center; cursor: pointer; transition: all 0.2s;
+            position: relative;
+        }
+        .carousel-item-card:hover { border-color: var(--accent-blue); background: #f0f4c3; }
+        .carousel-item-card.selected { border-color: #2e7d32; background: #e8f5e9; box-shadow: 0 0 0 3px #4caf50; }
+        .carousel-item-card.bought { opacity: 0.3; pointer-events: none; filter: grayscale(1); }
+        .carousel-item-card .mini-tag {
+            background: #e53935; color: white; border-radius: 6px; font-size: 0.9rem;
+            font-weight: bold; padding: 1px 6px; display: inline-block; margin-top: 4px;
+        }
+
+        /* Right Side Wallet Column */
+        .wallet-rack {
+            background: #fff3e0; border: 3px solid #ffe082; border-radius: 20px;
+            padding: 15px; display: flex; flex-direction: column; justify-content: flex-start; gap: 8px;
+        }
+        .wallet-title { text-align: center; font-weight: bold; font-size: 1.15rem; color: #e65100; }
+        .inventory-hint { font-size: 0.9rem; color: #795548; text-align: center; margin-top: -3px; margin-bottom: 5px; font-style: italic; }
         
         .money-tool-item {
-            background: #ffffff; border: 2px solid #cfd8dc; border-radius: 16px;
-            padding: 10px 15px; font-size: 1.15rem; font-weight: bold; color: #263238;
+            background: #ffffff; border: 2px solid #ffb300; border-radius: 14px;
+            padding: 6px 12px; font-size: 1.1rem; font-weight: bold; color: #b71c1c;
             display: flex; align-items: center; justify-content: space-between; cursor: grab;
-            box-shadow: 0 5px 0 #b0bec5; touch-action: none; transition: transform 0.1s;
+            box-shadow: 0 4px 0 #ffb300; touch-action: none; position: relative;
         }
-        .money-tool-item:active { cursor: grabbing; transform: translateY(2px); }
+        .money-tool-item:active { cursor: grabbing; }
+        .money-tool-item.disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; background: #eeeeee; border-color: #bdbdbd; box-shadow: none; }
+        .count-badge { background: #e65100; color: white; border-radius: 8px; padding: 1px 6px; font-size: 0.85rem; }
 
-        /* --- 3D TACTILE CURRENCY RENDERS --- */
-        .currency-asset-img { width: 55px; height: 55px; object-fit: contain; pointer-events: none; }
-        .note-asset-img { width: 95px; height: 48px; object-fit: contain; pointer-events: none; }
+        /* --- IMMUNE IMAGES WITHOUT BLEND CONFLICTS --- */
+        .currency-asset-img { 
+            width: 55px; 
+            height: 55px; 
+            object-fit: contain; 
+            pointer-events: none; 
+            display: block;
+        }
+        .note-asset-img { 
+            width: 75px; 
+            height: 45px; 
+            object-fit: contain; 
+            pointer-events: none; 
+            display: block;
+        }
         
         .currency-fallback-circle {
-            width: 52px; height: 52px; border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; font-size: 1.05rem; font-weight: bold;
-            box-shadow: inset 0 -3px 6px rgba(0,0,0,0.3), inset 0 3px 6px rgba(255,255,255,0.4), 0 4px 6px rgba(0,0,0,0.2);
-            border: 2px double rgba(0,0,0,0.15); position: relative;
+            width: 48px; height: 48px; border-radius: 50%; background: #ffe082; border: 2px solid #f57f17;
+            display: flex; align-items: center; justify-content: center; font-size: 1rem; color: #e65100; font-weight: bold;
         }
-        .currency-fallback-circle::after {
-            content: ''; position: absolute; top: 4px; left: 4px; right: 4px; bottom: 4px;
-            border-radius: 50%; border: 1px dashed rgba(0,0,0,0.12); pointer-events: none;
-        }
-        
         .currency-fallback-rect {
-            width: 95px; height: 48px; border-radius: 6px; display: flex; align-items: center; justify-content: center; 
-            font-size: 1rem; font-weight: bold; position: relative; overflow: hidden;
-            box-shadow: inset 0 -3px 6px rgba(0,0,0,0.2), inset 0 3px 6px rgba(255,255,255,0.3), 0 5px 8px rgba(0,0,0,0.25);
-            border: 1px solid rgba(0,0,0,0.2);
-        }
-        .currency-fallback-rect::before {
-            content: ''; position: absolute; top: 0; left: 28px; width: 4px; height: 100%;
-            background: linear-gradient(90deg, #ccc 0%, #fff 50%, #999 100%); opacity: 0.7;
+            width: 70px; height: 42px; background: #c8e6c9; border: 2px solid #388e3c; border-radius: 6px;
+            display: flex; align-items: center; justify-content: center; font-size: 1rem; color: #1b5e20; font-weight: bold;
         }
 
-        .fb-p50 { background: radial-gradient(circle, #fffde7 0%, #fff59d 100%); color: #f57f17; border-color: #fbc02d; }
-        .fb-c1 { background: radial-gradient(circle, #fff8e1 0%, #ffe082 100%); color: #ff6f00; border-color: #ffa000; }
-        .fb-c2 { background: radial-gradient(circle, #fff3e0 0%, #ffcc80 100%); color: #e65100; border-color: #f57c00; }
-        .fb-c5 { background: radial-gradient(circle, #f5f5f5 0%, #e0e0e0 100%); color: #424242; border-color: #9e9e9e; }
-        
-        .fb-10 { background: #ffe0b2; color: #e65100; border-left: 6px solid #fb8c00; }
-        .fb-20 { background: #e8f5e9; color: #1b5e20; border-left: 6px solid #4caf50; }
-        .fb-50 { background: #e0f7fa; color: #006064; border-left: 6px solid #00bcd4; }
-        .fb-100 { background: #e8eaf6; color: #1a237e; border-left: 6px solid #3f51b5; }
-        .fb-200 { background: #fbe9e7; color: #d84315; border-left: 6px solid #ff5722; }
-        .fb-500 { background: #efebe9; color: #4e342e; border-left: 6px solid #795548; }
-
-        .dropped-currency-token { 
-            animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
-            display: inline-block; margin: 4px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
-        }
-        @keyframes popIn { 0% { transform: scale(0) rotate(-10deg); } 100% { transform: scale(1) rotate(0deg); } }
+        .dropped-currency-token { animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; display: inline-block; }
+        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(0.95); } }
+        .big-piggy-target { font-size: 5.5rem; position: relative; transition: transform 0.15s; }
+        .big-piggy-target.bounce { transform: scale(1.18); }
 
         /* --- FOOTER OPTIONS --- */
-        .action-row { display: flex; justify-content: center; gap: 20px; padding-top: 20px; }
-        .banner-msg { text-align: center; height: 30px; font-size: 1.3rem; font-weight: bold; margin-top: 12px; }
+        .action-row { display: flex; justify-content: center; gap: 20px; padding: 15px 0 0 0; }
+        .btn-success { background: linear-gradient(135deg, #81c784, #4caf50); border-color: #2e7d32; color: white; box-shadow: 0 5px 0 #2e7d32; }
+        .btn-success:active { box-shadow: 0 1px 0 #2e7d32; }
+        .btn-danger { background: linear-gradient(135deg, #e57373, #ef5350); border-color: #c62828; color: white; box-shadow: 0 5px 0 #c62828; }
+        .btn-danger:active { box-shadow: 0 1px 0 #c62828; }
+        .banner-msg { text-align: center; height: 25px; font-size: 1.2rem; font-weight: bold; margin-top: 8px; }
 
-        /* --- Particle Rewards FX --- */
-        .falling-star {
-            position: fixed; z-index: 9999; pointer-events: none; top: -45px;
-            font-size: 2.2rem; animation: fallDown var(--dur) linear forwards;
+        /* --- PHYSICS GOLD COIN CASCADE REWARD --- */
+        .falling-gold-coin {
+            position: fixed;
+            width: 38px;
+            height: 38px;
+            background: radial-gradient(circle, #fff176 0%, #fbc02d 70%, #f57f17 100%);
+            border: 2px solid #ff8f00;
+            border-radius: 50%;
+            box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), 0 4px 8px rgba(0,0,0,0.3);
+            z-index: 9999;
+            pointer-events: none;
+            top: -45px;
+            animation: fallDown var(--dur) linear forwards;
+        }
+        .falling-gold-coin::after {
+            content: '₹';
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: Arial, sans-serif; font-weight: bold; color: #5d4037; font-size: 1.2rem;
         }
         @keyframes fallDown {
             0% { top: -45px; transform: translateX(0) rotate(0deg); opacity: 1; }
-            100% { top: 105vh
+            90% { opacity: 1; }
+            100% { top: 105vh; transform: translateX(var(--deviation)) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+    <div id="screen-splash">
+        <div class="splash-inner">
+            <div style="font-size: 4.5rem; margin-bottom: 10px;">🪙</div>
+            <div class="splash-loader"><div class="splash-bar"></div></div>
+        </div>
+    </div>
+
+    <div class="game-container">
+        
+        <div class="screen-layer active" id="screen-intro">
+            <div class="hero-banner">🪙🐷🛍️</div>
+            <h1 style="margin-bottom: 10px; font-size: 2.3rem; color: var(--text-dark);">Indian Money Game</h1>
+            <div class="story-bubble">
+                <p>Welcome! Let’s learn about coins and notes in a fun way!</p>
+                <p style="margin: 10px 0; font-weight: bold; color: #388e3c;">Count money carefully and choose the correct answer. When you are right, you will earn stars ⭐</p>
+                <p style="margin-top: 15px; color: #0288d1; font-weight: bold;">
+                    ⭐ Level 1: Piggy Bank Slots (5 Rounds)<br>
+                    ⭐ Level 2: Broken Bank Totals (5 Rounds)<br>
+                    ⭐ Level 3: Toy Shop Inventory (3 Rounds)
+                </p>
+            </div>
+            <button class="cta-btn" onclick="switchActiveLayer('screen-play')">Start Challenge! 🚀</button>
+        </div>
+
+        <div class="screen-layer" id="screen-play">
+            <div class="hud-row">
+                <div>⭐ Score: <span id="label-score-val">0</span></div>
+                <div class="level-badge" id="label-level-badge">Level 1: Piggy Bank</div>
+                <div>Progress: <span id="label-turn-val">1 / 13</span></div>
+            </div>
+            <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
+
+            <div class="workspace-grid">
+                
+                <div class="counter-shelf" id="left-workspace-panel">
+                    
+                    <div class="level3-carousel-shelf" id="l3-item-shelf" style="display: none;">
+                        <div class="carousel-item-card" id="l3-card-teddy" data-item="teddy" data-price="100" onclick="selectLevel3Product(this)">
+                            <div style="font-size: 2rem;">🧸</div>
+                            <div style="font-weight:bold; font-size:0.9rem;">Teddy Bear</div>
+                            <div class="mini-tag">₹100</div>
+                        </div>
+                        <div class="carousel-item-card" id="l3-card-car" data-item="car" data-price="50" onclick="selectLevel3Product(this)">
+                            <div style="font-size: 2rem;">🚗</div>
+                            <div style="font-weight:bold; font-size:0.9rem;">Toy Car</div>
+                            <div class="mini-tag">₹50</div>
+                        </div>
+                        <div class="carousel-item-card" id="l3-card-book" data-item="book" data-price="35" onclick="selectLevel3Product(this)">
+                            <div style="font-size: 2rem;">📚</div>
+                            <div style="font-weight:bold; font-size:0.9rem;">Storybook</div>
+                            <div class="mini-tag">₹35</div>
+                        </div>
+                    </div>
+
+                    <div class="target-display-card" id="main-target-card">
+                        <div class="toy-avatar" id="shelf-toy-icon">🐖</div>
+                        <div class="price-tag" id="shelf-toy-price">Target: ₹0</div>
+                    </div>
+
+                    <div class="drop-counter-zone" id="checkout-mat-target">
+                        <div class="drop-label" id="mat-placeholder-hint">🛒 Drag currency elements into this mat!</div>
+                        <div class="live-math-feed" id="mat-running-total" style="display: none;">Counter Total: ₹0</div>
+                    </div>
+
+                    <div class="quiz-options-matrix" id="l2-quiz-row" style="display: none;"></div>
+                </div>
+
+                <div class="wallet-rack" id="source-wallet-rack">
+                    <div class="wallet-title" id="wallet-header-title">🎒 Infinite Wallet Pocket</div>
+                    <div class="inventory-hint" id="wallet-sub-hint">Unlimited coins & notes</div>
+                    
+                    <div class="money-tool-item" id="tool-v1" data-value="1">
+                        <img src="assets/coin1.png" class="currency-asset-img" alt="₹1 Coin" onerror="replaceWithFallback(this, 'circle', '₹1')">
+                        <span>₹1 Coin <strong class="count-badge" id="stock-v1">∞</strong></span>
+                    </div>
+                    
+                    <div class="money-tool-item" id="tool-v2" data-value="2">
+                        <img src="assets/coin2.png" class="currency-asset-img" alt="₹2 Coin" onerror="replaceWithFallback(this, 'circle', '₹2')">
+                        <span>₹2 Coin <strong class="count-badge" id="stock-v2">∞</strong></span>
+                    </div>
+                    
+                    <div class="money-tool-item" id="tool-v5" data-value="5">
+                        <img src="assets/coin5.png" class="currency-asset-img" alt="₹5 Coin" onerror="replaceWithFallback(this, 'circle', '₹5')">
+                        <span>₹5 Coin <strong class="count-badge" id="stock-v5">∞</strong></span>
+                    </div>
+                    
+                    <div class="money-tool-item" id="tool-v10" data-value="10">
+                        <img src="assets/note10.png" class="note-asset-img" alt="₹10 Note" onerror="replaceWithFallback(this, 'rect', '₹10')">
+                        <span>₹10 Note <strong class="count-badge" id="stock-v10">∞</strong></span>
+                    </div>
+
+                    <div class="money-tool-item" id="tool-v20" data-value="20">
+                        <img src="assets/note20.png" class="note-asset-img" alt="₹20 Note" onerror="replaceWithFallback(this, 'rect', '₹20')">
+                        <span>₹20 Note <strong class="count-badge" id="stock-v20">∞</strong></span>
+                    </div>
+
+                    <div class="money-tool-item" id="tool-v50" data-value="50" style="display: none;">
+                        <img src="assets/note50.png" class="note-asset-img" alt="₹50 Note" onerror="replaceWithFallback(this, 'rect', '₹50')">
+                        <span>₹50 Note <strong class="count-badge" id="stock-v50">0</strong></span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="action-row" id="core-action-footer">
+                <button class="cta-btn btn-success" id="btn-verify-trigger" onclick="evaluateSimulatorBasket()">Verify Money 💸</button>
+                <button class="cta-btn btn-danger" id="btn-clear-trigger" onclick="clearCheckoutMat()">Clear Matrix 🔄</button>
+            </div>
+            <div class="banner-msg" id="counter-status-feedback"></div>
+        </div>
+
+        <div class="screen-layer" id="screen-end">
+            <div class="hero-banner">👑🏆🥇</div>
+            <h1 style="color: #2e7d32; font-size: 2.4rem; margin-bottom: 12px;">Grand Champion!</h1>
+            <div class="story-bubble">
+                <p>Absolutely magnificent! You completed all challenge rounds, analyzed totals cleanly, matched exact prices, and showered the screen with golden rewards!</p>
+            </div>
+            <h2 id="final-score-report" style="color: #e65100; margin-bottom: 25px;">Final Score: 130 / 130</h2>
+            <button class="cta-btn" onclick="reinitializeSimulation()">Restart Adventure Tiers 🔄</button>
+        </div>
+
+    </div>
+
+    <script>
+        let currentScore = 0;
+        let activeTurnIndex = 0;
+        let runningBasketTotal = 0;
+        let currentTargetPrice = 0;
+        let level3SelectedTarget = 0;
+
+        let level3PurchasedRegistry = { teddy: false, car: false, book: false };
+        let walletInventoryStock = { v1: 99, v2: 99, v5: 99, v10: 99, v20: 99, v50: 99 };
+
+        const masterSimulationPool = [
+            { mode: 1, label: "Level 1: Piggy Bank (Round 1/5)", color: "#81c784", icon: "🐖", target: 5 },
+            { mode: 1, label: "Level 1: Piggy Bank (Round 2/5)", color: "#81c784", icon: "🐖", target: 8 },
+            { mode: 1, label: "Level 1: Piggy Bank (Round 3/5)", color: "#81c784", icon: "🐖", target: 12 },
+            { mode: 1, label: "Level 1: Piggy Bank (Round 4/5)", color: "#81c784", icon: "🐖", target: 17 },
+            { mode: 1, label: "Level 1: Piggy Bank (Round 5/5)", color: "#81c784", icon: "🐖", target: 25 },
+
+            { mode: 2, label: "Level 2: Break the Bank (Round 1/5)", color: "#ffb74d", tokens: [5, 2], options: [6, 7, 8, 9], correct: 7, text: "The Bank contains: One ₹5 coin, One ₹2 coin. Total?" },
+            { mode: 2, label: "Level 2: Break the Bank (Round 2/5)", color: "#ffb74d", tokens: [10, 5, 2], options: [15, 16, 17, 18], correct: 17, text: "The Bank contains: One ₹10 note, One ₹5 coin, One ₹2 coin. Total?" },
+            { mode: 2, label: "Level 2: Break the Bank (Round 3/5)", color: "#ffb74d", tokens: [20, 10, 5], options: [30, 35, 40, 45], correct: 35, text: "The Bank contains: One ₹20 note, One ₹10 note, One ₹5 coin. Total?" },
+            { mode: 2, label: "Level 2: Break the Bank (Round 4/5)", color: "#ffb74d", tokens: [20, 20, 2, 1], options: [41, 42, 43, 44], correct: 43, text: "The Bank contains: Two ₹20 notes, One ₹2 coin, One ₹1 coin. Total?" },
+            { mode: 2, label: "Level 2: Break the Bank (Round 5/5)", color: "#ffb74d", tokens: [10, 10, 5, 5, 2], options: [30, 32, 34, 36], correct: 32, text: "The Bank contains: Two ₹10 notes, Two ₹5 coins, One ₹2 coin. Total?" },
+
+            { mode: 3, label: "Level 3: Toy Shop Marketplace (Round 1/3)", color: "#64b5f6", target: "choose", text: "Select an available item card from above to purchase!" },
+            { mode: 3, label: "Level 3: Toy Shop Marketplace (Round 2/3)", color: "#64b5f6", target: "choose", text: "Select another item card from above to pay exact price thresholds!" },
+            { mode: 3, label: "Level 3: Toy Shop Marketplace (Round 3/3)", color: "#64b5f6", target: "choose", text: "Buy the final remaining product from the store to finish!" }
+        ];
+        const TOTAL_TURNS_MAX = masterSimulationPool.length;
+
+        function replaceWithFallback(imgElement, visualShape, fallbackText) {
+            let containerDiv = document.createElement('div');
+            containerDiv.className = visualShape === 'circle' ? 'currency-fallback-circle' : 'currency-fallback-rect';
+            containerDiv.innerText = fallbackText;
+            imgElement.parentNode.replaceChild(containerDiv, imgElement);
+        }
+
+        function triggerGoldenCoinShowerEffect() {
+            let spawnDuration = 1800; 
+            let intervalTime = 60; 
+            
+            let timerId = setInterval(() => {
+                let coin = document.createElement('div');
+                coin.className = 'falling-gold-coin';
+                
+                coin.style.left = Math.random() * 95 + 'vw';
+                coin.style.setProperty('--deviation', (Math.random() - 0.5) * 180 + 'px');
+                coin.style.setProperty('--dur', (Math.random() * 1.0 + 1.4) + 's');
+                
+                document.body.appendChild(coin);
+                setTimeout(() => coin.remove(), 2500);
+            }, intervalTime);
+
+            setTimeout(() => clearInterval(timerId), spawnDuration);
+        }
+
+        function playSound(type) {
+            const track = document.getElementById(type === 'success' ? 'audio-correct' : 'audio-wrong');
+            if (track) {
+                track.currentTime = 0;
+                track.play().catch(() => {});
+            }
+        }
+
+        function switchActiveLayer(screenId) {
+            document.querySelectorAll('.screen-layer').forEach(layer => layer.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            if (screenId === 'screen-play') {
+                bindDragAndDropEngine();
+                buildActiveGameLevel();
+            }
+        }
+
+        function buildActiveGameLevel() {
+            if (activeTurnIndex >= TOTAL_TURNS_MAX) {
+                concludeSimulationWorkflow();
+                return;
+            }
+
+            document.getElementById('counter-status-feedback').innerText = "";
+            let currentConfig = masterSimulationPool[activeTurnIndex];
+
+            document.getElementById('label-turn-val').innerText = `${activeTurnIndex + 1} / ${TOTAL_TURNS_MAX}`;
+            document.getElementById('progress-fill').style.width = `${(activeTurnIndex / TOTAL_TURNS_MAX) * 100}%`;
+            document.getElementById('label-score-val').innerText = currentScore;
+            
+            let badge = document.getElementById('label-level-badge');
+            badge.innerText = currentConfig.label;
+            badge.style.background = currentConfig.color;
+            document.documentElement.style.setProperty('--level-color', currentConfig.color);
+
+            document.getElementById('l3-item-shelf').style.display = "none";
+            document.getElementById('main-target-card').style.display = "flex";
+            document.getElementById('checkout-mat-target').style.display = "flex";
+            document.getElementById('l2-quiz-row').style.display = "none";
+            document.getElementById('core-action-footer').style.display = "flex";
+            document.getElementById('tool-v50').style.display = "none";
+            document.querySelectorAll('.money-tool-item').forEach(el => el.classList.remove('disabled'));
+
+            if (currentConfig.mode === 1) {
+                currentTargetPrice = currentConfig.target;
+                document.getElementById('wallet-header-title').innerText = "🎒 Infinite Wallet Pocket";
+                document.getElementById('wallet-sub-hint').innerText = "Unlimited coins & notes";
+                document.getElementById('shelf-toy-icon').innerHTML = `<div class="big-piggy-target" id="piggy-avatar-node">🐖</div>`;
+                document.getElementById('shelf-toy-price').innerText = `Target: ₹${currentTargetPrice}`;
+                document.querySelectorAll('.count-badge').forEach(b => b.innerText = "∞");
+                clearCheckoutMat();
+
+            } else if (currentConfig.mode === 2) {
+                document.getElementById('main-target-card').style.display = "none";
+                document.getElementById('core-action-footer').style.display = "none";
+                
+                let mat = document.getElementById('checkout-mat-target');
+                clearCheckoutMat();
+                document.getElementById('mat-placeholder-hint').style.display = "none";
+
+                currentConfig.tokens.forEach(val => {
+                    let isNote = val >= 10;
+                    let assetTargetString = isNote ? `note${val}` : `coin${val}`;
+                    let shapeClass = isNote ? 'rect' : 'circle';
+                    
+                    let tokenWrapper = document.createElement('div');
+                    tokenWrapper.className = 'dropped-currency-token';
+                    
+                    let innerImg = document.createElement('img');
+                    innerImg.className = isNote ? "note-asset-img" : "currency-asset-img";
+                    innerImg.src = `assets/${assetTargetString}.png`;
+                    innerImg.onerror = function() { replaceWithFallback(this, shapeClass, `₹${val}`); };
+                    
+                    tokenWrapper.appendChild(innerImg);
+                    mat.appendChild(tokenWrapper);
+                });
+
+                document.getElementById('mat-running-total').style.display = "block";
+                document.getElementById('mat-running-total').innerText = currentConfig.text;
+
+                let quizBox = document.getElementById('l2-quiz-row');
+                quizBox.innerHTML = "";
+                quizBox.style.display = "grid";
+
+                currentConfig.options.forEach(opt => {
+                    let btn = document.createElement('button');
+                    btn.className = "quiz-card-btn";
+                    btn.innerText = `₹${opt}`;
+                    btn.onclick = function() { evaluateQuizSelection(btn, opt, currentConfig.correct); };
+                    quizBox.appendChild(btn);
+                });
+
+            } else if (currentConfig.mode === 3) {
+                document.getElementById('l3-item-shelf').style.display = "grid";
+                document.getElementById('tool-v50').style.display = "flex";
+                document.getElementById('wallet-header-title').innerText = "🎒 Strict Pocket Money Wallet";
+                document.getElementById('wallet-sub-hint').innerText = "Use your dynamic physical budget carefully!";
+                
+                document.getElementById('shelf-toy-icon').innerText = "🛒";
+                document.getElementById('shelf-toy-price').innerText = "Choose an item from the shelf cards!";
+                
+                document.getElementById('btn-verify-trigger').disabled = true;
+
+                if (activeTurnIndex === 10) { 
+                    level3PurchasedRegistry = { teddy: false, car: false, book: false };
+                    walletInventoryStock = { v1: 5, v2: 5, v5: 4, v10: 4, v20: 3, v50: 2 };
+                }
+
+                document.getElementById('l3-card-teddy').className = level3PurchasedRegistry.teddy ? "carousel-item-card bought" : "carousel-item-card";
+                document.getElementById('l3-card-car').className = level3PurchasedRegistry.car ? "carousel-item-card bought" : "carousel-item-card";
+                document.getElementById('l3-card-book').className = level3PurchasedRegistry.book ? "carousel-item-card bought" : "carousel-item-card";
+
+                refreshWalletCountersUI();
+                clearCheckoutMat();
+                level3SelectedTarget = 0;
+            }
+        }
+
+        function refreshWalletCountersUI() {
+            if (masterSimulationPool[activeTurnIndex].mode !== 3) return;
+            
+            document.getElementById('stock-v1').innerText = walletInventoryStock.v1;
+            document.getElementById('stock-v2').innerText = walletInventoryStock.v2;
+            document.getElementById('stock-v5').innerText = walletInventoryStock.v5;
+            document.getElementById('stock-v10').innerText = walletInventoryStock.v10;
+            document.getElementById('stock-v20').innerText = walletInventoryStock.v20;
+            document.getElementById('stock-v50').innerText = walletInventoryStock.v50;
+
+            document.getElementById('tool-v1').classList.toggle('disabled', walletInventoryStock.v1 <= 0);
+            document.getElementById('tool-v2').classList.toggle('disabled', walletInventoryStock.v2 <= 0);
+            document.getElementById('tool-v5').classList.toggle('disabled', walletInventoryStock.v5 <= 0);
+            document.getElementById('tool-v10').classList.toggle('disabled', walletInventoryStock.v10 <= 0);
+            document.getElementById('tool-v20').classList.toggle('disabled', walletInventoryStock.v20 <= 0);
+            document.getElementById('tool-v50').classList.toggle('disabled', walletInventoryStock.v50 <= 0);
+        }
+
+        function selectLevel3Product(cardElement) {
+            if (cardElement.classList.contains('bought')) return;
+            
+            document.querySelectorAll('.carousel-item-card').forEach(c => { if(!c.classList.contains('bought')) c.classList.remove('selected'); });
+            cardElement.classList.add('selected');
+
+            let price = parseInt(cardElement.getAttribute('data-price'));
+            let item = cardElement.getAttribute('data-item');
+            
+            level3SelectedTarget = item;
+            currentTargetPrice = price;
+
+            let iconEmoji = item === 'teddy' ? "🧸" : item === 'car' ? "🚗" : "📚";
+            document.getElementById('shelf-toy-icon').innerText = iconEmoji;
+            document.getElementById('shelf-toy-price').innerText = `Pay Price: ₹${price}`;
+
+            document.getElementById('btn-verify-trigger').disabled = false;
+            clearCheckoutMat();
+        }
+
+        function bindDragAndDropEngine() {
+            const toolkits = document.querySelectorAll('.money-tool-item');
+            toolkits.forEach(tool => {
+                tool.addEventListener('mousedown', initiateDragSequence, { passive: false });
+                tool.addEventListener('touchstart', initiateDragSequence, { passive: false });
+            });
+
+            function initiateDragSequence(event) {
+                event.preventDefault();
+                const originElement = this;
+                if (originElement.classList.contains('disabled')) return;
+
+                const incrementalValue = parseInt(originElement.getAttribute('data-value'));
+                const keyMapString = `v${incrementalValue}`;
+
+                const childAsset = originElement.firstElementChild.cloneNode(true);
+                const visualFloater = document.createElement('div');
+                visualFloater.className = 'dropped-currency-token';
+                visualFloater.style.position = 'absolute';
+                visualFloater.style.zIndex = '9999';
+                visualFloater.appendChild(childAsset);
+                document.body.appendChild(visualFloater);
+
+                let startX = event.type === 'touchstart' ? event.touches[0].clientX : event.clientX;
+                let startY = event.type === 'touchstart' ? event.touches[0].clientY : event.clientY;
+                let elemRect = originElement.getBoundingClientRect();
+
+                let pointerOffsetX = startX - elemRect.left;
+                let pointerOffsetY = startY - elemRect.top;
+
+                positionNode(startX, startY);
+
+                function positionNode(cx, cy) {
+                    visualFloater.style.left = (cx - pointerOffsetX) + 'px';
+                    visualFloater.style.top = (cy - pointerOffsetY) + 'px';
+                }
+
+                function trackMovement(moveEvent) {
+                    let curX = moveEvent.type === 'touchmove' ? moveEvent.touches[0].clientX : moveEvent.clientX;
+                    let curY = moveEvent.type === 'touchmove' ? moveEvent.touches[0].clientY : moveEvent.clientY;
+                    positionNode(curX, curY);
+                }
+
+                document.addEventListener('mousemove', trackMovement, { passive: false });
+                document.addEventListener('touchmove', trackMovement, { passive: false });
+
+                document.addEventListener('mouseup', function terminateSequence() {
+                    document.removeEventListener('mousemove', trackMovement);
+                    document.removeEventListener('touchmove', trackMovement);
+                    
+                    const dropMat = document.getElementById('checkout-mat-target');
+                    const matRect = dropMat.getBoundingClientRect();
+                    const cloneRect = visualFloater.getBoundingClientRect();
+
+                    let hitDetected = !(cloneRect.right < matRect.left || 
+                                         cloneRect.left > matRect.right || 
+                                         cloneRect.bottom < matRect.top || 
+                                         cloneRect.top > matRect.bottom);
+
+                    let inventoryAvailable = masterSimulationPool[activeTurnIndex].mode !== 3 || walletInventoryStock[keyMapString] > 0;
+
+                    if (hitDetected && inventoryAvailable) {
+                        runningBasketTotal += incrementalValue;
+                        
+                        if (masterSimulationPool[activeTurnIndex].mode === 3) {
+                            walletInventoryStock[keyMapString]--;
+                            refreshWalletCountersUI();
+                        }
+
+                        let placementClone = childAsset.cloneNode(true);
+                        let placementWrapper = document.createElement('div');
+                        placementWrapper.className = 'dropped-currency-token';
+                        placementWrapper.setAttribute('data-deducted-value', incrementalValue);
+                        placementWrapper.appendChild(placementClone);
+                        dropMat.appendChild(placementWrapper);
+
+                        let piggyNode = document.getElementById('piggy-avatar-node');
+                        if (piggyNode) {
+                            piggyNode.classList.add('bounce');
+                            setTimeout(() => piggyNode.classList.remove('bounce'), 150);
+                        }
+
+                        refreshMatVisualCounter();
+                    }
+                    visualFloater.remove();
+                }, { once: true });
+            }
+        }
+
+        function refreshMatVisualCounter() {
+            let hint = document.getElementById('mat-placeholder-hint');
+            let feed = document.getElementById('mat-running-total');
+            
+            if (runningBasketTotal > 0) {
+                hint.style.display = 'none';
+                feed.style.display = 'block';
+                feed.innerText = `Matrix Total: ₹${runningBasketTotal}`;
+            } else {
+                hint.style.display = 'block';
+                feed.style.display = 'none';
+            }
+        }
+
+        function clearCheckoutMat() {
+            if (masterSimulationPool[activeTurnIndex].mode === 3) {
+                const activeTokens = document.getElementById('checkout-mat-target').querySelectorAll('.dropped-currency-token');
+                activeTokens.forEach(tok => {
+                    let restoredValue = parseInt(tok.getAttribute('data-deducted-value'));
+                    if (restoredValue) walletInventoryStock[`v${restoredValue}`]++;
+                });
+                refreshWalletCountersUI();
+            }
+
+            runningBasketTotal = 0;
+            refreshMatVisualCounter();
+            document.getElementById('counter-status-feedback').innerText = "";
+            
+            const mat = document.getElementById('checkout-mat-target');
+            const elementsToRemove = mat.querySelectorAll('.dropped-currency-token');
+            elementsToRemove.forEach(el => el.remove());
+        }
+
+        function evaluateQuizSelection(buttonElement, clientValue, targetAnswer) {
+            document.querySelectorAll('.quiz-card-btn').forEach(b => b.disabled = true);
+
+            if (clientValue === targetAnswer) {
+                buttonElement.classList.add('correct');
+                currentScore += 10;
+                document.getElementById('label-score-val').innerText = currentScore;
+                playSound('success');
+                triggerGoldenCoinShowerEffect();
+                activeTurnIndex++;
+                setTimeout(buildActiveGameLevel, 2200);
+            } else {
+                buttonElement.classList.add('wrong');
+                playSound('wrong');
+                document.querySelectorAll('.quiz-card-btn').forEach(b => {
+                    if (parseInt(b.innerText.replace('₹','')) === targetAnswer) b.classList.add('correct');
+                });
+                activeTurnIndex++;
+                setTimeout(buildActiveGameLevel, 2200);
+            }
+        }
+
+        function evaluateSimulatorBasket() {
+            let feedback = document.getElementById('counter-status-feedback');
+            let configMode = masterSimulationPool[activeTurnIndex].mode;
+
+            if (configMode === 3 && level3SelectedTarget === 0) {
+                feedback.style.color = "#c62828";
+                feedback.innerText = "Please tap an active item card from the shop shelf first!";
+                playSound('wrong');
+                return;
+            }
+
+            if (runningBasketTotal === currentTargetPrice) {
+                currentScore += 10;
+                document.getElementById('label-score-val').innerText = currentScore;
+                feedback.style.color = "#2e7d32";
+                feedback.innerText = "Perfect payment! Golden coins are raining! 🌟🪙";
+                
+                playSound('success');
+                triggerGoldenCoinShowerEffect();
+
+                if (configMode === 3) {
+                    level3PurchasedRegistry[level3SelectedTarget] = true;
+                }
+
+                activeTurnIndex++;
+                setTimeout(buildActiveGameLevel, 2200);
+            } else {
+                playSound('wrong');
+                feedback.style.color = "#c62828";
+                if (runningBasketTotal > currentTargetPrice) {
+                    feedback.innerText = `Overpaid (₹${runningBasketTotal}). Clear layout & calculate change!`;
+                } else {
+                    feedback.innerText = `Insufficient total (₹${runningBasketTotal}). Keep dragging coins & notes!`;
+                }
+            }
+        }
+
+        function concludeSimulationWorkflow() {
+            document.getElementById('progress-fill').style.width = "100%";
+            document.getElementById('screen-play').classList.remove('active');
+            document.getElementById('screen-end').classList.add('active');
+            document.getElementById('final-score-report').innerText = `Final Score Tally: ${currentScore} / ${TOTAL_TURNS_MAX * 10}`;
+        }
+
+        function reinitializeSimulation() {
+            activeTurnIndex = 0;
+            currentScore = 0;
+            level3PurchasedRegistry = { teddy: false, car: false, book: false };
+            switchActiveLayer('screen-intro');
+        }
+
+        // Bulletproof transition initialization
+        window.addEventListener('load', function() {
+            function clearSplashScreen() {
+                const splash = document.getElementById('screen-splash');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.remove(), 500);
+                }
+            }
+            // Forces splash screen to disappear after 2 seconds even if resources fail to connect
+            setTimeout(clearSplashScreen, 2000);
+        });
+    </script>
+</body>
+</html>
