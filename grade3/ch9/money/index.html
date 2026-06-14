@@ -3,454 +3,625 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grade 3 Math - Money Game</title>
+    <title>Indian Money Adventure – Grade 3</title>
     <style>
-        * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        body {
-            background: linear-gradient(135deg, #e0f7fa, #fff9c4);
-            margin: 0;
-            padding: 15px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            position: relative;
-        }
-        
-        /* 5-Second Splash Screen */
-        .splash-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: #ffffff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            opacity: 1;
-            transition: opacity 0.8s ease-in-out;
-        }
-        .splash-logo {
-            max-width: 80%;
-            max-height: 180px;
-            object-fit: contain;
-            animation: pulseLogo 2s infinite ease-in-out;
-        }
-        @keyframes pulseLogo {
-            0% { transform: scale(0.95); opacity: 0.9; }
-            50% { transform: scale(1.02); opacity: 1; }
-            100% { transform: scale(0.95); opacity: 0.9; }
+        :root {
+            --text-dark: #1a237e;
+            --btn-gold-light: #e8eaf6;
+            --btn-gold-dark: #3f51b5;
+            --accent-blue: #0288d1;
+            --level-color: #0288d1;
         }
 
-        /* Main Content Container */
-        .game-container {
-            background: white;
-            border-radius: 20px;
-            padding: 25px;
-            width: 100%;
-            max-width: 550px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            border: 4px solid #4caf50;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-            opacity: 0; /* Stays hidden during splash screen */
-            transition: opacity 0.5s ease-in;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Trebuchet MS', 'Comic Sans MS', sans-serif;
         }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .logo {
-            max-height: 50px;
-            object-fit: contain;
-        }
-        .audio-controls {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            background: #f1f8e9;
-            padding: 5px 10px;
-            border-radius: 15px;
-            border: 1px solid #c5e1a5;
-        }
-        .audio-controls label {
-            font-size: 12px;
-            font-weight: bold;
-            color: #33691e;
-        }
-        .volume-slider {
-            width: 70px;
-            cursor: pointer;
-        }
-        .progress-bar {
-            background-color: #e0e0e0;
-            border-radius: 10px;
-            height: 12px;
-            width: 100%;
-            margin-bottom: 20px;
-            overflow: hidden;
-        }
-        .progress {
-            background: linear-gradient(90deg, #4caf50, #8bc34a);
-            height: 100%;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-        .score-board {
-            font-size: 16px;
-            font-weight: bold;
-            color: #2e7d32;
-            margin-bottom: 10px;
-        }
-        .question-box {
-            font-size: 20px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 20px;
-            min-height: 50px;
-        }
-        .asset-display {
-            margin-bottom: 25px;
-            min-height: 140px;
+
+        body {
+            background: #e1f5fe;
+            color: var(--text-dark);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 15px;
+            overflow: hidden;
+            user-select: none;
         }
-        .asset-display img {
-            max-height: 130px;
-            max-width: 100%;
+
+        /* --- SPLASH SCREEN --- */
+        #screen-splash {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #ffffff;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+        .splash-inner { text-align: center; }
+        .splash-logo-img {
+            max-width: 240px;
+            max-height: 120px;
             object-fit: contain;
-            border-radius: 8px;
-            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            margin-bottom: 10px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
-        @keyframes popIn {
-            0% { transform: scale(0.3); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
+        .splash-loader { 
+            width: 160px; height: 10px; background: #e0e0e0; 
+            border-radius: 6px; margin: 15px auto 0 auto; overflow: hidden; 
         }
-        .options-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-            margin-bottom: 20px;
+        .splash-bar { 
+            width: 100%; height: 100%; background: var(--accent-blue); 
+            transform: translateX(-100%); animation: loadStep 1.8s forwards ease-in-out; 
         }
-        @media(min-width: 400px) {
-            .options-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-        .btn-option {
-            background-color: #fff;
-            border: 3px solid #b3e5fc;
-            border-radius: 15px;
-            padding: 15px 10px;
-            font-size: 18px;
-            font-weight: bold;
-            color: #0277bd;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 0 #b3e5fc;
-        }
-        .btn-option:active {
-            transform: translateY(4px);
-            box-shadow: 0 0 0 transparent;
-        }
-        .btn-option.correct {
-            background-color: #c8e6c9 !important;
-            border-color: #4caf50 !important;
-            color: #2e7d32 !important;
-            box-shadow: 0 4px 0 #4caf50 !important;
-        }
-        .btn-option.wrong {
-            background-color: #ffcdd2 !important;
-            border-color: #f44336 !important;
-            color: #c62828 !important;
-            box-shadow: 0 4px 0 #f44336 !important;
-        }
-        .btn-restart {
-            background: linear-gradient(145deg, #ff9800, #f57c00);
-            color: white;
-            border: none;
-            padding: 14px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 25px;
-            cursor: pointer;
-            box-shadow: 0 5px 0 #e65100;
-            margin-top: 15px;
-            display: none;
-        }
-        .btn-restart:active {
-            transform: translateY(5px);
-            box-shadow: 0 0 0 transparent;
-        }
-        #canvas-confetti {
-            position: absolute;
-            top: 0;
-            left: 0;
+        @keyframes loadStep { 100% { transform: translateX(0); } }
+
+        /* --- MAIN CONTAINER --- */
+        .game-container {
             width: 100%;
-            height: 100%;
-            pointer-events: none;
+            max-width: 980px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            min-height: 690px;
             z-index: 10;
+            border: 4px solid #b3e5fc;
+        }
+
+        /* --- INTERFACE SCREENS --- */
+        .screen-layer {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding: 25px;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+        .screen-layer.active { display: flex; opacity: 1; }
+
+        #screen-intro { justify-content: center; align-items: center; text-align: center; }
+        .hero-banner { font-size: 4.5rem; margin-bottom: 15px; animation: bounce 2s infinite alternate; }
+        @keyframes bounce { 0% { transform: translateY(0); } 100% { transform: translateY(-10px); } }
+
+        .story-bubble {
+            background: #e3f2fd; padding: 25px; border-radius: 16px;
+            border: 2px dashed var(--accent-blue); max-width: 750px; margin-bottom: 25px;
+            font-size: 1.25rem; line-height: 1.6; text-align: center;
+        }
+
+        .cta-btn {
+            background: linear-gradient(135deg, #4fc3f7, var(--accent-blue));
+            border: 2px solid #01579b; color: white; font-size: 1.3rem; font-weight: bold;
+            padding: 12px 38px; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 6px 0 #01579b; transition: transform 0.1s;
+        }
+        .cta-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #01579b; }
+
+        /* --- HUD --- */
+        .hud-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 12px; font-size: 1.2rem; font-weight: bold;
+        }
+        .level-badge {
+            background: var(--level-color); color: white; padding: 6px 18px;
+            border-radius: 30px; font-size: 1.1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .progress-track { width: 100%; height: 12px; background: #e0e0e0; border-radius: 10px; overflow: hidden; margin-bottom: 15px; }
+        .progress-fill { height: 100%; width: 0%; background: #0288d1; transition: width 0.3s; }
+
+        /* --- WORKSPACE LAYOUTS --- */
+        .workspace-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; flex: 1; }
+        .counter-shelf {
+            background: #fafafa; border: 3px solid #b3e5fc; border-radius: 20px;
+            padding: 15px; display: flex; flex-direction: column; position: relative;
+        }
+        
+        .target-display-card {
+            min-height: 120px; background: #ffffff; border-radius: 15px; border: 2px solid #e0f7fa;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 8px; margin-bottom: 15px;
+            padding: 12px; text-align: center;
+        }
+        .instruction-text { font-size: 1.15rem; font-weight: bold; color: #01579b; line-height: 1.4; }
+        .price-tag {
+            background: #d32f2f; color: white; padding: 6px 18px; border-radius: 10px;
+            font-size: 1.4rem; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.15); display: inline-block;
+        }
+
+        .drop-counter-zone {
+            flex: 1; background: #e1f5fe; border: 3px dashed var(--accent-blue);
+            border-radius: 15px; display: flex; flex-direction: row; flex-wrap: wrap;
+            justify-content: center; align-content: center; gap: 12px; position: relative; padding: 15px;
+            min-height: 220px;
+        }
+        .drop-label { position: absolute; font-size: 1.2rem; color: #0288d1; font-weight: bold; pointer-events: none; text-align: center; width: 90%; }
+        .live-math-feed { 
+            position: absolute; bottom: 8px; right: 12px; font-size: 1.15rem; 
+            color: #01579b; font-weight: bold; background: #b3e5fc; padding: 2px 12px; border-radius: 20px;
+        }
+
+        .quiz-options-matrix {
+            display: grid; grid-template-columns: 1fr; gap: 12px; width: 100%; margin-top: 10px;
+        }
+        .quiz-card-btn {
+            background: #ffffff; border: 3px solid #4fc3f7; border-radius: 16px;
+            padding: 15px; font-size: 1.15rem; font-weight: bold; color: #01579b;
+            cursor: pointer; box-shadow: 0 5px 0 #4fc3f7; text-align: left;
+        }
+        .quiz-card-btn:active { transform: translateY(5px); box-shadow: 0 0 0 transparent; }
+        .quiz-card-btn.correct { background: #4caf50 !important; border-color: #2e7d32 !important; color: white !important; box-shadow: 0 5px 0 #2e7d32 !important; }
+        .quiz-card-btn.wrong { background: #ef5350 !important; border-color: #c62828 !important; color: white !important; box-shadow: 0 5px 0 #c62828 !important; }
+
+        /* Right Side Wallet Column */
+        .wallet-rack {
+            background: #eceff1; border: 3px solid #cfd8dc; border-radius: 20px;
+            padding: 15px; display: flex; flex-direction: column; justify-content: flex-start; gap: 8px;
+            overflow-y: auto; max-height: 480px;
+        }
+        .wallet-title { text-align: center; font-weight: bold; font-size: 1.2rem; color: #37474f; }
+        
+        .money-tool-item {
+            background: #ffffff; border: 2px solid #b0bec5; border-radius: 14px;
+            padding: 8px 12px; font-size: 1.1rem; font-weight: bold; color: #263238;
+            display: flex; align-items: center; justify-content: space-between; cursor: grab;
+            box-shadow: 0 4px 0 #b0bec5; touch-action: none;
+        }
+        .money-tool-item:active { cursor: grabbing; }
+        .money-tool-item.restricted-hidden { display: none !important; }
+
+        /* --- COINS / NOTES ASSETS --- */
+        .currency-asset-img { width: 50px; height: 50px; object-fit: contain; pointer-events: none; mix-blend-mode: multiply; }
+        .note-asset-img { width: 85px; height: 44px; object-fit: contain; pointer-events: none; mix-blend-mode: multiply; }
+        
+        /* Fallbacks if assets fail to load */
+        .currency-fallback-circle {
+            width: 46px; height: 46px; border-radius: 50%; background: #b0bec5; border: 2px solid #37474f;
+            display: flex; align-items: center; justify-content: center; font-size: 0.95rem; color: #263238; font-weight: bold;
+        }
+        .currency-fallback-rect {
+            width: 82px; height: 42px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: bold;
+        }
+        .fb-p50 { background: #ffe082; border: 2px solid #ffb300; color: #7f5c00; }
+        .fb-100 { background: #d1c4e9; border: 2px solid #5e35b1; color: #311b92; }
+        .fb-200 { background: #ffe0b2; border: 2px solid #f57c00; color: #e65100; }
+        .fb-500 { background: #e0f2f1; border: 2px solid #004d40; color: #004d40; }
+
+        .dropped-currency-token { animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; display: inline-block; margin: 2px; }
+        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(0.95); } }
+
+        /* --- FOOTER OPTIONS --- */
+        .action-row { display: flex; justify-content: center; gap: 20px; padding-top: 15px; }
+        .banner-msg { text-align: center; height: 25px; font-size: 1.2rem; font-weight: bold; margin-top: 8px; }
+
+        /* --- Particle Rewards FX --- */
+        .falling-star {
+            position: fixed; z-index: 9999; pointer-events: none; top: -45px;
+            font-size: 2rem; animation: fallDown var(--dur) linear forwards;
+        }
+        @keyframes fallDown {
+            0% { top: -45px; transform: translateX(0) rotate(0deg); opacity: 1; }
+            100% { top: 105vh; transform: translateX(var(--deviation)) rotate(360deg); opacity: 0; }
         }
     </style>
 </head>
 <body>
 
-    <!-- 5-Second Brand Introduction View -->
-    <div class="splash-screen" id="splash-screen">
-        <img class="splash-logo" src="assets/logo.png" alt="Innovine Logo" onerror="this.src='https://placehold.co/300x120?text=Innovine'">
+    <div id="screen-splash">
+        <div class="splash-inner">
+            <img src="assets/innovine-logo.png" class="splash-logo-img" alt="Innovine Logo">
+            <h3 style="color: var(--accent-blue); margin-top: 10px; font-weight: bold;">Initializing Grade 3 Super Kirana Lab...</h3>
+            <div class="splash-loader"><div class="splash-bar"></div></div>
+        </div>
     </div>
 
-    <div class="game-container" id="game-container">
-        <canvas id="canvas-confetti"></canvas>
+    <div class="game-container">
         
-        <div class="header">
-            <img class="logo" src="assets/logo.png" alt="Logo" onerror="this.style.display='none'">
-            <div class="audio-controls">
-                <label for="volume">🔊 Vol:</label>
-                <input type="range" id="volume" class="volume-slider" min="0" max="1" step="0.1" value="0.8">
+        <div class="screen-layer active" id="screen-intro">
+            <div class="hero-banner">🛒🏪🪙📈</div>
+            <h1 style="margin-bottom: 15px; font-size: 2.6rem; color: #01579b; padding: 0 10px;">Indian Money Adventure – Grade 3</h1>
+            <div class="story-bubble">
+                <p style="font-weight: bold; color: #0288d1; margin-bottom: 12px; font-size: 1.4rem;">🏪 Welcome to the Mega Kirana Bazaar! 🌟</p>
+                <p style="margin-bottom: 12px;">Get ready to upgrade your shopkeeper powers! Today, we are learning to deal with <b>Rupees & Paise</b>, multi-item shopping calculations, and counting high-value change bills up to <b>₹500</b>!</p>
+                <p style="font-weight: 600; color: #2e3d49;">Master the decimal ledger workspace, run calculations, and beat the puzzle timer! 💎💰</p>
             </div>
+            <button class="cta-btn" onclick="switchActiveLayer('screen-play')">Open Shop Counter! 🚀</button>
         </div>
 
-        <div class="score-board">
-            Question <span id="current-idx">1</span> of <span id="total-count">10</span> | Score: <span id="score-val">0</span>
+        <div class="screen-layer" id="screen-play">
+            <div class="hud-row">
+                <div>⭐ Score: <span id="label-score-val">0</span></div>
+                <div class="level-badge" id="label-level-badge">Level 1: The Sweet Counter</div>
+                <div>Challenge: <span id="label-turn-val">1 / 12</span></div>
+            </div>
+            <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
+
+            <div class="workspace-grid">
+                
+                <div class="counter-shelf">
+                    <div class="target-display-card" id="main-target-card">
+                        <div class="instruction-text" id="shelf-main-prompt">Loading puzzle data...</div>
+                        <div class="price-tag" id="shelf-price-badge">Target Amount: ₹0.00</div>
+                    </div>
+
+                    <div class="drop-counter-zone" id="checkout-mat-target">
+                        <div class="drop-label" id="mat-placeholder-hint">🫳 Collect notes and coins here!</div>
+                        <div class="live-math-feed" id="mat-running-total" style="display: none;">Total inside Tray: ₹0.00</div>
+                    </div>
+
+                    <div class="quiz-options-matrix" id="l3-quiz-row" style="display: none;"></div>
+                </div>
+
+                <div class="wallet-rack" id="source-wallet-rack">
+                    <div class="wallet-title">👛 Your Dynamic Cash Box</div>
+                    
+                    <div class="money-tool-item" id="tool-v0.5" data-value="0.5">
+                        <img src="assets/coin50p.png" class="currency-asset-img" alt="50p" onerror="replaceWithFallback(this, 'circle fb-p50', '50p')">
+                        <span>50 Paise Coin</span>
+                    </div>
+
+                    <div class="money-tool-item" id="tool-v1" data-value="1">
+                        <img src="assets/coin1.png" class="currency-asset-img" alt="₹1" onerror="replaceWithFallback(this, 'circle', '₹1')">
+                        <span>₹1 Coin</span>
+                    </div>
+
+                    <div class="money-tool-item" id="tool-v2" data-value="2">
+                        <img src="assets/coin2.png" class="currency-asset-img" alt="₹2" onerror="replaceWithFallback(this, 'circle', '₹2')">
+                        <span>₹2 Coin</span>
+                    </div>
+                    
+                    <div class="money-tool-item" id="tool-v5" data-value="5">
+                        <img src="assets/coin5.png" class="currency-asset-img" alt="₹5" onerror="replaceWithFallback(this, 'circle', '₹5')">
+                        <span>₹5 Coin</span>
+                    </div>
+                    
+                    <div class="money-tool-item" id="tool-v10" data-value="10">
+                        <img src="assets/note10.png" class="note-asset-img" alt="₹10" onerror="replaceWithFallback(this, 'rect', '₹10')">
+                        <span>₹10 Note</span>
+                    </div>
+
+                    <div class="money-tool-item" id="tool-v20" data-value="20">
+                        <img src="assets/note20.png" class="note-asset-img" alt="₹20" onerror="replaceWithFallback(this, 'rect', '₹20')">
+                        <span>₹20 Note</span>
+                    </div>
+
+                    <div class="money-tool-item" id="tool-v50" data-value="50">
+                        <img src="assets/note50.png" class="note-asset-img" alt="₹50" onerror="replaceWithFallback(this, 'rect', '₹50')">
+                        <span>₹50 Note</span>
+                    </div>
+
+                    <div class="money-tool-item" id="tool-v100" data-value="100">
+                        <img src="assets/note100.png" class="note-asset-img" alt="₹100" onerror="replaceWithFallback(this, 'rect fb-100', '₹100')">
+                        <span>₹100 Note</span>
+                    </div>
+
+                    <div class="money-tool-item" id="tool-v200" data-value="200">
+                        <img src="assets/note200.png" class="note-asset-img" alt="₹200" onerror="replaceWithFallback(this, 'rect fb-200', '₹200')">
+                        <span>₹200 Note</span>
+                    </div>
+
+                    <div class="money-tool-item" id="tool-v500" data-value="500">
+                        <img src="assets/note500.png" class="note-asset-img" alt="₹500" onerror="replaceWithFallback(this, 'rect fb-500', '₹500')">
+                        <span>₹500 Note</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="action-row" id="core-action-footer">
+                <button class="cta-btn" style="background: linear-gradient(135deg, #81c784, #4caf50); border-color: #2e7d32; color: white; box-shadow: 0 5px 0 #2e7d32;" onclick="evaluateActivePuzzleOutput()">Submit Cash Balance 💸</button>
+                <button class="cta-btn" style="background: linear-gradient(135deg, #e57373, #ef5350); border-color: #c62828; color: white; box-shadow: 0 5px 0 #c62828;" onclick="clearCheckoutMat()">Clear Tray 🔄</button>
+            </div>
+            <div class="banner-msg" id="counter-status-feedback"></div>
         </div>
 
-        <div class="progress-bar">
-            <div class="progress" id="progress-line"></div>
+        <div class="screen-layer" id="screen-end">
+            <div class="hero-banner">🏆🎓🎉</div>
+            <h1 style="color: #01579b; font-size: 2.5rem; margin-bottom: 12px;">Grade 3 Graduated!</h1>
+            <div class="story-bubble">
+                <p>Spectacular math calculations! You mastered decimal currency matrices, successfully managed complex invoices, and accurately distributed change up to ₹500 like a master merchant!</p>
+            </div>
+            <h2 id="final-score-report" style="color: #0288d1; margin-bottom: 25px;">Final Score: 120 / 120</h2>
+            <button class="cta-btn" onclick="reinitializeSimulation()">Play Challenge Again 🔄</button>
         </div>
 
-        <div class="question-box" id="question-text">Loading question...</div>
-
-        <div class="asset-display" id="asset-container"></div>
-
-        <div class="options-grid" id="options-box"></div>
-
-        <button class="btn-restart" id="btn-restart" onclick="initGame()">🔄 Play Again</button>
     </div>
 
-    <!-- Audio Targets pointing to your local asset sub-folder structure -->
-    <audio id="snd-correct" src="assets/correct.mp3" preload="auto"></audio>
-    <audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
-    <audio id="snd-cheer" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
+    <audio id="sound-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
     <script>
-        // Item Bank based on your uploaded assets and learning outcomes
-        const itemBank = [
-            { q: "Identify this Indian coin:", img: "assets/coin1.png", answers: ["₹1", "₹2", "₹5", "₹10"], correct: "₹1" },
-            { q: "Identify this Indian coin:", img: "assets/coin2.png", answers: ["₹1", "₹2", "₹5", "₹10"], correct: "₹2" },
-            { q: "Identify this Indian coin:", img: "assets/coin5.png", answers: ["₹1", "₹2", "₹5", "₹10"], correct: "₹5" },
-            { q: "Identify this Indian currency note:", img: "assets/note10.png", answers: ["₹10", "₹20", "₹50", "₹100"], correct: "₹10" },
-            { q: "Identify this Indian currency note:", img: "assets/note20.png", answers: ["₹10", "₹20", "₹50", "₹100"], correct: "₹20" },
-            { q: "Identify this Indian currency note:", img: "assets/note50.png", answers: ["₹10", "₹20", "₹50", "₹100"], correct: "₹50" },
-            { q: "Identify this Indian currency note:", img: "assets/note200.png", answers: ["₹100", "₹200", "₹500", "₹2000"], correct: "₹200" },
-            { q: "Convert ₹5 into paise.", img: "", answers: ["50 p", "500 p", "5 p", "5000 p"], correct: "500 p" },
-            { q: "Convert 200p into Rupees.", img: "", answers: ["₹20", "₹2", "₹0.2", "₹200"], correct: "₹2" },
-            { q: "Express 15 rupees and 50 paise using the correct decimal layout.", img: "", answers: ["₹15.05", "₹155.0", "₹15.50", "15.50p"], correct: "₹15.50" },
-            { q: "Sita bought a notebook for ₹50 and a pen for ₹20. How much total money did she spend?", img: "", answers: ["₹70", "₹60", "₹80", "₹100"], correct: "₹70" },
-            { q: "If you buy a toy for ₹150 and pay with a ₹200 note, how much change will you get back?", img: "assets/note200.png", answers: ["₹10", "₹20", "₹50", "₹5"], correct: "₹50" }
+        let currentScore = 0;
+        let activeTurnIndex = 0;
+        let runningBasketTotal = 0.0;
+        let currentTargetPrice = 0.0;
+
+        const masterSimulationPool = [
+            // LEVEL 1: Rupees & Paise Shop Mat (Intro to Decimals / 50p Mixes)
+            { mode: 1, label: "Level 1: Sweet Counter (1/4)", color: "#0288d1", prompt: "An orange candy costs exactly ₹12.50. Assemble the change inside your workspace tray!", target: 12.50 },
+            { mode: 1, label: "Level 1: Sweet Counter (2/4)", color: "#0288d1", prompt: "A cold ice pop tube costs ₹25.50. Drag notes and coins down to settle the invoice!", target: 25.50 },
+            { mode: 1, label: "Level 1: Sweet Counter (3/4)", color: "#0288d1", prompt: "A large milk chocolate bar costs ₹45.50. Construct the exact combination!", target: 45.50 },
+            { mode: 1, label: "Level 1: Sweet Counter (4/4)", color: "#0288d1", prompt: "A honey glaze muffin costs ₹60.50. Pay down the precise amount using the minimum layout!", target: 60.50 },
+
+            // LEVEL 2: The Kirana Cashier Ledger (Computing Balance Back from Higher Notes)
+            { mode: 2, label: "Level 2: Distribution Desk (1/4)", color: "#ef6c00", prompt: "Your bill is ₹75.00. You hand over a ₹100 note. Count out the exact CHANGE balance owed to you!", target: 25.00 },
+            { mode: 2, label: "Level 2: Distribution Desk (2/4)", color: "#ef6c00", prompt: "A canvas toy bag costs ₹140.00. The buyer hands you a ₹200 note. Lay out the exact CHANGE balance required!", target: 60.00 },
+            { mode: 2, label: "Level 2: Distribution Desk (3/4)", color: "#ef6c00", prompt: "Wholesale school uniforms cost ₹350.00. The parent gives you a ₹500 note. Give back the right CHANGE!", target: 150.00 },
+            { mode: 2, label: "Level 2: Distribution Desk (4/4)", color: "#ef6c00", prompt: "A desk lamp item costs ₹480.50. The customer pays with a ₹500 note. Settle the fractional CHANGE balance!", target: 19.50 },
+
+            // LEVEL 3: Integrated Story Matrix (Multiplication & Complex Balances)
+            { mode: 3, label: "Level 3: Advanced Problems (1/4)", color: "#2e7d32", prompt: "Rohan buys 2 packets of chips at ₹20.50 each. He pays the shopkeeper with a ₹50 note. How much change does he get back?", options: ["₹9.00 change", "₹10.50 change", "₹29.50 change"], correct: "₹9.00 change" },
+            { mode: 3, label: "Level 3: Advanced Problems (2/4)", color: "#2e7d32", prompt: "Ananya has one ₹200 note. She buys a drawing book for ₹115.00 and a sketch pen pack for ₹35.00. What balance remains in her purse?", options: ["₹50.00 left", "₹60.00 left", "₹85.00 left"], correct: "₹50.00 left" },
+            { mode: 3, label: "Level 3: Advanced Problems (3/4)", color: "#2e7d32", prompt: "If 1 litre of juice costs ₹80.00, how much will 3 litres of juice cost in total?", options: ["₹160.00 total", "₹240.00 total", "₹200.00 total"], correct: "₹240.00 total" },
+            { mode: 3, label: "Level 3: Advanced Problems (4/4)", color: "#2e7d32", prompt: "Kabir wants a box car costing ₹320.00. He has one ₹200 note and one ₹100 note. How much more money does he need to add?", options: ["₹10.00 more", "₹20.00 more", "₹50.00 more"], correct: "₹20.00 more" }
         ];
 
-        let gameQuestions = [];
-        let activeIndex = 0;
-        let runningScore = 0;
-        let blocksInteraction = false;
+        const TOTAL_TURNS_MAX = masterSimulationPool.length;
 
-        const volumeSlider = document.getElementById('volume');
-        const sndCorrect = document.getElementById('snd-correct');
-        const sndWrong = document.getElementById('snd-wrong');
-        const sndCheer = document.getElementById('snd-cheer');
-
-        function shuffle(array) {
-            return array.sort(() => Math.random() - 0.5);
+        function playSound(soundId) {
+            const sound = document.getElementById(soundId);
+            if (sound) {
+                sound.currentTime = 0;
+                sound.play().catch(e => console.log("Audio play deferred."));
+            }
         }
 
-        // Handle splash entry countdown management
-        window.onload = function() {
-            setTimeout(function() {
-                const splash = document.getElementById('splash-screen');
-                const gameContainer = document.getElementById('game-container');
-                
-                // Fade out splash layout smoothly
-                splash.style.opacity = '0';
-                
-                // Switch focus context
-                setTimeout(() => {
-                    splash.style.display = 'none';
-                    gameContainer.style.opacity = '1';
-                    initGame();
-                }, 800); // Syncs up perfectly with CSS transitions
-            }, 5000); // 5-second complete active display window
-        };
-
-        function initGame() {
-            activeIndex = 0;
-            runningScore = 0;
-            blocksInteraction = false;
-            document.getElementById('btn-restart').style.display = 'none';
-            document.getElementById('options-box').style.display = 'grid';
-            
-            gameQuestions = shuffle([...itemBank]).slice(0, 10);
-            
-            document.getElementById('total-count').textContent = gameQuestions.length;
-            document.getElementById('score-val').textContent = runningScore;
-            
-            renderQuestion();
+        function replaceWithFallback(imgElement, classMetaString, fallbackText) {
+            let containerDiv = document.createElement('div');
+            containerDiv.className = `currency-fallback-rect ${classMetaString}`;
+            containerDiv.innerText = fallbackText || "Note";
+            imgElement.parentNode.replaceChild(containerDiv, imgElement);
         }
 
-        function renderQuestion() {
-            blocksInteraction = false;
-            if(activeIndex >= gameQuestions.length) {
-                endGame();
+        function triggerRewardShower() {
+            playSound('sound-correct');
+            let timerId = setInterval(() => {
+                let star = document.createElement('div');
+                star.className = 'falling-star';
+                star.innerText = Math.random() > 0.5 ? '⭐' : '🪙';
+                star.style.left = Math.random() * 90 + 'vw';
+                star.style.setProperty('--deviation', (Math.random() - 0.5) * 200 + 'px');
+                star.style.setProperty('--dur', (Math.random() * 0.8 + 1.2) + 's');
+                document.body.appendChild(star);
+                setTimeout(() => star.remove(), 2000);
+            }, 60);
+            setTimeout(() => clearInterval(timerId), 1500);
+        }
+
+        function switchActiveLayer(screenId) {
+            document.querySelectorAll('.screen-layer').forEach(l => l.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            if (screenId === 'screen-play') {
+                bindDragAndDropEngine();
+                buildActiveGameLevel();
+            }
+        }
+
+        function buildActiveGameLevel() {
+            if (activeTurnIndex >= TOTAL_TURNS_MAX) {
+                concludeSimulationWorkflow();
                 return;
             }
 
-            document.getElementById('current-idx').textContent = activeIndex + 1;
-            document.getElementById('score-val').textContent = runningScore;
+            document.getElementById('counter-status-feedback').innerText = "";
+            let currentConfig = masterSimulationPool[activeTurnIndex];
+
+            document.getElementById('label-turn-val').innerText = `${activeTurnIndex + 1} / ${TOTAL_TURNS_MAX}`;
+            document.getElementById('progress-fill').style.width = `${(activeTurnIndex / TOTAL_TURNS_MAX) * 100}%`;
+            document.getElementById('label-score-val').innerText = currentScore;
             
-            let progressPercent = (activeIndex / gameQuestions.length) * 100;
-            document.getElementById('progress-line').style.width = progressPercent + '%';
+            let badge = document.getElementById('label-level-badge');
+            badge.innerText = currentConfig.label;
+            badge.style.background = currentConfig.color;
+            document.documentElement.style.setProperty('--level-color', currentConfig.color);
 
-            let currentItem = gameQuestions[activeIndex];
-            document.getElementById('question-text').textContent = currentItem.q;
+            // Interface Visibility Resets
+            document.getElementById('main-target-card').style.display = "flex";
+            document.getElementById('checkout-mat-target').style.display = "flex";
+            document.getElementById('l3-quiz-row').style.display = "none";
+            document.getElementById('core-action-footer').style.display = "flex";
+            document.getElementById('source-wallet-rack').style.display = "flex";
+            
+            clearCheckoutMat();
 
-            const assetBox = document.getElementById('asset-container');
-            assetBox.innerHTML = '';
-            if(currentItem.img) {
-                const graphic = document.createElement('img');
-                graphic.src = currentItem.img;
-                graphic.alt = "Currency Asset";
-                graphic.onerror = function() {
-                    assetBox.innerHTML = `<span style='color:#7f8c8d; font-style:italic;'>[Visual Clue: ${currentItem.correct}]</span>`;
-                };
-                assetBox.appendChild(graphic);
+            if (currentConfig.mode === 1 || currentConfig.mode === 2) {
+                currentTargetPrice = currentConfig.target;
+                document.getElementById('shelf-main-prompt').innerText = currentConfig.prompt;
+                
+                if (currentConfig.mode === 1) {
+                    document.getElementById('shelf-price-badge').style.display = "inline-block";
+                    document.getElementById('shelf-price-badge').innerText = `Target Amount: ₹${currentTargetPrice.toFixed(2)}`;
+                } else {
+                    // Level 2 hides the target value explicitly so kids calculate change mentally from text instructions
+                    document.getElementById('shelf-price-badge').style.display = "none";
+                }
+
+            } else if (currentConfig.mode === 3) {
+                document.getElementById('shelf-price-badge').style.display = "none";
+                document.getElementById('shelf-main-prompt').innerText = currentConfig.prompt;
+                document.getElementById('checkout-mat-target').style.display = "none";
+                document.getElementById('core-action-footer').style.display = "none";
+                document.getElementById('source-wallet-rack').style.display = "none";
+
+                let quizBox = document.getElementById('l3-quiz-row');
+                quizBox.innerHTML = "";
+                quizBox.style.display = "grid";
+
+                currentConfig.options.forEach(opt => {
+                    let btn = document.createElement('button');
+                    btn.className = "quiz-card-btn";
+                    btn.innerText = opt;
+                    btn.onclick = function() { evaluateQuizSelection(btn, opt, currentConfig.correct); };
+                    quizBox.appendChild(btn);
+                });
             }
-
-            const optionsBox = document.getElementById('options-box');
-            optionsBox.innerHTML = '';
-            
-            let shuffledChoices = shuffle([...currentItem.answers]);
-            shuffledChoices.forEach(choice => {
-                const optionBtn = document.createElement('button');
-                optionBtn.className = 'btn-option';
-                optionBtn.textContent = choice;
-                optionBtn.onclick = () => verifyChoice(optionBtn, choice, currentItem.correct);
-                optionsBox.appendChild(optionBtn);
-            });
         }
 
-        function verifyChoice(buttonElement, picked, actualRight) {
-            if(blocksInteraction) return;
-            blocksInteraction = true;
+        function bindDragAndDropEngine() {
+            const toolkits = document.querySelectorAll('.money-tool-item');
+            toolkits.forEach(tool => {
+                tool.addEventListener('mousedown', initiateDragSequence, { passive: false });
+                tool.addEventListener('touchstart', initiateDragSequence, { passive: false });
+            });
 
-            let volumeLevel = volumeSlider.value;
-            sndCorrect.volume = volumeLevel;
-            sndWrong.volume = volumeLevel;
+            function initiateDragSequence(event) {
+                event.preventDefault();
+                const originElement = this;
+                const incrementalValue = parseFloat(originElement.getAttribute('data-value'));
 
-            if(picked === actualRight) {
+                const childAsset = originElement.firstElementChild.cloneNode(true);
+                const visualFloater = document.createElement('div');
+                visualFloater.className = 'dropped-currency-token';
+                visualFloater.style.position = 'absolute';
+                visualFloater.style.zIndex = '9999';
+                visualFloater.appendChild(childAsset);
+                document.body.appendChild(visualFloater);
+
+                let startX = event.type === 'touchstart' ? event.touches[0].clientX : event.clientX;
+                let startY = event.type === 'touchstart' ? event.touches[0].clientY : event.clientY;
+                let elemRect = originElement.getBoundingClientRect();
+
+                let pointerOffsetX = startX - elemRect.left;
+                let pointerOffsetY = startY - elemRect.top;
+
+                positionNode(startX, startY);
+
+                function positionNode(cx, cy) {
+                    visualFloater.style.left = (cx - pointerOffsetX) + 'px';
+                    visualFloater.style.top = (cy - pointerOffsetY) + 'px';
+                }
+
+                function trackMovement(moveEvent) {
+                    let curX = moveEvent.type === 'touchmove' ? moveEvent.touches[0].clientX : moveEvent.clientX;
+                    let curY = moveEvent.type === 'touchmove' ? moveEvent.touches[0].clientY : moveEvent.clientY;
+                    positionNode(curX, curY);
+                }
+
+                document.addEventListener('mousemove', trackMovement, { passive: false });
+                document.addEventListener('touchmove', trackMovement, { passive: false });
+
+                document.addEventListener('mouseup', function terminateSequence() {
+                    document.removeEventListener('mousemove', trackMovement);
+                    document.removeEventListener('touchmove', trackMovement);
+                    
+                    const dropMat = document.getElementById('checkout-mat-target');
+                    const matRect = dropMat.getBoundingClientRect();
+                    const cloneRect = visualFloater.getBoundingClientRect();
+
+                    let hitDetected = !(cloneRect.right < matRect.left || 
+                                       cloneRect.left > matRect.right || 
+                                       cloneRect.bottom < matRect.top || 
+                                       cloneRect.top > matRect.bottom);
+
+                    if (hitDetected) {
+                        runningBasketTotal = parseFloat((runningBasketTotal + incrementalValue).toFixed(2));
+
+                        let placementClone = childAsset.cloneNode(true);
+                        let placementWrapper = document.createElement('div');
+                        placementWrapper.className = 'dropped-currency-token';
+                        placementWrapper.appendChild(placementClone);
+                        dropMat.appendChild(placementWrapper);
+
+                        refreshMatVisualCounter();
+                    }
+                    visualFloater.remove();
+                }, { once: true });
+            }
+        }
+
+        function refreshMatVisualCounter() {
+            let hint = document.getElementById('mat-placeholder-hint');
+            let feed = document.getElementById('mat-running-total');
+            
+            if (runningBasketTotal > 0) {
+                hint.style.display = 'none';
+                feed.style.display = 'block';
+                feed.innerText = `Tray Total: ₹${runningBasketTotal.toFixed(2)}`;
+            } else {
+                hint.style.display = 'block';
+                feed.style.display = 'none';
+            }
+        }
+
+        function clearCheckoutMat() {
+            runningBasketTotal = 0.0;
+            refreshMatVisualCounter();
+            document.getElementById('counter-status-feedback').innerText = "";
+            
+            const mat = document.getElementById('checkout-mat-target');
+            const elementsToRemove = mat.querySelectorAll('.dropped-currency-token');
+            elementsToRemove.forEach(el => el.remove());
+        }
+
+        function evaluateQuizSelection(buttonElement, clientValue, targetAnswer) {
+            document.querySelectorAll('.quiz-card-btn').forEach(b => b.disabled = true);
+
+            if (clientValue === targetAnswer) {
                 buttonElement.classList.add('correct');
-                runningScore++;
-                document.getElementById('score-val').textContent = runningScore;
-                try { sndCorrect.play(); } catch(e){}
-                triggerConfettiEffect();
+                currentScore += 10;
+                triggerRewardShower();
             } else {
                 buttonElement.classList.add('wrong');
-                try { sndWrong.play(); } catch(e){}
+                playSound('sound-wrong');
+                document.querySelectorAll('.quiz-card-btn').forEach(b => {
+                    if (b.innerText === targetAnswer) b.classList.add('correct');
+                });
+            }
+            activeTurnIndex++;
+            setTimeout(buildActiveGameLevel, 2500);
+        }
+
+        function evaluateActivePuzzleOutput() {
+            let feedback = document.getElementById('counter-status-feedback');
+
+            if (Math.abs(runningBasketTotal - currentTargetPrice) < 0.01) {
+                currentScore += 10;
+                feedback.style.color = "#2e7d32";
+                feedback.innerText = "Excellent transaction! Correct! 🌟💰";
                 
-                Array.from(document.getElementById('options-box').children).forEach(btn => {
-                    if(btn.textContent === actualRight) {
-                        btn.classList.add('correct');
-                    }
-                });
-            }
-
-            setTimeout(() => {
-                activeIndex++;
-                renderQuestion();
-            }, 2000);
-        }
-
-        function endGame() {
-            document.getElementById('progress-line').style.width = '100%';
-            document.getElementById('question-text').textContent = `Awesome Job! 🎉 Final Score: ${runningScore} / ${gameQuestions.length}`;
-            document.getElementById('asset-container').innerHTML = '';
-            document.getElementById('options-box').style.display = 'none';
-            document.getElementById('btn-restart').style.display = 'inline-block';
-            
-            let volumeLevel = volumeSlider.value;
-            sndCheer.volume = volumeLevel;
-            try { sndCheer.play(); } catch(e){}
-            triggerConfettiEffect();
-        }
-
-        // Canvas Confetti implementation Engine
-        const canvas = document.getElementById('canvas-confetti');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-
-        function triggerConfettiEffect() {
-            canvas.width = canvas.parentElement.offsetWidth;
-            canvas.height = canvas.parentElement.offsetHeight;
-            particles = [];
-            for (let i = 0; i < 60; i++) {
-                particles.push({
-                    x: Math.random() * canvas.width,
-                    y: Math.random() * canvas.height - canvas.height,
-                    r: Math.random() * 6 + 4,
-                    d: Math.random() * canvas.height,
-                    color: `hsl(${Math.random() * 360}, 100%, 50%)`,
-                    tilt: Math.random() * 10 - 5,
-                    tiltAngleIncremental: Math.random() * 0.07 + 0.02,
-                    tiltAngle: 0
-                });
-            }
-            animateConfetti();
-        }
-
-        function animateConfetti() {
-            if (particles.length === 0) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            particles.forEach((p, index) => {
-                p.tiltAngle += p.tiltAngleIncremental;
-                p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
-                p.tilt = Math.sin(p.tiltAngle - index / 3) * 15;
-
-                ctx.beginPath();
-                ctx.lineWidth = p.r;
-                ctx.strokeStyle = p.color;
-                ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
-                ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
-                ctx.stroke();
-
-                if (p.y > canvas.height) {
-                    particles[index] = {
-                        x: Math.random() * canvas.width,
-                        y: -20,
-                        r: p.r,
-                        d: p.d,
-                        color: p.color,
-                        tilt: p.tilt,
-                        tiltAngleIncremental: p.tiltAngleIncremental,
-                        tiltAngle: p.tiltAngle
-                    };
-                }
-            });
-
-            if (particles.some(p => p.y < canvas.height)) {
-                requestAnimationFrame(animateConfetti);
+                triggerRewardShower();
+                activeTurnIndex++;
+                setTimeout(buildActiveGameLevel, 2000);
             } else {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                playSound('sound-wrong');
+                feedback.style.color = "#c62828";
+                if (runningBasketTotal > currentTargetPrice) {
+                    feedback.innerText = `Overpaid! Current count: ₹${runningBasketTotal.toFixed(2)}. Clear tray and retry!`;
+                } else {
+                    feedback.innerText = `Insufficient! Current count: ₹${runningBasketTotal.toFixed(2)}. Add more cash!`;
+                }
             }
         }
+
+        function concludeSimulationWorkflow() {
+            document.getElementById('progress-fill').style.width = "100%";
+            document.getElementById('screen-play').classList.remove('active');
+            document.getElementById('screen-end').classList.add('active');
+            document.getElementById('final-score-report').innerText = `Final Score: ${currentScore} / ${TOTAL_TURNS_MAX * 10}`;
+        }
+
+        function reinitializeSimulation() {
+            activeTurnIndex = 0;
+            currentScore = 0;
+            switchActiveLayer('screen-intro');
+        }
+
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                const splash = document.getElementById('screen-splash');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.remove(), 500);
+                }
+            }, 1800);
+        });
     </script>
 </body>
 </html>
