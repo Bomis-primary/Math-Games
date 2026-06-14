@@ -1,557 +1,513 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Measurement Lab</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alice in Wonderland: The Great Measurement Adventure</title>
+    <style>
+        :root {
+            --wonderland-purple: #6a1b9a;
+            --wonderland-dark: #4a0072;
+            --accent-pink: #ec407a;
+            --mint-green: #26a69a;
+            --gold-amber: #ffb300;
+            --bg-canvas: #f3e5f5;
+            --text-main: #311b92;
+        }
 
-<style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Georgia', 'Trebuchet MS', serif;
+        }
 
-*{
-margin:0;
-padding:0;
-box-sizing:border-box;
-font-family:Arial,sans-serif;
-}
+        body {
+            background: var(--bg-canvas);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            user-select: none;
+            overflow-x: hidden;
+        }
 
-body{
-background:url('assets/lab-background.jpg');
-background-size:cover;
-background-position:center;
-min-height:100vh;
-text-align:center;
-}
+        /* --- SPLASH LAUNCH SCREEN --- */
+        #screen-splash {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #ffffff;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+        .splash-inner { text-align: center; }
+        .splash-logo { max-width: 220px; height: auto; margin-bottom: 25px; display: block; margin-left: auto; margin-right: auto; }
+        .splash-loader { 
+            width: 160px; height: 10px; background: #e0e0e0; 
+            border-radius: 5px; margin: 0 auto; overflow: hidden; 
+        }
+        .splash-bar { 
+            width: 100%; height: 100%; background: var(--wonderland-purple); 
+            transform: translateX(-100%); animation: loadStep 1.8s forwards ease-in-out; 
+        }
+        @keyframes loadStep { 100% { transform: translateX(0); } }
 
-.header{
-background:white;
-padding:10px;
-box-shadow:0 2px 6px rgba(0,0,0,0.2);
-}
+        /* --- MAIN MATRIX CONTAINER --- */
+        .game-container {
+            width: 100%;
+            max-width: 850px;
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 16px 40px rgba(74, 0, 114, 0.18);
+            border: 4px double var(--wonderland-purple);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 600px;
+            position: relative;
+            z-index: 10;
+        }
 
-.logo{
-height:70px;
-}
+        /* --- SCREEN LAYER ARCHITECTURE --- */
+        .screen-layer {
+            display: none;
+            flex-direction: column;
+            flex: 1;
+            padding: 35px;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+        }
+        .screen-layer.active { display: flex; opacity: 1; }
 
-.container{
-max-width:1000px;
-margin:auto;
-padding:20px;
-}
+        /* --- INTRO BANNER WORKSPACE --- */
+        #screen-intro { justify-content: center; align-items: center; text-align: center; }
+        .hero-banner { font-size: 5.5rem; margin-bottom: 20px; animation: floatAnim 3s infinite alternate ease-in-out; }
+        @keyframes floatAnim { 0% { transform: translateY(0); } 100% { transform: translateY(-15px); } }
 
-.screen{
-display:none;
-}
+        .story-bubble {
+            background: #fff3e0; padding: 25px; border-radius: 20px;
+            border: 3px dashed var(--gold-amber); max-width: 720px; margin-bottom: 30px;
+            font-size: 1.15rem; line-height: 1.6; text-align: left; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+        }
+        .story-bubble h2 { text-align: center; margin-bottom: 12px; color: var(--wonderland-dark); }
 
-.active{
-display:block;
-}
+        .cta-btn {
+            background: linear-gradient(135deg, var(--accent-pink), var(--wonderland-purple));
+            border: none; color: white; font-size: 1.3rem; font-weight: bold;
+            padding: 14px 40px; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 6px 15px rgba(106, 27, 154, 0.3); transition: all 0.2s;
+        }
+        .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(106, 27, 154, 0.4); }
+        .cta-btn:active { transform: translateY(2px); box-shadow: 0 3px 8px rgba(106, 27, 154, 0.4); }
 
-.card{
-background:white;
-border-radius:20px;
-padding:25px;
-box-shadow:0 5px 15px rgba(0,0,0,0.2);
-margin-top:20px;
-}
+        /* --- HUD TRACKER BAR --- */
+        .hud-row {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 15px; font-size: 1.2rem; font-weight: bold; color: var(--wonderland-dark);
+            border-bottom: 2px solid #f3e5f5; padding-bottom: 10px;
+        }
+        .level-badge {
+            color: white; padding: 6px 20px; border-radius: 30px; font-size: 1.05rem; 
+            font-weight: bold; box-shadow: 0 3px 6px rgba(0,0,0,0.1); text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        .progress-track { width: 100%; height: 12px; background: #e0e0e0; border-radius: 10px; overflow: hidden; margin-bottom: 25px; }
+        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--mint-green), #4db6ac); transition: width 0.4s ease; }
 
-.btn{
-background:#3498db;
-color:white;
-border:none;
-padding:14px 24px;
-border-radius:10px;
-font-size:18px;
-cursor:pointer;
-margin-top:15px;
-}
+        /* --- QUESTION INTERFACE GRID --- */
+        .workspace-layout { display: flex; flex-direction: column; flex: 1; justify-content: space-between; }
+        
+        .interactive-stage {
+            background: #fafafa; border: 2px solid #e1bee7; border-radius: 20px;
+            padding: 20px; min-height: 160px; display: flex; flex-direction: column; 
+            justify-content: center; align-items: center; margin-bottom: 25px; position: relative;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.02);
+        }
+        .stage-avatar { font-size: 4rem; margin-bottom: 10px; }
+        .stage-prompt { font-size: 1.35rem; font-weight: bold; text-align: center; color: var(--wonderland-dark); line-height: 1.5; }
 
-.btn:hover{
-background:#2980b9;
-}
+        /* --- INPUT FIELD MODULES --- */
+        .options-matrix { display: grid; grid-template-columns: 1fr; gap: 15px; width: 100%; }
+        .matrix-two-col { grid-template-columns: repeat(2, 1fr); }
+        
+        .option-card-btn {
+            background: #ffffff; border: 3px solid #d1c4e9; border-radius: 16px;
+            padding: 16px 25px; font-size: 1.25rem; font-weight: bold; color: var(--text-main);
+            cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.05); text-align: left;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; align-items: center;
+        }
+        .option-card-btn:hover { border-color: var(--wonderland-purple); background: #f3e5f5; transform: translateX(4px); }
+        .option-card-btn .prefix { background: var(--bg-canvas); color: var(--wonderland-purple); width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; margin-right: 15px; font-size: 1rem; }
+        
+        /* Input Submission Engine */
+        .text-input-field {
+            width: 100%; max-width: 280px; padding: 12px 20px; font-size: 1.4rem; font-weight: bold;
+            border: 3px solid #d1c4e9; border-radius: 14px; text-align: center; color: var(--wonderland-dark);
+            outline: none; transition: border-color 0.2s; margin-bottom: 15px;
+        }
+        .text-input-field:focus { border-color: var(--wonderland-purple); box-shadow: 0 0 10px rgba(106, 27, 154, 0.15); }
 
-.question{
-font-size:24px;
-margin-bottom:20px;
-}
+        /* Feedback States */
+        .option-card-btn.correct { background: #e8f5e9 !important; border-color: #2e7d32 !important; color: #1b5e20 !important; }
+        .option-card-btn.wrong { background: #ffebee !important; border-color: #c62828 !important; color: #b71c1c !important; }
 
-.option{
-display:block;
-width:100%;
-margin:10px 0;
-padding:15px;
-border:none;
-border-radius:10px;
-background:#3498db;
-color:white;
-font-size:18px;
-cursor:pointer;
-}
+        .banner-feedback { text-align: center; height: 30px; font-size: 1.3rem; font-weight: bold; margin-top: 15px; }
 
-.option:hover{
-background:#2980b9;
-}
+        /* --- VISUAL INTERACTIVE ENGINE ATTACHMENTS --- */
+        .ruler-canvas-fallback {
+            width: 100%; max-width: 480px; height: 45px; background: #fff59d;
+            border: 2px solid #fbc02d; border-radius: 4px; margin-top: 15px;
+            position: relative; box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+        }
+        .ruler-canvas-fallback::before {
+            content: ''; position: absolute; left: 0; top: 0; width: 100%; height: 15px;
+            background: repeating-linear-gradient(90deg, #fbc02d, #fbc02d 2px, transparent 2px, transparent 15px);
+        }
+        .ruler-canvas-fallback::after {
+            content: 'cm  0   1   2   3   4   5   6   7   8   9  10  11  12  13  14  15';
+            position: absolute; left: 8px; bottom: 4px; font-family: monospace; font-size: 11px; font-weight: bold; color: #5d4037; letter-spacing: 12px;
+        }
 
-.image-area{
-margin:20px auto;
-}
+        .balance-scale-fallback {
+            width: 160px; height: 80px; margin-top: 10px; position: relative;
+            display: flex; justify-content: space-between; align-items: flex-end;
+        }
+        .balance-beam {
+            position: absolute; width: 100%; height: 6px; background: #78909c; top: 30px; left: 0;
+            transform-origin: center center; transition: transform 0.5s ease;
+        }
+        .balance-base {
+            position: absolute; width: 20px; height: 50px; background: #b0bec5; bottom: 0; left: calc(50% - 10px);
+        }
+        .balance-pan { width: 35px; height: 10px; background: #cfd8dc; border-radius: 0 0 10px 10px; border-top: 2px solid #78909c; }
 
-.object-image{
-width:220px;
-height:220px;
-object-fit:contain;
-}
-
-.progress-container{
-width:100%;
-background:#ddd;
-border-radius:20px;
-overflow:hidden;
-margin:15px 0;
-}
-
-.progress-bar{
-height:22px;
-width:0%;
-background:#2ecc71;
-transition:.3s;
-}
-
-#badges{
-font-size:34px;
-margin-top:10px;
-}
-
-#message{
-font-size:20px;
-font-weight:bold;
-margin-top:15px;
-height:30px;
-}
-
-.score{
-font-size:22px;
-font-weight:bold;
-color:#27ae60;
-}
-
-.win-text{
-font-size:32px;
-color:#e67e22;
-}
-
-</style>
+        /* --- REWARD COIN/KEY CELEBRATION SHOWER --- */
+        .falling-key-token {
+            position: fixed; font-size: 2.2rem; z-index: 9999; pointer-events: none;
+            top: -50px; animation: fallAnimAction var(--dur) linear forwards;
+        }
+        @keyframes fallAnimAction {
+            0% { top: -50px; transform: translateX(0) rotate(0deg); opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 105vh; transform: translateX(var(--deviation)) rotate(360deg); opacity: 0; }
+        }
+    </style>
 </head>
-
 <body>
 
-<div class="header">
-<img src="assets/innovine-logo.png" class="logo">
-</div>
-
-<div class="container">
-
-<div id="startScreen" class="screen active">
-
-<div class="card">
-
-<h1>🔬 Measurement Lab</h1>
-
-<br>
-
-<p>
-Become a Junior Scientist.
-Complete 10 experiments and earn your Scientist Badge.
-</p>
-
-<button class="btn" onclick="showInstructions()">
-Enter Lab
-</button>
-
-</div>
-
-</div>
-
-<div id="instructionScreen" class="screen">
-
-<div class="card">
-
-<h2>📖 Instructions</h2>
-
-<br>
-
-<p>
-✔ Measure length</p>
-<p>✔ Compare weight</p>
-<p>✔ Estimate capacity</p>
-<p>✔ Choose correct units</p>
-<p>✔ Complete 10 experiments</p>
-
-<button class="btn" onclick="startGame()">
-Start Experiments
-</button>
-
-</div>
-
-</div>
-
-<div id="gameScreen" class="screen">
-
-<div class="card">
-
-<div class="score" id="score">
-Experiments Completed: 0 / 10
-</div>
-
-<div class="progress-container">
-<div class="progress-bar" id="progressBar"></div>
-</div>
-
-<div id="badges"></div>
-
-<div id="question" class="question"></div>
-
-<div class="image-area" id="imageArea"></div>
-
-<div id="options"></div>
-
-<div id="message"></div>
-
-</div>
-
-</div>
-
-<div id="winScreen" class="screen">
-
-<div class="card">
-
-<div class="win-text">
-🏆 Scientist Badge Earned!
-</div>
-
-<br>
-
-<img src="assets/scientist-badge.png" width="180">
-
-<br><br>
-
-<p>
-You completed all experiments successfully.
-</p>
-
-<br>
-
-<button class="btn" onclick="location.reload()">
-Play Again
-</button>
-
-</div>
-
-</div>
-
-</div>
-
-<audio id="correctSound" src="assets/correct.mp3"></audio>
-<audio id="wrongSound" src="assets/wrong.mp3"></audio>
-<audio id="winSound" src="assets/freesound_community-claps-44774.mp3"></audio>
-
-<script>
-
-let score=0;
-let correctAnswer="";
-
-const badges=[
-"🔬","🧪","📏","⚖️","🥛",
-"📐","🧫","🧬","🔍","🏆"
-];
-
-function switchScreen(id){
-
-document.querySelectorAll('.screen').forEach(s=>{
-s.classList.remove('active');
-});
-
-document.getElementById(id).classList.add('active');
-
-}
-
-function showInstructions(){
-switchScreen("instructionScreen");
-}
-
-function startGame(){
-switchScreen("gameScreen");
-generateQuestion();
-}
-
-function shuffle(array){
-return array.sort(()=>Math.random()-0.5);
-}
-
-function random(min,max){
-return Math.floor(Math.random()*(max-min+1))+min;
-}
-  function generateQuestion(){
-
-if(score>=10){
-showWinScreen();
-return;
-}
-
-document.getElementById("message").innerHTML="";
-
-let type=score+1;
-
-let question="";
-let answer="";
-let options=[];
-let image="";
-
-if(type===1){
-
-question="Which tool should a scientist use to measure this pencil?";
-
-image="assets/pencil.png";
-
-answer="Ruler";
-
-options=[
-"Ruler",
-"Weighing Scale",
-"Measuring Cup",
-"Bucket"
-];
-
-}
-
-if(type===2){
-
-question="The pencil reaches the 8 cm mark on the ruler. What is its length?";
-
-image="assets/ruler.png";
-
-answer="8 cm";
-
-options=[
-"8 cm",
-"5 cm",
-"10 cm",
-"12 cm"
-];
-
-}
-
-if(type===3){
-
-question="Which is the best estimate for the length of this book?";
-
-image="assets/book.png";
-
-answer="20 cm";
-
-options=[
-"2 cm",
-"20 cm",
-"2 m",
-"10 m"
-];
-
-}
-
-if(type===4){
-
-question="Which object is heavier?";
-
-image="assets/watermelon.png";
-
-answer="Watermelon";
-
-options=[
-"Watermelon",
-"Feather",
-"Both Equal",
-"Cannot Tell"
-];
-
-}
-
-if(type===5){
-
-question="Which unit should be used to measure the weight of this school bag?";
-
-image="assets/schoolbag.png";
-
-answer="kg";
-
-options=[
-"kg",
-"g",
-"ml",
-"cm"
-];
-
-}
-
-if(type===6){
-
-question="A weighing scale shows 500. What is the weight?";
-
-image="assets/weighing-scale.png";
-
-answer="500 g";
-
-options=[
-"500 g",
-"500 kg",
-"50 g",
-"5 kg"
-];
-
-}
-
-if(type===7){
-
-question="Which unit is best for measuring the amount of milk in this glass?";
-
-image="assets/glass.png";
-
-answer="ml";
-
-options=[
-"ml",
-"l",
-"kg",
-"cm"
-];
-
-}
-
-if(type===8){
-
-question="Which unit is best for measuring water in this bucket?";
-
-image="assets/bucket.png";
-
-answer="l";
-
-options=[
-"l",
-"ml",
-"g",
-"cm"
-];
-
-}
-
-if(type===9){
-
-question="Which is the better estimate for the capacity of this bottle?";
-
-image="assets/waterbottle.png";
-
-answer="500 ml";
-
-options=[
-"500 ml",
-"500 l",
-"5 kg",
-"5 cm"
-];
-
-}
-
-if(type===10){
-
-question="1 litre is equal to how many millilitres?";
-
-image="assets/measuring-cup.png";
-
-answer="1000 ml";
-
-options=[
-"1000 ml",
-"100 ml",
-"10000 ml",
-"10 ml"
-];
-
-}
-
-correctAnswer=answer;
-
-options=shuffle(options);
-
-document.getElementById("question").innerHTML=
-question;
-
-document.getElementById("imageArea").innerHTML=
-`<img src="${image}" class="object-image">`;
-
-let html="";
-
-options.forEach(option=>{
-
-html+=`
-<button class="option"
-onclick="checkAnswer('${option}')">
-${option}
-</button>
-`;
-
-});
-
-document.getElementById("options").innerHTML=
-html;
-
-}
-
-function checkAnswer(selected){
-
-if(selected===correctAnswer){
-
-document.getElementById("correctSound").play();
-
-score++;
-
-document.getElementById("message").innerHTML=
-"✅ Experiment Completed!";
-
-document.getElementById("score").innerHTML=
-`Experiments Completed: ${score} / 10`;
-
-let badgeDisplay="";
-
-for(let i=0;i<score;i++){
-badgeDisplay+=badges[i];
-}
-
-document.getElementById("badges").innerHTML=
-badgeDisplay;
-
-document.getElementById("progressBar").style.width=
-(score*10)+"%";
-
-}
-else{
-  document.getElementById("wrongSound").play();
-
-document.getElementById("message").innerHTML=
-`❌ Correct Answer: ${correctAnswer}`;
-
-}
-
-setTimeout(generateQuestion,1500);
-
-}
-
-function showWinScreen(){
-
-document.getElementById("winSound").play();
-
-switchScreen("winScreen");
-
-}
-
-</script>
-
+    <!-- AUDIO ASSETS SAFETY ASSIGNMENTS -->
+    <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></preload>
+
+    <!-- MANDATORY BRAND SPLASH SEQUENCE WITH ASSIGNED LOGO FILE IDENTIFICATION -->
+    <div id="screen-splash">
+        <div class="splash-inner">
+            <img src="assets/logo.png" class="splash-logo" alt="Innovine Logo" onerror="this.style.display='none';">
+            <div class="splash-loader"><div class="splash-bar"></div></div>
+        </div>
+    </div>
+
+    <!-- MAIN MATRIX CONTAINER CONTEXT -->
+    <div class="game-container">
+        
+        <!-- LAYER 1: STORY TELLING INTRO SCREEN -->
+        <div class="screen-layer active" id="screen-intro">
+            <div class="hero-banner">⏰🕳️🐇</div>
+            <h1 style="margin-bottom: 12px; font-size: 2.4rem; color: var(--wonderland-dark);">Alice in Wonderland</h1>
+            <h3 style="margin-bottom: 20px; color: var(--accent-pink); font-style: italic;">The Great Measurement Adventure</h3>
+            <div class="story-bubble">
+                <h2>Story Introduction</h2>
+                <p>Alice has fallen down the Rabbit Hole once again! But this time, Wonderland is in chaos. The White Rabbit's magical <strong>Measuring Clock</strong> has broken into three pieces.</p>
+                <br>
+                <p>To restore it, Alice must travel through Wonderland and solve measurement challenges. Every correct answer earns a <strong>Magic Key 🔑</strong>.</p>
+                <br>
+                <p style="font-weight: bold; color: var(--wonderland-purple);">Collect all the keys to unlock the Measuring Clock and save Wonderland!</p>
+            </div>
+            <button class="cta-btn" onclick="switchActiveLayer('screen-play')">Begin Adventure 🚀</button>
+        </div>
+
+        <!-- LAYER 2: INTERACTIVE GAME ASSESSMENT CONTROLLER -->
+        <div class="screen-layer" id="screen-play">
+            <div class="hud-row">
+                <div>🔑 Keys: <span id="label-score-val">0</span></div>
+                <div class="level-badge" id="label-level-badge">Level 1: Length</div>
+                <div>Progress: <span id="label-turn-val">1 / 15</span></div>
+            </div>
+            <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
+
+            <div class="workspace-layout">
+                <div class="interactive-stage">
+                    <div class="stage-avatar" id="element-stage-icon">🔑</div>
+                    <div class="stage-prompt" id="element-stage-question">Loading challenge text context...</div>
+                    <div id="element-stage-visualizer"></div>
+                </div>
+
+                <!-- DYNAMIC ANSWER MOUNT PANELS -->
+                <div id="wrapper-input-mechanisms">
+                    <!-- Target generation areas managed programmatically below -->
+                </div>
+
+                <div class="banner-feedback" id="element-status-feedback"></div>
+            </div>
+        </div>
+
+        <!-- LAYER 3: END SCREEN WRAPPER -->
+        <div class="screen-layer" id="screen-end">
+            <div class="hero-banner">👑✨🔮</div>
+            <h1 style="color: var(--wonderland-dark); font-size: 2.5rem; margin-bottom: 15px; text-align: center;">Wonderland Restored!</h1>
+            <div class="story-bubble" style="text-align: center;">
+                <h2>🏆 Ending</h2>
+                <p>The final key glows brightly! Alice places all three clock pieces back together seamlessly. The magical <strong>Measuring Clock</strong> begins ticking beautifully again, and Wonderland instantly returns to absolute normal.</p>
+            </div>
+            <h2 id="final-score-report" style="color: var(--accent-pink); text-align: center; margin-bottom: 30px; font-size: 1.8rem;">Keys Collected: 15 / 15</h2>
+            <button class="cta-btn" style="margin: 0 auto; display: block;" onclick="reinitializeSimulation()">Play Again 🔄</button>
+        </div>
+
+    </div>
+
+    <script>
+        let currentScore = 0;
+        let activeTurnIndex = 0;
+        
+        // MASTER CURATED DATABASE TRACKING ASSESSMENT SPECIFICATIONS METICULOUSLY
+        const masterSimulationPool = [
+            // LEVEL 1: LENGTH
+            { type: "choice", level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🔑", question: "Alice finds a tiny golden key. Which unit is best to measure its length?", options: ["m", "cm"], answer: "cm", cols: 2, visual: "none" },
+            { type: "choice", level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🕳️", question: "The White Rabbit's tunnel is 4 metres long. How many metres long is the tunnel?", options: ["4 cm", "4 m", "40 cm"], answer: "4 m", cols: 3, visual: "ruler" },
+            { type: "input",  level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🍄", question: "Alice estimates a mushroom to be 20 cm tall. When measured, it is actually 18 cm tall. How many centimetres was Alice's estimate off by?", answer: "2", suffix: "cm" },
+            { type: "choice", level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🐱", question: "Two garden paths lead to the Cheshire Cat. Path A = 3 m, Path B = 250 cm. Which path is longer?", options: ["Path A", "Path B"], answer: "Path A", cols: 2, visual: "none" },
+            { type: "input",  level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🌹", question: "Alice walks 2 m to a mushroom and then 3 m more to a flower garden. How far did she walk altogether?", answer: "5", suffix: "m" },
+            
+            // LEVEL 2: WEIGHT
+            { type: "choice", level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "☕", question: "Which unit is best for measuring the weight of a teacup?", options: ["g", "kg"], answer: "g", cols: 2, visual: "none" },
+            { type: "choice", level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🐇", question: "The Dormouse weighs 800 g. The White Rabbit weighs 1 kg. Who is heavier?", options: ["Dormouse", "White Rabbit"], answer: "White Rabbit", cols: 2, visual: "scale-right" },
+            { type: "input",  level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🫖", question: "The Mad Hatter carries a box weighing 3 kg and a teapot weighing 2 kg. What is the total weight?", answer: "5", suffix: "kg" },
+            { type: "choice", level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🎃", question: "Alice guesses that a giant pumpkin weighs 10 kg. When weighed, it is 12 kg. Was Alice's estimate:", options: ["Too heavy", "Too light"], answer: "Too light", cols: 2, visual: "none" },
+            { type: "choice", level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🍰", question: "The Queen's cake weighs 2 kg. A tart weighs 500 g. Which is lighter?", options: ["Cake", "Tart"], answer: "Tart", cols: 2, visual: "scale-left" },
+            
+            // LEVEL 3: CAPACITY
+            { type: "choice", level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🍵", question: "Which unit is best for measuring the amount of tea in a teacup?", options: ["mL", "L"], answer: "mL", cols: 2, visual: "none" },
+            { type: "input",  level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🏺", question: "The Mad Hatter fills a jug with 2 L of tea. He pours out 1 L. How much tea remains?", answer: "1", suffix: "L" },
+            { type: "choice", level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🍾", question: "Alice has two bottles. Bottle A = 500 mL, Bottle B = 1 L. Which bottle holds more?", options: ["Bottle A", "Bottle B"], answer: "Bottle B", cols: 2, visual: "none" },
+            { type: "input",  level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🥣", question: "The Queen's punch bowl holds 5 L of juice. Three litres are served to guests. How much juice remains?", answer: "2", suffix: "L" },
+            { type: "choice", level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "⭐", question: "To fix the Measuring Clock, Alice must gather: a ribbon that is 3 m long, a cake weighing 2 kg, and a jug holding 4 L of juice. Which measurement belongs to the jug?", options: ["3 m", "2 kg", "4 L"], answer: "4 L", cols: 3, visual: "none" }
+        ];
+
+        const TOTAL_TURNS_MAX = masterSimulationPool.length;
+
+        function playSound(type) {
+            const track = document.getElementById(type === 'success' ? 'audio-correct' : 'audio-wrong');
+            if (track) {
+                track.currentTime = 0;
+                track.play().catch(() => {});
+            }
+        }
+
+        function triggerMagicKeyShowerEffect() {
+            let spawnDuration = 1200; 
+            let intervalTime = 80; 
+            
+            let timerId = setInterval(() => {
+                let keyToken = document.createElement('div');
+                keyToken.className = 'falling-key-token';
+                keyToken.innerText = '🔑';
+                
+                keyToken.style.left = Math.random() * 90 + 'vw';
+                keyToken.style.setProperty('--deviation', (Math.random() - 0.5) * 150 + 'px');
+                keyToken.style.setProperty('--dur', (Math.random() * 0.8 + 1.2) + 's');
+                
+                document.body.appendChild(keyToken);
+                setTimeout(() => keyToken.remove(), 2000);
+            }, intervalTime);
+
+            setTimeout(() => clearInterval(timerId), spawnDuration);
+        }
+
+        function switchActiveLayer(screenId) {
+            document.querySelectorAll('.screen-layer').forEach(layer => layer.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            if (screenId === 'screen-play') {
+                buildActiveAssessmentItem();
+            }
+        }
+
+        function buildActiveAssessmentItem() {
+            if (activeTurnIndex >= TOTAL_TURNS_MAX) {
+                concludeSimulationWorkflow();
+                return;
+            }
+
+            document.getElementById('element-status-feedback').innerText = "";
+            let data = masterSimulationPool[activeTurnIndex];
+
+            // Render HUD Updates
+            document.getElementById('label-turn-val').innerText = `${activeTurnIndex + 1} / ${TOTAL_TURNS_MAX}`;
+            document.getElementById('progress-fill').style.width = `${(activeTurnIndex / TOTAL_TURNS_MAX) * 100}%`;
+            document.getElementById('label-score-val').innerText = currentScore;
+            
+            let badge = document.getElementById('label-level-badge');
+            badge.innerText = data.level;
+            badge.style.background = data.color;
+
+            // Render Stage Elements
+            document.getElementById('element-stage-icon').innerText = data.icon;
+            document.getElementById('element-stage-question').innerText = data.question;
+
+            // Mount Stage Structural Context Vectors
+            let visualBox = document.getElementById('element-stage-visualizer');
+            visualBox.innerHTML = "";
+            if (data.visual === "ruler") {
+                let ruler = document.createElement('div');
+                ruler.className = "ruler-canvas-fallback";
+                visualBox.appendChild(ruler);
+            } else if (data.visual && data.visual.startsWith("scale")) {
+                let container = document.createElement('div');
+                container.className = "balance-scale-fallback";
+                
+                let beam = document.createElement('div');
+                beam.className = "balance-beam";
+                if (data.visual === "scale-left") beam.style.transform = "rotate(12deg)";
+                if (data.visual === "scale-right") beam.style.transform = "rotate(-12deg)";
+                
+                let base = document.createElement('div');
+                base.className = "balance-base";
+                
+                container.appendChild(base);
+                container.appendChild(beam);
+                visualBox.appendChild(container);
+            }
+
+            // Mount Form Control Mechanisms
+            let mechanistZone = document.getElementById('wrapper-input-mechanisms');
+            mechanistZone.innerHTML = "";
+
+            if (data.type === "choice") {
+                let matrix = document.createElement('div');
+                matrix.className = "options-matrix";
+                if (data.cols === 2) matrix.classList.add('matrix-two-col');
+                if (data.cols === 3) matrix.classList.add('matrix-two-col'); // fallback grid config styling
+
+                const prefixes = ["A", "B", "C", "D"];
+                data.options.forEach((opt, idx) => {
+                    let btn = document.createElement('button');
+                    btn.className = "option-card-btn";
+                    btn.innerHTML = `<span class="prefix">${prefixes[idx]}</span> <span class="txt-lbl">${opt}</span>`;
+                    btn.onclick = function() { evaluateChoiceResponse(btn, opt, data.answer); };
+                    matrix.appendChild(btn);
+                });
+                mechanistZone.appendChild(matrix);
+
+            } else if (data.type === "input") {
+                let wrap = document.createElement('div');
+                wrap.style.textAlign = "center";
+                
+                let input = document.createElement('input');
+                input.type = "text";
+                input.className = "text-input-field";
+                input.placeholder = "Type number...";
+                
+                let submitBtn = document.createElement('button');
+                submitBtn.className = "cta-btn";
+                submitBtn.style.padding = "10px 30px";
+                submitBtn.style.fontSize = "1.1rem";
+                submitBtn.innerText = `Submit Answer (${data.suffix})`;
+                
+                submitBtn.onclick = function() { evaluateInputResponse(input, data.answer); };
+                input.addEventListener('keydown', function(ev) { if (ev.key === 'Enter') submitBtn.click(); });
+
+                wrap.appendChild(input);
+                wrap.appendChild(document.createElement('br'));
+                wrap.appendChild(submitBtn);
+                mechanistZone.appendChild(wrap);
+                input.focus();
+            }
+        }
+
+        function evaluateChoiceResponse(selectedButton, chosenVal, exactAnswer) {
+            // Lock UI Controls immediately
+            document.querySelectorAll('.option-card-btn').forEach(b => b.disabled = true);
+
+            let feedbackNode = document.getElementById('element-status-feedback');
+
+            if (chosenVal === exactAnswer) {
+                selectedButton.classList.add('correct');
+                feedbackNode.style.color = "#2e7d32";
+                feedbackNode.innerText = "Splendid! A Magic Key was earned! 🔑✨";
+                currentScore++;
+                playSound('success');
+                triggerMagicKeyShowerEffect();
+            } else {
+                selectedButton.classList.add('wrong');
+                feedbackNode.style.color = "#c62828";
+                feedbackNode.innerText = "Oh dear! That wasn't quite right.";
+                playSound('wrong');
+                
+                // Highlight exact answer framework visually for pedagogical alignment
+                document.querySelectorAll('.option-card-btn').forEach(b => {
+                    let textLabel = b.querySelector('.txt-lbl').innerText;
+                    if (textLabel === exactAnswer) b.classList.add('correct');
+                });
+            }
+
+            document.getElementById('label-score-val').innerText = currentScore;
+            activeTurnIndex++;
+            setTimeout(buildActiveAssessmentItem, 2000);
+        }
+
+        function evaluateInputResponse(inputFieldElement, exactAnswer) {
+            let processedString = inputFieldElement.value.trim();
+            if (processedString === "") return;
+
+            inputFieldElement.disabled = true;
+            let feedbackNode = document.getElementById('element-status-feedback');
+
+            if (processedString === exactAnswer) {
+                inputFieldElement.style.borderColor = "#2e7d32";
+                inputFieldElement.style.background = "#e8f5e9";
+                feedbackNode.style.color = "#2e7d32";
+                feedbackNode.innerText = "Brilliant! The clock registers accuracy! 🔑🌟";
+                currentScore++;
+                playSound('success');
+                triggerMagicKeyShowerEffect();
+            } else {
+                inputFieldElement.style.borderColor = "#c62828";
+                inputFieldElement.style.background = "#ffebee";
+                feedbackNode.style.color = "#c62828";
+                feedbackNode.innerText = `Curiouser and curiouser! Correct answer was: ${exactAnswer}`;
+                playSound('wrong');
+            }
+
+            document.getElementById('label-score-val').innerText = currentScore;
+            activeTurnIndex++;
+            setTimeout(buildActiveAssessmentItem, 2500);
+        }
+
+        function concludeSimulationWorkflow() {
+            document.getElementById('progress-fill').style.width = "100%";
+            document.getElementById('screen-play').classList.remove('active');
+            document.getElementById('screen-end').classList.add('active');
+            document.getElementById('final-score-report').innerText = `Total Magic Keys Earned: ${currentScore} / ${TOTAL_TURNS_MAX}`;
+        }
+
+        function reinitializeSimulation() {
+            activeTurnIndex = 0;
+            currentScore = 0;
+            switchActiveLayer('screen-intro');
+        }
+
+        // Standardized Splash Window Event Safety Loops
+        window.addEventListener('load', function() {
+            function purgeSplashOverlay() {
+                const splash = document.getElementById('screen-splash');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.remove(), 500);
+                }
+            }
+            setTimeout(purgeSplashOverlay, 1900);
+        });
+    </script>
 </body>
 </html>
