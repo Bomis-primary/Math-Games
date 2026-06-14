@@ -3,18 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Junior Safari Ranger: Measurement Adventures</title>
+    <title>Bridge Builder Math: Fix the Canyon Crossing!</title>
     <style>
         :root {
-            --safari-green: #2e7d32;
-            --safari-dark: #1b5e20;
-            --safari-light: #a5d6a7;
-            --sun-yellow: #ffb300;
-            --sky-blue: #29b6f6;
-            --clay-orange: #f57c00;
-            --bg-canvas: #f1f8e9;
-            --text-main: #2e3d30;
-            --card-shadow: 0 12px 28px rgba(27, 94, 32, 0.12);
+            --builder-yellow: #ffb300;
+            --builder-orange: #f57c00;
+            --steel-blue: #0277bd;
+            --brick-red: #c62828;
+            --safety-dark: #263238;
+            --grass-green: #4caf50;
+            --bg-canvas: #eceff1;
+            --card-shadow: 0 10px 25px rgba(38, 50, 56, 0.15);
             --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
@@ -27,546 +26,475 @@
 
         body {
             background: var(--bg-canvas);
-            background-image: linear-gradient(rgba(46, 125, 50, 0.03) 1px, transparent 1px),
-                              linear-gradient(90deg, rgba(46, 125, 50, 0.03) 1px, transparent 1px);
+            background-image: radial-gradient(var(--safety-dark) 0.5px, transparent 0.5px), 
+                              radial-gradient(var(--safety-dark) 0.5px, var(--bg-canvas) 0.5px);
             background-size: 20px 20px;
-            color: var(--text-main);
+            background-position: 0 0, 10px 10px;
+            opacity: 0.95;
+            color: var(--safety-dark);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 20px;
             user-select: none;
-            overflow-x: hidden;
         }
 
         /* --- SPLASH SCREEN --- */
         #screen-splash {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(27, 94, 32, 0.8), rgba(0, 0, 0, 0.85)), 
-                        url('https://images.unsplash.com/photo-1547471080-7cc2caa01a7e?auto=format&fit=crop&w=1200&q=80');
-            background-size: cover;
-            background-position: center;
-            display: flex; 
-            flex-direction: column;
-            justify-content: center; 
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.6s ease-out;
+            background: linear-gradient(rgba(38, 50, 56, 0.9), rgba(245, 124, 0, 0.9));
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999; transition: opacity 0.5s ease-out;
         }
         .splash-card {
-            background: rgba(255, 255, 255, 0.96);
-            padding: 40px;
-            border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
-            text-align: center;
-            backdrop-filter: blur(8px);
-            max-width: 400px;
-            width: 90%;
+            background: white; padding: 40px; border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3); text-align: center; max-width: 400px; width: 90%;
         }
-        .splash-logo { 
-            max-width: 180px; 
-            height: auto; 
-            margin-bottom: 25px; 
-            display: block; 
-            margin-left: auto; 
-            margin-right: auto; 
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.06));
-        }
-        .splash-loader { 
-            width: 100%; height: 8px; background: #e0e0e0; 
-            border-radius: 10px; margin: 15px auto 0 auto; overflow: hidden; 
-        }
-        .splash-bar { 
-            width: 100%; height: 100%; background: var(--safari-green); 
-            transform: translateX(-100%); animation: loadStep 1.5s forwards ease-in-out; 
-        }
-        @keyframes loadStep { 100% { transform: translateX(0); } }
+        .splash-logo { max-width: 150px; margin-bottom: 20px; }
+        .builder-bar-wrap { width: 100%; height: 10px; background: #e0e0e0; border-radius: 10px; margin-top: 20px; overflow: hidden; }
+        .builder-bar-fill { width: 100%; height: 100%; background: var(--builder-orange); transform: translateX(-100%); animation: load 1.2s forwards ease-in-out; }
+        @keyframes load { 100% { transform: translateX(0); } }
 
         /* --- GAME WINDOW --- */
         .game-container {
             width: 100%;
-            max-width: 850px;
+            max-width: 900px;
             background: #ffffff;
-            border-radius: 32px;
+            border-radius: 24px;
             box-shadow: var(--card-shadow);
-            border: 3px solid var(--safari-light);
+            border: 5px solid var(--builder-yellow);
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            min-height: 650px;
+            min-height: 680px;
             position: relative;
-            z-index: 10;
         }
 
         .screen-layer {
-            display: none;
-            flex-direction: column;
-            flex: 1;
-            padding: 40px;
-            opacity: 0;
-            transition: opacity 0.4s ease-in-out;
+            display: none; flex-direction: column; flex: 1; padding: 35px; opacity: 0; transition: opacity 0.3s ease;
         }
         .screen-layer.active { display: flex; opacity: 1; }
 
-        /* --- WELCOME INTRO --- */
-        #screen-intro { justify-content: center; align-items: center; text-align: center; }
-        .hero-banner { 
-            font-size: 5rem; 
-            margin-bottom: 15px; 
-            animation: floatAnim 3s infinite alternate ease-in-out; 
+        /* --- MENU GRAPHICS --- */
+        #screen-intro { text-align: center; justify-content: center; align-items: center; }
+        .intro-graphic { font-size: 5rem; margin-bottom: 15px; animation: bounce 2s infinite alternate; }
+        @keyframes bounce { 0% { transform: translateY(0); } 100% { transform: translateY(-10px); } }
+        
+        .blueprint-card {
+            background: #0d47a1; color: white; border: 3px dashed #90caf9; padding: 25px;
+            border-radius: 16px; text-align: left; max-width: 700px; margin: 20px 0; box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
         }
-        @keyframes floatAnim { 0% { transform: translateY(0); } 100% { transform: translateY(-8px); } }
-
-        .story-bubble {
-            background: #f1f8e9; padding: 25px; border-radius: 24px;
-            border: 2px solid var(--safari-light); max-width: 720px; margin-bottom: 30px;
-            font-size: 1.15rem; line-height: 1.6; text-align: left;
-        }
-        .story-bubble h2 { text-align: center; margin-bottom: 12px; color: var(--safari-dark); font-size: 1.7rem; }
+        .blueprint-card h2 { color: var(--builder-yellow); text-align: center; margin-bottom: 10px; font-weight: 800; }
 
         .cta-btn {
-            background: linear-gradient(135deg, var(--safari-green), var(--safari-dark));
-            border: none; color: white; font-size: 1.3rem; font-weight: 700;
-            padding: 16px 45px; border-radius: 50px; cursor: pointer;
-            box-shadow: 0 6px 20px rgba(46, 125, 50, 0.25); transition: var(--transition-smooth);
+            background: linear-gradient(135deg, var(--builder-orange), #e65100);
+            border: none; color: white; font-size: 1.25rem; font-weight: 800; text-transform: uppercase;
+            padding: 15px 40px; border-radius: 12px; cursor: pointer; box-shadow: 0 5px 15px rgba(230, 81, 0, 0.3);
+            transition: var(--transition-smooth); border-bottom: 4px solid #b71c1c;
         }
-        .cta-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(46, 125, 50, 0.35); }
+        .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(230, 81, 0, 0.4); }
+        .cta-btn:active { transform: translateY(2px); border-bottom-width: 0; }
 
-        /* --- KIDS HEADS-UP DISPLAY --- */
+        /* --- VISUAL BRIDGE BUILD MECHANISM --- */
+        .bridge-game-stage {
+            background: linear-gradient(#e0f7fa, #80deea);
+            border: 3px solid var(--safety-dark); border-radius: 16px;
+            height: 160px; position: relative; margin-bottom: 20px; overflow: hidden;
+        }
+        .cliff { width: 90px; height: 100%; background: #78909c; position: absolute; bottom: 0; z-index: 5; }
+        .left-cliff { left: 0; border-radius: 0 16px 0 0; }
+        .right-cliff { right: 0; border-radius: 16px 0 0 0; }
+        
+        .bridge-slot-container {
+            position: absolute; bottom: 30px; left: 90px; right: 90px; height: 40px;
+            display: flex; gap: 4px; justify-content: space-around; align-items: flex-end;
+        }
+        .bridge-segment {
+            flex: 1; height: 15px; background: rgba(0, 0, 0, 0.15); border: 2px dashed rgba(38, 50, 56, 0.4);
+            border-radius: 4px; transition: all 0.5s ease; position: relative;
+        }
+        .bridge-segment.built {
+            background: linear-gradient(to bottom, #d32f2f, #b71c1c);
+            border: 2px solid #5d4037; height: 28px;
+            animation: slamDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .bridge-segment.built::before {
+            content: '🏗️'; position: absolute; top: -25px; left: 50%; transform: translateX(-50%); font-size: 1.2rem;
+        }
+        @keyframes slamDown { 0% { transform: translateY(-50px); opacity: 0; } 100% { transform: translateY(0); opacity: 1; } }
+
+        /* --- USER HUD --- */
         .hud-row {
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 15px; font-size: 1.2rem; font-weight: 700; color: var(--safari-dark);
-            padding-bottom: 12px; border-bottom: 2px solid #e8f5e9;
+            font-size: 1.1rem; font-weight: 800; color: var(--safety-dark);
+            padding-bottom: 10px; margin-bottom: 15px; border-bottom: 3px dashed var(--builder-yellow);
         }
-        .level-badge {
-            color: white; padding: 6px 22px; border-radius: 30px; font-size: 0.95rem; 
-            font-weight: 700; background-color: var(--safari-green);
-        }
-        .progress-track { width: 100%; height: 12px; background: #eef2f3; border-radius: 10px; overflow: hidden; margin-bottom: 25px; }
-        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #81c784, var(--safari-green)); transition: width 0.4s ease; }
+        .task-badge { background: var(--safety-dark); color: var(--builder-yellow); padding: 5px 15px; border-radius: 6px; font-size: 0.9rem; }
 
-        /* --- ACTIVE TASK REGION --- */
-        .workspace-layout { display: flex; flex-direction: column; flex: 1; justify-content: space-between; }
-        
-        .interactive-stage {
-            background: #fafaf6; border: 2px dashed var(--safari-light); border-radius: 24px;
-            padding: 25px; min-height: 240px; display: flex; flex-direction: column; 
-            justify-content: center; align-items: center; margin-bottom: 25px;
+        /* --- ACTIVE WORKSPACE --- */
+        .question-card {
+            background: #f8f9fa; border-left: 6px solid var(--builder-orange);
+            padding: 20px; border-radius: 8px; margin-bottom: 20px;
+            font-size: 1.2rem; font-weight: 700; line-height: 1.5;
         }
-        .stage-avatar { font-size: 4rem; margin-bottom: 10px; }
-        .stage-prompt { font-size: 1.35rem; font-weight: 700; text-align: center; color: var(--text-main); line-height: 1.5; margin-bottom: 15px; }
 
-        /* --- OPTION SELECTORS --- */
-        .options-matrix { display: flex; flex-wrap: wrap; gap: 16px; width: 100%; justify-content: center; }
+        /* WORK MECHANISMS */
+        .interaction-zone { display: flex; justify-content: center; width: 100%; min-height: 120px; }
+        .options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 12px; width: 100%; }
         
-        .option-card-btn {
-            background: #ffffff; border: 2px solid #dcdfdc; border-radius: 20px;
-            padding: 16px 22px; font-size: 1.15rem; font-weight: 700; color: var(--text-main);
-            cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.01); text-align: left;
+        .option-tile {
+            background: white; border: 2px solid #cfd8dc; border-radius: 12px; padding: 15px;
+            font-size: 1.1rem; font-weight: 700; cursor: pointer; text-align: left;
             transition: var(--transition-smooth); display: flex; align-items: center;
-            flex: 1 1 calc(50% - 16px); min-width: 270px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
         }
-        .option-card-btn:hover { border-color: var(--safari-green); background: #f1f8e9; transform: translateY(-2px); }
-        .option-card-btn .prefix { background: #e8f5e9; color: var(--safari-dark); width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; margin-right: 15px; font-weight: 800; }
-        
-        @media (max-width: 700px) { .option-card-btn { flex: 1 1 100%; } }
+        .option-tile:hover { border-color: var(--builder-orange); background: #fff8e1; transform: translateY(-2px); }
+        .option-tile .index-tag { background: var(--builder-yellow); color: var(--safety-dark); width: 30px; height: 30px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px; font-weight: 900; }
 
-        /* Child-Friendly Input Fields */
-        .text-input-field {
-            width: 100%; max-width: 150px; padding: 12px; font-size: 1.8rem; font-weight: 800;
-            border: 3px solid #ced4da; border-radius: 18px; text-align: center; color: var(--safari-dark);
-            outline: none; transition: var(--transition-smooth); margin: 0 10px; background: #fff;
-        }
-        .text-input-field:focus { border-color: var(--safari-green); background: #f1f8e9; }
-        .unit-label-tag { font-size: 1.6rem; font-weight: 800; color: var(--safari-dark); }
+        .option-tile.correct { background: #e8f5e9 !important; border-color: var(--grass-green) !important; color: #1b5e20 !important; }
+        .option-tile.wrong { background: #ffebee !important; border-color: var(--brick-red) !important; color: #b71c1c !important; }
 
-        .option-card-btn.correct { background: #e8f5e9 !important; border-color: #2e7d32 !important; color: #1b5e20 !important; }
-        .option-card-btn.wrong { background: #ffebee !important; border-color: #c62828 !important; color: #b71c1c !important; }
-        .banner-feedback { text-align: center; height: 35px; font-size: 1.4rem; font-weight: 700; margin-top: 15px; }
+        /* TEXT/NUMBER MATH INPUT */
+        .math-input-wrapper { text-align: center; width: 100%; }
+        .digit-box { width: 140px; padding: 10px; font-size: 2rem; font-weight: 900; text-align: center; border: 4px solid var(--safety-dark); border-radius: 12px; margin-right: 10px; outline: none; }
+        .digit-box:focus { border-color: var(--builder-orange); background: #fff8e1; }
+        .unit-label { font-size: 1.5rem; font-weight: 800; color: var(--safety-dark); vertical-align: middle; margin-right: 15px; }
 
-        /* --- SAFARI DRAWING RENDERERS --- */
-        #element-stage-visualizer { width: 100%; display: flex; justify-content: center; align-items: center; margin-top: 5px; }
-        
-        /* Interactive Child-Friendly Ruler */
-        .visual-ruler {
-            width: 320px; height: 60px; background: #ffe082; border: 3px solid #ffb300;
-            border-radius: 10px; position: relative; display: flex; align-items: flex-end; padding-bottom: 4px;
-        }
-        .ruler-mark { position: absolute; bottom: 0; width: 3px; background: #5d4037; height: 15px; }
-        .ruler-mark.major { height: 28px; }
-        .ruler-mark.major::after { content: attr(data-val); position: absolute; top: -22px; left: -5px; font-size: 0.9rem; font-weight: 800; color: #5d4037; }
-        
-        .visual-object-bar {
-            position: absolute; top: 12px; left: 2px; height: 18px; background: #81c784;
-            border-radius: 6px; border: 2px solid #388e3c; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+        .feedback-banner { text-align: center; height: 30px; font-size: 1.3rem; font-weight: 800; margin-top: 15px; }
 
-        /* Balance Scale View */
-        .visual-scale-system { width: 240px; height: 110px; position: relative; display: flex; flex-direction: column; align-items: center; }
-        .scale-beam { width: 200px; height: 8px; background: #a1887f; border-radius: 4px; }
-        .scale-base { width: 14px; height: 75px; background: #795548; }
-        .scale-foot { width: 90px; height: 12px; background: #4e342e; border-radius: 6px; }
-        .scale-pan {
-            position: absolute; top: 8px; width: 60px; height: 35px;
-            border: 3px solid #a1887f; border-top: none; border-radius: 0 0 25px 25px;
-            display: flex; align-items: center; justify-content: center; font-size: 0.9rem; font-weight: 700; background: #ffffff;
-        }
+        /* RENDER VISUAL HELPER BOXES */
+        #visual-helper-canvas { width: 100%; display: flex; justify-content: center; margin-bottom: 15px; }
+        .beaker-container { display: flex; gap: 20px; align-items: flex-end; }
+        .mini-beaker { width: 60px; height: 90px; border: 3px solid #37474f; border-top: none; border-radius: 0 0 8px 8px; position: relative; background: #fafafa; }
+        .beaker-fill { position: absolute; bottom: 0; left: 0; width: 100%; background: #29b6f6; transition: height 0.5s ease; }
+        .beaker-label { position: absolute; top: -25px; width: 100%; text-align: center; font-size: 0.8rem; font-weight: 800; }
 
-        /* Water Tank Beaker */
-        .visual-beaker {
-            width: 95px; height: 130px; border: 4px solid #78909c; border-top: none;
-            border-radius: 0 0 16px 16px; position: relative; background: #ffffff; overflow: hidden;
-        }
-        .beaker-liquid { position: absolute; bottom: 0; left: 0; width: 100%; background: var(--sky-blue); opacity: 0.9; transition: height 0.5s ease; }
-        .beaker-graduation { position: absolute; right: 4px; width: 15px; height: 3px; background: #37474f; }
-        .beaker-graduation::before { content: attr(data-lbl); position: absolute; right: 20px; top: -7px; font-size: 0.75rem; font-weight: 800; color: #37474f; }
-
-        /* Falling Stars */
-        .falling-reward-particle {
-            position: fixed; font-size: 2.5rem; z-index: 9999; pointer-events: none;
-            top: -50px; animation: fallAnimAction var(--dur) linear forwards;
-        }
-        @keyframes fallAnimAction {
-            0% { top: -50px; transform: translateX(0) rotate(0deg); opacity: 1; }
-            100% { top: 105vh; transform: translateX(var(--deviation)) rotate(360deg); opacity: 0; }
-        }
+        /* Shower animations */
+        .bolt-particle { position: fixed; font-size: 2rem; z-index: 9999; pointer-events: none; top: -50px; animation: fall var(--dur) linear forwards; }
+        @keyframes fall { 0% { top: -50px; transform: translateX(0) rotate(0deg); opacity: 1; } 100% { top: 105vh; transform: translateX(var(--dev)) rotate(720deg); opacity: 0; } }
     </style>
 </head>
 <body>
 
+    <!-- AUDIO ASSETS -->
     <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
     <audio id="audio-celebration" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
 
+    <!-- LOADING SPLASH SCREEN -->
     <div id="screen-splash">
         <div class="splash-card">
-            <img src="assets/innovine-logo.png" class="splash-logo" alt="Innovine Logo">
-            <h4 style="color: #444; letter-spacing: 1px; text-transform: uppercase; font-size: 0.85rem; font-weight: 800;">Safari Mission Loading</h4>
-            <div class="splash-loader"><div class="splash-bar"></div></div>
+            <img src="assets/innovine-logo.png" class="splash-logo" alt="Logo" onerror="this.style.display='none'">
+            <h2 style="font-weight:900; color: var(--safety-dark);">LOADING BLUEPRINTS...</h2>
+            <div class="builder-bar-wrap"><div class="builder-bar-fill"></div></div>
         </div>
     </div>
 
+    <!-- MAIN APP WRAPPER -->
     <div class="game-container">
         
+        <!-- INTRO HOME LAYER -->
         <div class="screen-layer active" id="screen-intro">
-            <div class="hero-banner">🦁🦒🐘</div>
-            <h1 style="margin-bottom: 8px; font-size: 2.5rem; color: var(--safari-dark); text-align: center; font-weight: 800;">Wild Safari Park Ranger</h1>
-            <h3 style="margin-bottom: 25px; color: var(--clay-orange); font-style: italic; text-align: center; font-weight: 700;">Chapter 7: Measuring & Estimation Care</h3>
-            <div class="story-bubble">
-                <h2>Welcome, Junior Ranger!</h2>
-                <p>The animals in the Safari Park need your help! To keep our lions, giraffes, and monkeys happy and healthy, we need to choose the best tools to measure how tall they are, how much water they drink, and how heavy their food is.</p>
+            <div class="intro-graphic">👷‍♂️🛠️🏗️</div>
+            <h1 style="font-size: 2.3rem; font-weight: 900; color: var(--builder-orange);">Bob's Bridge Builder!</h1>
+            <h4 style="color: #546e7a; margin-top: 5px; font-weight: 700;">Math & Measurement Construction Site</h4>
+            
+            <div class="blueprint-card">
+                <h2>📐 PROJECT BLUEPRINT 📐</h2>
+                <p>Hey team! A big storm broke the canyon bridge, and our supply trucks are stuck outside town! We need to step up and fix it.</p>
                 <br>
-                <p>Answer all 8 animal care questions correctly to earn your **Expert Safari Ranger Merit Stars ⭐** and keep the park running perfectly!</p>
+                <p>To lay down a new bridge segment, we have to solve a construction math puzzle. We'll be measuring steel beams, adding up bags of heavy concrete, and subtracting liters of water to make the perfect mix!</p>
+                <br>
+                <p><strong>Your Mission:</strong> Solve all 8 construction problems correctly to build all 8 bridge sections and safely bring the supply trucks home! Can we fix it?</p>
             </div>
-            <button class="cta-btn" onclick="switchActiveLayer('screen-play')">Start Safari Care 🚀</button>
+            <button class="cta-btn" onclick="goToGameLayer()">Let's Build It! 🚀</button>
         </div>
 
+        <!-- ASSESSMENT ENGINE LAYER -->
         <div class="screen-layer" id="screen-play">
-            <div class="hud-row">
-                <div>⭐ Stars: <span id="label-score-val">0</span></div>
-                <div class="level-badge" id="label-level-badge">Animal Care 1</div>
-                <div>Animal: <span id="label-turn-val">1 / 8</span></div>
-            </div>
-            <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
-
-            <div class="workspace-layout">
-                <div class="interactive-stage">
-                    <div class="stage-avatar" id="element-stage-icon">🌿</div>
-                    <div class="stage-prompt" id="element-stage-question">Loading animal report...</div>
-                    <div id="element-stage-visualizer"></div>
+            <!-- STEPPING PROGRESS TRACKER (THE BRIDGE) -->
+            <div class="bridge-game-stage">
+                <div class="cliff left-cliff"></div>
+                <div class="bridge-slot-container" id="bridge-slots-assembly">
+                    <!-- 8 Segments will generate here dynamically -->
                 </div>
-
-                <div id="wrapper-input-mechanisms"></div>
-
-                <div class="banner-feedback" id="element-status-feedback"></div>
+                <div class="cliff right-cliff"></div>
+                <div style="position:absolute; bottom:5px; width:100%; text-align:center; font-weight:800; font-size:0.85rem; color:#37474f; letter-spacing:1px;">CANYON CROSSING BLUEPRINT</div>
             </div>
+
+            <div class="hud-row">
+                <div>🛠️ Golden Bolts: <span id="label-score">0</span></div>
+                <div class="task-badge" id="label-task">Concrete Mix Phase</div>
+                <div>Blueprint: <span id="label-progress">1 / 8</span></div>
+            </div>
+
+            <div class="question-card" id="display-question">Loading field specs...</div>
+            
+            <!-- Graphic Displays to help visualize math scales/liquids -->
+            <div id="visual-helper-canvas"></div>
+
+            <!-- DYNAMIC INTERACTION REGION -->
+            <div class="interaction-zone" id="display-controls"></div>
+
+            <div class="feedback-banner" id="display-feedback"></div>
         </div>
 
-        <div class="screen-layer" id="screen-end">
-            <div class="hero-banner">🦁🎉🏆</div>
-            <h1 style="color: var(--safari-dark); font-size: 2.5rem; margin-bottom: 15px; text-align: center; font-weight: 800;">Expert Ranger Certified!</h1>
-            <div class="story-bubble" style="text-align: center; margin-left: auto; margin-right: auto;">
-                <h2>🏆 Top Park Protector Badge</h2>
-                <p>Fantastic job! You chose the perfect tools, calculated the exact right measurements, and made amazing estimates for all our animal friends. The animals are cheering for you!</p>
+        <!-- VICTORY REPORT LAYER -->
+        <div class="screen-layer" id="screen-end" style="text-align: center; justify-content: center; align-items: center;">
+            <div style="font-size: 5rem;">🚚🎉🌉</div>
+            <h1 style="color: var(--grass-green); font-size: 2.5rem; font-weight: 900;">Bridge Fully Repaired!</h1>
+            <div class="blueprint-card" style="background: #1b5e20; border-color: #a5d6a7; text-align: center; margin: 25px auto;">
+                <h2>🏆 Master Builder Certified</h2>
+                <p style="font-size: 1.2rem;">Outstanding work! You used addition, subtraction, and exact tool measurements to build a flawless steel bridge. The heavy cargo trucks just crossed over safely!</p>
             </div>
-            <h2 id="final-score-report" style="color: var(--clay-orange); text-align: center; margin-bottom: 30px; font-size: 1.8rem; font-weight: 700;">Total Ranger Stars: 8 / 8</h2>
-            <button class="cta-btn" style="margin: 0 auto; display: block;" onclick="reinitializeSimulation()">Play Again 🔄</button>
+            <h2 id="final-metrics" style="color: var(--builder-orange); margin-bottom: 25px; font-weight: 800;">Bolts Collected: 8 / 8</h2>
+            <button class="cta-btn" onclick="resetConstructionEngine()">Build Another Bridge 🔄</button>
         </div>
 
     </div>
 
     <script>
-        let currentScore = 0;
-        let activeTurnIndex = 0;
-        
-        // RE-THEMED 3RD GRADE APPROPRIATE ADVENTURE DATA POOL
-        const masterSimulationPool = [
-            { 
-                type: "choice", 
-                level: "🦒 Tall Giraffes: Tool Choice", 
-                color: "#2e7d32", icon: "🦒", 
-                question: "You want to find out exactly how tall a full-grown giraffe is in the open field. Which tool is best for this job?", 
-                options: ["A tiny 15-centimeter pocket plastic ruler", "A long, rolling tape measure", "A liquid measuring cup", "A small kitchen food scale"], 
-                answer: "A long, rolling tape measure", 
-                visual: "none" 
+        let scoreCounter = 0;
+        let jobIndex = 0;
+
+        // 8 BRAND NEW INTERACTIVE CONSTRUCTION PROBLEMS (Addition, Subtraction, Comparisons, Conversions)
+        const projectBlueprints = [
+            {
+                type: "input",
+                phase: "🪵 Adding Lumbers",
+                question: "We need to fuse two wooden scaffolding planks together. Plank A is 45 centimeters long, and Plank B is 35 centimeters long. When connected, how many centimeters long are they altogether?",
+                correct: "80",
+                unit: "cm",
+                setupVisual: () => ""
             },
-            { 
-                type: "choice", 
-                level: "🦎 Bamboo Stick: Ruler Measure", 
-                color: "#1b5e20", icon: "🦎", 
-                question: "Look at the green bamboo stick on the ranger ruler below. Exactly how long is this delicious treat for our lizards?", 
-                options: ["5 centimeters", "8 centimeters", "11 centimeters", "15 centimeters"], 
-                answer: "11 centimeters", 
-                visual: "ruler-11" 
+            {
+                type: "choice",
+                phase: "📏 Steel Beam: Tool Pick",
+                question: "We need to measure the exact length of a massive steel bridge beam across the construction site. Which tool is best for our crew?",
+                options: ["A small 30-centimeter school ruler", "A long 10-meter heavy-duty tape measure", "A kitchen digital food scale", "A liquid measuring jug"],
+                correct: "A long 10-meter heavy-duty tape measure",
+                setupVisual: () => ""
             },
-            { 
-                type: "input-value", 
-                level: "🎋 Koala Branch: Length Trick", 
-                color: "#f57c00", icon: "🐨", 
-                question: "A koala needs a cozy climbing branch that is exactly 1 meter long. How many centimeters is that?", 
-                targetAns: "100", unitTag: "cm",
-                visual: "none"
+            {
+                type: "input",
+                phase: "🧱 Cutting Steel Pins",
+                question: "A long metal support bar measures exactly 92 centimeters. Scoop cut away a piece that is 40 centimeters long. How many centimeters of the support bar are left?",
+                correct: "52",
+                unit: "cm",
+                setupVisual: () => ""
             },
-            { 
-                type: "choice", 
-                level: "🦛 Hippo Food: Heavy Weights", 
-                color: "#37474f", icon: "🦛", 
-                question: "A huge, heavy crate filled with fresh grass is delivered for the hippos. Which unit should we use to weigh this very heavy object?", 
-                options: ["Grams (g)", "Kilograms (kg)", "Milliliters (mL)", "Meters (m)"], 
-                answer: "Kilograms (kg)", 
-                visual: "scale-balanced" 
+            {
+                type: "choice",
+                phase: "⚖️ Heavy Cement Weights",
+                question: "Wendy needs to order a massive delivery of heavy rocks and gravel to build the bridge foundations. Which weight measurement unit should she specify on her order sheet?",
+                options: ["Grams (g)", "Kilograms (kg)", "Milliliters (mL)", "Meters (m)"],
+                correct: "Kilograms (kg)",
+                setupVisual: () => ""
             },
-            { 
-                type: "choice", 
-                level: "🐒 Monkey Treats: Guessing Weights", 
-                color: "#ffb300", icon: "🐒", 
-                question: "A ranger hands a single, normal-sized sweet banana to a monkey. Guess about how much one normal banana weighs!", 
-                options: ["About 120 grams", "About 120 kilograms", "About 5 liters"], 
-                answer: "About 120 grams", 
-                visual: "none" 
+            {
+                type: "input",
+                phase: "🥤 Combining Concrete Liquids",
+                question: "To mix a batch of smooth cement, Bob dumps a 400 mL jug of water and a 500 mL jug of bonding liquid into a bucket. How many mL of total liquid did he add to the bucket?",
+                correct: "900",
+                unit: "mL",
+                setupVisual: () => {
+                    return `<div class="beaker-container">
+                        <div class="mini-beaker"><div class="beaker-fill" style="height:44%"></div><div class="beaker-label">400mL</div></div>
+                        <div style="font-size:2rem; font-weight:900; align-self:center;">+</div>
+                        <div class="mini-beaker"><div class="beaker-fill" style="height:55%"></div><div class="beaker-label">500mL</div></div>
+                    </div>`;
+                }
             },
-            { 
-                type: "choice", 
-                level: "🐘 Elephant Splash: Drink Containers", 
-                color: "#00b0ff", icon: "🐘", 
-                question: "Look at the water inside the medicine flask below. Exactly how much clean liquid vitamin mix is ready for the baby elephant?", 
-                options: ["200 mL", "400 mL", "600 mL", "800 mL"], 
-                answer: "600 mL", 
-                visual: "beaker-600" 
+            {
+                type: "choice",
+                phase: "🔩 Bolt Sorting Box",
+                question: "We have three boxes of structural rivets. Box A weighs 12 kg, Box B weighs 850 grams, and Box C weighs 4 kg. Which box is the heaviest?",
+                options: ["Box A (12 kg)", "Box B (850 g)", "Box C (4 kg)", "They are all identical"],
+                correct: "Box A (12 kg)",
+                setupVisual: () => ""
             },
-            { 
-                type: "input-value", 
-                level: "🦩 Flamingo Pool: Big Liquids", 
-                color: "#0091ea", icon: "🦩", 
-                question: "The flamingo drinking bowl holds exactly 3 Liters of water. How many Milliliters is that?", 
-                targetAns: "3000", unitTag: "mL",
-                visual: "none"
+            {
+                type: "input",
+                phase: "🌊 Water Truck Drainage",
+                question: "A water tank truck starts with 850 Liters of water used to wash away dirt. After spraying down the bridge foundation, 300 Liters are gone. How many Liters are left in the tank?",
+                correct: "550",
+                unit: "Liters",
+                setupVisual: () => ""
             },
-            { 
-                type: "choice", 
-                level: "🐆 Ranger Log: Who is Heaviest?", 
-                color: "#e65100", icon: "🐆", 
-                question: "You weigh three animal crates: Crate A (Cheetah) = 15 kg, Crate B (Parrot) = 900 g, Crate C (Fox) = 5 kg. Which crate is the absolute heaviest?", 
-                options: ["Crate A (15 kg)", "Crate B (900 g)", "Crate C (5 kg)", "They weigh the exact same"], 
-                answer: "Crate A (15 kg)", 
-                visual: "none" 
+            {
+                type: "input",
+                phase: "🏗️ Cable Length Conversion",
+                question: "The crane needs 7 meters of high-strength steel suspension cable to hold up the center track. How many centimeters is that?",
+                correct: "700",
+                unit: "cm",
+                setupVisual: () => ""
             }
         ];
 
-        const TOTAL_TURNS_MAX = masterSimulationPool.length;
-
         function playSound(type) {
-            const id = type === 'success' ? 'audio-correct' : (type === 'wrong' ? 'audio-wrong' : 'audio-celebration');
-            const track = document.getElementById(id);
-            if (track) { track.currentTime = 0; track.play().catch(() => {}); }
+            const id = type === 'success' ? 'audio-correct' : (type === 'fail' ? 'audio-wrong' : 'audio-celebration');
+            const audio = document.getElementById(id);
+            if (audio) { audio.currentTime = 0; audio.play().catch(() => {}); }
         }
 
-        function triggerRewardShower() {
-            let spawnDuration = 1000; let intervalTime = 90;
-            let timerId = setInterval(() => {
-                let token = document.createElement('div');
-                token.className = 'falling-reward-particle';
-                token.innerText = '⭐';
-                token.style.left = Math.random() * 90 + 'vw';
-                token.style.setProperty('--deviation', (Math.random() - 0.5) * 160 + 'px');
-                token.style.setProperty('--dur', (Math.random() * 0.8 + 1.2) + 's');
-                document.body.appendChild(token);
-                setTimeout(() => token.remove(), 2000);
-            }, intervalTime);
-            setTimeout(() => clearInterval(timerId), spawnDuration);
+        function triggerConstructionShower() {
+            let count = 12;
+            let interval = setInterval(() => {
+                if(count <= 0) { clearInterval(interval); return; }
+                let p = document.createElement('div');
+                p.className = 'bolt-particle';
+                p.innerText = ['🔩', '🔧', '⭐', '🛠️'][Math.floor(Math.random() * 4)];
+                p.style.left = Math.random() * 100 + 'vw';
+                p.style.setProperty('--dev', (Math.random() - 0.5) * 200 + 'px');
+                p.style.setProperty('--dur', (Math.random() * 0.7 + 1) + 's');
+                document.body.appendChild(p);
+                setTimeout(() => p.remove(), 1800);
+                count--;
+            }, 80);
         }
 
-        function switchActiveLayer(screenId) {
-            document.querySelectorAll('.screen-layer').forEach(layer => layer.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
-            if (screenId === 'screen-play') buildActiveAssessmentItem();
+        function goToGameLayer() {
+            document.getElementById('screen-intro').classList.remove('active');
+            document.getElementById('screen-play').classList.add('active');
+            generateBridgeSlots();
+            renderActiveTask();
         }
 
-        function buildActiveAssessmentItem() {
-            if (activeTurnIndex >= TOTAL_TURNS_MAX) {
-                concludeSimulationWorkflow();
+        function generateBridgeSlots() {
+            const container = document.getElementById('bridge-slots-assembly');
+            container.innerHTML = "";
+            for(let i = 0; i < projectBlueprints.length; i++) {
+                let segment = document.createElement('div');
+                segment.className = "bridge-segment";
+                segment.id = `bridge-seg-${i}`;
+                container.appendChild(segment);
+            }
+        }
+
+        function renderActiveTask() {
+            if (jobIndex >= projectBlueprints.length) {
+                concludeBridgeProject();
                 return;
             }
 
-            document.getElementById('element-status-feedback').innerText = "";
-            let data = masterSimulationPool[activeTurnIndex];
+            document.getElementById('display-feedback').innerText = "";
+            let currentBlueprint = projectBlueprints[jobIndex];
 
-            document.getElementById('label-turn-val').innerText = `${activeTurnIndex + 1} / ${TOTAL_TURNS_MAX}`;
-            document.getElementById('progress-fill').style.width = `${(activeTurnIndex / TOTAL_TURNS_MAX) * 100}%`;
-            document.getElementById('label-score-val').innerText = currentScore;
-            
-            let badge = document.getElementById('label-level-badge');
-            badge.innerText = data.level;
-            badge.style.background = data.color;
+            // Update HUD elements
+            document.getElementById('label-progress').innerText = `${jobIndex + 1} / ${projectBlueprints.length}`;
+            document.getElementById('label-score').innerText = scoreCounter;
+            document.getElementById('label-task').innerText = currentBlueprint.phase;
+            document.getElementById('display-question').innerText = currentBlueprint.question;
 
-            document.getElementById('element-stage-icon').innerText = data.icon;
-            document.getElementById('element-stage-question').innerText = data.question;
+            // Setup Visual Helpers if present
+            document.getElementById('visual-helper-canvas').innerHTML = currentBlueprint.setupVisual();
 
-            let visualBox = document.getElementById('element-stage-visualizer');
-            visualBox.innerHTML = "";
-            
-            // RENDERING GEOMETRIC SYSTEM SIMULATION BLOCKS
-            if (data.visual === "ruler-11") {
-                let ruler = document.createElement('div');
-                ruler.className = "visual-ruler";
-                for(let i=0; i<=15; i++) {
-                    let tick = document.createElement('div');
-                    tick.className = "ruler-mark" + (i % 5 === 0 ? " major" : "");
-                    tick.style.left = `${(i / 15) * 300 + 8}px`;
-                    if(i % 5 === 0) tick.setAttribute('data-val', i);
-                    ruler.appendChild(tick);
-                }
-                let bar = document.createElement('div');
-                bar.className = "visual-object-bar";
-                bar.style.width = `${(11 / 15) * 300}px`;
-                ruler.appendChild(bar);
-                visualBox.appendChild(ruler);
-            } else if (data.visual === "scale-balanced") {
-                let scale = document.createElement('div');
-                scale.className = "visual-scale-system";
-                scale.innerHTML = `
-                    <div class="scale-beam"></div>
-                    <div class="scale-base"></div>
-                    <div class="scale-foot"></div>
-                    <div class="scale-pan" style="left:0; color:#5d4037;">Food</div>
-                    <div class="scale-pan" style="right:0; color:#5d4037;">Weights</div>
-                `;
-                visualBox.appendChild(scale);
-            } else if (data.visual === "beaker-600") {
-                let beaker = document.createElement('div');
-                beaker.className = "visual-beaker";
-                beaker.innerHTML = `<div class="beaker-liquid" style="height: 75%;"></div>`;
-                for(let j=1; j<=4; j++) {
-                    let grad = document.createElement('div');
-                    grad.className = "beaker-graduation";
-                    grad.style.bottom = `${j * 25}px`;
-                    grad.setAttribute('data-lbl', (j * 200) + "mL");
-                    beaker.appendChild(grad);
-                }
-                visualBox.appendChild(beaker);
-            }
+            let controlsBox = document.getElementById('display-controls');
+            controlsBox.innerHTML = "";
 
-            let mechanistZone = document.getElementById('wrapper-input-mechanisms');
-            mechanistZone.innerHTML = "";
-
-            if (data.type === "choice") {
-                let matrix = document.createElement('div');
-                matrix.className = "options-matrix";
-                const prefixes = ["A", "B", "C", "D"];
-                data.options.forEach((opt, idx) => {
-                    let btn = document.createElement('button');
-                    btn.className = "option-card-btn";
-                    btn.innerHTML = `<span class="prefix">${prefixes[idx]}</span> <span class="txt-lbl">${opt}</span>`;
-                    btn.onclick = function() { evaluateChoiceResponse(btn, opt, data.answer); };
-                    matrix.appendChild(btn);
+            if(currentBlueprint.type === "choice") {
+                let grid = document.createElement('div');
+                grid.className = "options-grid";
+                const alpha = ["A", "B", "C", "D"];
+                currentBlueprint.options.forEach((opt, idx) => {
+                    let tile = document.createElement('div');
+                    tile.className = "option-tile";
+                    tile.innerHTML = `<span class="index-tag">${alpha[idx]}</span> <span class="lbl-text">${opt}</span>`;
+                    tile.onclick = () => verifyChoiceAnswer(tile, opt, currentBlueprint.correct);
+                    grid.appendChild(tile);
                 });
-                mechanistZone.appendChild(matrix);
-            } else if (data.type === "input-value") {
-                let wrap = document.createElement('div');
-                wrap.style.textAlign = "center";
+                controlsBox.appendChild(grid);
+            } else if(currentBlueprint.type === "input") {
+                let wrapper = document.createElement('div');
+                wrapper.className = "math-input-wrapper";
                 
-                let valIn = document.createElement('input');
-                valIn.type = "number"; valIn.className = "text-input-field"; valIn.placeholder = "???";
-                
-                let lbl = document.createElement('span');
-                lbl.className = "unit-label-tag"; lbl.innerText = " " + data.unitTag;
-                
-                let sBtn = document.createElement('button');
-                sBtn.className = "cta-btn"; sBtn.style.padding = "12px 35px"; sBtn.style.marginLeft = "15px"; sBtn.innerText = "Check Answer 🌟";
-                sBtn.onclick = function() { evaluateDirectInput(valIn, data.targetAns); };
+                let numIn = document.createElement('input');
+                numIn.type = "number"; numIn.className = "digit-box"; numIn.placeholder = "???";
+                numIn.onkeydown = (e) => { if(e.key === "Enter") verifyInputAnswer(numIn, currentBlueprint.correct); };
 
-                wrap.appendChild(valIn);
-                wrap.appendChild(lbl);
-                wrap.appendChild(document.createElement('br'));
-                wrap.appendChild(sBtn);
-                mechanistZone.appendChild(wrap);
-                valIn.focus();
+                let unitSpan = document.createElement('span');
+                unitSpan.className = "unit-label";
+                unitSpan.innerText = currentBlueprint.unit;
+
+                let actionBtn = document.createElement('button');
+                actionBtn.className = "cta-btn";
+                actionBtn.style.padding = "10px 25px";
+                actionBtn.innerText = "Install Part 🏗️";
+                actionBtn.onclick = () => verifyInputAnswer(numIn, currentBlueprint.correct);
+
+                wrapper.appendChild(numIn);
+                wrapper.appendChild(unitSpan);
+                wrapper.appendChild(actionBtn);
+                controlsBox.appendChild(wrapper);
+                numIn.focus();
             }
         }
 
-        function evaluateChoiceResponse(selectedButton, chosenVal, exactAnswer) {
-            document.querySelectorAll('.option-card-btn').forEach(b => b.disabled = true);
-            let feedbackNode = document.getElementById('element-status-feedback');
+        function verifyChoiceAnswer(selectedTile, value, actual) {
+            document.querySelectorAll('.option-tile').forEach(t => t.style.pointerEvents = "none");
+            let feedback = document.getElementById('display-feedback');
 
-            if (chosenVal === exactAnswer) {
-                selectedButton.classList.add('correct');
-                feedbackNode.style.color = "var(--safari-dark)";
-                feedbackNode.innerText = "Awesome job Ranger! ⭐🦒";
-                currentScore++; playSound('success'); triggerRewardShower();
+            if(value === actual) {
+                selectedTile.classList.add('correct');
+                feedback.style.color = "var(--grass-green)";
+                feedback.innerText = "Can we fix it? Yes we can! Great answer! 🔨";
+                scoreCounter++; playSound('success'); triggerConstructionShower();
+                document.getElementById(`bridge-seg-${jobIndex}`).classList.add('built');
             } else {
-                selectedButton.classList.add('wrong');
-                feedbackNode.style.color = "#c62828";
-                feedbackNode.innerText = "Not quite! Look closely at the helper picture.";
-                playSound('wrong');
-                document.querySelectorAll('.option-card-btn').forEach(b => {
-                    if (b.querySelector('.txt-lbl').innerText === exactAnswer) b.classList.add('correct');
+                selectedTile.classList.add('wrong');
+                feedback.style.color = "var(--brick-red)";
+                feedback.innerText = "Structural check needed! Let's reinforce this section.";
+                playSound('fail');
+                document.querySelectorAll('.option-tile').forEach(t => {
+                    if(t.querySelector('.lbl-text').innerText === actual) t.classList.add('correct');
                 });
             }
-            activeTurnIndex++; setTimeout(buildActiveAssessmentItem, 2000);
+            jobIndex++; setTimeout(renderActiveTask, 2200);
         }
 
-        function evaluateDirectInput(valField, correctTarget) {
-            if (!valField.value) return;
-            valField.disabled = true;
-            let feedbackNode = document.getElementById('element-status-feedback');
+        function verifyInputAnswer(inputElement, actual) {
+            if(!inputElement.value.trim()) return;
+            inputElement.disabled = true;
+            let feedback = document.getElementById('display-feedback');
 
-            if (valField.value.trim() === correctTarget) {
-                valField.style.background = "#e8f5e9";
-                feedbackNode.style.color = "var(--safari-dark)";
-                feedbackNode.innerText = "Perfect number matching! ⭐🐒";
-                currentScore++; playSound('success'); triggerRewardShower();
+            if(inputElement.value.trim() === actual) {
+                inputElement.style.backgroundColor = "#e8f5e9";
+                feedback.style.color = "var(--grass-green)";
+                feedback.innerText = "Perfect calculation! Segment locking into place! 🏗️";
+                scoreCounter++; playSound('success'); triggerConstructionShower();
+                document.getElementById(`bridge-seg-${jobIndex}`).classList.add('built');
             } else {
-                valField.style.background = "#ffebee";
-                feedbackNode.style.color = "#c62828";
-                feedbackNode.innerText = `The exact secret number was: ${correctTarget}`;
-                playSound('wrong');
+                inputElement.style.backgroundColor = "#ffebee";
+                feedback.style.color = "var(--brick-red)";
+                feedback.innerText = `The precise blueprint size was: ${actual}`;
+                playSound('fail');
             }
-            activeTurnIndex++; setTimeout(buildActiveAssessmentItem, 2500);
+            jobIndex++; setTimeout(renderActiveTask, 2500);
         }
 
-        function concludeSimulationWorkflow() {
-            document.getElementById('progress-fill').style.width = "100%";
+        function concludeBridgeProject() {
             document.getElementById('screen-play').classList.remove('active');
             document.getElementById('screen-end').classList.add('active');
-            document.getElementById('final-score-report').innerText = `Total Ranger Stars: ${currentScore} / ${TOTAL_TURNS_MAX}`;
+            document.getElementById('final-metrics').innerText = `Total Bolts Collected: ${scoreCounter} / ${projectBlueprints.length}`;
             playSound('celebration');
         }
 
-        function reinitializeSimulation() {
-            activeTurnIndex = 0; currentScore = 0;
-            switchActiveLayer('screen-intro');
+        function resetConstructionEngine() {
+            scoreCounter = 0; jobIndex = 0;
+            document.getElementById('screen-end').classList.remove('active');
+            document.getElementById('screen-intro').classList.add('active');
         }
 
-        window.addEventListener('load', function() {
-            const splash = document.getElementById('screen-splash');
-            if (splash) {
-                setTimeout(() => {
-                    splash.style.opacity = '0';
-                    setTimeout(() => splash.remove(), 600);
-                }, 1500);
-            }
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                let splash = document.getElementById('screen-splash');
+                if(splash) {
+                    splash.style.opacity = 0;
+                    setTimeout(() => splash.remove(), 500);
+                }
+            }, 1300);
         });
     </script>
 </body>
