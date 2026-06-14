@@ -32,18 +32,25 @@
             user-select: none;
         }
 
-        /* --- SPLASH SCREEN --- */
+        /* --- SPLASH SCREEN (Explicitly forced to start fully visible) --- */
         #screen-splash {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0; 
+            left: 0; 
+            width: 100vw; 
+            height: 100vh;
             background: #ffffff;
-            display: flex; justify-content: center; align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease-out;
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+            z-index: 99999;
+            opacity: 1;
+            visibility: visible;
+            transition: opacity 0.6s ease-out, visibility 0.6s ease-out;
         }
         .splash-logo-img {
-            max-width: 280px;
-            max-height: 140px;
+            max-width: 320px;
+            max-height: 160px;
             object-fit: contain;
             display: block;
         }
@@ -112,7 +119,6 @@
         /* --- WORKSPACE LAYOUTS --- */
         .workspace-grid { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 25px; flex: 1; }
         
-        /* Realistic Wooden Counter Shelf styling */
         .counter-shelf {
             background: linear-gradient(180deg, var(--wood-light) 0%, var(--wood-dark) 100%); 
             border: 4px solid #3e2723; border-radius: 24px;
@@ -133,7 +139,6 @@
             border: 1px solid #ff8a80; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
         }
 
-        /* Velvet/Felt Tray Drop Matrix Zone */
         .drop-counter-zone {
             flex: 1; background: radial-gradient(circle, #1b5e20 0%, #0d5314 100%); border: 4px dashed #81c784;
             border-radius: 18px; display: flex; flex-direction: row; flex-wrap: wrap;
@@ -142,7 +147,6 @@
         }
         .drop-label { position: absolute; font-size: 1.3rem; color: #a5d6a7; font-weight: bold; pointer-events: none; text-align: center; width: 90%; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
         
-        /* Glowing totalizer dashboard widget */
         .live-math-feed { 
             position: absolute; bottom: 12px; right: 15px; font-size: 1.25rem; 
             color: #ffffff; font-weight: bold; background: #00e676; padding: 4px 16px; border-radius: 20px;
@@ -163,7 +167,6 @@
         .quiz-card-btn.correct { background: #4caf50 !important; border-color: #2e7d32 !important; color: white !important; box-shadow: 0 6px 0 #2e7d32 !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
         .quiz-card-btn.wrong { background: #ef5350 !important; border-color: #c62828 !important; color: white !important; box-shadow: 0 6px 0 #c62828 !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.2); }
 
-        /* Right Side Wallet Drawer Column */
         .wallet-rack {
             background: #eceff1; border: 4px solid #b0bec5; border-radius: 24px;
             padding: 15px; display: flex; flex-direction: column; justify-content: flex-start; gap: 10px;
@@ -183,7 +186,6 @@
         .currency-asset-img { width: 55px; height: 55px; object-fit: contain; pointer-events: none; }
         .note-asset-img { width: 95px; height: 48px; object-fit: contain; pointer-events: none; }
         
-        /* Realistic CSS Currency Models */
         .currency-fallback-circle {
             width: 52px; height: 52px; border-radius: 50%; 
             display: flex; align-items: center; justify-content: center; font-size: 1.05rem; font-weight: bold;
@@ -201,13 +203,11 @@
             box-shadow: inset 0 -3px 6px rgba(0,0,0,0.2), inset 0 3px 6px rgba(255,255,255,0.3), 0 5px 8px rgba(0,0,0,0.25);
             border: 1px solid rgba(0,0,0,0.2);
         }
-        /* Silver security thread layout strip on notes */
         .currency-fallback-rect::before {
             content: ''; position: absolute; top: 0; left: 28px; width: 4px; height: 100%;
             background: linear-gradient(90deg, #ccc 0%, #fff 50%, #999 100%); opacity: 0.7;
         }
 
-        /* Distinctive official theme color combinations */
         .fb-p50 { background: radial-gradient(circle, #fffde7 0%, #fff59d 100%); color: #f57f17; border-color: #fbc02d; }
         .fb-c1 { background: radial-gradient(circle, #fff8e1 0%, #ffe082 100%); color: #ff6f00; border-color: #ffa000; }
         .fb-c2 { background: radial-gradient(circle, #fff3e0 0%, #ffcc80 100%); color: #e65100; border-color: #f57c00; }
@@ -243,9 +243,9 @@
 </head>
 <body>
 
-    <!-- Splash Screen with only the centered logo on a white background -->
+    <!-- Splash Screen: Fully visible on white background for exactly 5 seconds -->
     <div id="screen-splash">
-        <img src="assets/innovine-logo.png" class="splash-logo-img" alt="Innovine Logo" onerror="this.style.display='none'">
+        <img src="assets/innovine-logo.png" class="splash-logo-img" alt="Innovine Logo" id="logo-graphic">
     </div>
 
     <div class="game-container">
@@ -370,19 +370,16 @@
         let currentTargetPrice = 0.0;
 
         const masterSimulationPool = [
-            // LEVEL 1: Rupees & Paise Shop Mat (Intro to Decimals / 50p Mixes)
             { mode: 1, label: "Level 1: Sweet Counter (1/4)", color: "#0288d1", prompt: "An orange candy costs exactly ₹12.50. Assemble the amount inside your workspace tray!", target: 12.50 },
             { mode: 1, label: "Level 1: Sweet Counter (2/4)", color: "#0288d1", prompt: "A cold ice pop tube costs ₹25.50. Drag notes and coins down to settle the invoice!", target: 25.50 },
             { mode: 1, label: "Level 1: Sweet Counter (3/4)", color: "#0288d1", prompt: "A large milk chocolate bar costs ₹45.50. Construct the exact combination!", target: 45.50 },
             { mode: 1, label: "Level 1: Sweet Counter (4/4)", color: "#0288d1", prompt: "A honey glaze muffin costs ₹60.50. Pay down the precise amount!", target: 60.50 },
 
-            // LEVEL 2: The Kirana Cashier Ledger (Computing Balance Back from Higher Notes)
             { mode: 2, label: "Level 2: Distribution Desk (1/4)", color: "#ef6c00", prompt: "Your bill is ₹75.00. You hand over a ₹100 note. Count out the exact CHANGE balance owed back to you!", target: 25.00 },
             { mode: 2, label: "Level 2: Distribution Desk (2/4)", color: "#ef6c00", prompt: "A canvas toy bag costs ₹140.00. The buyer hands you a ₹200 note. Lay out the exact CHANGE balance required!", target: 60.00 },
             { mode: 2, label: "Level 2: Distribution Desk (3/4)", color: "#ef6c00", prompt: "Wholesale school uniforms cost ₹350.00. The parent gives you a ₹500 note. Give back the right CHANGE!", target: 150.00 },
             { mode: 2, label: "Level 2: Distribution Desk (4/4)", color: "#ef6c00", prompt: "A desk lamp item costs ₹480.50. The customer pays with a ₹500 note. Settle the fractional CHANGE balance!", target: 19.50 },
 
-            // LEVEL 3: Integrated Story Matrix (Multiplication & Complex Balances)
             { mode: 3, label: "Level 3: Advanced Problems (1/4)", color: "#2e7d32", prompt: "Rohan buys 2 packets of chips at ₹20.50 each. He pays the shopkeeper with a ₹50 note. How much change does he get back?", options: ["₹9.00 change", "₹10.50 change", "₹29.50 change"], correct: "₹9.00 change" },
             { mode: 3, label: "Level 3: Advanced Problems (2/4)", color: "#2e7d32", prompt: "Ananya has one ₹200 note. She buys a drawing book for ₹115.00 and a sketch pen pack for ₹35.00. What balance remains in her purse?", options: ["₹50.00 left", "₹60.00 left", "₹85.00 left"], correct: "₹50.00 left" },
             { mode: 3, label: "Level 3: Advanced Problems (3/4)", color: "#2e7d32", prompt: "If 1 litre of juice costs ₹80.00, how much will 3 litres of juice cost in total?", options: ["₹160.00 total", "₹240.00 total", "₹200.00 total"], correct: "₹240.00 total" },
@@ -395,10 +392,11 @@
             const sound = document.getElementById(soundId);
             if (sound) {
                 sound.currentTime = 0;
-                sound.play().catch(e => console.log("Audio play deferred."));
+                sound.play().catch(e => console.log("Audio deferred."));
             }
         }
 
+        // Generate stylized internal vectors if external graphic pathways drop offline
         function replaceWithFallback(imgElement, classMetaString, fallbackText) {
             let containerDiv = document.createElement('div');
             if(classMetaString.includes('fb-p50') || classMetaString.includes('fb-c1') || classMetaString.includes('fb-c2') || classMetaString.includes('fb-c5')) {
@@ -409,6 +407,17 @@
             containerDiv.innerText = fallbackText || "Note";
             imgElement.parentNode.replaceChild(containerDiv, imgElement);
         }
+
+        // Dynamically build replacement backup boxes for the main logo image if path fails
+        document.getElementById('logo-graphic').onerror = function() {
+            let alternativeTextGraphic = document.createElement('div');
+            alternativeTextGraphic.style.fontSize = "2.5rem";
+            alternativeTextGraphic.style.fontWeight = "bold";
+            alternativeTextGraphic.style.color = "#0288d1";
+            alternativeTextGraphic.style.letterSpacing = "2px";
+            alternativeTextGraphic.innerText = "INNOVINE";
+            this.parentNode.replaceChild(alternativeTextGraphic, this);
+        };
 
         function triggerRewardShower() {
             playSound('sound-correct');
@@ -452,7 +461,6 @@
             badge.style.background = currentConfig.color;
             document.documentElement.style.setProperty('--level-color', currentConfig.color);
 
-            // Interface Visibility Resets
             document.getElementById('main-target-card').style.display = "flex";
             document.getElementById('checkout-mat-target').style.display = "flex";
             document.getElementById('l3-quiz-row').style.display = "none";
@@ -509,7 +517,7 @@
                 const visualFloater = document.createElement('div');
                 visualFloater.className = 'dropped-currency-token';
                 visualFloater.style.position = 'absolute';
-                visualFloater.style.zIndex = '9999';
+                visualFloater.style.zIndex = '99999';
                 visualFloater.appendChild(childAsset);
                 document.body.appendChild(visualFloater);
 
@@ -642,15 +650,18 @@
             switchActiveLayer('screen-intro');
         }
 
-        window.addEventListener('load', function() {
+        // --- FIXED TIMING CONTROL LOOP ---
+        window.addEventListener('DOMContentLoaded', function() {
             function clearSplashScreen() {
                 const splash = document.getElementById('screen-splash');
                 if (splash) {
                     splash.style.opacity = '0';
-                    setTimeout(() => splash.remove(), 500);
+                    splash.style.visibility = 'hidden';
+                    setTimeout(() => splash.remove(), 600); // Fully delete layout frame from DOM tree once transition concludes
                 }
             }
-            setTimeout(clearSplashScreen, 2000);
+            // Holds the blank layout screen with centered graphic online for exactly 5000 milliseconds
+            setTimeout(clearSplashScreen, 5000);
         });
     </script>
 </body>
