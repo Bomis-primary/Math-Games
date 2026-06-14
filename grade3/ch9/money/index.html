@@ -1,137 +1,456 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>G3 Money Wizard</title>
-<style>
-body {
-  margin:0;
-  font-family:'Arial', sans-serif;
-  background: linear-gradient(135deg, #ffe6cc, #ccf0ff);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  height:100vh;
-}
-#game-container { width:100%; max-width:700px; text-align:center; position:relative; }
-#logo-slide, #end-slide { display:none; }
-#question-slide { display:none; }
-.option {
-  background-color:#fff;
-  border:2px solid #cfa;
-  border-radius:10px;
-  padding:15px 25px;
-  margin:10px;
-  display:inline-block;
-  cursor:pointer;
-  font-size:1.2em;
-  transition:transform 0.2s;
-}
-.option:hover { transform:scale(1.05); }
-.correct { border-color:green; background-color:#cfc; }
-.wrong { border-color:red; background-color:#fcc; animation:jiggle 0.3s; }
-@keyframes jiggle {
-  0%{transform:translateX(0);} 25%{transform:translateX(-5px);} 50%{transform:translateX(5px);}
-  75%{transform:translateX(-5px);} 100%{transform:translateX(0);}
-}
-#confetti-canvas { position:absolute; top:0; left:0; pointer-events:none; }
-#instruction { background-color:#ffd; padding:10px; border-radius:8px; font-weight:bold; margin-bottom:15px; }
-#play-again-btn { padding:12px 25px; font-size:1.2em; border-radius:12px; border:none; background-color:#ffcc66; cursor:pointer; margin-top:20px; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 3 Math - Money Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #e0f7fa, #fff9c4);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+        }
+        
+        /* 5-Second Splash Screen */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            opacity: 1;
+            transition: opacity 0.8s ease-in-out;
+        }
+        .splash-logo {
+            max-width: 80%;
+            max-height: 180px;
+            object-fit: contain;
+            animation: pulseLogo 2s infinite ease-in-out;
+        }
+        @keyframes pulseLogo {
+            0% { transform: scale(0.95); opacity: 0.9; }
+            50% { transform: scale(1.02); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.9; }
+        }
+
+        /* Main Content Container */
+        .game-container {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            width: 100%;
+            max-width: 550px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border: 4px solid #4caf50;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            opacity: 0; /* Stays hidden during splash screen */
+            transition: opacity 0.5s ease-in;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            max-height: 50px;
+            object-fit: contain;
+        }
+        .audio-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #f1f8e9;
+            padding: 5px 10px;
+            border-radius: 15px;
+            border: 1px solid #c5e1a5;
+        }
+        .audio-controls label {
+            font-size: 12px;
+            font-weight: bold;
+            color: #33691e;
+        }
+        .volume-slider {
+            width: 70px;
+            cursor: pointer;
+        }
+        .progress-bar {
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            height: 12px;
+            width: 100%;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .progress {
+            background: linear-gradient(90deg, #4caf50, #8bc34a);
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .score-board {
+            font-size: 16px;
+            font-weight: bold;
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+        .question-box {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            min-height: 50px;
+        }
+        .asset-display {
+            margin-bottom: 25px;
+            min-height: 140px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .asset-display img {
+            max-height: 130px;
+            max-width: 100%;
+            object-fit: contain;
+            border-radius: 8px;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.3); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        @media(min-width: 400px) {
+            .options-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        .btn-option {
+            background-color: #fff;
+            border: 3px solid #b3e5fc;
+            border-radius: 15px;
+            padding: 15px 10px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #0277bd;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0 #b3e5fc;
+        }
+        .btn-option:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 transparent;
+        }
+        .btn-option.correct {
+            background-color: #c8e6c9 !important;
+            border-color: #4caf50 !important;
+            color: #2e7d32 !important;
+            box-shadow: 0 4px 0 #4caf50 !important;
+        }
+        .btn-option.wrong {
+            background-color: #ffcdd2 !important;
+            border-color: #f44336 !important;
+            color: #c62828 !important;
+            box-shadow: 0 4px 0 #f44336 !important;
+        }
+        .btn-restart {
+            background: linear-gradient(145deg, #ff9800, #f57c00);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #e65100;
+            margin-top: 15px;
+            display: none;
+        }
+        .btn-restart:active {
+            transform: translateY(5px);
+            box-shadow: 0 0 0 transparent;
+        }
+        #canvas-confetti {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+    </style>
 </head>
 <body>
-<div id="game-container">
 
-<!-- Logo Slide -->
-<div id="logo-slide">
-<img src="logo.png" alt="Innovine Logo" style="width:200px;">
-</div>
+    <!-- 5-Second Brand Introduction View -->
+    <div class="splash-screen" id="splash-screen">
+        <img class="splash-logo" src="assets/logo.png" alt="Innovine Logo" onerror="this.src='https://placehold.co/300x120?text=Innovine'">
+    </div>
 
-<!-- Question Slide -->
-<div id="question-slide">
-<div id="instruction"></div>
-<div id="options-container"></div>
-</div>
+    <div class="game-container" id="game-container">
+        <canvas id="canvas-confetti"></canvas>
+        
+        <div class="header">
+            <img class="logo" src="assets/logo.png" alt="Logo" onerror="this.style.display='none'">
+            <div class="audio-controls">
+                <label for="volume">🔊 Vol:</label>
+                <input type="range" id="volume" class="volume-slider" min="0" max="1" step="0.1" value="0.8">
+            </div>
+        </div>
 
-<!-- End Slide -->
-<div id="end-slide">
-<h2>🎉 Well Done! 🎉</h2>
-<button id="play-again-btn">Play Again</button>
-</div>
+        <div class="score-board">
+            Question <span id="current-idx">1</span> of <span id="total-count">10</span> | Score: <span id="score-val">0</span>
+        </div>
 
-</div>
+        <div class="progress-bar">
+            <div class="progress" id="progress-line"></div>
+        </div>
 
-<audio id="correct-sound" src="correct.mp3"></audio>
-<audio id="wrong-sound" src="wrong.mp3"></audio>
-<audio id="applause-sound" src="freesound_community-claps-44774.mp3"></audio>
+        <div class="question-box" id="question-text">Loading question...</div>
 
-<canvas id="confetti-canvas"></canvas>
+        <div class="asset-display" id="asset-container"></div>
 
-<script>
-// --- Game Data ---
-const rounds = [
-  { instruction:"Identify the coin: ₹5", options:["₹1","₹2","₹5"], answer:2 },
-  { instruction:"Identify the note: ₹100", options:["₹50","₹100","₹20"], answer:1 },
-  { instruction:"Convert paise to rupees: 200p = ?", options:["₹2","₹20","₹200"], answer:1 },
-  { instruction:"Add money: ₹50 + ₹20 = ?", options:["₹60","₹70","₹80"], answer:1 },
-  { instruction:"Which item costs more? ₹25 or ₹40", options:["₹25","₹40"], answer:1 },
-  { instruction:"Story sum: 3 chocolates at ₹12 each. Total cost?", options:["₹36","₹32","₹30"], answer:0 }
-];
+        <div class="options-grid" id="options-box"></div>
 
-let currentRound=-1, attempt=0;
+        <button class="btn-restart" id="btn-restart" onclick="initGame()">🔄 Play Again</button>
+    </div>
 
-// --- Elements ---
-const logoSlide=document.getElementById("logo-slide");
-const questionSlide=document.getElementById("question-slide");
-const endSlide=document.getElementById("end-slide");
-const instructionEl=document.getElementById("instruction");
-const optionsContainer=document.getElementById("options-container");
-const correctSound=document.getElementById("correct-sound");
-const wrongSound=document.getElementById("wrong-sound");
-const applauseSound=document.getElementById("applause-sound");
-const playAgainBtn=document.getElementById("play-again-btn");
-const confettiCanvas=document.getElementById("confetti-canvas");
+    <!-- Audio Targets pointing to your local asset sub-folder structure -->
+    <audio id="snd-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+    <audio id="snd-cheer" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
 
-// --- Game Flow ---
-function startGame(){
-  logoSlide.style.display="block"; questionSlide.style.display="none"; endSlide.style.display="none";
-  currentRound=-1; attempt=0; setTimeout(nextRound,3000);
-}
+    <script>
+        // Item Bank based on your uploaded assets and learning outcomes
+        const itemBank = [
+            { q: "Identify this Indian coin:", img: "assets/coin1.png", answers: ["₹1", "₹2", "₹5", "₹10"], correct: "₹1" },
+            { q: "Identify this Indian coin:", img: "assets/coin2.png", answers: ["₹1", "₹2", "₹5", "₹10"], correct: "₹2" },
+            { q: "Identify this Indian coin:", img: "assets/coin5.png", answers: ["₹1", "₹2", "₹5", "₹10"], correct: "₹5" },
+            { q: "Identify this Indian currency note:", img: "assets/note10.png", answers: ["₹10", "₹20", "₹50", "₹100"], correct: "₹10" },
+            { q: "Identify this Indian currency note:", img: "assets/note20.png", answers: ["₹10", "₹20", "₹50", "₹100"], correct: "₹20" },
+            { q: "Identify this Indian currency note:", img: "assets/note50.png", answers: ["₹10", "₹20", "₹50", "₹100"], correct: "₹50" },
+            { q: "Identify this Indian currency note:", img: "assets/note200.png", answers: ["₹100", "₹200", "₹500", "₹2000"], correct: "₹200" },
+            { q: "Convert ₹5 into paise.", img: "", answers: ["50 p", "500 p", "5 p", "5000 p"], correct: "500 p" },
+            { q: "Convert 200p into Rupees.", img: "", answers: ["₹20", "₹2", "₹0.2", "₹200"], correct: "₹2" },
+            { q: "Express 15 rupees and 50 paise using the correct decimal layout.", img: "", answers: ["₹15.05", "₹155.0", "₹15.50", "15.50p"], correct: "₹15.50" },
+            { q: "Sita bought a notebook for ₹50 and a pen for ₹20. How much total money did she spend?", img: "", answers: ["₹70", "₹60", "₹80", "₹100"], correct: "₹70" },
+            { q: "If you buy a toy for ₹150 and pay with a ₹200 note, how much change will you get back?", img: "assets/note200.png", answers: ["₹10", "₹20", "₹50", "₹5"], correct: "₹50" }
+        ];
 
-function nextRound(){
-  currentRound++; attempt=0;
-  if(currentRound>=rounds.length){ showEndSlide(); return; }
-  showQuestion(rounds[currentRound]);
-}
+        let gameQuestions = [];
+        let activeIndex = 0;
+        let runningScore = 0;
+        let blocksInteraction = false;
 
-function showQuestion(round){
-  logoSlide.style.display="none"; questionSlide.style.display="block"; endSlide.style.display="none";
-  instructionEl.textContent=round.instruction;
-  optionsContainer.innerHTML="";
-  round.options.forEach((opt,idx)=>{
-    const btn=document.createElement("div"); btn.classList.add("option"); btn.textContent=opt;
-    btn.addEventListener("click",()=>handleAnswer(idx)); optionsContainer.appendChild(btn);
-  });
-}
+        const volumeSlider = document.getElementById('volume');
+        const sndCorrect = document.getElementById('snd-correct');
+        const sndWrong = document.getElementById('snd-wrong');
+        const sndCheer = document.getElementById('snd-cheer');
 
-function handleAnswer(selectedIdx){
-  const round=rounds[currentRound]; const buttons=optionsContainer.children;
-  if(selectedIdx===round.answer){ buttons[selectedIdx].classList.add("correct"); correctSound.play(); setTimeout(nextRound,1000); }
-  else{ buttons[selectedIdx].classList.add("wrong"); wrongSound.play(); attempt++; if(attempt>=2){ buttons[round.answer].classList.add("correct"); setTimeout(nextRound,1500); } }
-}
+        function shuffle(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
 
-function showEndSlide(){ questionSlide.style.display="none"; endSlide.style.display="block"; applauseSound.play(); launchConfetti(); }
-playAgainBtn.addEventListener("click",()=>{ clearConfetti(); startGame(); });
+        // Handle splash entry countdown management
+        window.onload = function() {
+            setTimeout(function() {
+                const splash = document.getElementById('splash-screen');
+                const gameContainer = document.getElementById('game-container');
+                
+                // Fade out splash layout smoothly
+                splash.style.opacity = '0';
+                
+                // Switch focus context
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    gameContainer.style.opacity = '1';
+                    initGame();
+                }, 800); // Syncs up perfectly with CSS transitions
+            }, 5000); // 5-second complete active display window
+        };
 
-// --- Confetti ---
-let confettiCtx=confettiCanvas.getContext('2d'); confettiCanvas.width=window.innerWidth; confettiCanvas.height=window.innerHeight; let confettiPieces=[];
-function launchConfetti(){ confettiPieces=[]; for(let i=0;i<150;i++){ confettiPieces.push({x:Math.random()*confettiCanvas.width,y:Math.random()*confettiCanvas.height,r:Math.random()*6+2,d:Math.random()*20,color:`hsl(${Math.random()*360},100%,50%)`,tilt:Math.random()*10-10}); } requestAnimationFrame(drawConfetti);}
-function drawConfetti(){ confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height); confettiPieces.forEach(p=>{ confettiCtx.beginPath(); confettiCtx.lineWidth=p.r/2; confettiCtx.strokeStyle=p.color; confettiCtx.moveTo(p.x+p.tilt+p.r/4,p.y); confettiCtx.lineTo(p.x+p.tilt,p.y+p.r); confettiCtx.stroke(); p.y+=Math.cos(0.1+p.d)*2+1; p.x+=Math.sin(0.05)*2; if(p.y>confettiCanvas.height){p.y=0;p.x=Math.random()*confettiCanvas.width;} }); if(endSlide.style.display==="block") requestAnimationFrame(drawConfetti);}
-function clearConfetti(){ confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height); }
+        function initGame() {
+            activeIndex = 0;
+            runningScore = 0;
+            blocksInteraction = false;
+            document.getElementById('btn-restart').style.display = 'none';
+            document.getElementById('options-box').style.display = 'grid';
+            
+            gameQuestions = shuffle([...itemBank]).slice(0, 10);
+            
+            document.getElementById('total-count').textContent = gameQuestions.length;
+            document.getElementById('score-val').textContent = runningScore;
+            
+            renderQuestion();
+        }
 
-window.onload=startGame;
-</script>
+        function renderQuestion() {
+            blocksInteraction = false;
+            if(activeIndex >= gameQuestions.length) {
+                endGame();
+                return;
+            }
+
+            document.getElementById('current-idx').textContent = activeIndex + 1;
+            document.getElementById('score-val').textContent = runningScore;
+            
+            let progressPercent = (activeIndex / gameQuestions.length) * 100;
+            document.getElementById('progress-line').style.width = progressPercent + '%';
+
+            let currentItem = gameQuestions[activeIndex];
+            document.getElementById('question-text').textContent = currentItem.q;
+
+            const assetBox = document.getElementById('asset-container');
+            assetBox.innerHTML = '';
+            if(currentItem.img) {
+                const graphic = document.createElement('img');
+                graphic.src = currentItem.img;
+                graphic.alt = "Currency Asset";
+                graphic.onerror = function() {
+                    assetBox.innerHTML = `<span style='color:#7f8c8d; font-style:italic;'>[Visual Clue: ${currentItem.correct}]</span>`;
+                };
+                assetBox.appendChild(graphic);
+            }
+
+            const optionsBox = document.getElementById('options-box');
+            optionsBox.innerHTML = '';
+            
+            let shuffledChoices = shuffle([...currentItem.answers]);
+            shuffledChoices.forEach(choice => {
+                const optionBtn = document.createElement('button');
+                optionBtn.className = 'btn-option';
+                optionBtn.textContent = choice;
+                optionBtn.onclick = () => verifyChoice(optionBtn, choice, currentItem.correct);
+                optionsBox.appendChild(optionBtn);
+            });
+        }
+
+        function verifyChoice(buttonElement, picked, actualRight) {
+            if(blocksInteraction) return;
+            blocksInteraction = true;
+
+            let volumeLevel = volumeSlider.value;
+            sndCorrect.volume = volumeLevel;
+            sndWrong.volume = volumeLevel;
+
+            if(picked === actualRight) {
+                buttonElement.classList.add('correct');
+                runningScore++;
+                document.getElementById('score-val').textContent = runningScore;
+                try { sndCorrect.play(); } catch(e){}
+                triggerConfettiEffect();
+            } else {
+                buttonElement.classList.add('wrong');
+                try { sndWrong.play(); } catch(e){}
+                
+                Array.from(document.getElementById('options-box').children).forEach(btn => {
+                    if(btn.textContent === actualRight) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+
+            setTimeout(() => {
+                activeIndex++;
+                renderQuestion();
+            }, 2000);
+        }
+
+        function endGame() {
+            document.getElementById('progress-line').style.width = '100%';
+            document.getElementById('question-text').textContent = `Awesome Job! 🎉 Final Score: ${runningScore} / ${gameQuestions.length}`;
+            document.getElementById('asset-container').innerHTML = '';
+            document.getElementById('options-box').style.display = 'none';
+            document.getElementById('btn-restart').style.display = 'inline-block';
+            
+            let volumeLevel = volumeSlider.value;
+            sndCheer.volume = volumeLevel;
+            try { sndCheer.play(); } catch(e){}
+            triggerConfettiEffect();
+        }
+
+        // Canvas Confetti implementation Engine
+        const canvas = document.getElementById('canvas-confetti');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function triggerConfettiEffect() {
+            canvas.width = canvas.parentElement.offsetWidth;
+            canvas.height = canvas.parentElement.offsetHeight;
+            particles = [];
+            for (let i = 0; i < 60; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    r: Math.random() * 6 + 4,
+                    d: Math.random() * canvas.height,
+                    color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                    tilt: Math.random() * 10 - 5,
+                    tiltAngleIncremental: Math.random() * 0.07 + 0.02,
+                    tiltAngle: 0
+                });
+            }
+            animateConfetti();
+        }
+
+        function animateConfetti() {
+            if (particles.length === 0) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach((p, index) => {
+                p.tiltAngle += p.tiltAngleIncremental;
+                p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+                p.tilt = Math.sin(p.tiltAngle - index / 3) * 15;
+
+                ctx.beginPath();
+                ctx.lineWidth = p.r;
+                ctx.strokeStyle = p.color;
+                ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
+                ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
+                ctx.stroke();
+
+                if (p.y > canvas.height) {
+                    particles[index] = {
+                        x: Math.random() * canvas.width,
+                        y: -20,
+                        r: p.r,
+                        d: p.d,
+                        color: p.color,
+                        tilt: p.tilt,
+                        tiltAngleIncremental: p.tiltAngleIncremental,
+                        tiltAngle: p.tiltAngle
+                    };
+                }
+            });
+
+            if (particles.some(p => p.y < canvas.height)) {
+                requestAnimationFrame(animateConfetti);
+            } else {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+    </script>
 </body>
 </html>
