@@ -135,7 +135,7 @@
       width: 70px;
       height: 50px;
       background: var(--train-red);
-      border-radius: 8px 15px 4px 4px;
+      border-radius: 15px 8px 4px 4px; /* Modified border corners for right-facing direction */
       z-index: 5;
     }
     .train-engine::after {
@@ -143,6 +143,7 @@
       font-size: 38px;
       position: absolute;
       top: -3px; left: 4px;
+      transform: scaleX(-1); /* Flips the engine horizontally to face right */
     }
 
     .train-car {
@@ -510,6 +511,14 @@
 
       if (currentQ.displayData.type === 'sequence') {
         let startLeft = 110;
+        
+        // Spawn the engine first, placed at the front (right side)
+        let engine = document.createElement('div');
+        engine.className = "train-engine";
+        engine.style.left = (startLeft + (currentQ.displayData.values.length * 75)) + "px";
+        canvas.appendChild(engine);
+
+        // Spawn the boxes (cars) behind it (left side)
         currentQ.displayData.values.forEach((val, idx) => {
           let car = document.createElement('div');
           car.className = "train-car";
@@ -523,10 +532,6 @@
           }
           canvas.appendChild(car);
         });
-        let engine = document.createElement('div');
-        engine.className = "train-engine";
-        engine.style.left = (startLeft + (currentQ.displayData.values.length * 75)) + "px";
-        canvas.appendChild(engine);
 
       } else if (currentQ.displayData.type === 'abacus') {
         let frame = document.createElement('div');
@@ -547,6 +552,13 @@
         canvas.appendChild(frame);
 
       } else if (currentQ.displayData.type === 'compare') {
+        // Spawn engine at the front (right side)
+        let engine = document.createElement('div');
+        engine.className = "train-engine";
+        engine.style.left = (120 + (currentQ.displayData.list.length * 90)) + "px";
+        canvas.appendChild(engine);
+
+        // Spawn boxes behind it (left side)
         currentQ.displayData.list.forEach((val, idx) => {
           let car = document.createElement('div');
           car.className = "train-car";
