@@ -51,7 +51,7 @@
         #splash-screen { 
             background-color: #ffffff; 
             gap: 24px; 
-            z-index: 100; /* Keeps splash clean on top of floaters */
+            z-index: 100; /* Keeps splash strictly isolated over everything */
         }
         .innovine-logo { width: min(240px, 65vw); height: auto; object-fit: contain; }
         .loading-bar { width: min(200px, 50vw); height: 8px; background-color: #e2e8f0; border-radius: 10px; overflow: hidden; }
@@ -241,6 +241,7 @@
     <audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
     <audio id="sound-win" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
 
+    <!-- 1) SPLASH SCREEN (Has absolute priority and renders visually solid to cover initial delays) -->
     <div id="splash-screen" class="screen active">
         <img class="innovine-logo" src="assets/logo.png" alt="Logo">
         <div class="loading-bar">
@@ -248,6 +249,7 @@
         </div>
     </div>
 
+    <!-- 2) INSTRUCTION SCREEN -->
     <div id="menu-screen" class="screen">
         <div class="content-box">
             <h1>Challenge Quest</h1>
@@ -261,6 +263,7 @@
         </div>
     </div>
 
+    <!-- 3) PLAYABLE GAME INTERFACE -->
     <div id="game-screen" class="screen">
         <div class="game-header">
             <div>⭐ QUEST: <span id="round-display">1</span> / 10</div>
@@ -281,6 +284,7 @@
         </div>
     </div>
 
+    <!-- 4) COMPLETION PAGE -->
     <div id="win-screen" class="screen">
         <div class="content-box">
             <div class="trophy-icon">🏆</div>
@@ -311,6 +315,7 @@
         const soundWrong = document.getElementById('sound-wrong');
         const soundWin = document.getElementById('sound-win');
 
+        // Dynamic background icons generation is explicitly delayed to keep Splash perfectly pristine
         function createBackground() {
             const symbols = ['-', '=', '✨', '🎈'];
             for(let i = 0; i < 12; i++) {
@@ -323,7 +328,6 @@
                 document.body.appendChild(el);
             }
         }
-        createBackground();
 
         function playSound(audioElement) {
             audioElement.currentTime = 0;
@@ -331,7 +335,11 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => { transitionScreen('splash-screen', 'menu-screen'); }, 5000); 
+            // Execution control timer exactly synchronized at 5 seconds
+            setTimeout(() => { 
+                transitionScreen('splash-screen', 'menu-screen'); 
+                createBackground(); // Floating icons spawn only after Phase 1 closes cleanly
+            }, 5000); 
         });
 
         function transitionScreen(fromId, toId) {
