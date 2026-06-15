@@ -25,6 +25,28 @@
       user-select: none;
     }
 
+    /* --- Splash Screen Styles --- */
+    #screen-splash {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      transition: opacity 0.5s ease, visibility 0.5s;
+    }
+    #screen-splash.hidden {
+      opacity: 0;
+      visibility: hidden;
+    }
+    .splash-logo {
+      max-width: 80%;
+      max-height: 70vh;
+      object-fit: contain;
+    }
+
     .game-container {
       width: 100%;
       max-width: 850px;
@@ -44,15 +66,8 @@
       color: white;
       padding: 12px 20px;
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end; /* Keeps stats on the right side */
       align-items: center;
-    }
-    
-    /* Updated Company Logo Style */
-    .company-logo {
-      height: 40px;
-      max-width: 160px;
-      object-fit: contain;
     }
 
     .hud-stats { display: flex; gap: 20px; font-weight: bold; font-size: 1.2rem; }
@@ -268,7 +283,6 @@
     @media (max-width: 600px) {
       body { overflow-y: auto; align-items: flex-start; }
       .game-container { min-height: auto; border-radius: 16px; }
-      .company-logo { height: 30px; max-width: 110px; }
       .story-bubble { font-size: 1.1rem; padding: 10px; }
       .scenery-canvas { height: 240px; }
       .harvest-shelf { width: 150px; right: 10px; height: 215px; top: 15px; }
@@ -284,6 +298,11 @@
 </head>
 <body>
 
+  <!-- --- 5-Second Splash Screen --- -->
+  <div id="screen-splash">
+    <img src="./assets/logo.png" alt="Innovine Solutions Logo" class="splash-logo" />
+  </div>
+
   <audio id="snd-correct" src="./assets/correct.mp3" preload="auto"></audio>
   <audio id="snd-wrong" src="./assets/wrong.mp3" preload="auto"></audio>
   <audio id="snd-roar" src="./assets/dino-roar.mp3" preload="auto"></audio>
@@ -291,8 +310,7 @@
   <div class="game-container">
 
     <div class="game-header">
-      <img src="./assets/Bomis-primary.png" alt="Bomis-primary Logo" class="company-logo" onerror="console.log('Logo image file not found in assets folder.');" />
-      
+      <!-- Bomis-primary completely removed from layout header -->
       <div class="hud-stats">
         <span>⭐ Score: <span id="score-val">0</span></span>
         <span>🍏 Task: <span id="progress-val">1/10</span></span>
@@ -346,6 +364,16 @@
     let targetToEat = 0;
 
     const dinoList = ['blue-dino.png', 'pink-dino.png', 'red-dino.png', 'yellow-dino.png'];
+
+    // --- Splash Screen Timer ---
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        const splash = document.getElementById('screen-splash');
+        if (splash) {
+          splash.classList.add('hidden');
+        }
+      }, 5000); // 5000ms = 5 seconds
+    });
 
     function playAudio(elementId) {
       try {
