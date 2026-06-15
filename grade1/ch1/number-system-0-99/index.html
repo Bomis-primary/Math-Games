@@ -135,7 +135,7 @@
       width: 70px;
       height: 50px;
       background: var(--train-red);
-      border-radius: 15px 8px 4px 4px; /* Modified border corners for right-facing direction */
+      border-radius: 15px 8px 4px 4px;
       z-index: 5;
     }
     .train-engine::after {
@@ -143,7 +143,7 @@
       font-size: 38px;
       position: absolute;
       top: -3px; left: 4px;
-      transform: scaleX(-1); /* Flips the engine horizontally to face right */
+      transform: scaleX(-1);
     }
 
     .train-car {
@@ -315,7 +315,7 @@
 
     <div class="game-header">
       <div class="title-area">
-        <h1 id="stage-title">Level 1: The Missing Car</h1>
+        <h1 id="stage-title">Level 1: The Missing Number</h1>
       </div>
       <div class="hud-stats">
         <span>⭐ Score: <span id="score-val">0</span></span>
@@ -326,7 +326,7 @@
 
     <div id="screen-intro" class="screen active">
       <div class="story-bubble">
-        <p><strong>Raju the Train Driver says:</strong> "Hi there! Welcome to my train! Oh no, the number tracks are mixed up! Can you help me find the missing numbers so my train can go choo-choo?"</p>
+        <p><strong>Raju the Train Driver says:</strong> "Hi! Welcome to my train! Oh no, some numbers are missing from our track. Can you help me find them so the train can go choo-choo?"</p>
       </div>
       <div class="scenery-canvas">
         <div class="tracks"></div>
@@ -335,309 +335,17 @@
       <button class="action-btn" onclick="startLevel(1)">Let's Play! 🟢</button>
     </div>
 
+    <div id="screen-transition" class="screen">
+      <div class="story-bubble">
+        <p id="transition-story-text">Story text goes here...</p>
+      </div>
+      <div class="scenery-canvas" id="transition-canvas"></div>
+      <button class="action-btn" id="transition-next-btn" onclick="resumeFromTransition()">Go! ➡️</button>
+    </div>
+
     <div id="screen-play" class="screen">
       <div class="story-bubble">
         <p id="story-text">Help Raju fix his happy train cars!</p>
       </div>
 
       <div class="scenery-canvas" id="stage-canvas"></div>
-
-      <div class="question-prompt" id="question-text">What number fits inside the sequence?</div>
-      <div class="options-grid" id="options-box"></div>
-      <div class="feedback-banner" id="feedback-box"></div>
-    </div>
-
-    <div id="screen-end" class="screen">
-      <div class="story-bubble">
-        <p><strong>🎉 Yay! The Train Can Go!</strong></p>
-        <p>You did it! You know your numbers so well! Raju's train is happily moving down the tracks now. Good job!</p>
-      </div>
-      <h2 style="font-size: 2.5rem; color: #2e7d32; margin-bottom: 20px;">You Win! ⭐</h2>
-      <button class="action-btn" style="background: #9c27b0; box-shadow: 0 5px 0 #7b1fa2;" onclick="resetWholeGame()">Play Again 🔄</button>
-    </div>
-  </div>
-
-  <script>
-    // Audio Playback Triggers 
-    function playAudio(elementId) {
-      const sound = document.getElementById(elementId);
-      if (sound) {
-        sound.currentTime = 0;
-        sound.play().catch(e => console.log("Audio play blocked until user gesture: ", e));
-      }
-    }
-
-    // Dynamic Procedural Confetti Burst Engine
-    function popConfetti() {
-      const container = document.querySelector('.game-container');
-      const rect = container.getBoundingClientRect();
-      
-      for (let i = 0; i < 40; i++) {
-        const p = document.createElement('div');
-        p.className = 'particle';
-        
-        const startX = Math.random() * rect.width;
-        const startY = Math.random() * (rect.height * 0.6);
-        
-        p.style.left = startX + 'px'; 
-        p.style.top = startY + 'px';
-        p.style.background = ['#ffeb3b','#ff5722','#4caf50','#00bcd4','#e91e63','#9c27b0'][Math.floor(Math.random()*6)];
-        
-        const dx = (Math.random() - 0.5) * 250 + 'px';
-        const dy = (Math.random() - 0.5) * 250 - 50 + 'px';
-        p.style.setProperty('--dx', dx); 
-        p.style.setProperty('--dy', dy);
-        
-        container.appendChild(p);
-        setTimeout(() => p.remove(), 800);
-      }
-    }
-
-    // State Configuration Settings
-    let activeLevel = 1;
-    let turnIndex = 0;
-    let runningScore = 0;
-    let acceptInput = true;
-    let stageQuestions = [];
-    const TOTAL_TOTAL_TURNS = 10;
-
-    // Data Assembler matching Book Learning Objectives
-    function assembleLevelQuestions() {
-      stageQuestions = [];
-      
-      // LEVEL 1: Missing Number Sequences
-      for(let i=0; i<3; i++) {
-        let start = Math.floor(Math.random() * 80) + 5;
-        let missingOffset = Math.floor(Math.random() * 3);
-        let seq = [start, start+1, start+2];
-        let correctVal = seq[missingOffset];
-        seq[missingOffset] = '__';
-        
-        let decoys = new Set([correctVal + 1, correctVal - 1]);
-        decoys.delete(correctVal);
-        while(decoys.size < 2) { decoys.add(Math.floor(Math.random() * 95)); }
-        let opts = [correctVal, ...decoys];
-
-        stageQuestions.push({
-          level: 1,
-          story: "Can you find the missing number to fix this train?",
-          prompt: `What number goes in the blank space?`,
-          displayData: { type: 'sequence', values: seq },
-          answer: correctVal,
-          options: opts.sort(() => Math.random() - 0.5)
-        });
-      }
-
-      // LEVEL 2: Abacus Counting (Tens and Ones)
-      for(let i=0; i<3; i++) {
-        let t = Math.floor(Math.random() * 8) + 1;
-        let o = Math.floor(Math.random() * 9);
-        let targetNum = (t * 10) + o;
-
-        let decoys = new Set([t*10 + (o+1)%10, ((t+1)%9)*10 + o]);
-        decoys.delete(targetNum);
-        while(decoys.size < 2) { decoys.add(Math.floor(Math.random()*90)+9); }
-        let opts = [targetNum, ...decoys];
-
-        stageQuestions.push({
-          level: 2,
-          story: "Let's count the beads on my special counting toy!",
-          prompt: "How many beads do you see altogether?",
-          displayData: { type: 'abacus', tens: t, ones: o },
-          answer: targetNum,
-          options: opts.sort(() => Math.random() - 0.5)
-        });
-      }
-
-      // LEVEL 3: Big vs Small numbers
-      const comparisonTasks = [
-        { mode: 'greatest', text: 'Which box has the BIGGEST number?' },
-        { mode: 'smallest', text: 'Which box has the SMALLEST number?' },
-        { mode: 'greatest', text: 'Which box has the BIGGEST number?' },
-        { mode: 'smallest', text: 'Which box has the SMALLEST number?' }
-      ];
-      
-      comparisonTasks.forEach(task => {
-        let num1 = Math.floor(Math.random() * 95) + 2;
-        let num2 = Math.floor(Math.random() * 95) + 2;
-        while(num2 === num1) { num2 = Math.floor(Math.random() * 95) + 2; }
-        let num3 = Math.floor(Math.random() * 95) + 2;
-        while(num3 === num1 || num3 === num2) { num3 = Math.floor(Math.random() * 95) + 2; }
-
-        let arr = [num1, num2, num3];
-        let correctVal = task.mode === 'greatest' ? Math.max(...arr) : Math.min(...arr);
-
-        stageQuestions.push({
-          level: 3,
-          story: "Look at these numbers on the train boxes!",
-          prompt: task.text,
-          displayData: { type: 'compare', list: arr },
-          answer: correctVal,
-          options: [...arr]
-        });
-      });
-    }
-
-    function startLevel(lvl) {
-      activeLevel = lvl;
-      document.getElementById('screen-intro').classList.remove('active');
-      document.getElementById('screen-play').classList.add('active');
-      renderActiveTurn();
-    }
-
-    function renderActiveTurn() {
-      if (turnIndex >= TOTAL_TOTAL_TURNS) {
-        showEndGameSummary();
-        return;
-      }
-
-      acceptInput = true;
-      document.getElementById('feedback-box').innerText = "";
-      
-      let currentQ = stageQuestions[turnIndex];
-      activeLevel = currentQ.level;
-
-      document.getElementById('stage-title').innerText = `Level ${activeLevel}: ` + 
-        (activeLevel === 1 ? "The Missing Number" : activeLevel === 2 ? "Count the Beads" : "Big and Small Numbers");
-      document.getElementById('progress-val').innerText = `${turnIndex + 1} / ${TOTAL_TOTAL_TURNS}`;
-      document.getElementById('progress-fill').style.width = `${(turnIndex / TOTAL_TOTAL_TURNS) * 100}%`;
-      document.getElementById('score-val').innerText = runningScore;
-
-      document.getElementById('story-text').innerHTML = `<strong>Raju says:</strong> "${currentQ.story}"`;
-      document.getElementById('question-text').innerText = currentQ.prompt;
-
-      const canvas = document.getElementById('stage-canvas');
-      canvas.innerHTML = '<div class="tracks"></div>';
-
-      if (currentQ.displayData.type === 'sequence') {
-        let startLeft = 110;
-        
-        // Spawn the engine first, placed at the front (right side)
-        let engine = document.createElement('div');
-        engine.className = "train-engine";
-        engine.style.left = (startLeft + (currentQ.displayData.values.length * 75)) + "px";
-        canvas.appendChild(engine);
-
-        // Spawn the boxes (cars) behind it (left side)
-        currentQ.displayData.values.forEach((val, idx) => {
-          let car = document.createElement('div');
-          car.className = "train-car";
-          car.style.left = (startLeft + (idx * 75)) + "px";
-          car.innerText = val;
-          if(val === '__') {
-            car.style.background = 'transparent';
-            car.style.borderStyle = 'dashed';
-            car.style.borderColor = '#e65100';
-            car.style.color = '#e65100';
-          }
-          canvas.appendChild(car);
-        });
-
-      } else if (currentQ.displayData.type === 'abacus') {
-        let frame = document.createElement('div');
-        frame.className = "abacus-frame";
-        
-        let rodT = document.createElement('div');
-        rodT.className = "abacus-rod";
-        rodT.setAttribute('data-label', 'Tens');
-        for(let i=0; i<currentQ.displayData.tens; i++) { rodT.appendChild(document.createElement('div')).className = "bead"; }
-
-        let rodO = document.createElement('div');
-        rodO.className = "abacus-rod";
-        rodO.setAttribute('data-label', 'Ones');
-        for(let i=0; i<currentQ.displayData.ones; i++) { rodO.appendChild(document.createElement('div')).className = "bead"; }
-
-        frame.appendChild(rodT);
-        frame.appendChild(rodO);
-        canvas.appendChild(frame);
-
-      } else if (currentQ.displayData.type === 'compare') {
-        // Spawn engine at the front (right side)
-        let engine = document.createElement('div');
-        engine.className = "train-engine";
-        engine.style.left = (120 + (currentQ.displayData.list.length * 90)) + "px";
-        canvas.appendChild(engine);
-
-        // Spawn boxes behind it (left side)
-        currentQ.displayData.list.forEach((val, idx) => {
-          let car = document.createElement('div');
-          car.className = "train-car";
-          car.style.left = (120 + (idx * 90)) + "px";
-          car.style.background = '#0097a7';
-          car.innerText = val;
-          canvas.appendChild(car);
-        });
-      }
-
-      const optionsBox = document.getElementById('options-box');
-      optionsBox.innerHTML = "";
-      currentQ.options.forEach(opt => {
-        let btn = document.createElement('button');
-        btn.className = "game-btn";
-        btn.innerText = opt;
-        btn.onclick = function() { processSelection(btn, opt); };
-        optionsBox.appendChild(btn);
-      });
-    }
-
-    function processSelection(clickedElement, pickedValue) {
-      if (!acceptInput) return;
-      acceptInput = false;
-
-      let currentQ = stageQuestions[turnIndex];
-      let feedBox = document.getElementById('feedback-box');
-
-      if (pickedValue === currentQ.answer) {
-        runningScore += 10;
-        clickedElement.classList.add('correct');
-        feedBox.style.color = '#2e7d32';
-        feedBox.innerText = "Yay! You got it right! 🎉";
-        
-        playAudio('snd-correct');
-        popConfetti();
-        
-        turnIndex++;
-        setTimeout(renderActiveTurn, 1400);
-      } else {
-        clickedElement.classList.add('wrong');
-        feedBox.style.color = '#c62828';
-        feedBox.innerText = "Let's try one more time!";
-        
-        playAudio('snd-wrong');
-        
-        setTimeout(() => {
-          clickedElement.classList.remove('wrong');
-          acceptInput = true;
-        }, 500);
-      }
-      document.getElementById('score-val').innerText = runningScore;
-    }
-
-    function showEndGameSummary() {
-      document.getElementById('progress-fill').style.width = "100%";
-      document.getElementById('screen-play').classList.remove('active');
-      document.getElementById('screen-end').classList.add('active');
-    }
-
-    function resetWholeGame() {
-      turnIndex = 0;
-      runningScore = 0;
-      document.getElementById('screen-end').classList.remove('active');
-      document.getElementById('screen-intro').classList.add('active');
-      document.getElementById('stage-title').innerText = "Level 1: The Missing Car";
-      document.getElementById('progress-val').innerText = `1 / ${TOTAL_TOTAL_TURNS}`;
-      document.getElementById('score-val').innerText = "0";
-      assembleLevelQuestions();
-    }
-
-    window.onload = function() {
-      assembleLevelQuestions();
-      
-      setTimeout(() => {
-        const splash = document.getElementById('screen-splash');
-        if (splash) splash.style.display = 'none';
-      }, 5000);
-    };
-  </script>
-</body>
-</html>
