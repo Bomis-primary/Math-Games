@@ -154,13 +154,19 @@
         .correct-pop {
             background: radial-gradient(circle, #38ef7d 0%, #11998e 100%) !important;
             border-color: #38ef7d !important;
-            transform: scale(0);
-            transition: transform 0.3s ease-out;
+            transform: scale(1);
+            transition: background-color 0.3s ease-out;
         }
         .wrong-shake {
             animation: shakeError 0.4s ease-in-out;
             border-color: #ff0055 !important;
             background: rgba(255, 0, 85, 0.2) !important;
+        }
+        .reveal-correct {
+            background: radial-gradient(circle, #38ef7d 0%, #11998e 100%) !important;
+            border-color: #38ef7d !important;
+            box-shadow: 0 0 30px #38ef7d !important;
+            transition: all 0.5s ease;
         }
 
         /* Win Screen */
@@ -182,12 +188,10 @@
 </head>
 <body>
 
-    <!-- Target Repository Assets Linked Safely -->
     <audio id="sound-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
     <audio id="sound-win" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
 
-    <!-- 1. Splash Screen (5 Seconds) -->
     <div id="splash-screen" class="screen active">
         <img class="logo-placeholder" src="assets/logo.png" alt="Innovine Logo" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';">
         <h1 id="logo-fallback" style="display:none; font-size: 3rem; color: #333; margin-bottom: 20px;">INNOVINE</h1>
@@ -196,7 +200,6 @@
         </div>
     </div>
 
-    <!-- 2. Arcade Menu Control Area -->
     <div id="menu-screen" class="screen">
         <div class="card-menu">
             <h1 style="margin-top:0; color:#ff9e00; font-size: 2.2rem; letter-spacing: 1px;">Division Defusal</h1>
@@ -206,6 +209,7 @@
                     <li>An equations mainframe displays a Division Matrix up top.</li>
                     <li>Four floating Energy Defusal Bubbles will float onto the field below.</li>
                     <li>Solve the problem and **Click / Tap directly** on the bubble with the correct answer.</li>
+                    <li>You get <strong>2 attempts</strong> per round. If both fail, the matrix reveals the answer!</li>
                     <li>Be accurate! Defuse 10 matrices successfully to clear the game!</li>
                 </ul>
             </div>
@@ -213,17 +217,14 @@
         </div>
     </div>
 
-    <!-- 3. Division Bubble Arcade Arena -->
     <div id="game-screen" class="screen">
         <div class="game-header">
             <div>Matrices Defused: <span id="score-display">0</span> / 10</div>
             <div>Grade 4 Framework</div>
         </div>
         
-        <!-- Formula Display HUD -->
         <div class="hud-display" id="problem-display">0 ÷ 0</div>
         
-        <!-- Interactive Popper Field -->
         <div class="arcade-zone">
             <div class="bubble-target" id="bubble-0" onclick="bubblePopped(0)"></div>
             <div class="bubble-target" id="bubble-1" onclick="bubblePopped(1)"></div>
@@ -232,7 +233,6 @@
         </div>
     </div>
 
-    <!-- 4. Victory Screen -->
     <div id="win-screen" class="screen">
         <div style="background: rgba(255,255,255,0.06); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 45px; border-radius: 25px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); text-align: center;">
             <div style="font-size:5rem; text-shadow: 0 0 20px #ff9e00;">💥👑</div>
@@ -247,7 +247,8 @@
         let currentCorrectText = ""; // Holds value as string to support remainders
         const targetScore = 10;
         let bubbleValues = [];
-        let canPoop = true;
+        let canPop = true;
+        let attemptsLeft = 2; // Track remaining attempts for current round
 
         const soundCorrect = document.getElementById('sound-correct');
         const soundWrong = document.getElementById('sound-wrong');
@@ -276,8 +277,10 @@
 
         // Generates Grade 4 curriculum aligned division questions
         function setupRound() {
-            canPoop = true;
-            // Clear prior animations
+            canPop = true;
+            attemptsLeft = 2; // Reset attempts for the new round
+            
+            // Clear prior animations and classes
             for(let i=0; i<4; i++) {
                 const b = document.getElementById(`bubble-${i}`);
                 b.className = "bubble-target";
@@ -338,7 +341,6 @@
 
             bubbleValues = Array.from(optionsSet).sort(() => Math.random() - 0.5);
             for(let i = 0; i < 4; i++) {
-                document.getElementById(`slot-${i}`);
                 const b = document.getElementById(`bubble-${i}`);
                 b.innerText = bubbleValues[i];
             }
@@ -346,13 +348,13 @@
 
         // Tap execution processing logic
         function bubblePopped(index) {
-            if(!canPoop) return;
+            if(!canPop) return;
             
             const selectedBubble = document.getElementById(`bubble-${index}`);
             const chosenValue = bubbleValues[index];
 
             if (chosenValue === currentCorrectText) {
-                canPoop = false;
+                canPop = false;
                 score++;
                 document.getElementById('score-display').innerText = score;
                 playSound(soundCorrect);
@@ -365,20 +367,14 @@
                     } else {
                         setupRound();
                     }
-                }, 500);
+                }, 800);
             } else {
+                attemptsLeft--;
                 playSound(soundWrong);
                 selectedBubble.classList.add('wrong-shake');
-                // Remove mistake animation after a flash so they can retry popping instantly
-                setTimeout(() => {
-                    selectedBubble.classList.remove('wrong-shake');
-                }, 400);
-            }
-        }
-
-        function resetGame() {
-            transitionScreen('win-screen', 'menu-screen');
-        }
-    </script>
-</body>
-</html>
+                
+                if (attemptsLeft <= 0) {
+                    // Out of chances! Lock inputs and highlight the actual correct answer
+                    canPop = false; 
+                    
+                    // Locate
