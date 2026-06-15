@@ -41,7 +41,29 @@
       min-height: 500px;
     }
 
-    /* Fixed Splash Screen with Text Fallback and Click-to-Skip */
+    /* Screen 1: 5-Second Logo Splash Screen */
+    #screen-logo-splash {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: #ffffff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      opacity: 1;
+      transition: opacity 0.5s ease;
+    }
+    #screen-logo-splash img {
+      max-width: 60%;
+      max-height: 60%;
+      object-fit: contain;
+    }
+    #screen-logo-splash.hidden {
+      display: none !important;
+      pointer-events: none;
+    }
+
+    /* Screen 2: Yellow Choo-Choo Welcoming Screen */
     #screen-splash {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -328,9 +350,13 @@
 
   <div class="game-container">
     
-    <div id="screen-splash" onclick="dismissSplash()">
+    <div id="screen-logo-splash">
+      <img src="assets/logo.png" alt="Raju's Train Game Logo" onerror="this.style.display='none';" />
+    </div>
+
+    <div id="screen-splash" class="hidden" onclick="dismissSplash()">
       <h2>🚂 Choo-Choo!</h2>
-      <p>Loading Raju's Train... (or click to play!)</p>
+      <p>Tap anywhere to start the train! ➡️</p>
     </div>
 
     <div class="game-header">
@@ -386,7 +412,7 @@
   </div>
 
   <script>
-    // Audio elements safely ignored if missing
+    // Safe Audio Fallbacks
     function playAudio(elementId) {
       console.log("Playing sound action: " + elementId);
     }
@@ -702,8 +728,24 @@
 
     window.onload = function() {
       assembleLevelQuestions();
-      // Auto-hide splash screen after 5 seconds
-      setTimeout(dismissSplash, 5000);
+      
+      // STEP 1: Wait 5 seconds for the white logo screen to end, then fade it out
+      setTimeout(() => {
+        const logoSplash = document.getElementById('screen-logo-splash');
+        const yellowSplash = document.getElementById('screen-splash');
+        
+        if (logoSplash) {
+          logoSplash.style.opacity = '0';
+          setTimeout(() => {
+            logoSplash.classList.add('hidden');
+            
+            // STEP 2: Make the yellow Choo-Choo screen visible
+            if (yellowSplash) {
+              yellowSplash.classList.remove('hidden');
+            }
+          }, 500);
+        }
+      }, 5000);
     };
   </script>
 </body>
