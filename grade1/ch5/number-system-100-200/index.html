@@ -156,27 +156,28 @@ h1 {
     justify-content: center;
     gap: 15px;
     width: 94vw;
-    max-width: 620px;
+    max-width: 660px;
     margin-top: 10px;
     flex-wrap: wrap;
 }
 
 .option-card {
     flex: 1;
-    min-width: 100px;
-    max-width: 180px;
-    padding: 15px 10px;
+    min-width: 130px;
+    max-width: 240px;
+    padding: 15px 15px;
     background: #ffffff;
     border: 5px solid #fff;
     border-radius: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: clamp(22px, 4.5vw, 34px);
+    font-size: clamp(20px, 4vw, 32px);
     font-weight: bold;
     color: #2e7d32;
     cursor: pointer;
     box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    white-space: nowrap; /* Forces equation text to stay on one single line */
     transition: transform 0.2s, background-color 0.2s, color 0.2s, border-color 0.2s;
 }
 .option-card:hover { transform: scale(1.06); }
@@ -244,11 +245,9 @@ h1 {
     <h1 id="gameTitle">Number Quest Machine</h1>
     <p id="gameInstruction" class="instruction">Loading your goal...</p>
 
-    <div class="game-board" id="masterBoard">
-        </div>
+    <div class="game-board" id="masterBoard"></div>
     
-    <div class="options-container" id="optionsContainer">
-        </div>
+    <div class="options-container" id="optionsContainer"></div>
 
     <button id="actionControl" class="btn" onclick="advanceNextRound()" disabled>Next ➡️</button>
 </div>
@@ -393,257 +392,4 @@ function buildSequenceRound(board, optionsContainer) {
 
     choices.forEach(val => {
         const card = document.createElement("div");
-        card.className = "option-card";
-        card.innerText = val;
-        card.onclick = () => verifyPlayerInput(card, val.toString(), () => {
-            const target = document.getElementById("targetSlot");
-            target.innerText = correctAnswerText;
-            target.style.background = "#81c784";
-            target.style.color = "#fff";
-            target.style.borderColor = "#2e7d32";
-            target.style.borderStyle = "solid";
-            target.classList.add("pop-correct");
-        });
-        optionsContainer.appendChild(card);
-    });
-}
-
-/* ==========================================
-   LEVEL 2 GENERATOR ENGINE: EXPANDED FORM (LIME LAB)
-   ========================================== */
-function buildExpansionRound(board, optionsContainer) {
-    let targetNum = Math.floor(Math.random() * 99) + 101; 
-    
-    let hundreds = Math.floor(targetNum / 100) * 100;
-    let tens = Math.floor((targetNum % 100) / 10) * 10;
-    let ones = targetNum % 10;
-    
-    correctAnswerText = `${hundreds} + ${tens} + ${ones}`;
-
-    const targetNode = document.createElement("div");
-    targetNode.className = "number-node";
-    targetNode.style.maxWidth = "160px";
-    targetNode.style.borderColor = "#39ff14";
-    targetNode.style.backgroundColor = "#0d3c11";
-    targetNode.style.color = "#fff";
-    targetNode.innerText = targetNum;
-    board.appendChild(targetNode);
-
-    const equalSign = document.createElement("div");
-    equalSign.className = "expansion-node";
-    equalSign.style.color = "#39ff14";
-    equalSign.innerText = "=";
-    board.appendChild(equalSign);
-
-    const slotNode = document.createElement("div");
-    slotNode.className = "number-node missing-target";
-    slotNode.id = "targetSlot";
-    slotNode.style.maxWidth = "280px";
-    slotNode.style.aspectRatio = "auto";
-    slotNode.style.padding = "10px 25px";
-    slotNode.style.borderColor = "#39ff14";
-    slotNode.innerText = "? + ? + ?";
-    board.appendChild(slotNode);
-
-    let choices = [correctAnswerText];
-    while (choices.length < 3) {
-        let fakeNum = Math.floor(Math.random() * 99) + 101;
-        let fH = Math.floor(fakeNum / 100) * 100;
-        let fT = Math.floor((fakeNum % 100) / 10) * 10;
-        let fO = fakeNum % 10;
-        let fakeOption = `${fH} + ${fT} + ${fO}`;
-        if (!choices.includes(fakeOption)) {
-            choices.push(fakeOption);
-        }
-    }
-    choices.sort(() => Math.random() - 0.5);
-
-    choices.forEach(formula => {
-        const card = document.createElement("div");
-        card.className = "option-card";
-        card.style.maxWidth = "240px";
-        card.style.borderColor = "#1b5e20";
-        card.style.color = "#1b5e20";
-        card.innerText = formula;
-        card.onclick = () => verifyPlayerInput(card, formula, () => {
-            const target = document.getElementById("targetSlot");
-            target.innerText = correctAnswerText;
-            target.style.background = "#39ff14";
-            target.style.color = "#000";
-            target.style.borderColor = "#fff";
-            target.style.fontSize = "clamp(18px, 3.5vw, 26px)";
-            target.style.borderStyle = "solid";
-            target.classList.add("pop-correct");
-        });
-        optionsContainer.appendChild(card);
-    });
-}
-
-/* ==========================================
-   LEVEL 3 GENERATOR ENGINE: COMPARISONS (<, >)
-   ========================================== */
-function buildComparisonRound(board, optionsContainer) {
-    let numA = Math.floor(Math.random() * 90) + 105;
-    let numB = Math.floor(Math.random() * 90) + 105;
-    while (numA === numB) {
-        numB = Math.floor(Math.random() * 90) + 105;
-    }
-
-    correctAnswerText = numA > numB ? ">" : "<";
-
-    const nodeA = document.createElement("div");
-    nodeA.className = "number-node";
-    nodeA.innerText = numA;
-    board.appendChild(nodeA);
-
-    const slotNode = document.createElement("div");
-    slotNode.className = "symbol-slot";
-    slotNode.id = "targetSlot";
-    slotNode.innerText = "?";
-    board.appendChild(slotNode);
-
-    const nodeB = document.createElement("div");
-    nodeB.className = "number-node";
-    nodeB.innerText = numB;
-    board.appendChild(nodeB);
-
-    const operationalChoices = [">", "<"];
-    operationalChoices.forEach(symbol => {
-        const card = document.createElement("div");
-        card.className = "option-card";
-        card.style.fontSize = "48px";
-        card.innerText = symbol;
-        card.onclick = () => verifyPlayerInput(card, symbol, () => {
-            const target = document.getElementById("targetSlot");
-            target.innerText = correctAnswerText;
-            target.style.backgroundColor = "#ffeb3b";
-            target.style.color = "#e65100";
-            target.style.borderColor = "#e65100";
-            target.style.borderStyle = "solid";
-            target.classList.add("pop-correct");
-        });
-        optionsContainer.appendChild(card);
-    });
-}
-
-/* ==========================================
-   VALIDATION & STATE STEPPING MANAGEMENT
-   ========================================= */
-function verifyPlayerInput(selectedCard, alternativeValue, updateUIDelegate) {
-    if (alternativeValue === correctAnswerText) {
-        correctSound.currentTime = 0;
-        correctSound.play().catch(e => {});
-        
-        updateUIDelegate();
-        
-        const target = document.getElementById("targetSlot");
-        const rect = target.getBoundingClientRect();
-        burstParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 28);
-        
-        document.querySelectorAll('.option-card').forEach(c => c.onclick = null);
-        document.getElementById("actionControl").disabled = false;
-    } else {
-        wrongSound.currentTime = 0;
-        wrongSound.play().catch(e => {});
-        
-        selectedCard.style.backgroundColor = "#ffcdd2";
-        selectedCard.style.color = "#c62828";
-        selectedCard.classList.add("shake-wrong");
-        
-        setTimeout(() => {
-            selectedCard.classList.remove("shake-wrong");
-            selectedCard.style.backgroundColor = "#ffffff";
-            selectedCard.style.color = currentLevel === 2 ? "#1b5e20" : "#2e7d32";
-        }, 500);
-    }
-}
-
-function advanceNextRound() {
-    currentRound++;
-    if (currentRound < totalRoundsPerLevel) {
-        loadRoundEngine();
-    } else {
-        // FIXED: Explicitly increment the level and reset the round tracker
-        if (currentLevel < 3) {
-            currentLevel++;
-            currentRound = 0;
-            
-            // Pop transition flash particles
-            burstParticles(window.innerWidth / 2, window.innerHeight / 3, 50);
-            loadRoundEngine();
-        } else {
-            triggerWinCelebration();
-        }
-    }
-}
-
-function triggerWinCelebration() {
-    document.getElementById("winScreen").style.display = "flex";
-    winMusic.currentTime = 0;
-    winMusic.play().catch(e => {});
-    
-    triggerFullRainBurst();
-    winInterval = setInterval(triggerFullRainBurst, 550);
-}
-
-function handleOverlayReset() {
-    document.getElementById("winScreen").style.display = "none";
-    if (winInterval) clearInterval(winInterval);
-    particles = [];
-    initGame();
-}
-
-/* Particle Pipeline Engine */
-const canvas = document.getElementById("fireworks");
-const ctx = canvas.getContext("2d");
-let particles = [];
-function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-resize();
-window.addEventListener("resize", resize);
-
-function burstParticles(x, y, count) {
-    const hues = currentLevel === 2 ? [95, 120, 145, 60, 45, 135] : [15, 45, 135, 195, 275, 335]; 
-    for(let i = 0; i < count; i++){
-        let angle = Math.random() * 2 * Math.PI;
-        let speed = Math.random() * 6 + 2.5;
-        let hue = hues[Math.floor(Math.random() * hues.length)];
-        particles.push({ 
-            x: x, 
-            y: y, 
-            vx: Math.cos(angle) * speed, 
-            vy: Math.sin(angle) * speed, 
-            radius: Math.random() * 3 + 2.5, 
-            alpha: 1, 
-            color: `hsla(${hue}, 100%, 60%, `, 
-            gravity: 0.07 
-        });
-    }
-}
-
-function triggerFullRainBurst() {
-    const randomX = Math.random() * canvas.width;
-    const randomY = Math.random() * (canvas.height * 0.4) + (canvas.height * 0.1);
-    burstParticles(randomX, randomY, 35);
-}
-
-function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach(p => { 
-        p.x += p.vx; 
-        p.y += p.vy; 
-        p.vy += p.gravity; 
-        p.alpha -= 0.013; 
-    });
-    particles = particles.filter(p => p.alpha > 0);
-    particles.forEach(p => {
-        ctx.fillStyle = `${p.color}${p.alpha})`;
-        ctx.beginPath(); 
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); 
-        ctx.fill();
-    });
-    requestAnimationFrame(animate);
-}
-animate();
-</script>
-</body>
-</html>
+        card.
