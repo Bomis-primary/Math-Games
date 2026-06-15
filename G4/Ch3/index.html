@@ -155,7 +155,7 @@
             flex: 1;
             max-width: 150px;
             height: clamp(120px, 20vh, 180px);
-            border: 3px dashed #cbd5e1;
+            border: 3px solid #cbd5e1;
             border-radius: 18px;
             background: rgba(255, 255, 255, 0.6);
             display: flex;
@@ -165,7 +165,7 @@
             font-weight: 800;
             color: #312e81;
             box-shadow: inset 0 4px 8px rgba(0,0,0,0.05);
-            transition: background-color 0.2s, border-color 0.2s;
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s;
         }
 
         /* Deck Base Zone */
@@ -176,7 +176,7 @@
             transform: translateX(-50%);
             width: clamp(130px, 25vw, 160px);
             height: clamp(160px, 22vh, 200px);
-            border: 3px solid #cbd5e1;
+            border: 3px dashed #cbd5e1;
             border-radius: 20px;
             background: rgba(255, 255, 255, 0.4);
             z-index: 2;
@@ -236,6 +236,7 @@
     <audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
     <audio id="sound-win" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
 
+    <!-- 1) SPLASH SCREEN - EXACTLY 5 SECONDS -->
     <div id="splash-screen" class="screen active">
         <img class="innovine-logo" src="assets/logo.png" alt="Logo">
         <div class="loading-bar">
@@ -243,24 +244,26 @@
         </div>
     </div>
 
+    <!-- 2) INSTRUCTION SCREEN -->
     <div id="menu-screen" class="screen">
         <div class="content-box">
             <h1>Challenge Quest</h1>
             <ul class="instructions-list">
-                <li>A math expression card will spawn in the bottom deck pile.</li>
-                <li><strong>Click and drag</strong> the problem card across the workspace.</li>
-                <li>Drop it directly on top of the correct answer slot up top.</li>
-                <li>You get <strong>exactly 2 chances</strong> to hit the right slot per round!</li>
-                <li>Complete all 10 math pairs sequentially to clear the quest!</li>
+                <li>A math problem card will appear in the bottom deck pile.</li>
+                <li><strong>Drag and drop</strong> the card onto the correct answer slot up top.</li>
+                <li>You get <strong>exactly 2 chances</strong> to choose the correct slot.</li>
+                <li>Missing twice will reveal the correct answer before moving to the next round.</li>
             </ul>
             <button class="btn" onclick="startGame()">START QUEST</button>
         </div>
     </div>
 
+    <!-- 3) PLAYABLE GAME INTERFACE -->
     <div id="game-screen" class="screen">
         <div class="game-header">
-            <div>⭐ SCORE: <span id="score-display">0</span> / 10</div>
-            <div>❤️ CHANCES LEFT: <span id="chances-display">2</span></div>
+            <div>⭐ QUEST: <span id="round-display">1</span> / 10</div>
+            <div>🏆 SCORE: <span id="score-display">0</span></div>
+            <div>❤️ CHANCES: <span id="chances-display">2</span></div>
         </div>
         
         <div class="board-table" id="board-table">
@@ -276,21 +279,24 @@
         </div>
     </div>
 
+    <!-- 4) COMPLETION PAGE -->
     <div id="win-screen" class="screen">
         <div class="content-box">
             <div class="trophy-icon">🏆</div>
             <h1 style="color: #1e1b4b; margin-bottom: 10px;">Quest Complete!</h1>
-            <p style="font-size: 1.2rem; margin-bottom: 24px; color: var(--text-muted);">Quest finalized with your total performance score.</p>
+            <p style="font-size: 1.2rem; margin-bottom: 24px; color: var(--text-muted);">Final Score: <span id="final-score-display">0</span> / 10</p>
             <button class="btn" onclick="resetGame()">PLAY AGAIN</button>
         </div>
     </div>
 
     <script>
+        let roundCount = 0;
         let score = 0;
         let currentCorrectAnswer = 0;
-        const targetScore = 10;
+        const totalRounds = 10;
         let slotValues = [];
         let attempts = 0;
+        let lockInteraction = false;
 
         let isDragging = false;
         let startX, startY;
@@ -334,14 +340,31 @@
 
         function startGame() {
             score = 0;
+            roundCount = 0;
             document.getElementById('score-display').innerText = score;
             transitionScreen('menu-screen', 'game-screen');
             setupRound();
         }
 
         function setupRound() {
+            roundCount++;
+            if (roundCount > totalRounds) {
+                endGame();
+                return;
+            }
+
             attempts = 0;
+            lockInteraction = false;
+            document.getElementById('round-display').innerText = roundCount;
             document.getElementById('chances-display').innerText = 2;
+
+            // Clear visual enhancements from target slots
+            for (let i = 0; i < 4; i++) {
+                const slotEl = document.getElementById(`slot-${i}`);
+                slotEl.style.borderColor = "#cbd5e1";
+                slotEl.style.backgroundColor = "rgba(255, 255, 255, 0.6)";
+                slotEl.style.color = "#312e81";
+            }
 
             // Position Reset
             card.style.left = deckPile.offsetLeft + "px";
@@ -349,7 +372,7 @@
             card.style.display = "flex";
             card.style.transform = "none";
 
-            // Calculation values setup (3-4 digit sets)
+            // Calculation values setup (Grade 4 appropriate range)
             const num1 = Math.floor(Math.random() * 6000) + 3000;
             const num2 = Math.floor(Math.random() * (num1 - 500)) + 250;
             currentCorrectAnswer = num1 - num2;
@@ -371,7 +394,7 @@
             }
         }
 
-        // Drag and Drop Engine Controls
+        // Drag and Drop Logic Implementation
         card.addEventListener('mousedown', startDrag);
         card.addEventListener('touchstart', startDrag, { passive: false });
 
@@ -382,6 +405,7 @@
         window.addEventListener('touchend', endDrag);
 
         function startDrag(e) {
+            if (lockInteraction) return;
             isDragging = true;
             const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
             const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
@@ -393,7 +417,7 @@
         }
 
         function dragMove(e) {
-            if (!isDragging) return;
+            if (!isDragging || lockInteraction) return;
             if(e.cancelable) e.preventDefault();
 
             const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
@@ -407,7 +431,7 @@
         }
 
         function endDrag() {
-            if (!isDragging) return;
+            if (!isDragging || lockInteraction) return;
             isDragging = false;
 
             const cardRect = card.getBoundingClientRect();
@@ -428,46 +452,38 @@
 
             if (droppedSlotIndex !== -1) {
                 if (slotValues[droppedSlotIndex] === currentCorrectAnswer) {
+                    lockInteraction = true;
                     score++;
                     document.getElementById('score-display').innerText = score;
                     playSound(soundCorrect);
+                    
+                    // Animate matched slot to success state
+                    const targetSlot = document.getElementById(`slot-${droppedSlotIndex}`);
+                    targetSlot.style.borderColor = "var(--accent-success)";
+                    targetSlot.style.backgroundColor = "rgba(16, 185, 129, 0.1)";
                     card.style.display = "none";
 
-                    setTimeout(() => {
-                        if (score >= targetScore) {
-                            playSound(soundWin);
-                            transitionScreen('game-screen', 'win-screen');
-                        } else {
-                            setupRound();
-                        }
-                    }, 500);
+                    setTimeout(setupRound, 1200);
                 } else {
                     attempts++;
                     document.getElementById('chances-display').innerText = 2 - attempts;
                     playSound(soundWrong);
                     
                     if (attempts >= 2) {
+                        lockInteraction = true;
                         card.style.display = "none";
-                        // Highlight correct slot automatically on final failure path
+                        
+                        // Automatically highlight and reveal the correct solution slot path
                         for (let i = 0; i < 4; i++) {
                             if (slotValues[i] === currentCorrectAnswer) {
-                                document.getElementById(`slot-${i}`).style.borderColor = "var(--accent-success)";
-                                document.getElementById(`slot-${i}`).style.backgroundColor = "rgba(16, 185, 129, 0.1)";
+                                const correctSlot = document.getElementById(`slot-${i}`);
+                                correctSlot.style.borderColor = "var(--accent-success)";
+                                correctSlot.style.backgroundColor = "rgba(16, 185, 129, 0.15)";
+                                correctSlot.style.color = "var(--accent-success)";
                             }
                         }
-                        setTimeout(() => {
-                            // Clear transient layout indicators before moving forward
-                            for (let i = 0; i < 4; i++) {
-                                document.getElementById(`slot-${i}`).style.borderColor = "";
-                                document.getElementById(`slot-${i}`).style.backgroundColor = "";
-                            }
-                            if (score >= targetScore) {
-                                playSound(soundWin);
-                                transitionScreen('game-screen', 'win-screen');
-                            } else {
-                                setupRound();
-                            }
-                        }, 2000);
+                        // Proceed cleanly to next round after user perceives correction state
+                        setTimeout(setupRound, 2500);
                     } else {
                         snapBack();
                     }
@@ -482,6 +498,12 @@
             card.style.left = deckPile.offsetLeft + "px";
             card.style.top = deckPile.offsetTop + "px";
             setTimeout(() => { card.style.transition = "none"; }, 300);
+        }
+
+        function endGame() {
+            playSound(soundWin);
+            document.getElementById('final-score-display').innerText = score;
+            transitionScreen('game-screen', 'win-screen');
         }
 
         function resetGame() {
