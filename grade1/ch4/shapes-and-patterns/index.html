@@ -107,7 +107,7 @@ h1 {
     .board { grid-template-columns: repeat(4, 1fr); }
 }
 
-/* CARD LAYOUTS & CLARITY FIX FOR TINY ASSETS */
+/* CARD LAYOUTS */
 .card {
     width: 100%;
     aspect-ratio: 1 / 1;
@@ -132,7 +132,7 @@ h1 {
     height: 95%;
     object-fit: contain;
     pointer-events: none;
-    transform: scale(1.15); /* Maximizes asset presentation sizes cleanly */
+    transform: scale(1.15);
 }
 
 .card-text {
@@ -342,7 +342,7 @@ const wrongSound = document.getElementById("wrongSound");
 
 [winMusic, correctSound, wrongSound].forEach(track => { track.volume = 0.5; });
 
-let currentLevel = 1; // Tracks current gameplay layer index
+let currentLevel = 1; 
 let winTimerInterval = null;
 
 /* LEVEL 1 DEFINITIONS ARRAY */
@@ -361,7 +361,7 @@ const shapesPool = [
     { id: 6, imgFile: "assets/dice.png", text: "Dice" }
 ];
 
-/* LEVEL 2 DEFINITIONS ARRAY */
+/* LEVEL 2 DEFINITIONS POOL */
 const patternsPool = [
     {
         sequence: ["assets/circle.png", "assets/triangle.png", "assets/circle.png", "assets/triangle.png", "assets/circle.png"],
@@ -369,9 +369,9 @@ const patternsPool = [
         options: ["assets/triangle.png", "assets/square.png", "assets/pizza-slice.png"]
     },
     {
-        sequence: ["assets/stars.png", "assets/clouds.png", "assets/stars.png", "assets/clouds.png", "assets/stars.png"],
-        correctAnswer: "assets/clouds.png",
-        options: ["assets/circle.png", "assets/clouds.png", "assets/ball.png"]
+        sequence: ["assets/stars.png", "assets/cloud.png", "assets/stars.png", "assets/cloud.png", "assets/stars.png"],
+        correctAnswer: "assets/cloud.png",
+        options: ["assets/circle.png", "assets/cloud.png", "assets/ball.png"]
     },
     {
         sequence: ["assets/cube.png", "assets/sphere.png", "assets/cube.png", "assets/sphere.png", "assets/cube.png"],
@@ -389,6 +389,9 @@ const patternsPool = [
         options: ["assets/circle.png", "assets/triangle.png", "assets/square.png"]
     }
 ];
+
+// Context Runtime Question Order Arrays
+let level2QuestionOrder = [];
 
 // Level 1 Variable Context State
 let cards = []; let flipped = []; let matched = []; let lock = false;
@@ -427,11 +430,9 @@ function handleWinScreenReset() {
     particles = [];
 
     if (currentLevel === 1) {
-        // Elevate user into Level 2 context
         currentLevel = 2;
         initLevel2();
     } else {
-        // Loop back directly to Level 1
         currentLevel = 1;
         initLevel1();
     }
@@ -455,7 +456,7 @@ function initLevel1() {
     flipped = []; matched = []; lock = false;
     cards = JSON.parse(JSON.stringify(shapesPool));
     
-    // Shuffle level elements
+    // Shuffle Level 1 Cards
     for(let i = cards.length - 1; i > 0; i--){
         let j = Math.floor(Math.random() * (i + 1));
         [cards[i], cards[j]] = [cards[j], cards[i]];
@@ -501,8 +502,10 @@ function flipCard(i){
 
         if(cards[i1].id === cards[i2].id && i1 !== i2){
             matched.push(i1, i2);
-            correctSound.currentTime = 0;
-            correctSound.play().catch(e => {});
+            try {
+                correctSound.currentTime = 0;
+                correctSound.play().catch(e => {});
+            } catch(e){}
 
             setTimeout(() => {
                 flipped = []; lock = false;
@@ -510,8 +513,10 @@ function flipCard(i){
                 if(matched.length === cards.length) triggerLevelClearWindow("LEVEL 1 CLEAR! 🎉", "Superb work! Ready for the patterns challenge?", "Next Level ➡️");
             }, 500);
         } else {
-            wrongSound.currentTime = 0;
-            wrongSound.play().catch(e => {});
+            try {
+                wrongSound.currentTime = 0;
+                wrongSound.play().catch(e => {});
+            } catch(e){}
 
             setTimeout(() => {
                 flipped = []; lock = false;
@@ -523,7 +528,7 @@ function flipCard(i){
 
 /* ================= LEVEL 2: ENGINE OPERATORS ================= */
 function initLevel2() {
-    document.body.style.background = "linear-gradient(135deg, #11998e, #38ef7d)"; // Transition layout theme hue automatically
+    document.body.style.background = "linear-gradient(135deg, #11998e, #38ef7d)"; 
     document.getElementById("levelBadge").innerText = "LEVEL 2";
     document.getElementById("mainTitle").innerText = "✨ Pattern Wizards";
     document.getElementById("mainDesc").innerText = "Look closely at the repeating items!";
@@ -532,18 +537,25 @@ function initLevel2() {
     document.getElementById("shapesBoard").style.display = "none";
     document.getElementById("patternsArena").style.display = "flex";
     
+    // Assemble entirely randomized Question Layout Order for Level 2
+    level2QuestionOrder = Array.from({length: patternsPool.length}, (_, i) => i);
+    for (let i = level2QuestionOrder.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [level2QuestionOrder[i], level2QuestionOrder[j]] = [level2QuestionOrder[j], level2QuestionOrder[i]];
+    }
+
     currentPatternIndex = 0;
-    loadPatternSequence(currentPatternIndex);
+    loadPatternSequence(level2QuestionOrder[currentPatternIndex]);
 }
 
-function loadPatternSequence(index) {
+function loadPatternSequence(poolIndex) {
     patternAnswerSelected = false;
     
     const actionBtn = document.getElementById("actionBtn");
     actionBtn.innerText = "Next Pattern ➡️";
     actionBtn.disabled = true;
 
-    const currentPattern = patternsPool[index];
+    const currentPattern = patternsPool[poolIndex];
     const board = document.getElementById("patternBoard");
     board.innerHTML = "";
 
@@ -577,8 +589,10 @@ function verifyPatternChoice(btnElement, chosenSrc, correctSrc) {
 
     if (chosenSrc === correctSrc) {
         patternAnswerSelected = true;
-        correctSound.currentTime = 0;
-        correctSound.play().catch(e => {});
+        try {
+            correctSound.currentTime = 0;
+            correctSound.play().catch(e => {});
+        } catch(e){}
 
         const blank = document.getElementById("targetBlank");
         blank.className = "pattern-tile";
@@ -590,8 +604,10 @@ function verifyPatternChoice(btnElement, chosenSrc, correctSrc) {
 
         document.getElementById("actionBtn").disabled = false;
     } else {
-        wrongSound.currentTime = 0;
-        wrongSound.play().catch(e => {});
+        try {
+            wrongSound.currentTime = 0;
+            wrongSound.play().catch(e => {});
+        } catch(e){}
         
         btnElement.style.backgroundColor = "#ffcdd2";
         btnElement.style.borderColor = "#ff1744";
@@ -604,8 +620,8 @@ function verifyPatternChoice(btnElement, chosenSrc, correctSrc) {
 
 function loadNextPattern() {
     currentPatternIndex++;
-    if (currentPatternIndex < patternsPool.length) {
-        loadPatternSequence(currentPatternIndex);
+    if (currentPatternIndex < level2QuestionOrder.length) {
+        loadPatternSequence(level2QuestionOrder[currentPatternIndex]);
     } else {
         triggerLevelClearWindow("GRAND CHAMPION! 🏆", "Incredible job! You mastered both Levels perfectly!", "Play Again 🔄");
     }
@@ -618,8 +634,10 @@ function triggerLevelClearWindow(title, desc, buttonText) {
     document.getElementById("winResetBtn").innerText = buttonText;
     document.getElementById("winScreen").style.display = "flex";
     
-    winMusic.currentTime = 0;
-    winMusic.play().catch(e => {});
+    try {
+        winMusic.currentTime = 0;
+        winMusic.play().catch(e => {});
+    } catch(e){}
 
     burstFireworks();
     winTimerInterval = setInterval(burstFireworks, 700);
