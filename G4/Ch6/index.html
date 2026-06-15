@@ -286,7 +286,7 @@
                 <div class="menu-card">
                     <h1 style="font-size:2.2rem; margin-bottom:15px; font-weight:900; letter-spacing:1px; color:#ff007f;">Matrix Detonator</h1>
                     <p style="color:#b3b3cc; font-size:1rem; line-height:1.6; text-align:left; margin-bottom:30px; padding: 0 5px;">
-                        Welcome, Commander! Scan the fields to find target math values. Careful! You get <b>2 attempts</b> per round. If you miss twice, the radar will reveal the answer and swap shields!
+                        Welcome, Commander! Find target math values on the grid. You have <b>2 attempts</b> per round. If you miss twice, the correct answer will be revealed before moving to the next level!
                     </p>
                     <button class="action-btn" onclick="startCoreGameEngine()">ENGAGE FIELD</button>
                 </div>
@@ -338,17 +338,20 @@
 
         function generateNextWaveData() {
             interactionLock = false;
-            wrongAttempts = 0; // Reset target chances per wave context
-            numericalValuesPool = [];
+            wrongAttempts = 0; // Reset target chances per new question wave
             updateShieldDisplay();
 
             for (let i = 0; i < 9; i++) {
                 const cell = document.getElementById(`c-${i}`);
-                if (cell) cell.className = "matrix-cell";
+                if (cell) {
+                    cell.className = "matrix-cell";
+                    cell.style.visibility = "visible"; 
+                }
             }
 
             const branchIndex = Math.random();
             let matchesFound = 0;
+            numericalValuesPool = [];
 
             if (branchIndex < 0.35) {
                 targetMode = "FACTOR";
@@ -424,7 +427,7 @@
         }
 
         function revealAnswersAndAdvance() {
-            // Highlight all valid cells in green for the student
+            // Highlight all true answers on the grid using emerald styling 
             for (let i = 0; i < 9; i++) {
                 if (evaluateCellCorrectness(numericalValuesPool[i])) {
                     const cellElement = document.getElementById(`c-${i}`);
@@ -432,7 +435,7 @@
                 }
             }
 
-            // Lock grid actions briefly to let them look, then refresh wave data
+            // Let the student review the highlighted solution, then automatically launch the next task
             setTimeout(() => {
                 generateNextWaveData();
             }, 1500);
@@ -475,9 +478,10 @@
                     if (targetedCell) targetedCell.classList.remove('cell-wrong-pulse');
                     
                     if (wrongAttempts >= totalChances) {
+                        // Max attempts reached: Show right answers and go to next question automatically
                         revealAnswersAndAdvance();
                     } else {
-                        interactionLock = false; // Give them 1 last attempt
+                        interactionLock = false; // Allow one more chance on this question layout
                     }
                 }, 400);
             }
