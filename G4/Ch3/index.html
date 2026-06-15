@@ -48,7 +48,11 @@
         }
         
         /* 1) Splash Screen - White Frame with Logo & Animated Green Progress Bar */
-        #splash-screen { background-color: #ffffff; gap: 24px; }
+        #splash-screen { 
+            background-color: #ffffff; 
+            gap: 24px; 
+            z-index: 100; /* Keeps splash clean on top of floaters */
+        }
         .innovine-logo { width: min(240px, 65vw); height: auto; object-fit: contain; }
         .loading-bar { width: min(200px, 50vw); height: 8px; background-color: #e2e8f0; border-radius: 10px; overflow: hidden; }
         .loading-progress { width: 0%; height: 100%; background-color: #22c55e; border-radius: 10px; animation: load 5s linear forwards; }
@@ -66,6 +70,7 @@
             box-shadow: 0 20px 40px rgba(79, 70, 229, 0.15);
             text-align: center;
             border: 3px solid #eef2f6;
+            z-index: 10;
         }
         h1 {
             font-size: clamp(24px, 4.5vw, 34px);
@@ -354,7 +359,6 @@
             document.getElementById('round-display').innerText = roundCount;
             document.getElementById('chances-display').innerText = 2;
 
-            // Clear visual variations from all slot elements
             for (let i = 0; i < 4; i++) {
                 const slotEl = document.getElementById(`slot-${i}`);
                 slotEl.style.borderColor = "#cbd5e1";
@@ -362,13 +366,11 @@
                 slotEl.style.color = "#312e81";
             }
 
-            // Position Reset
             card.style.left = deckPile.offsetLeft + "px";
             card.style.top = deckPile.offsetTop + "px";
             card.style.display = "flex";
             card.style.transform = "none";
 
-            // Calculation values setup (Grade 4 appropriate range)
             const num1 = Math.floor(Math.random() * 6000) + 3000;
             const num2 = Math.floor(Math.random() * (num1 - 500)) + 250;
             currentCorrectAnswer = num1 - num2;
@@ -390,7 +392,6 @@
             }
         }
 
-        // Drag and Drop Logic Implementation
         card.addEventListener('mousedown', startDrag);
         card.addEventListener('touchstart', startDrag, { passive: false });
 
@@ -468,7 +469,6 @@
                         lockInteraction = true;
                         card.style.display = "none";
                         
-                        // Automatically highlight and reveal the correct solution slot path immediately
                         for (let i = 0; i < 4; i++) {
                             if (slotValues[i] === currentCorrectAnswer) {
                                 const correctSlot = document.getElementById(`slot-${i}`);
@@ -477,7 +477,6 @@
                                 correctSlot.style.color = "var(--accent-success)";
                             }
                         }
-                        // Move directly onto the next calculation set round
                         setTimeout(setupRound, 2500);
                     } else {
                         snapBack();
