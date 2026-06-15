@@ -38,30 +38,6 @@
       overflow: hidden;
     }
 
-    /* Safe & Bulletproof Splash Screen */
-    #screen-splash {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: #ffffff;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      z-index: 100;
-      transition: opacity 0.5s ease, visibility 0.5s ease;
-    }
-    #screen-splash img {
-      max-width: 60%;
-      max-height: 60%;
-      object-fit: contain;
-    }
-    .loading-fallback-text {
-      margin-top: 15px;
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #2e7d32;
-    }
-
     /* HUD Progress Area */
     .game-header {
       background: #2e7d32;
@@ -139,13 +115,13 @@
       white-space: nowrap;
     }
 
-    /* Dino Image Positioning Styles */
+    /* Dino Image Positioning - Moved slightly right to clear the signpost cleanly */
     .dino-img-render {
       position: absolute;
-      bottom: -5px;
-      left: 15px; 
-      width: 160px;
-      height: 160px;
+      bottom: 10px;
+      left: 40px; 
+      width: 140px;
+      height: 140px;
       object-fit: contain;
       z-index: 5;
       pointer-events: auto;
@@ -287,7 +263,7 @@
       .scenery-canvas { height: 240px; }
       .harvest-shelf { width: 55px; right: 10px; height: 215px; top: 15px; }
       .harvest-shelf-title { display: none; }
-      .dino-img-render { width: 110px; height: 110px; bottom: 0; left: 5px; }
+      .dino-img-render { width: 110px; height: 110px; bottom: 5px; left: 20px; }
       .apple-draggable-img { width: 34px !important; height: 34px !important; }
       .equation-container { font-size: 1.6rem; padding: 4px 18px; }
       .equation-blank { width: 45px; height: 35px; line-height: 30px; }
@@ -303,11 +279,6 @@
   <audio id="snd-roar" src="./assets/dino-roar.mp3" preload="auto"></audio>
 
   <div class="game-container">
-    
-    <div id="screen-splash">
-      <img src="./assets/logo.png" alt="Orchard Math Puzzle" onerror="this.style.display='none';" />
-      <div class="loading-fallback-text">🦖 Loading Game... 🍏</div>
-    </div>
 
     <div class="game-header">
       <div class="hud-stats">
@@ -327,7 +298,7 @@
 
     <div id="screen-play" class="screen">
       <div class="story-bubble">
-        <p id="story-text">Loading instruction scenario...</p>
+        <p id="story-text">Loading instructions...</p>
       </div>
 
       <div class="scenery-canvas" id="stage-canvas"></div>
@@ -362,6 +333,7 @@
     let currentApplesEaten = 0;
     let targetToEat = 0;
 
+    // Verified match against your repository filenames
     const dinoList = ['blue-dino.png', 'pink-dino.png', 'red-dino.png', 'yellow-dino.png'];
 
     function playAudio(elementId) {
@@ -369,27 +341,29 @@
         const sound = document.getElementById(elementId);
         if (sound) {
           sound.currentTime = 0;
-          sound.play().catch(e => console.log("Audio skipped."));
+          sound.play().catch(e => console.log("Audio play delayed/prevented until interaction."));
         }
       } catch (err) {
-        console.log("Audio block error.");
+        console.log("Audio block element missing.");
       }
     }
 
     function popConfetti() {
-      const container = document.querySelector('.game-container');
-      const rect = container.getBoundingClientRect();
-      for (let i = 0; i < 40; i++) {
-        const p = document.createElement('div');
-        p.className = 'particle';
-        p.style.left = Math.random() * rect.width + 'px'; 
-        p.style.top = Math.random() * (rect.height * 0.6) + 'px';
-        p.style.background = ['#4caf50','#81c784','#ffeb3b','#ff9800','#ff5722'][Math.floor(Math.random()*5)];
-        p.style.setProperty('--dx', (Math.random() - 0.5) * 250 + 'px'); 
-        p.style.setProperty('--dy', (Math.random() - 0.5) * 250 - 50 + 'px');
-        container.appendChild(p);
-        setTimeout(() => p.remove(), 800);
-      }
+      try {
+        const container = document.querySelector('.game-container');
+        const rect = container.getBoundingClientRect();
+        for (let i = 0; i < 40; i++) {
+          const p = document.createElement('div');
+          p.className = 'particle';
+          p.style.left = Math.random() * rect.width + 'px'; 
+          p.style.top = Math.random() * (rect.height * 0.6) + 'px';
+          p.style.background = ['#4caf50','#81c784','#ffeb3b','#ff9800','#ff5722'][Math.floor(Math.random()*5)];
+          p.style.setProperty('--dx', (Math.random() - 0.5) * 250 + 'px'); 
+          p.style.setProperty('--dy', (Math.random() - 0.5) * 250 - 50 + 'px');
+          container.appendChild(p);
+          setTimeout(() => p.remove(), 800);
+        }
+      } catch(e) {}
     }
 
     function assembleLevelQuestions() {
@@ -402,11 +376,11 @@
 
         while (!validCombo) {
           if (i > 0 && Math.random() < 0.20) {
-            totalApples = Math.floor(Math.random() * 4) + 6;
+            totalApples = Math.floor(Math.random() * 4) + 6; // 6 to 9 total
             eatenApples = totalApples;
           } else {
-            totalApples = Math.floor(Math.random() * 5) + 6;
-            eatenApples = Math.floor(Math.random() * 3) + 2;
+            totalApples = Math.floor(Math.random() * 5) + 6; // 6 to 10 total
+            eatenApples = Math.floor(Math.random() * 3) + 2; // 2 to 4 to eat
           }
 
           comboKey = `${totalApples}-${eatenApples}`;
@@ -456,6 +430,7 @@
       document.getElementById('math-blank').style.color = "#ff9800";
 
       let currentQ = stageQuestions[turnIndex];
+      if (!currentQ) return;
       targetToEat = currentQ.eaten;
 
       document.getElementById('progress-val').innerText = `${turnIndex + 1} / ${TOTAL_TURNS}`;
@@ -482,7 +457,6 @@
       canvas.appendChild(dinoImg);
 
       const isMobile = window.innerWidth <= 600;
-      
       const shelfRectLeft = shelf.offsetLeft;
       const shelfRectTop = shelf.offsetTop;
       
@@ -570,4 +544,107 @@
             document.getElementById('feedback-box').style.color = '#c62828';
             document.getElementById('feedback-box').innerText = "Oops! Dino shouldn't eat more! Look at the minus number.";
             
-            element.style.left = (document.getElementById('stage-canvas').clientWidth -
+            element.style.left = (document.getElementById('stage-canvas').clientWidth - 50) + 'px';
+            setTimeout(() => targetDino.classList.remove('refusing'), 450);
+            return;
+          }
+
+          element.remove();
+          currentApplesEaten++;
+          
+          targetDino.classList.add('chewing');
+          playAudio('snd-roar');
+          setTimeout(() => targetDino.classList.remove('chewing'), 300);
+
+          if (currentApplesEaten === targetToEat) {
+            triggerChoiceAnswerPhase();
+          }
+        }
+      }
+    }
+
+    function triggerChoiceAnswerPhase() {
+      let feedBox = document.getElementById('feedback-box');
+      feedBox.style.color = '#2e7d32';
+      feedBox.innerText = "Yum! Dino is full. Count the remaining apples!";
+      
+      let currentQ = stageQuestions[turnIndex];
+      const optionsBox = document.getElementById('options-box');
+      optionsBox.innerHTML = "";
+      
+      currentQ.options.forEach(opt => {
+        let btn = document.createElement('button');
+        btn.className = "game-btn";
+        btn.innerText = opt;
+        btn.onclick = function() { processFinalMathSelection(btn, opt); };
+        optionsBox.appendChild(btn);
+      });
+      
+      acceptInput = true;
+    }
+
+    function processFinalMathSelection(clickedElement, pickedValue) {
+      if (!acceptInput) return;
+      let currentQ = stageQuestions[turnIndex];
+      let feedBox = document.getElementById('feedback-box');
+
+      if (pickedValue === currentQ.answer) {
+        acceptInput = false;
+        runningScore += 10;
+        
+        clickedElement.classList.add('correct');
+        document.getElementById('math-blank').innerText = currentQ.answer;
+        document.getElementById('math-blank').style.color = "#4caf50";
+        
+        feedBox.style.color = '#2e7d32';
+        feedBox.innerText = "Great job! Subtraction sentence complete! 🎉";
+        
+        playAudio('snd-correct');
+        popConfetti();
+        
+        turnIndex++;
+        setTimeout(renderActiveTurn, 1600);
+      } else {
+        clickedElement.classList.add('wrong');
+        feedBox.style.color = '#c62828';
+        feedBox.innerText = "Count the apples left carefully! Try again!";
+        
+        playAudio('snd-wrong');
+        setTimeout(() => clickedElement.classList.remove('wrong'), 600);
+      }
+      document.getElementById('score-val').innerText = runningScore;
+    }
+
+    function showEndGameSummary() {
+      document.getElementById('progress-fill').style.width = "100%";
+      document.getElementById('screen-play').classList.remove('active');
+      document.getElementById('screen-end').classList.add('active');
+    }
+
+    function resetWholeGame() {
+      turnIndex = 0;
+      runningScore = 0;
+      document.getElementById('screen-end').classList.remove('active');
+      document.getElementById('screen-intro').classList.add('active');
+      document.getElementById('progress-val').innerText = `1 / 10`;
+      document.getElementById('score-val').innerText = "0";
+      assembleLevelQuestions();
+    }
+
+    // Direct error-isolated boot initialization
+    (function () {
+      try {
+        assembleLevelQuestions();
+      } catch (e) {
+        console.error("Initialization warning handled safely", e);
+      }
+    })();
+
+    window.addEventListener('resize', () => {
+      if(document.getElementById('screen-play').classList.contains('active') && !acceptInput) {
+         renderActiveTurn();
+      }
+    });
+  </script>
+</body>
+</html>
