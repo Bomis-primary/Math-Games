@@ -46,6 +46,7 @@
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
       background: #ffffff;
+      display: flex;
       justify-content: center;
       align-items: center;
       z-index: 2000;
@@ -55,6 +56,13 @@
       max-width: 60%;
       max-height: 60%;
       object-fit: contain;
+    }
+
+    /* Core Content Wrapper - Solves peaking issue by keeping gameplay elements hidden at boot */
+    #main-game-wrapper {
+      display: none;
+      flex-direction: column;
+      width: 100%;
     }
 
     /* Header & Progress HUD */
@@ -243,3 +251,450 @@
     }
     @keyframes blow-up {
       0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+      100% { transform: translate(var(--dx), var(--dy)) scale(0.5) rotate(360deg); opacity: 0; }
+    }
+
+    /* Abacus Layout Configuration */
+    .abacus-frame {
+      display: flex;
+      gap: 35px;
+      background: #efebe9;
+      border: 4px solid #5d4037;
+      border-bottom-width: 8px;
+      border-radius: 12px;
+      padding: 12px 30px 28px 30px;
+      position: absolute;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      height: 140px;
+      align-items: flex-end;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .abacus-rod {
+      width: 6px;
+      height: 100%;
+      background: #bdbdbd;
+      position: relative;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+      padding-bottom: 2px;
+    }
+    .abacus-rod::after {
+      content: attr(data-label);
+      position: absolute;
+      bottom: -22px;
+      font-weight: bold;
+      font-size: 0.85rem;
+      width: 70px;
+      text-align: center;
+      color: #37474f;
+    }
+    .bead {
+      width: 24px;
+      height: 8px;
+      background: #e91e63;
+      border-radius: 3px;
+      border: 1px solid #ad1457;
+      margin-top: 1px;
+      flex-shrink: 0;
+    }
+    .abacus-rod:nth-child(2) .bead { background: #009688; border-color: #00695c; }
+
+    @media(max-width: 500px) {
+      .scenery-canvas { height: 140px; }
+      .train-engine { scale: 0.8; bottom: 18px; }
+      .train-car { scale: 0.8; bottom: 18px; }
+      .abacus-frame { scale: 0.8; bottom: 15px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="game-container">
+    
+    <div id="screen-logo-splash">
+      <img src="assets/logo.png" alt="Raju's Train Game Logo" onerror="this.style.display='none';" />
+    </div>
+
+    <div id="main-game-wrapper">
+      <div class="game-header">
+        <div class="title-area">
+          <h1 id="stage-title">Level 1: The Missing Number</h1>
+        </div>
+        <div class="hud-stats">
+          <span>⭐ Score: <span id="score-val">0</span></span>
+          <span>📋 Task: <span id="progress-val">1/10</span></span>
+        </div>
+      </div>
+      <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+
+      <div id="screen-intro" class="screen active">
+        <div class="story-bubble">
+          <p><strong>Raju the Train Driver says:</strong> "Hi! Welcome to my train! Oh no, some numbers are missing from our track. Can you help me find them so the train can go choo-choo?"</p>
+        </div>
+        <div class="scenery-canvas">
+          <div class="tracks"></div>
+          <div class="train-engine" style="left: 45%;"></div>
+        </div>
+        <button class="action-btn" onclick="startLevel(1)">Let's Play! 🟢</button>
+      </div>
+
+      <div id="screen-transition" class="screen">
+        <div class="story-bubble">
+          <p id="transition-story-text">Story text goes here...</p>
+        </div>
+        <div class="scenery-canvas" id="transition-canvas"></div>
+        <button class="action-btn" id="transition-next-btn" onclick="resumeFromTransition()">Go! ➡️</button>
+      </div>
+
+      <div id="screen-play" class="screen">
+        <div class="story-bubble">
+          <p id="story-text">Help Raju fix his happy train cars!</p>
+        </div>
+
+        <div class="scenery-canvas" id="stage-canvas"></div>
+
+        <div class="question-prompt" id="question-text">What number fits inside the sequence?</div>
+        <div class="options-grid" id="options-box"></div>
+        <div class="feedback-banner" id="feedback-box"></div>
+      </div>
+
+      <div id="screen-end" class="screen">
+        <div class="story-bubble">
+          <p><strong>🎉 Yay! The Train Can Go!</strong></p>
+          <p>You did it! You know your numbers so well. Raju's train is moving down the tracks now. Good job!</p>
+        </div>
+        <h2 style="font-size: 2.5rem; color: #2e7d32; margin-bottom: 20px;">You Win! ⭐</h2>
+        <button class="action-btn" style="background: #9c27b0; box-shadow: 0 5px 0 #7b1fa2;" onclick="resetWholeGame()">Play Again 🔄</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function playAudio(elementId) {
+      console.log("Playing sound action: " + elementId);
+    }
+
+    function popConfetti() {
+      const container = document.querySelector('.game-container');
+      const rect = container.getBoundingClientRect();
+      
+      for (let i = 0; i < 40; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        
+        const startX = Math.random() * rect.width;
+        const startY = Math.random() * (rect.height * 0.6);
+        
+        p.style.left = startX + 'px'; 
+        p.style.top = startY + 'px';
+        p.style.background = ['#ffeb3b','#ff5722','#4caf50','#00bcd4','#e91e63','#9c27b0'][Math.floor(Math.random()*6)];
+        
+        const dx = (Math.random() - 0.5) * 250 + 'px';
+        const dy = (Math.random() - 0.5) * 250 - 50 + 'px';
+        p.style.setProperty('--dx', dx); 
+        p.style.setProperty('--dy', dy);
+        
+        container.appendChild(p);
+        setTimeout(() => p.remove(), 800);
+      }
+    }
+
+    let activeLevel = 1;
+    let turnIndex = 0;
+    let runningScore = 0;
+    let acceptInput = true;
+    let stageQuestions = [];
+    const TOTAL_TOTAL_TURNS = 10;
+    
+    let levelTransitionsViewed = { 2: false, 3: false };
+
+    function assembleLevelQuestions() {
+      stageQuestions = [];
+      
+      // LEVEL 1: Missing Number Sequences (3 Questions)
+      for(let i=0; i<3; i++) {
+        let start = Math.floor(Math.random() * 80) + 5;
+        let missingOffset = Math.floor(Math.random() * 3);
+        let seq = [start, start+1, start+2];
+        let correctVal = seq[missingOffset];
+        seq[missingOffset] = '__';
+        
+        let decoys = new Set([correctVal + 1, correctVal - 1]);
+        decoys.delete(correctVal);
+        while(decoys.size < 2) { decoys.add(Math.floor(Math.random() * 95)); }
+        let opts = [correctVal, ...decoys];
+
+        stageQuestions.push({
+          level: 1,
+          story: "Can you find the missing number to fix my train?",
+          prompt: `What number goes in the blank space?`,
+          displayData: { type: 'sequence', values: seq },
+          answer: correctVal,
+          options: opts.sort(() => Math.random() - 0.5)
+        });
+      }
+
+      // LEVEL 2: Abacus Counting (3 Questions)
+      for(let i=0; i<3; i++) {
+        let t = Math.floor(Math.random() * 8) + 1;
+        let o = Math.floor(Math.random() * 9);
+        let targetNum = (t * 10) + o;
+
+        let decoys = new Set([t*10 + (o+1)%10, ((t+1)%9)*10 + o]);
+        decoys.delete(targetNum);
+        while(decoys.size < 2) { decoys.add(Math.floor(Math.random()*90)+9); }
+        let opts = [targetNum, ...decoys];
+
+        stageQuestions.push({
+          level: 2,
+          story: "Let's count the beads on my favorite toy!",
+          prompt: "How many beads do you see altogether?",
+          displayData: { type: 'abacus', tens: t, ones: o },
+          answer: targetNum,
+          options: opts.sort(() => Math.random() - 0.5)
+        });
+      }
+
+      // LEVEL 3: Big vs Small numbers (4 Questions)
+      const comparisonTasks = [
+        { mode: 'greatest', text: 'Which box has the BIGGEST number?' },
+        { mode: 'smallest', text: 'Which box has the SMALLEST number?' },
+        { mode: 'greatest', text: 'Which box has the BIGGEST number?' },
+        { mode: 'smallest', text: 'Which box has the SMALLEST number?' }
+      ];
+      
+      comparisonTasks.forEach(task => {
+        let num1 = Math.floor(Math.random() * 95) + 2;
+        let num2 = Math.floor(Math.random() * 95) + 2;
+        while(num2 === num1) { num2 = Math.floor(Math.random() * 95) + 2; }
+        let num3 = Math.floor(Math.random() * 95) + 2;
+        while(num3 === num1 || num3 === num2) { num3 = Math.floor(Math.random() * 95) + 2; }
+
+        let arr = [num1, num2, num3];
+        let correctVal = task.mode === 'greatest' ? Math.max(...arr) : Math.min(...arr);
+
+        stageQuestions.push({
+          level: 3,
+          story: "Look at the numbers on these train boxes!",
+          prompt: task.text,
+          displayData: { type: 'compare', list: arr },
+          answer: correctVal,
+          options: [...arr]
+        });
+      });
+    }
+
+    function startLevel(lvl) {
+      activeLevel = lvl;
+      document.getElementById('screen-intro').classList.remove('active');
+      document.getElementById('screen-play').classList.add('active');
+      renderActiveTurn();
+    }
+
+    function triggerStoryTransition(targetLvl) {
+      document.getElementById('screen-play').classList.remove('active');
+      
+      const transitionScreen = document.getElementById('screen-transition');
+      const storyTextEl = document.getElementById('transition-story-text');
+      const canvasEl = document.getElementById('transition-canvas');
+      
+      transitionScreen.classList.add('active');
+      levelTransitionsViewed[targetLvl] = true;
+
+      if (targetLvl === 2) {
+        document.getElementById('stage-title').innerText = "Next Stop: Counting Beads!";
+        storyTextEl.innerHTML = `<strong>Raju the Train Driver says:</strong> "Great job fixing the numbers! Now, our friends want to get on the train! Let's count them together using our colorful <strong>Tens</strong> and <strong>Ones</strong> beads!"`;
+        
+        canvasEl.innerHTML = `
+          <div class="abacus-frame" style="bottom: 15px;">
+            <div class="abacus-rod" data-label="Tens"><div class="bead"></div><div class="bead"></div></div>
+            <div class="abacus-rod" data-label="Ones"><div class="bead"></div><div class="bead"></div><div class="bead"></div></div>
+          </div>`;
+      } else if (targetLvl === 3) {
+        document.getElementById('stage-title').innerText = "Next Stop: Heavy Boxes!";
+        storyTextEl.innerHTML = `<strong>Raju the Train Driver says:</strong> "Wow, you are so good at counting beads! Next, we need to load big boxes onto our train cars. Let's find out which boxes are the <strong>BIGGEST</strong> and <strong>SMALLEST</strong>!"`;
+        
+        canvasEl.innerHTML = `
+          <div class="tracks"></div>
+          <div class="train-car" style="left: 25%; background: #0097a7; bottom: 25px;">25</div>
+          <div class="train-car" style="left: 55%; background: #0097a7; bottom: 25px;">84</div>`;
+      }
+    }
+
+    function resumeFromTransition() {
+      document.getElementById('screen-transition').classList.remove('active');
+      document.getElementById('screen-play').classList.add('active');
+      renderActiveTurn();
+    }
+
+    function renderActiveTurn() {
+      if (turnIndex >= TOTAL_TOTAL_TURNS) {
+        showEndGameSummary();
+        return;
+      }
+
+      let currentQ = stageQuestions[turnIndex];
+      
+      if (currentQ.level > 1 && !levelTransitionsViewed[currentQ.level]) {
+        triggerStoryTransition(currentQ.level);
+        return;
+      }
+
+      acceptInput = true;
+      document.getElementById('feedback-box').innerText = "";
+      activeLevel = currentQ.level;
+
+      document.getElementById('stage-title').innerText = `Level ${activeLevel}: ` + 
+        (activeLevel === 1 ? "The Missing Number" : activeLevel === 2 ? "Count the Beads" : "Big and Small Numbers");
+      document.getElementById('progress-val').innerText = `${turnIndex + 1} / ${TOTAL_TOTAL_TURNS}`;
+      document.getElementById('progress-fill').style.width = `${(turnIndex / TOTAL_TOTAL_TURNS) * 100}%`;
+      document.getElementById('score-val').innerText = runningScore;
+
+      document.getElementById('story-text').innerHTML = `<strong>Raju says:</strong> "${currentQ.story}"`;
+      document.getElementById('question-text').innerText = currentQ.prompt;
+
+      const canvas = document.getElementById('stage-canvas');
+      canvas.innerHTML = '<div class="tracks"></div>';
+
+      if (currentQ.displayData.type === 'sequence') {
+        let startLeft = 110;
+        let engine = document.createElement('div');
+        engine.className = "train-engine";
+        engine.style.left = (startLeft + (currentQ.displayData.values.length * 75)) + "px";
+        canvas.appendChild(engine);
+
+        currentQ.displayData.values.forEach((val, idx) => {
+          let car = document.createElement('div');
+          car.className = "train-car";
+          car.style.left = (startLeft + (idx * 75)) + "px";
+          car.innerText = val;
+          if(val === '__') {
+            car.style.background = 'transparent';
+            car.style.borderStyle = 'dashed';
+            car.style.borderColor = '#e65100';
+            car.style.color = '#e65100';
+          }
+          canvas.appendChild(car);
+        });
+
+      } else if (currentQ.displayData.type === 'abacus') {
+        let frame = document.createElement('div');
+        frame.className = "abacus-frame";
+        
+        let rodT = document.createElement('div');
+        rodT.className = "abacus-rod";
+        rodT.setAttribute('data-label', 'Tens');
+        for(let i=0; i<currentQ.displayData.tens; i++) { rodT.appendChild(document.createElement('div')).className = "bead"; }
+
+        let rodO = document.createElement('div');
+        rodO.className = "abacus-rod";
+        rodO.setAttribute('data-label', 'Ones');
+        for(let i=0; i<currentQ.displayData.ones; i++) { rodO.appendChild(document.createElement('div')).className = "bead"; }
+
+        frame.appendChild(rodT);
+        frame.appendChild(rodO);
+        canvas.appendChild(frame);
+
+      } else if (currentQ.displayData.type === 'compare') {
+        let engine = document.createElement('div');
+        engine.className = "train-engine";
+        engine.style.left = (120 + (currentQ.displayData.list.length * 90)) + "px";
+        canvas.appendChild(engine);
+
+        currentQ.displayData.list.forEach((val, idx) => {
+          let car = document.createElement('div');
+          car.className = "train-car";
+          car.style.left = (120 + (idx * 90)) + "px";
+          car.style.background = '#0097a7';
+          car.innerText = val;
+          canvas.appendChild(car);
+        });
+      }
+
+      const optionsBox = document.getElementById('options-box');
+      optionsBox.innerHTML = "";
+      currentQ.options.forEach(opt => {
+        let btn = document.createElement('button');
+        btn.className = "game-btn";
+        btn.innerText = opt;
+        btn.onclick = function() { processSelection(btn, opt); };
+        optionsBox.appendChild(btn);
+      });
+    }
+
+    function processSelection(clickedElement, pickedValue) {
+      if (!acceptInput) return;
+      acceptInput = false;
+
+      let currentQ = stageQuestions[turnIndex];
+      let feedBox = document.getElementById('feedback-box');
+
+      if (pickedValue === currentQ.answer) {
+        runningScore += 10;
+        clickedElement.classList.add('correct');
+        feedBox.style.color = '#2e7d32';
+        feedBox.innerText = "Yay! You got it right! 🎉";
+        
+        playAudio('snd-correct');
+        popConfetti();
+        
+        turnIndex++;
+        setTimeout(renderActiveTurn, 1400);
+      } else {
+        clickedElement.classList.add('wrong');
+        feedBox.style.color = '#c62828';
+        feedBox.innerText = "Let's try one more time! 👍";
+        
+        playAudio('snd-wrong');
+        
+        setTimeout(() => {
+          clickedElement.classList.remove('wrong');
+          acceptInput = true;
+        }, 500);
+      }
+      document.getElementById('score-val').innerText = runningScore;
+    }
+
+    function showEndGameSummary() {
+      document.getElementById('progress-fill').style.width = "100%";
+      document.getElementById('screen-play').classList.remove('active');
+      document.getElementById('screen-end').classList.add('active');
+    }
+
+    function resetWholeGame() {
+      turnIndex = 0;
+      runningScore = 0;
+      levelTransitionsViewed = { 2: false, 3: false };
+      document.getElementById('screen-end').classList.remove('active');
+      document.getElementById('screen-intro').classList.add('active');
+      document.getElementById('stage-title').innerText = "Level 1: The Missing Number";
+      document.getElementById('progress-val').innerText = `1 / ${TOTAL_TOTAL_TURNS}`;
+      document.getElementById('score-val').innerText = "0";
+      assembleLevelQuestions();
+    }
+
+    window.onload = function() {
+      assembleLevelQuestions();
+      
+      // Wait exactly 5 seconds for the logo screen to display
+      setTimeout(() => {
+        const logoSplash = document.getElementById('screen-logo-splash');
+        
+        if (logoSplash) {
+          logoSplash.style.opacity = '0';
+          setTimeout(() => {
+            logoSplash.style.display = 'none';
+            
+            // Cleanly reveal the game wrapper framework and introduction screen simultaneously
+            document.getElementById('main-game-wrapper').style.display = 'flex';
+          }, 500);
+        }
+      }, 5000);
+    };
+  </script>
+</body>
+</html>
