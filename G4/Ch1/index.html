@@ -54,16 +54,14 @@ body, html {
     pointer-events: auto;
 }
 
-/* 1) Innovine Minimalist Splash Screen */
+/* 1) Innovine Logo Splash Screen */
 #loader {
     background-color: #000000;
 }
 .innovine-logo {
-    font-size: clamp(2rem, 5vw, 3.5rem);
-    font-weight: 800;
-    letter-spacing: 0.6rem;
-    text-transform: uppercase;
-    color: #ffffff;
+    width: min(220px, 60vw);
+    height: auto;
+    object-fit: contain;
     animation: pulseLogo 2s infinite ease-in-out;
 }
 
@@ -315,9 +313,9 @@ button.btn-action:active {
     letter-spacing: 0.05rem;
 }
 
-/* Background Particle & FX Animations */
+/* Background Animations */
 @keyframes pulseLogo {
-    0%, 100% { opacity: 0.5; transform: scale(0.98); }
+    0%, 100% { opacity: 0.6; transform: scale(0.98); }
     50% { opacity: 1; transform: scale(1); }
 }
 @keyframes floatTrophy {
@@ -341,7 +339,7 @@ button.btn-action:active {
 <body>
 
 <div id="loader" class="screen active">
-    <div class="innovine-logo">Innovine</div>
+    <img src="assets/logo.png" class="innovine-logo" alt="Innovine">
 </div>
 
 <div id="instructions" class="screen">
@@ -349,4 +347,277 @@ button.btn-action:active {
         <h1>Castle Door Quest</h1>
         <ul class="instructions-list">
             <li>Analyze the challenge presented at the top.</li>
-            <li>Select the correct castle door
+            <li>Select the correct castle door to unlock the passage.</li>
+            <li>You receive exactly 2 selection chances per question.</li>
+            <li>Missing twice automatically reveals the correct answer path.</li>
+        </ul>
+        <button class="btn-action" onclick="startGame()">START QUEST</button>
+    </div>
+</div>
+
+<div id="main-game-layout">
+    <div id="hud">
+        <div>⭐ SCORE: <span id="score">0</span></div>
+        <div>❤️ CHANCES: <span id="chances">2</span></div>
+        <div>🚩 QUEST: <span id="qno">1</span>/10</div>
+    </div>
+
+    <div id="questionBox">Preparing Quest...</div>
+
+    <div id="gameArea">
+        <div class="castle">🏰</div>
+        <div class="doors" id="doors"></div>
+    </div>
+
+    <div id="msg"></div>
+</div>
+
+<div id="end" class="screen">
+    <div class="content-box">
+        <div class="trophy-icon">🏆</div>
+        <h1 class="celebrate-title">Quest Complete!</h1>
+        <p id="completion-message">You safely navigated through the Kingdom.</p>
+        
+        <div class="stats-row">
+            <div class="stat-badge">
+                <div class="stat-val" id="finalScore">0</div>
+                <div class="stat-lbl">Final Score</div>
+            </div>
+            <div class="stat-badge">
+                <div class="stat-val" id="finalAccuracy">0%</div>
+                <div class="stat-lbl">Accuracy</div>
+            </div>
+        </div>
+        <button class="btn-action" onclick="location.reload()">PLAY AGAIN</button>
+    </div>
+</div>
+
+<audio id="correctSound" src="assets/correct.mp3" preload="auto"></audio>
+<audio id="wrongSound" src="assets/wrong.mp3" preload="auto"></audio>
+<audio id="clapSound" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
+
+<script>
+const questions=[
+  {
+    q:"Which is the number name for 54,321?",
+    options:["Fifty-four thousand three hundred twenty-one","Five lakh forty-three thousand twenty-one","Fifty-four hundred thirty-two"],
+    ans:"Fifty-four thousand three hundred twenty-one"
+  },
+  {
+    q:"Expanded form of 68,405 is:",
+    options:["60,000 + 8,000 + 400 + 5","6,000 + 800 + 40 + 5","60,000 + 8,000 + 40 + 5"],
+    ans:"60,000 + 8,000 + 400 + 5"
+  },
+  {
+    q:"Make the largest 5-digit number using 3, 8, 1, 6, 9.",
+    options:["98,631","96,831","98,613"],
+    ans:"98,631"
+  },
+  {
+    q:"Arrange in ascending order: 45,210 ; 45,120 ; 45,012",
+    options:["45,012 ; 45,120 ; 45,210","45,210 ; 45,120 ; 45,012","45,120 ; 45,012 ; 45,210"],
+    ans:"45,012 ; 45,120 ; 45,210"
+  },
+  {
+    q:"Which symbol is correct? 76,432 ___ 67,432",
+    options:[">","<","="],
+    ans:">"
+  },
+  {
+    q:"Round 78,346 to the nearest thousand.",
+    options:["78,000","79,000","80,000"],
+    ans:"78,000"
+  },
+  {
+    q:"Successor of 99,999 is:",
+    options:["1,00,000","99,998","90,000"],
+    ans:"1,00,000"
+  },
+  {
+    q:"Predecessor of 70,000 is:",
+    options:["69,999","70,001","69,000"],
+    ans:"69,999"
+  },
+  {
+    q:"Which number is written in Indian place value system?",
+    options:["5,43,210","543,210","54,3210"],
+    ans:"5,43,210"
+  },
+  {
+    q:"Roman numeral for 50 is:",
+    options:["L","C","X"],
+    ans:"L"
+  }
+];
+
+let current=0;
+let score=0;
+let chances=2;
+let locked=false;
+
+window.addEventListener('DOMContentLoaded', () => {
+    // Rule 1: Fixed, un-skippable 5-second Splash screen transition
+    setTimeout(() => {
+        document.getElementById("loader").classList.remove("active");
+        document.getElementById("instructions").classList.add("active");
+    }, 5000);
+});
+
+function startGame() {
+    document.getElementById("instructions").classList.remove("active");
+    loadQuestion();
+}
+
+function shuffle(arr) {
+    return arr.sort(() => Math.random() - 0.5);
+}
+
+function loadQuestion() {
+    locked = false;
+    chances = 2;
+    document.getElementById("chances").textContent = chances;
+    
+    const msgEl = document.getElementById("msg");
+    msgEl.textContent = "";
+    msgEl.style.color = "inherit";
+
+    if (current >= questions.length) {
+        endGame();
+        return;
+    }
+
+    document.getElementById("qno").textContent = current + 1;
+    document.getElementById("questionBox").textContent = `Q${current + 1}. ${questions[current].q}`;
+
+    const doorsContainer = document.getElementById("doors");
+    doorsContainer.innerHTML = "";
+
+    const shuffledOptions = shuffle([...questions[current].options]);
+
+    shuffledOptions.forEach(opt => {
+        const door = document.createElement("div");
+        door.className = "door";
+        door.textContent = opt;
+        door.dataset.answer = opt;
+        door.onclick = () => selectDoor(door, opt);
+        doorsContainer.appendChild(door);
+    });
+}
+
+function selectDoor(door, selected) {
+    if (locked || door.classList.contains('wrong') || door.classList.contains('open')) return;
+
+    if (selected === questions[current].ans) {
+        locked = true;
+        correctDoor(door);
+    } else {
+        wrongDoor(door);
+    }
+}
+
+function correctDoor(door) {
+    safelyPlayAudio("correctSound");
+    score += (chances === 2) ? 10 : 5;
+    document.getElementById("score").textContent = score;
+    
+    const msgEl = document.getElementById("msg");
+    msgEl.style.color = varColor('--accent-success');
+    msgEl.textContent = "✅ Correct! Passage Unlocked!";
+    
+    door.classList.add("open");
+    showCoins(door);
+    current++;
+    setTimeout(loadQuestion, 1800);
+}
+
+function wrongDoor(door) {
+    safelyPlayAudio("wrongSound");
+    chances--;
+    document.getElementById("chances").textContent = chances;
+    
+    const msgEl = document.getElementById("msg");
+    msgEl.style.color = varColor('--accent-error');
+    door.classList.add("shake");
+
+    if (chances > 0) {
+        msgEl.textContent = "❌ Incorrect. 1 Chance Remaining!";
+        setTimeout(() => door.classList.remove("shake"), 400);
+    } else {
+        locked = true;
+        door.classList.add("wrong");
+        const correctAnswer = questions[current].ans;
+        msgEl.textContent = `Revealing Answer: ${correctAnswer}`;
+
+        document.querySelectorAll(".door").forEach(d => {
+            if (d.dataset.answer === correctAnswer) {
+                d.classList.add("open");
+                showCoins(d);
+            } else {
+                d.classList.add("wrong");
+            }
+        });
+
+        current++;
+        setTimeout(loadQuestion, 2800);
+    }
+}
+
+function showCoins(door) {
+    const area = document.getElementById("gameArea");
+    const rect = door.getBoundingClientRect();
+    const areaRect = area.getBoundingClientRect();
+    
+    const originX = rect.left - areaRect.left + (rect.width / 2);
+    const originY = rect.top - areaRect.top + (rect.height / 3);
+
+    for (let i = 0; i < 12; i++) {
+        const coin = document.createElement("div");
+        coin.className = "coin";
+        coin.textContent = "🪙";
+        coin.style.left = `${originX}px`;
+        coin.style.top = `${originY}px`;
+        
+        const dx = (Math.random() - 0.5) * 160;
+        const dy = -(Math.random() * 80 + 60);
+        coin.style.setProperty('--dx', `${dx}px`);
+        coin.style.setProperty('--dy', `${dy}px`);
+        
+        area.appendChild(coin);
+        setTimeout(() => coin.remove(), 800);
+    }
+}
+
+function endGame() {
+    safelyPlayAudio("clapSound");
+    document.getElementById("finalScore").textContent = `${score} / 100`;
+    
+    const accuracy = Math.round((score / 100) * 100);
+    document.getElementById("finalAccuracy").textContent = `${accuracy}%`;
+    
+    const msgEl = document.getElementById("completion-message");
+    if (accuracy === 100) {
+        msgEl.textContent = "Flawless Conquest! You solved every puzzle perfectly.";
+    } else if (accuracy >= 60) {
+        msgEl.textContent = "Superb job! You successfully traversed the Kingdom.";
+    } else {
+        msgEl.textContent = "Challenge Completed! Run through again to perfect your records.";
+    }
+    
+    document.getElementById("end").classList.add("active");
+}
+
+function varColor(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+function safelyPlayAudio(id) {
+    const aud = document.getElementById(id);
+    if(aud) {
+        aud.currentTime = 0;
+        aud.play().catch(() => {});
+    }
+}
+</script>
+
+</body>
+</html>
