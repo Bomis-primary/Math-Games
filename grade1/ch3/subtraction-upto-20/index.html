@@ -88,14 +88,14 @@
       border: 4px solid #81c784;
     }
 
-    /* Harvest Shelf container for Grid Layout */
+    /* Expanded Shelf container to hold up to 20 apples cleanly */
     .harvest-shelf {
       position: absolute;
       right: 15px;
       top: 15px;
-      width: 60%;
-      max-width: 480px;
-      height: 130px;
+      width: 65%;
+      max-width: 520px;
+      height: 145px;
       background: rgba(255, 255, 255, 0.85);
       border: 3px dashed #ff9800;
       border-radius: 12px;
@@ -115,11 +115,11 @@
       white-space: nowrap;
     }
 
-    /* Dino Image Positioning - Moved slightly right to clear the signpost cleanly */
+    /* Dino Image Positioning */
     .dino-img-render {
       position: absolute;
       bottom: 10px;
-      left: 40px; 
+      left: 25px; 
       width: 140px;
       height: 140px;
       object-fit: contain;
@@ -141,17 +141,17 @@
       75% { transform: translateX(8px) rotate(4deg); }
     }
 
-    /* Draggable Apple Items */
+    /* Slightly optimized apple size for higher numbers */
     .apple-draggable-img {
       display: block !important;
-      width: 44px !important;
-      height: 44px !important;
+      width: 38px !important;
+      height: 38px !important;
       position: absolute;
       cursor: grab;
       z-index: 10;
       touch-action: none;
       object-fit: contain;
-      filter: drop-shadow(0px 4px 4px rgba(0,0,0,0.2));
+      filter: drop-shadow(0px 3px 3px rgba(0,0,0,0.2));
       transition: transform 0.1s ease;
     }
     .apple-draggable-img:active { cursor: grabbing; transform: scale(1.2); z-index: 100; }
@@ -263,8 +263,8 @@
       .scenery-canvas { height: 240px; }
       .harvest-shelf { width: 55px; right: 10px; height: 215px; top: 15px; }
       .harvest-shelf-title { display: none; }
-      .dino-img-render { width: 110px; height: 110px; bottom: 5px; left: 20px; }
-      .apple-draggable-img { width: 34px !important; height: 34px !important; }
+      .dino-img-render { width: 110px; height: 110px; bottom: 5px; left: 15px; }
+      .apple-draggable-img { width: 30px !important; height: 30px !important; }
       .equation-container { font-size: 1.6rem; padding: 4px 18px; }
       .equation-blank { width: 45px; height: 35px; line-height: 30px; }
       .game-btn { font-size: 1.3rem; padding: 8px; }
@@ -290,7 +290,7 @@
 
     <div id="screen-intro" class="screen active">
       <div class="story-bubble">
-        <p><strong>Welcome to the Orchard Subtraction Challenge!</strong> 🦖🍏</p>
+        <p><strong>Welcome to the Orchard Subtraction Challenge! (Up to 20)</strong> 🦖🍏</p>
         <p style="margin-top: 10px; font-size: 1.05rem; color: #388e3c;">Look at the subtraction sentence. Drag the right amount of apples to feed the dino, then count how many are left!</p>
       </div>
       <button class="action-btn" onclick="startGame()">Let's Solve Puzzles! 🚀</button>
@@ -333,7 +333,6 @@
     let currentApplesEaten = 0;
     let targetToEat = 0;
 
-    // Verified match against your repository filenames
     const dinoList = ['blue-dino.png', 'pink-dino.png', 'red-dino.png', 'yellow-dino.png'];
 
     function playAudio(elementId) {
@@ -341,10 +340,10 @@
         const sound = document.getElementById(elementId);
         if (sound) {
           sound.currentTime = 0;
-          sound.play().catch(e => console.log("Audio play delayed/prevented until interaction."));
+          sound.play().catch(e => console.log("Audio deferred."));
         }
       } catch (err) {
-        console.log("Audio block element missing.");
+        console.log("Audio target missing.");
       }
     }
 
@@ -366,25 +365,32 @@
       } catch(e) {}
     }
 
+    // UPDATED MATH ENGINE: Target subtraction problems within the 11 to 20 range
     function assembleLevelQuestions() {
       stageQuestions = [];
       let usedCombinations = new Set();
 
-      for(let i = 0; i < TOTAL_TURNS; i++) {
+      for (let i = 0; i < TOTAL_TURNS; i++) {
         let totalApples, eatenApples, comboKey;
         let validCombo = false;
+        let attempts = 0;
 
-        while (!validCombo) {
-          if (i > 0 && Math.random() < 0.20) {
-            totalApples = Math.floor(Math.random() * 4) + 6; // 6 to 9 total
-            eatenApples = totalApples;
+        while (!validCombo && attempts < 100) {
+          attempts++;
+          
+          // Mixes up the values: early rounds focus on 11-15, later rounds push up to 20
+          if (i < 4) {
+            totalApples = Math.floor(Math.random() * 5) + 11; // 11 to 15 total
           } else {
-            totalApples = Math.floor(Math.random() * 5) + 6; // 6 to 10 total
-            eatenApples = Math.floor(Math.random() * 3) + 2; // 2 to 4 to eat
+            totalApples = Math.floor(Math.random() * 6) + 15; // 15 to 20 total
           }
+          
+          // Ensures the dinosaur eats a reasonable, engaging number of apples (between 3 and total minus 2)
+          eatenApples = Math.floor(Math.random() * (totalApples - 5)) + 3;
 
           comboKey = `${totalApples}-${eatenApples}`;
-          if (!usedCombinations.has(comboKey)) {
+          
+          if (!usedCombinations.has(comboKey) || attempts > 50) {
             usedCombinations.add(comboKey);
             validCombo = true;
           }
@@ -393,11 +399,17 @@
         let correctVal = totalApples - eatenApples;
         let randomDino = dinoList[Math.floor(Math.random() * dinoList.length)];
 
-        let decoys = new Set([correctVal + 1, correctVal + 2]);
-        if (correctVal - 1 >= 0) { decoys.add(correctVal - 1); }
-        if (correctVal - 2 >= 0) { decoys.add(correctVal - 2); }
+        // Smart generation of multiple-choice decoys within the 0-20 limits
+        let decoys = new Set();
+        while(decoys.size < 2) {
+          let drift = Math.floor(Math.random() * 5) - 2; // minor number variation offset (-2, -1, +1, +2)
+          let testDecoy = correctVal + drift;
+          if(testDecoy >= 0 && testDecoy <= totalApples && testDecoy !== correctVal) {
+            decoys.add(testDecoy);
+          }
+        }
         
-        let decoyArr = Array.from(decoys).sort(() => Math.random() - 0.5);
+        let decoyArr = Array.from(decoys);
         let opts = [correctVal, decoyArr[0], decoyArr[1]];
 
         stageQuestions.push({
@@ -460,9 +472,10 @@
       const shelfRectLeft = shelf.offsetLeft;
       const shelfRectTop = shelf.offsetTop;
       
-      const spaceHorizontal = isMobile ? 0 : 50;
-      const spaceVertical = isMobile ? 38 : 48;
-      const columnsMax = isMobile ? 1 : 8;
+      // GRID SPACING ALGORITHM: Arranges high quantities of apples up to 20 seamlessly
+      const spaceHorizontal = isMobile ? 0 : 46;
+      const spaceVertical = isMobile ? 32 : 36;
+      const columnsMax = isMobile ? 1 : 10; // Wraps into clean rows of 10 elements on desktop
 
       for (let i = 0; i < currentQ.total; i++) {
         let appleImg = document.createElement('img');
@@ -472,8 +485,8 @@
         let row = Math.floor(i / columnsMax);
         let col = i % columnsMax;
         
-        let gridX = isMobile ? (shelfRectLeft + 10) : (shelfRectLeft + 15 + (col * spaceHorizontal));
-        let gridY = shelfRectTop + 12 + (row * spaceVertical);
+        let gridX = isMobile ? (shelfRectLeft + 12) : (shelfRectLeft + 12 + (col * spaceHorizontal));
+        let gridY = shelfRectTop + 14 + (row * spaceVertical);
         
         appleImg.style.left = gridX + 'px';
         appleImg.style.top = gridY + 'px';
@@ -631,7 +644,6 @@
       assembleLevelQuestions();
     }
 
-    // Direct error-isolated boot initialization
     (function () {
       try {
         assembleLevelQuestions();
