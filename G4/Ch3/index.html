@@ -3,21 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Innovine Subtraction Solitaire</title>
+    <title>Mathematical Quest</title>
     <style>
+        /* Base Reset & Design Variables */
         * {
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             user-select: none;
             -webkit-user-select: none;
-        }
-        body, html {
             margin: 0;
             padding: 0;
+        }
+        :root {
+            --bg-main: linear-gradient(135deg, #e0f2fe 0%, #e0e7ff 100%);
+            --bg-card: #ffffff;
+            --accent: #4f46e5;
+            --accent-success: #10b981;
+            --accent-error: #ef4444;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+        }
+        body, html {
             width: 100%;
             height: 100%;
-            background-color: #1b5e20; /* Deep Poker/Solitaire Green */
+            background: var(--bg-main);
             overflow: hidden;
+            color: var(--text-main);
         }
         .screen {
             display: none;
@@ -30,364 +41,186 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 20px;
+            padding: 24px;
         }
         .active {
             display: flex;
         }
         
-        /* Splash Screen */
-        #splash-screen { background-color: #ffffff; }
-        .logo-placeholder { max-width: 300px; max-height: 150px; margin-bottom: 20px; }
-        .loading-bar { width: 200px; height: 10px; background-color: #e0e0e0; border-radius: 5px; overflow: hidden; }
-        .loading-progress { width: 0%; height: 100%; background-color: #4caf50; animation: load 4.5s linear forwards; }
+        /* 1) Splash Screen - White Frame with Logo & Animated Green Progress Bar */
+        #splash-screen { background-color: #ffffff; gap: 24px; }
+        .innovine-logo { width: min(240px, 65vw); height: auto; object-fit: contain; }
+        .loading-bar { width: min(200px, 50vw); height: 8px; background-color: #e2e8f0; border-radius: 10px; overflow: hidden; }
+        .loading-progress { width: 0%; height: 100%; background-color: #22c55e; border-radius: 10px; animation: load 5s linear forwards; }
 
-        /* Menu Screen */
+        /* 2) Simple Instructions Screen (No Logos/Metadata) */
         #menu-screen {
-            background: linear-gradient(135deg, #141e30 0%, #243b55 100%);
-            color: white;
+            background: var(--bg-main);
         }
-        .card-menu {
-            background: rgba(255, 255, 255, 0.95);
-            color: #333;
-            padding: 35px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            max-width: 500px;
-            width: 90%;
+        .content-box {
+            max-width: 520px;
+            width: 100%;
+            background: var(--bg-card);
+            padding: 40px 30px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(79, 70, 229, 0.15);
+            text-align: center;
+            border: 3px solid #eef2f6;
+        }
+        h1 {
+            font-size: clamp(24px, 4.5vw, 34px);
+            margin-bottom: 20px;
+            font-weight: 800;
+            color: #312e81;
+        }
+        .instructions-list {
+            font-size: clamp(16px, 2.8vw, 18px);
+            line-height: 1.6;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+            text-align: left;
+            list-style-type: none;
+        }
+        .instructions-list li {
+            margin-bottom: 14px;
+            position: relative;
+            padding-left: 28px;
+            color: #475569;
+        }
+        .instructions-list li::before {
+            content: "⭐";
+            position: absolute;
+            left: 0;
+            font-size: 16px;
         }
         .btn {
-            background-color: #d35400;
-            color: white;
+            background: #4f46e5;
+            color: #ffffff;
             border: none;
-            padding: 14px 35px;
-            font-size: 1.2rem;
-            border-radius: 25px;
+            padding: 16px 40px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 50px;
             cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 5px 10px rgba(0,0,0,0.3);
-            transition: transform 0.2s;
+            box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3);
+            transition: all 0.2s ease;
+            width: 100%;
+            max-width: 240px;
+            min-height: 54px;
         }
-        .btn:hover { transform: scale(1.05); }
+        .btn:hover { transform: scale(1.03); }
+        .btn:active { transform: scale(0.97); }
 
-        /* Real Solitaire Game Board */
+        /* 3) Playable Game Board Frame Layout */
         #game-screen {
             justify-content: flex-start;
-            padding-top: 20px;
+            padding: 0;
         }
         .game-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: space-around;
+            align-items: center;
             width: 100%;
-            max-width: 900px;
-            color: white;
-            font-size: 1.2rem;
-            font-weight: bold;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
-            margin-bottom: 40px;
-            padding: 0 10px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            border-bottom: 2px solid #e2e8f0;
+            padding: 16px;
+            font-size: clamp(15px, 2.8vw, 20px);
+            font-weight: 800;
+            color: #4f46e5;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            z-index: 20;
         }
-
-        /* Arena where dragging occurs */
         .board-table {
             position: relative;
             width: 100%;
             max-width: 900px;
-            height: 70vh;
+            flex: 1;
+            margin: 20px auto;
         }
 
-        /* Foundational Solitaire Card Bases */
+        /* Foundational Target Slots */
         .slots-row {
             display: flex;
             justify-content: space-around;
             width: 100%;
             position: absolute;
-            top: 0;
+            top: 10px;
             left: 0;
-            z-index: 1;
+            z-index: 5;
+            padding: 0 10px;
+            gap: 10px;
         }
         .target-slot {
-            width: 140px;
-            height: 190px;
-            border: 3px dashed rgba(255,255,255,0.3);
-            border-radius: 10px;
-            background: rgba(0,0,0,0.2);
+            flex: 1;
+            max-width: 150px;
+            height: clamp(120px, 20vh, 180px);
+            border: 3px dashed #cbd5e1;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.6);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 2rem;
-            font-weight: bold;
-            color: rgba(255, 255, 255, 0.7);
-            box-shadow: inset 0 4px 10px rgba(0,0,0,0.4);
+            font-size: clamp(20px, 3.5vw, 30px);
+            font-weight: 800;
+            color: #312e81;
+            box-shadow: inset 0 4px 8px rgba(0,0,0,0.05);
+            transition: background-color 0.2s, border-color 0.2s;
         }
 
-        /* The Deck area at the bottom */
+        /* Deck Base Zone */
         .deck-pile {
             position: absolute;
-            bottom: 20px;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
-            width: 140px;
-            height: 190px;
-            border: 3px solid rgba(255,255,255,0.15);
-            border-radius: 10px;
-            background: rgba(0,0,0,0.1);
-            z-index: 1;
+            width: clamp(130px, 25vw, 160px);
+            height: clamp(160px, 22vh, 200px);
+            border: 3px solid #cbd5e1;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.4);
+            z-index: 2;
         }
 
-        /* The Physical Drag Card */
+        /* Movable Challenge Cards */
         .movable-card {
             position: absolute;
-            width: 140px;
-            height: 190px;
-            background: #fffdf0;
-            border: 3px solid #f1c40f;
-            border-radius: 10px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+            width: clamp(130px, 25vw, 160px);
+            height: clamp(160px, 22vh, 200px);
+            background: #ffffff;
+            border: 3px solid #4f46e5;
+            border-radius: 20px;
+            box-shadow: 0 12px 24px rgba(79, 70, 229, 0.15);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-size: 1.4rem;
-            font-weight: bold;
-            color: #b71c1c;
+            font-size: clamp(22px, 3.8vw, 32px);
+            font-weight: 800;
+            color: #1e1b4b;
             cursor: grab;
             z-index: 10;
-            touch-action: none; /* Prevents mobile scrolling while dragging */
+            touch-action: none;
             text-align: center;
-            line-height: 1.4;
+            line-height: 1.3;
         }
-        .movable-card:active { cursor: grabbing; box-shadow: 0 12px 24px rgba(0,0,0,0.5); }
+        .movable-card:active { cursor: grabbing; box-shadow: 0 16px 32px rgba(79, 70, 229, 0.25); }
 
-        /* Win Screen */
-        #win-screen { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; }
-
-        @keyframes load { to { width: 100%; } }
-    </style>
-</head>
-<body>
-
-    <audio id="sound-correct" src="assets/correct.mp3" preload="auto"></audio>
-    <audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
-    <audio id="sound-win" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
-
-    <div id="splash-screen" class="screen active">
-        <img class="logo-placeholder" src="assets/logo.png" alt="Innovine Logo" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';">
-        <h1 id="logo-fallback" style="display:none; font-size: 3rem; color: #333; margin-bottom: 20px;">INNOVINE</h1>
-        <div class="loading-bar">
-            <div class="loading-progress"></div>
-        </div>
-    </div>
-
-    <div id="menu-screen" class="screen">
-        <div class="card-menu">
-            <h1 style="margin-top:0; color:#2c3e50;">Subtraction Solitaire</h1>
-            <div style="text-align: left; line-height: 1.6; margin: 20px 0; color: #555;">
-                <p><strong>Rules of the Table:</strong></p>
-                <ul>
-                    <li>A math expression card will spawn in the bottom deck pile.</li>
-                    <li><strong>Click and drag</strong> the problem card across the felt table.</li>
-                    <li>Drop it directly on top of the correct answer slot up top.</li>
-                    <li>Clear 10 math pairs sequentially to win the tournament!</li>
-                </ul>
-            </div>
-            <button class="btn" onclick="startGame()">DEAL DECK</button>
-        </div>
-    </div>
-
-    <div id="game-screen" class="screen">
-        <div class="game-header">
-            <div>Cleared Stacks: <span id="score-display">0</span> / 10</div>
-            <div>Level: Grade 4 Subtraction</div>
-        </div>
-        
-        <div class="board-table" id="board-table">
-            <div class="slots-row">
-                <div class="target-slot" id="slot-0"></div>
-                <div class="target-slot" id="slot-1"></div>
-                <div class="target-slot" id="slot-2"></div>
-                <div class="target-slot" id="slot-3"></div>
-            </div>
-
-            <div class="deck-pile" id="deck-pile"></div>
-
-            <div id="deal-card" class="movable-card"></div>
-        </div>
-    </div>
-
-    <div id="win-screen" class="screen">
-        <div style="background: white; color: #333; padding: 40px; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.3); text-align: center;">
-            <div style="font-size:5rem;">🃏🎉</div>
-            <h1 style="color: #27ae60; margin: 10px 0;">Grandmaster Cleared!</h1>
-            <p style="font-size: 1.2rem; margin-bottom: 20px; color:#555;">You solved all subtraction stacks flawlessly.</p>
-            <button class="btn" onclick="resetGame()" style="background-color: #27ae60;">Shuffle & Deal</button>
-        </div>
-    </div>
-
-    <script>
-        let score = 0;
-        let currentCorrectAnswer = 0;
-        const targetScore = 10;
-        let slotValues = [];
-
-        // Dragging state tracking variables
-        let isDragging = false;
-        let startX, startY;
-        let cardStartX, cardStartY;
-
-        const card = document.getElementById('deal-card');
-        const table = document.getElementById('board-table');
-        const deckPile = document.getElementById('deck-pile');
-
-        const soundCorrect = document.getElementById('sound-correct');
-        const soundWrong = document.getElementById('sound-wrong');
-        const soundWin = document.getElementById('sound-win');
-
-        function playSound(audioElement) {
-            audioElement.currentTime = 0;
-            audioElement.play().catch(e => console.log("Audio contextual lock handled."));
+        /* Floating Background Accent Elements */
+        .bg-symbol {
+            position: absolute;
+            font-size: 42px;
+            opacity: 0.15;
+            color: #6366f1;
+            animation: float 14s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+        @keyframes float {
+            0% { transform: translateY(105vh) rotate(0deg); }
+            100% { transform: translateY(-15vh) rotate(360deg); }
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => { transitionScreen('splash-screen', 'menu-screen'); }, 5000); 
-        });
-
-        function transitionScreen(fromId, toId) {
-            document.getElementById(fromId).classList.remove('active');
-            document.getElementById(toId).classList.add('active');
-        }
-
-        function startGame() {
-            score = 0;
-            document.getElementById('score-display').innerText = score;
-            transitionScreen('menu-screen', 'game-screen');
-            setupRound();
-        }
-
-        function setupRound() {
-            // Reset Card to Deck Pile Position
-            card.style.left = deckPile.offsetLeft + "px";
-            card.style.top = deckPile.offsetTop + "px";
-            card.style.display = "flex";
-            card.style.transform = "none";
-
-            // Math problem processing (Grade 4: 3-4 Digit Values)
-            const num1 = Math.floor(Math.random() * 6000) + 3000;
-            const num2 = Math.floor(Math.random() * (num1 - 500)) + 250;
-            currentCorrectAnswer = num1 - num2;
-            card.innerText = `${num1}\n-\n${num2}`;
-
-            // Generate solitaire foundation slot targets
-            let options = new Set();
-            options.add(currentCorrectAnswer);
-
-            while(options.size < 4) {
-                let variance = (Math.floor(Math.random() * 20) + 1) * (Math.random() > 0.5 ? 1 : -1);
-                if(Math.random() > 0.6) variance = Math.random() > 0.5 ? 10 : 100;
-                let wrongVal = currentCorrectAnswer + variance;
-                if(wrongVal > 0 && wrongVal !== currentCorrectAnswer) options.add(wrongVal);
-            }
-
-            slotValues = Array.from(options).sort(() => Math.random() - 0.5);
-            for(let i = 0; i < 4; i++) {
-                document.getElementById(`slot-${i}`).innerText = slotValues[i];
-            }
-        }
-
-        // --- Drag and Drop Realization Logic Engine ---
-        card.addEventListener('mousedown', startDrag);
-        card.addEventListener('touchstart', startDrag, { passive: false });
-
-        window.addEventListener('mousemove', dragMove);
-        window.addEventListener('touchmove', dragMove, { passive: false });
-
-        window.addEventListener('mouseup', endDrag);
-        window.addEventListener('touchend', endDrag);
-
-        function startDrag(e) {
-            isDragging = true;
-            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-            
-            startX = clientX;
-            startY = clientY;
-            cardStartX = card.offsetLeft;
-            cardStartY = card.offsetTop;
-        }
-
-        function dragMove(e) {
-            if (!isDragging) return;
-            if(e.cancelable) e.preventDefault();
-
-            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
-            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
-
-            let deltaX = clientX - startX;
-            let deltaY = clientY - startY;
-
-            card.style.left = (cardStartX + deltaX) + 'px';
-            card.style.top = (cardStartY + deltaY) + 'px';
-        }
-
-        function endDrag() {
-            if (!isDragging) return;
-            isDragging = false;
-
-            // Detect collision boundary overlap with slots
-            const cardRect = card.getBoundingClientRect();
-            let droppedSlotIndex = -1;
-
-            for (let i = 0; i < 4; i++) {
-                const slot = document.getElementById(`slot-${i}`);
-                const slotRect = slot.getBoundingClientRect();
-
-                // Intersect calculations
-                if (!(cardRect.right < slotRect.left || 
-                      cardRect.left > slotRect.right || 
-                      cardRect.bottom < slotRect.top || 
-                      cardRect.top > slotRect.bottom)) {
-                    droppedSlotIndex = i;
-                    break;
-                }
-            }
-
-            if (droppedSlotIndex !== -1) {
-                // Evaluated placement
-                if (slotValues[droppedSlotIndex] === currentCorrectAnswer) {
-                    score++;
-                    document.getElementById('score-display').innerText = score;
-                    playSound(soundCorrect);
-                    card.style.display = "none";
-
-                    setTimeout(() => {
-                        if (score >= targetScore) {
-                            playSound(soundWin);
-                            transitionScreen('game-screen', 'win-screen');
-                        } else {
-                            setupRound();
-                        }
-                    }, 500);
-                } else {
-                    // Fail snapback simulation routine
-                    playSound(soundWrong);
-                    snapBack();
-                }
-            } else {
-                // Missed all stacks entirely, return to base deck
-                snapBack();
-            }
-        }
-
-        function snapBack() {
-            card.style.transition = "all 0.3s ease-out";
-            card.style.left = deckPile.offsetLeft + "px";
-            card.style.top = deckPile.offsetTop + "px";
-            setTimeout(() => { card.style.transition = "none"; }, 300);
-        }
-
-        function resetGame() {
-            transitionScreen('win-screen', 'menu-screen');
-        }
-    </script>
-</body>
-</html>
+        /* 4) Completion Screen Layout */
+        #win-screen {
+            background: linear-gradient(135deg, #e0e
