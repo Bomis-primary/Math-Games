@@ -277,6 +277,7 @@
 
   <audio id="snd-correct" src="./assets/correct.mp3" preload="auto"></audio>
   <audio id="snd-wrong" src="./assets/wrong.mp3" preload="auto"></audio>
+  <audio id="snd-roar" src="./assets/dino-roar.mp3" preload="auto"></audio>
 
   <div class="game-container">
     
@@ -376,16 +377,26 @@
 
     function assembleLevelQuestions() {
       stageQuestions = [];
-      for(let i=0; i<TOTAL_TURNS; i++) {
-        let totalApples, eatenApples;
+      let usedCombinations = new Set();
 
-        // Variety Twist: 20% chance to generate a number minus itself scenario (result 0)
-        if (i > 0 && Math.random() < 0.20) {
-          totalApples = Math.floor(Math.random() * 6) + 8; // 8 to 13 apples total
-          eatenApples = totalApples; // Subtract same number
-        } else {
-          totalApples = Math.floor(Math.random() * 6) + 10; // 10 to 15 apples total
-          eatenApples = Math.floor(Math.random() * 5) + 3;   // Subtract 3 to 7 apples
+      for(let i = 0; i < TOTAL_TURNS; i++) {
+        let totalApples, eatenApples, comboKey;
+        let validCombo = false;
+
+        while (!validCombo) {
+          if (i > 0 && Math.random() < 0.20) {
+            totalApples = Math.floor(Math.random() * 6) + 8;
+            eatenApples = totalApples;
+          } else {
+            totalApples = Math.floor(Math.random() * 6) + 10;
+            eatenApples = Math.floor(Math.random() * 5) + 3;
+          }
+
+          comboKey = `${totalApples}-${eatenApples}`;
+          if (!usedCombinations.has(comboKey)) {
+            usedCombinations.add(comboKey);
+            validCombo = true;
+          }
         }
         
         let correctVal = totalApples - eatenApples;
@@ -395,7 +406,6 @@
         if (correctVal - 1 >= 0) { decoys.add(correctVal - 1); }
         if (correctVal - 2 >= 0) { decoys.add(correctVal - 2); }
         
-        // Trim down decoys set securely to exactly two entries
         let decoyArr = Array.from(decoys).sort(() => Math.random() - 0.5);
         let opts = [correctVal, decoyArr[0], decoyArr[1]];
 
@@ -443,20 +453,17 @@
       const canvas = document.getElementById('stage-canvas');
       canvas.innerHTML = '';
 
-      // Append clean visual backdrop box separating background art from counting pieces
       let shelf = document.createElement('div');
       shelf.className = 'harvest-shelf';
       shelf.innerHTML = '<span class="harvest-shelf-title">Apples To Count 🍏</span>';
       canvas.appendChild(shelf);
 
-      // Render Dino directly on stage
       let dinoImg = document.createElement('img');
       dinoImg.className = 'dino-img-render';
       dinoImg.id = 'active-dino';
       dinoImg.src = `./assets/${currentQ.dino}`;
       canvas.appendChild(dinoImg);
 
-      // Grid Placement Dimensions
       const shelfLeftStart = canvas.clientWidth - 475; 
       const shelfTopStart = 35;
       const spaceHorizontal = 56;
@@ -552,7 +559,7 @@
           currentApplesEaten++;
           
           targetDino.classList.add('chewing');
-          playAudio('snd-wrong'); 
+          playAudio('snd-roar'); // Successfully configured to play your new dino roar audio!
           setTimeout(() => targetDino.classList.remove('chewing'), 300);
 
           if (currentApplesEaten === targetToEat) {
