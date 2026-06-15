@@ -53,10 +53,10 @@
         }
         
         /* Splash Screen */
-        #splash-screen { background-color: #ffffff; }
+        #splash-screen { background-color: #ffffff; z-index: 100; }
         .logo-placeholder { max-width: 300px; max-height: 150px; margin-bottom: 20px; }
         .loading-bar { width: 200px; height: 10px; background-color: #e0e0e0; border-radius: 5px; overflow: hidden; }
-        .loading-progress { width: 0%; height: 100%; background-color: #00b4d8; animation: load 4.5s linear forwards; }
+        .loading-progress { width: 0%; height: 100%; background-color: #00b4d8; animation: load 5s linear forwards; }
 
         /* Menu Screen */
         #menu-screen {
@@ -73,6 +73,7 @@
             box-shadow: 0 20px 50px rgba(0,0,0,0.6);
             max-width: 530px;
             width: 90%;
+            z-index: 10;
         }
         .btn {
             background: linear-gradient(90deg, #00b4d8, #0077b6);
@@ -104,72 +105,108 @@
             font-size: 1.2rem;
             font-weight: bold;
             letter-spacing: 1px;
-            margin-bottom: 30px;
+            margin-bottom: 15px;
             padding: 0 10px;
             color: #00b4d8;
+            z-index: 15;
         }
         .board-table {
             position: relative;
             width: 100%;
             max-width: 950px;
-            height: 72vh;
+            height: 75vh;
         }
 
-        /* Rocket Engines (Targets) */
+        /* Rocket Elements Setup */
         .slots-row {
             display: flex;
             justify-content: space-around;
             width: 100%;
             position: absolute;
-            top: 0;
+            top: 20px;
             left: 0;
-            z-index: 1;
+            z-index: 5;
         }
-        .target-slot {
-            width: 160px;
-            height: 150px;
-            border: 2px solid #00b4d8;
-            border-radius: 15px;
-            background: rgba(0, 180, 216, 0.05);
+        .rocket-container {
+            width: 150px;
+            height: 240px;
+            position: relative;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            transition: transform 0.8s cubic-bezier(0.55, 0.055, 0.675, 0.19), opacity 0.5s;
+        }
+        .rocket-svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0px 8px 10px rgba(0,0,0,0.5));
+        }
+        .rocket-svg .hull { fill: #e2e8f0; transition: fill 0.3s; }
+        .rocket-svg .trim { fill: #00b4d8; transition: fill 0.3s; }
+        .rocket-svg .window { fill: #1e293b; }
+        
+        .target-slot {
+            position: absolute;
+            top: 75px;
+            width: 75px;
+            height: 45px;
+            display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 1.7rem;
-            font-weight: bold;
-            color: #fff;
-            box-shadow: 0 0 15px rgba(0, 180, 216, 0.2);
-            padding: 10px;
-            transition: border-color 0.3s;
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #1e293b;
+            text-align: center;
+            z-index: 6;
+            pointer-events: none;
         }
-        /* Visual cue for the rocket engine nozzle decoration */
-        .target-slot::after {
-            content: "🚀 ENGINE";
-            font-size: 0.7rem;
-            color: #00b4d8;
-            margin-top: 8px;
-            letter-spacing: 2px;
+
+        /* Rocket Engine Fire FX */
+        .rocket-fire {
+            position: absolute;
+            bottom: -5px;
+            width: 40px;
+            height: 60px;
+            background: linear-gradient(to bottom, #ff7b00, #ffae00, transparent);
+            border-radius: 50% 50% 20% 20%;
+            opacity: 0;
+            z-index: 4;
+            transform-origin: top center;
+        }
+
+        /* Launch Keyframe Utilities */
+        .launching {
+            transform: translateY(-120vh) scaleY(1.1) !important;
+        }
+        .launching .rocket-fire {
+            opacity: 1;
+            animation: engineBurn 0.1s infinite alternate;
+        }
+        @keyframes engineBurn {
+            0% { transform: scaleX(0.9) translateY(0); filter: blur(1px); }
+            100% { transform: scaleX(1.1) translateY(4px); filter: blur(0px); }
         }
 
         /* Launchpad Dock (Base Station) */
         .deck-pile {
             position: absolute;
-            bottom: 15px;
+            bottom: 25px;
             left: 50%;
             transform: translateX(-50%);
-            width: 180px;
-            height: 180px;
-            border: 2px dashed rgba(255,255,255,0.2);
+            width: 170px;
+            height: 170px;
+            border: 2px dashed rgba(0, 180, 216, 0.4);
             border-radius: 50%;
-            background: rgba(255,255,255,0.02);
+            background: rgba(0, 180, 216, 0.03);
             z-index: 1;
+            box-shadow: inset 0 0 20px rgba(0, 180, 216, 0.1);
         }
 
         /* Fuel Pod (The Drag Problem Object) */
         .movable-card {
             position: absolute;
-            width: 150px;
-            height: 150px;
+            width: 140px;
+            height: 140px;
             background: radial-gradient(circle at 30% 30%, #ff9f1c, #ff5400);
             border-radius: 50%;
             box-shadow: 0 0 25px rgba(255, 159, 28, 0.6), inset -5px -5px 15px rgba(0,0,0,0.4);
@@ -177,7 +214,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             font-weight: bold;
             color: #ffffff;
             cursor: grab;
@@ -190,6 +227,21 @@
         .movable-card:active { 
             cursor: grabbing; 
             box-shadow: 0 0 35px rgba(255, 84, 0, 0.9);
+        }
+
+        /* Floating Background Accent Elements */
+        .bg-symbol {
+            position: absolute;
+            font-size: 32px;
+            opacity: 0.15;
+            color: #00b4d8;
+            animation: float 14s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+        @keyframes float {
+            0% { transform: translateY(105vh) rotate(0deg); }
+            100% { transform: translateY(-15vh) rotate(360deg); }
         }
 
         /* Win Screen */
@@ -206,7 +258,7 @@
 
     <div id="splash-screen" class="screen active">
         <img class="logo-placeholder" src="assets/logo.png" alt="Innovine Logo" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';">
-        <h1 id="logo-fallback" style="display:none; font-size: 3rem; color: #333; margin-bottom: 20px;">INNOVINE</h1>
+        <h1 id="logo-fallback" style="display:none; font-size: 3rem; color: #111e38; margin-bottom: 20px; font-weight:900;">INNOVINE</h1>
         <div class="loading-bar">
             <div class="loading-progress"></div>
         </div>
@@ -217,12 +269,12 @@
             <h1 style="margin-top:0; color:#00b4d8; font-size: 2rem; letter-spacing: 1px;">Multiplication Orbit</h1>
             <div style="text-align: left; line-height: 1.6; margin: 25px 0; color: #dddddd; font-size: 0.95rem;">
                 <p><strong>Mission Briefing:</strong></p>
-                <ul>
-                    <li>An unstable **Fuel Pod** containing a multiplication matrix will lock into the launchpad.</li>
-                    <li>Solve the equation swiftly using accurate math navigation.</li>
-                    <li><strong>Drag and fly</strong> the Fuel Pod across space.</li>
-                    <li>Dock it cleanly inside the **Rocket Engine** matching the correct product.</li>
-                    <li>Secure 10 engine cells safely to launch into deep orbit!</li>
+                <ul style="padding-left: 20px;">
+                    <li style="margin-bottom: 8px;">An unstable **Fuel Pod** multiplication matrix will map into the launchpad.</li>
+                    <li style="margin-bottom: 8px;"><strong>Drag and fly</strong> the Fuel Pod across space to match the product.</li>
+                    <li style="margin-bottom: 8px;">Drop it cleanly inside the matching **Rocket Ship** hull window.</li>
+                    <li style="margin-bottom: 8px;">You have **exactly 2 attempts** per challenge matrix before lock out.</li>
+                    <li style="margin-bottom: 8px;">Fuel 10 rockets successfully to launch into deep planetary orbit!</li>
                 </ul>
             </div>
             <button class="btn" onclick="startGame()">INITIATE LAUNCH</button>
@@ -232,19 +284,66 @@
     <div id="game-screen" class="screen">
         <div class="game-header">
             <div>Engines Fueled: <span id="score-display">0</span> / 10</div>
+            <div style="color: #ff9f1c;">Chances: <span id="chances-display">2</span></div>
             <div>Navigation: Grade 4 System</div>
         </div>
         
         <div class="board-table" id="board-table">
             <div class="slots-row">
-                <div class="target-slot" id="slot-0"></div>
-                <div class="target-slot" id="slot-1"></div>
-                <div class="target-slot" id="slot-2"></div>
-                <div class="target-slot" id="slot-3"></div>
+                <div class="rocket-container" id="rocket-0">
+                    <svg class="rocket-svg" viewBox="0 0 100 160">
+                        <path class="trim" d="M50,10 C65,35 65,60 65,60 L35,60 C35,60 35,35 50,10 Z" />
+                        <path class="hull" d="M35,55 L65,55 L65,130 L35,130 Z" />
+                        <circle class="window" cx="50" cy="85" r="20" />
+                        <path class="trim" d="M35,110 L20,140 L35,130 Z" />
+                        <path class="trim" d="M65,110 L80,140 L65,130 Z" />
+                        <path d="M42,130 L58,130 L54,140 L46,140 Z" fill="#64748b" />
+                    </svg>
+                    <div class="target-slot" id="slot-0"></div>
+                    <div class="rocket-fire"></div>
+                </div>
+
+                <div class="rocket-container" id="rocket-1">
+                    <svg class="rocket-svg" viewBox="0 0 100 160">
+                        <path class="trim" d="M50,10 C65,35 65,60 65,60 L35,60 C35,60 35,35 50,10 Z" />
+                        <path class="hull" d="M35,55 L65,55 L65,130 L35,130 Z" />
+                        <circle class="window" cx="50" cy="85" r="20" />
+                        <path class="trim" d="M35,110 L20,140 L35,130 Z" />
+                        <path class="trim" d="M65,110 L80,140 L65,130 Z" />
+                        <path d="M42,130 L58,130 L54,140 L46,140 Z" fill="#64748b" />
+                    </svg>
+                    <div class="target-slot" id="slot-1"></div>
+                    <div class="rocket-fire"></div>
+                </div>
+
+                <div class="rocket-container" id="rocket-2">
+                    <svg class="rocket-svg" viewBox="0 0 100 160">
+                        <path class="trim" d="M50,10 C65,35 65,60 65,60 L35,60 C35,60 35,35 50,10 Z" />
+                        <path class="hull" d="M35,55 L65,55 L65,130 L35,130 Z" />
+                        <circle class="window" cx="50" cy="85" r="20" />
+                        <path class="trim" d="M35,110 L20,140 L35,130 Z" />
+                        <path class="trim" d="M65,110 L80,140 L65,130 Z" />
+                        <path d="M42,130 L58,130 L54,140 L46,140 Z" fill="#64748b" />
+                    </svg>
+                    <div class="target-slot" id="slot-2"></div>
+                    <div class="rocket-fire"></div>
+                </div>
+
+                <div class="rocket-container" id="rocket-3">
+                    <svg class="rocket-svg" viewBox="0 0 100 160">
+                        <path class="trim" d="M50,10 C65,35 65,60 65,60 L35,60 C35,60 35,35 50,10 Z" />
+                        <path class="hull" d="M35,55 L65,55 L65,130 L35,130 Z" />
+                        <circle class="window" cx="50" cy="85" r="20" />
+                        <path class="trim" d="M35,110 L20,140 L35,130 Z" />
+                        <path class="trim" d="M65,110 L80,140 L65,130 Z" />
+                        <path d="M42,130 L58,130 L54,140 L46,140 Z" fill="#64748b" />
+                    </svg>
+                    <div class="target-slot" id="slot-3"></div>
+                    <div class="rocket-fire"></div>
+                </div>
             </div>
 
             <div class="deck-pile" id="deck-pile"></div>
-
             <div id="deal-card" class="movable-card"></div>
         </div>
     </div>
@@ -263,8 +362,9 @@
         let currentCorrectAnswer = 0;
         const targetScore = 10;
         let slotValues = [];
+        let attempts = 0;
+        let lockInteraction = false;
 
-        // Engine Drag Coordinate Tracks
         let isDragging = false;
         let startX, startY;
         let cardStartX, cardStartY;
@@ -277,13 +377,30 @@
         const soundWrong = document.getElementById('sound-wrong');
         const soundWin = document.getElementById('sound-win');
 
+        function createBackground() {
+            const symbols = ['+', '×', '⭐', '🪐'];
+            for(let i = 0; i < 12; i++) {
+                let el = document.createElement('div');
+                el.className = 'bg-symbol';
+                el.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.animationDuration = (8 + Math.random() * 8) + 's';
+                el.style.fontSize = (24 + Math.random() * 24) + 'px';
+                document.body.appendChild(el);
+            }
+        }
+
         function playSound(audioElement) {
             audioElement.currentTime = 0;
-            audioElement.play().catch(e => console.log("Audio pipeline buffered."));
+            audioElement.play().catch(e => {});
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => { transitionScreen('splash-screen', 'menu-screen'); }, 5000); 
+            // Pristine Splash Screen: Suppress floaters until 5s timer fires
+            setTimeout(() => { 
+                transitionScreen('splash-screen', 'menu-screen'); 
+                createBackground();
+            }, 5000); 
         });
 
         function transitionScreen(fromId, toId) {
@@ -298,47 +415,56 @@
             setupRound();
         }
 
-        // Generates dynamic problems aligning with Curriculum Learning Outcomes
         function setupRound() {
-            // Recalibrate and lock object to Launchpad coordinates
-            card.style.left = (deckPile.offsetLeft + (deckPile.offsetWidth/2) - 75) + "px";
-            card.style.top = (deckPile.offsetTop + (deckPile.offsetHeight/2) - 75) + "px";
+            attempts = 0;
+            lockInteraction = false;
+            document.getElementById('chances-display').innerText = 2;
+
+            // Reset Rocket Positions and Color Trim
+            for(let i = 0; i < 4; i++) {
+                const container = document.getElementById(`rocket-${i}`);
+                container.classList.remove('launching');
+                container.style.opacity = "1";
+                
+                const svg = container.querySelector('.rocket-svg');
+                svg.querySelector('.hull').style.fill = "#e2e8f0";
+                svg.querySelector('.trim').style.fill = "#00b4d8";
+                
+                const targetText = document.getElementById(`slot-${i}`);
+                targetText.style.color = "#1e293b";
+            }
+
+            // Centralize Fuel Pod inside Launchpad Zone
+            card.style.left = (deckPile.offsetLeft + (deckPile.offsetWidth/2) - 70) + "px";
+            card.style.top = (deckPile.offsetTop + (deckPile.offsetHeight/2) - 70) + "px";
             card.style.display = "flex";
             card.style.transform = "none";
 
+            // Problem Formulation Layout
             let num1, num2;
             const routeChooser = Math.random();
 
             if (routeChooser < 0.35) {
-                // Concept Tracker: Multiplication by 10, 100, 1000
-                const powers = [10, 100, 1000];
+                const powers = [10, 100];
                 num2 = powers[Math.floor(Math.random() * powers.length)];
-                num1 = Math.floor(Math.random() * 899) + 100;
+                num1 = Math.floor(Math.random() * 89) + 10;
             } else if (routeChooser < 0.70) {
-                // Concept Tracker: 3-Digit and 4-Digit factors by Tables up to 25
-                num1 = Math.floor(Math.random() * 900) + 100;
-                num2 = Math.floor(Math.random() * 15) + 10; // 10 to 25
+                num1 = Math.floor(Math.random() * 50) + 15;
+                num2 = Math.floor(Math.random() * 8) + 11; 
             } else {
-                // Concept Tracker: Complex Multiples Products Estimation Close Match
                 num1 = Math.floor(Math.random() * 80) + 20;
-                num2 = Math.floor(Math.random() * 12) + 12;
+                num2 = Math.floor(Math.random() * 9) + 2;
             }
 
             currentCorrectAnswer = num1 * num2;
-            card.innerHTML = `<span style="font-size:1.1rem; color:#fff; opacity:0.8;">FUEL</span><br>${num1} × ${num2}`;
+            card.innerHTML = `<span style="font-size:0.9rem; color:#fff; opacity:0.8;">FUEL</span><br>${num1} × ${num2}`;
 
-            // Generate realistic confusion engine parameters
             let options = new Set();
             options.add(currentCorrectAnswer);
 
             while(options.size < 4) {
-                let shift = 0;
-                const varianceRoll = Math.random();
-                if (varianceRoll < 0.4) {
-                    shift = (Math.floor(Math.random() * 4) + 1) * (Math.random() > 0.5 ? 10 : 100);
-                } else {
-                    shift = (Math.floor(Math.random() * 8) + 1) * (Math.random() > 0.5 ? 1 : -1);
-                }
+                let shift = (Math.floor(Math.random() * 8) + 1) * (Math.random() > 0.5 ? 1 : -1);
+                if (Math.random() > 0.5) shift *= 10;
                 
                 let faultyEntry = currentCorrectAnswer + shift;
                 if(faultyEntry > 0 && faultyEntry !== currentCorrectAnswer) options.add(faultyEntry);
@@ -350,7 +476,7 @@
             }
         }
 
-        // --- Celestial Interactivity Navigation Mechanics ---
+        // Interactivity Bindings
         card.addEventListener('mousedown', startDrag);
         card.addEventListener('touchstart', startDrag, { passive: false });
 
@@ -361,6 +487,7 @@
         window.addEventListener('touchend', endDrag);
 
         function startDrag(e) {
+            if (lockInteraction) return;
             isDragging = true;
             const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
             const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
@@ -372,7 +499,7 @@
         }
 
         function dragMove(e) {
-            if (!isDragging) return;
+            if (!isDragging || lockInteraction) return;
             if(e.cancelable) e.preventDefault();
 
             const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
@@ -386,17 +513,17 @@
         }
 
         function endDrag() {
-            if (!isDragging) return;
+            if (!isDragging || lockInteraction) return;
             isDragging = false;
 
             const cardRect = card.getBoundingClientRect();
             let dockedIndex = -1;
 
             for (let i = 0; i < 4; i++) {
-                const slot = document.getElementById(`slot-${i}`);
+                // Bounds validation matching the Rocket window profile layout directly
+                const slot = document.getElementById(`rocket-${i}`);
                 const slotRect = slot.getBoundingClientRect();
 
-                // Vector proximity bounding intersections
                 if (!(cardRect.right < slotRect.left || 
                       cardRect.left > slotRect.right || 
                       cardRect.bottom < slotRect.top || 
@@ -408,10 +535,26 @@
 
             if (dockedIndex !== -1) {
                 if (slotValues[dockedIndex] === currentCorrectAnswer) {
+                    lockInteraction = true;
                     score++;
                     document.getElementById('score-display').innerText = score;
                     playSound(soundCorrect);
+                    
                     card.style.display = "none";
+
+                    // Trigger Rocket Ship Launch Sequence
+                    const activeRocket = document.getElementById(`rocket-${dockedIndex}`);
+                    const svg = activeRocket.querySelector('.rocket-svg');
+                    svg.querySelector('.hull').style.fill = "#10b981";
+                    svg.querySelector('.trim').style.fill = "#047857";
+                    document.getElementById(`slot-${dockedIndex}`).style.color = "#ffffff";
+                    
+                    activeRocket.classList.add('launching');
+
+                    // Turn off other rockets smoothly
+                    for(let i=0; i<4; i++){
+                        if(i !== dockedIndex) document.getElementById(`rocket-${i}`).style.opacity = "0.3";
+                    }
 
                     setTimeout(() => {
                         if (score >= targetScore) {
@@ -420,10 +563,32 @@
                         } else {
                             setupRound();
                         }
-                    }, 400);
+                    }, 1400);
                 } else {
+                    attempts++;
+                    document.getElementById('chances-display').innerText = 2 - attempts;
                     playSound(soundWrong);
-                    snapBackHome();
+
+                    if (attempts >= 2) {
+                        lockInteraction = true;
+                        card.style.display = "none";
+
+                        // Highlight correct solution path automatically
+                        for (let i = 0; i < 4; i++) {
+                            const currentRocket = document.getElementById(`rocket-${i}`);
+                            if (slotValues[i] === currentCorrectAnswer) {
+                                const svg = currentRocket.querySelector('.rocket-svg');
+                                svg.querySelector('.hull').style.fill = "#ff9f1c";
+                                svg.querySelector('.trim').style.fill = "#cc7a00";
+                                document.getElementById(`slot-${i}`).style.color = "#ffffff";
+                            } else {
+                                currentRocket.style.opacity = "0.2";
+                            }
+                        }
+                        setTimeout(setupRound, 2500);
+                    } else {
+                        snapBackHome();
+                    }
                 }
             } else {
                 snapBackHome();
@@ -432,8 +597,8 @@
 
         function snapBackHome() {
             card.style.transition = "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)";
-            card.style.left = (deckPile.offsetLeft + (deckPile.offsetWidth/2) - 75) + "px";
-            card.style.top = (deckPile.offsetTop + (deckPile.offsetHeight/2) - 75) + "px";
+            card.style.left = (deckPile.offsetLeft + (deckPile.offsetWidth/2) - 70) + "px";
+            card.style.top = (deckPile.offsetTop + (deckPile.offsetHeight/2) - 70) + "px";
             setTimeout(() => { card.style.transition = "none"; }, 300);
         }
 
