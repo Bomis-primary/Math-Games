@@ -211,6 +211,12 @@ h1 {
 
 .pattern-tile img { width: 100%; height: 100%; object-fit: contain; }
 
+/* FIX FOR LIGHT/WHITE ASSETS LIKE CLOUDS */
+.light-asset-fix {
+    background: linear-gradient(to bottom, #87ceeb, #e0f7fa) !important;
+    box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.15);
+}
+
 .blank-tile {
     border: 3px dashed #fffb00;
     background: rgba(0, 0, 0, 0.2);
@@ -484,6 +490,12 @@ function renderShapesBoard() {
             div.innerHTML = `<img class="card-back-icon" src="assets/shape-machine.png" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
                              <div style="display:none; font-size:32px;">❓</div>`;
         }
+        
+        // Dynamic visibility enhancement for cloud image in matching deck
+        if (c.imgFile.includes("cloud") && (isMatched || isFlipped)) {
+            div.classList.add("light-asset-fix");
+        }
+
         div.onclick = () => flipCard(i);
         board.appendChild(div);
     });
@@ -562,6 +574,9 @@ function loadPatternSequence(poolIndex) {
     currentPattern.sequence.forEach(imgSrc => {
         const tile = document.createElement("div");
         tile.className = "pattern-tile";
+        if (imgSrc.includes("cloud")) {
+            tile.classList.add("light-asset-fix");
+        }
         tile.innerHTML = `<img src="${imgSrc}">`;
         board.appendChild(tile);
     });
@@ -578,6 +593,9 @@ function loadPatternSequence(poolIndex) {
     currentPattern.options.forEach(optionSrc => {
         const btn = document.createElement("button");
         btn.className = "option-btn";
+        if (optionSrc.includes("cloud")) {
+            btn.classList.add("light-asset-fix");
+        }
         btn.innerHTML = `<img src="${optionSrc}">`;
         btn.onclick = () => verifyPatternChoice(btn, optionSrc, currentPattern.correctAnswer);
         optionsBox.appendChild(btn);
@@ -596,6 +614,9 @@ function verifyPatternChoice(btnElement, chosenSrc, correctSrc) {
 
         const blank = document.getElementById("targetBlank");
         blank.className = "pattern-tile";
+        if (chosenSrc.includes("cloud")) {
+            blank.classList.add("light-asset-fix");
+        }
         blank.style.animation = "none";
         blank.innerHTML = `<img src="${chosenSrc}">`;
         
@@ -612,8 +633,13 @@ function verifyPatternChoice(btnElement, chosenSrc, correctSrc) {
         btnElement.style.backgroundColor = "#ffcdd2";
         btnElement.style.borderColor = "#ff1744";
         setTimeout(() => {
-            btnElement.style.backgroundColor = "#ffffff";
-            btnElement.style.borderColor = "#ffffff";
+            if (chosenSrc.includes("cloud")) {
+                btnElement.style.backgroundColor = "";
+                btnElement.style.borderColor = "#ffffff";
+            } else {
+                btnElement.style.backgroundColor = "#ffffff";
+                btnElement.style.borderColor = "#ffffff";
+            }
         }, 600);
     }
 }
