@@ -177,7 +177,7 @@ h1 {
     color: #2e7d32;
     cursor: pointer;
     box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-    white-space: nowrap; /* Forces equation text to stay on one single line */
+    white-space: nowrap;
     transition: transform 0.2s, background-color 0.2s, color 0.2s, border-color 0.2s;
 }
 .option-card:hover { transform: scale(1.06); }
@@ -270,7 +270,7 @@ const correctSound = document.getElementById("correctSound");
 const wrongSound = document.getElementById("wrongSound");
 
 // Global State
-let currentLevel = 1; // 1: Sequence, 2: Expanded Reactor, 3: Comparisons
+let currentLevel = 1; 
 let currentRound = 0; 
 const totalRoundsPerLevel = 3;
 
@@ -299,6 +299,9 @@ const levelThemes = {
 };
 
 window.addEventListener("DOMContentLoaded", () => {
+    // Safely structure elements into viewport DOM framework prior to dismissal calculation
+    initGame();
+    
     setTimeout(() => {
         const splash = document.getElementById("splashScreen");
         const container = document.getElementById("gameContainer");
@@ -306,7 +309,6 @@ window.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => {
             splash.style.display = "none";
             container.style.display = "flex";
-            initGame();
         }, 300);
     }, 1200); 
 });
@@ -329,8 +331,10 @@ function updateLayoutTheme(cfg) {
     gameInstruction.style.color = cfg.instructionColor || "#b71c1c";
     
     const board = document.getElementById("masterBoard");
-    board.style.backgroundColor = cfg.boardColor;
-    board.style.borderColor = cfg.boardBorder;
+    if (board) {
+        board.style.backgroundColor = cfg.boardColor;
+        board.style.borderColor = cfg.boardBorder;
+    }
     
     const badge = document.getElementById("levelBadge");
     badge.style.backgroundColor = cfg.badgeColor;
@@ -345,21 +349,21 @@ function loadRoundEngine() {
 
     const board = document.getElementById("masterBoard");
     const optionsContainer = document.getElementById("optionsContainer");
-    board.innerHTML = "";
-    optionsContainer.innerHTML = "";
+    
+    if (board && optionsContainer) {
+        board.innerHTML = "";
+        optionsContainer.innerHTML = "";
 
-    if (currentLevel === 1) {
-        buildSequenceRound(board, optionsContainer);
-    } else if (currentLevel === 2) {
-        buildExpansionRound(board, optionsContainer);
-    } else if (currentLevel === 3) {
-        buildComparisonRound(board, optionsContainer);
+        if (currentLevel === 1) {
+            buildSequenceRound(board, optionsContainer);
+        } else if (currentLevel === 2) {
+            buildExpansionRound(board, optionsContainer);
+        } else if (currentLevel === 3) {
+            buildComparisonRound(board, optionsContainer);
+        }
     }
 }
 
-/* ==========================================
-   LEVEL 1 GENERATOR ENGINE: SEQUENCING
-   ========================================== */
 function buildSequenceRound(board, optionsContainer) {
     let startNum = Math.floor(Math.random() * 90) + 101; 
     let sequence = [startNum, startNum + 1, startNum + 2];
@@ -392,4 +396,253 @@ function buildSequenceRound(board, optionsContainer) {
 
     choices.forEach(val => {
         const card = document.createElement("div");
-        card.
+        card.className = "option-card";
+        card.innerText = val;
+        card.onclick = () => verifyPlayerInput(card, val.toString(), () => {
+            const target = document.getElementById("targetSlot");
+            if (target) {
+                target.innerText = correctAnswerText;
+                target.style.background = "#81c784";
+                target.style.color = "#fff";
+                target.style.borderColor = "#2e7d32";
+                target.style.borderStyle = "solid";
+                target.classList.add("pop-correct");
+            }
+        });
+        optionsContainer.appendChild(card);
+    });
+}
+
+function buildExpansionRound(board, optionsContainer) {
+    let targetNum = Math.floor(Math.random() * 99) + 101; 
+    
+    let hundreds = Math.floor(targetNum / 100) * 100;
+    let tens = Math.floor((targetNum % 100) / 10) * 10;
+    let ones = targetNum % 10;
+    
+    correctAnswerText = `${hundreds} + ${tens} + ${ones}`;
+
+    const targetNode = document.createElement("div");
+    targetNode.className = "number-node";
+    targetNode.style.maxWidth = "160px";
+    targetNode.style.borderColor = "#39ff14";
+    targetNode.style.backgroundColor = "#0d3c11";
+    targetNode.style.color = "#fff";
+    targetNode.innerText = targetNum;
+    board.appendChild(targetNode);
+
+    const equalSign = document.createElement("div");
+    equalSign.className = "expansion-node";
+    equalSign.style.color = "#39ff14";
+    equalSign.innerText = "=";
+    board.appendChild(equalSign);
+
+    const slotNode = document.createElement("div");
+    slotNode.className = "number-node missing-target";
+    slotNode.id = "targetSlot";
+    slotNode.style.maxWidth = "280px";
+    slotNode.style.aspectRatio = "auto";
+    slotNode.style.padding = "10px 25px";
+    slotNode.style.borderColor = "#39ff14";
+    slotNode.innerText = "? + ? + ?";
+    board.appendChild(slotNode);
+
+    let choices = [correctAnswerText];
+    while (choices.length < 3) {
+        let fakeNum = Math.floor(Math.random() * 99) + 101;
+        let fH = Math.floor(fakeNum / 100) * 100;
+        let fT = Math.floor((fakeNum % 100) / 10) * 10;
+        let fO = fakeNum % 10;
+        let fakeOption = `${fH} + ${fT} + ${fO}`;
+        if (!choices.includes(fakeOption)) {
+            choices.push(fakeOption);
+        }
+    }
+    choices.sort(() => Math.random() - 0.5);
+
+    choices.forEach(formula => {
+        const card = document.createElement("div");
+        card.className = "option-card";
+        card.style.borderColor = "#1b5e20";
+        card.style.color = "#1b5e20";
+        card.innerText = formula;
+        card.onclick = () => verifyPlayerInput(card, formula, () => {
+            const target = document.getElementById("targetSlot");
+            if (target) {
+                target.innerText = correctAnswerText;
+                target.style.background = "#39ff14";
+                target.style.color = "#000";
+                target.style.borderColor = "#fff";
+                target.style.fontSize = "clamp(18px, 3.5vw, 26px)";
+                target.style.borderStyle = "solid";
+                target.classList.add("pop-correct");
+            }
+        });
+        optionsContainer.appendChild(card);
+    });
+}
+
+function buildComparisonRound(board, optionsContainer) {
+    let numA = Math.floor(Math.random() * 90) + 105;
+    let numB = Math.floor(Math.random() * 90) + 105;
+    while (numA === numB) {
+        numB = Math.floor(Math.random() * 90) + 105;
+    }
+
+    correctAnswerText = numA > numB ? ">" : "<";
+
+    const nodeA = document.createElement("div");
+    nodeA.className = "number-node";
+    nodeA.innerText = numA;
+    board.appendChild(nodeA);
+
+    const slotNode = document.createElement("div");
+    slotNode.className = "symbol-slot";
+    slotNode.id = "targetSlot";
+    slotNode.innerText = "?";
+    board.appendChild(slotNode);
+
+    const nodeB = document.createElement("div");
+    nodeB.className = "number-node";
+    nodeB.innerText = numB;
+    board.appendChild(nodeB);
+
+    const operationalChoices = [">", "<"];
+    operationalChoices.forEach(symbol => {
+        const card = document.createElement("div");
+        card.className = "option-card";
+        card.style.fontSize = "48px";
+        card.innerText = symbol;
+        card.onclick = () => verifyPlayerInput(card, symbol, () => {
+            const target = document.getElementById("targetSlot");
+            if (target) {
+                target.innerText = correctAnswerText;
+                target.style.backgroundColor = "#ffeb3b";
+                target.style.color = "#e65100";
+                target.style.borderColor = "#e65100";
+                target.style.borderStyle = "solid";
+                target.classList.add("pop-correct");
+            }
+        });
+        optionsContainer.appendChild(card);
+    });
+}
+
+function verifyPlayerInput(selectedCard, alternativeValue, updateUIDelegate) {
+    if (alternativeValue === correctAnswerText) {
+        correctSound.currentTime = 0;
+        correctSound.play().catch(e => {});
+        
+        updateUIDelegate();
+        
+        const target = document.getElementById("targetSlot");
+        if (target) {
+            const rect = target.getBoundingClientRect();
+            burstParticles(rect.left + rect.width / 2, rect.top + rect.height / 2, 28);
+        }
+        
+        document.querySelectorAll('.option-card').forEach(c => c.onclick = null);
+        document.getElementById("actionControl").disabled = false;
+    } else {
+        wrongSound.currentTime = 0;
+        wrongSound.play().catch(e => {});
+        
+        selectedCard.style.backgroundColor = "#ffcdd2";
+        selectedCard.style.color = "#c62828";
+        selectedCard.classList.add("shake-wrong");
+        
+        setTimeout(() => {
+            selectedCard.classList.remove("shake-wrong");
+            selectedCard.style.backgroundColor = "#ffffff";
+            selectedCard.style.color = currentLevel === 2 ? "#1b5e20" : "#2e7d32";
+        }, 500);
+    }
+}
+
+function advanceNextRound() {
+    currentRound++;
+    if (currentRound < totalRoundsPerLevel) {
+        loadRoundEngine();
+    } else {
+        if (currentLevel < 3) {
+            currentLevel++;
+            currentRound = 0;
+            
+            burstParticles(window.innerWidth / 2, window.innerHeight / 3, 50);
+            loadRoundEngine();
+        } else {
+            triggerWinCelebration();
+        }
+    }
+}
+
+function triggerWinCelebration() {
+    document.getElementById("winScreen").style.display = "flex";
+    winMusic.currentTime = 0;
+    winMusic.play().catch(e => {});
+    
+    triggerFullRainBurst();
+    winInterval = setInterval(triggerFullRainBurst, 550);
+}
+
+function handleOverlayReset() {
+    document.getElementById("winScreen").style.display = "none";
+    if (winInterval) clearInterval(winInterval);
+    particles = [];
+    initGame();
+}
+
+/* Particle Pipeline Engine */
+const canvas = document.getElementById("fireworks");
+const ctx = canvas.getContext("2d");
+let particles = [];
+function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize();
+window.addEventListener("resize", resize);
+
+function burstParticles(x, y, count) {
+    const hues = currentLevel === 2 ? [95, 120, 145, 60, 45, 135] : [15, 45, 135, 195, 275, 335]; 
+    for(let i = 0; i < count; i++){
+        let angle = Math.random() * 2 * Math.PI;
+        let speed = Math.random() * 6 + 2.5;
+        let hue = hues[Math.floor(Math.random() * hues.length)];
+        particles.push({ 
+            x: x, 
+            y: y, 
+            vx: Math.cos(angle) * speed, 
+            vy: Math.sin(angle) * speed, 
+            radius: Math.random() * 3 + 2.5, 
+            alpha: 1, 
+            color: `hsla(${hue}, 100%, 60%, `, 
+            gravity: 0.07 
+        });
+    }
+}
+
+function triggerFullRainBurst() {
+    const randomX = Math.random() * canvas.width;
+    const randomY = Math.random() * (canvas.height * 0.4) + (canvas.height * 0.1);
+    burstParticles(randomX, randomY, 35);
+}
+
+function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => { 
+        p.x += p.vx; 
+        p.y += p.vy; 
+        p.vy += p.gravity; 
+        p.alpha -= 0.013; 
+    });
+    particles = particles.filter(p => p.alpha > 0);
+    particles.forEach(p => {
+        ctx.fillStyle = `${p.color}${p.alpha})`;
+        ctx.beginPath(); 
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); 
+        ctx.fill();
+    });
+    requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>
