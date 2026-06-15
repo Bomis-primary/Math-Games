@@ -223,4 +223,270 @@
 
         /* 4) Completion Screen Layout */
         #win-screen {
-            background: linear-gradient(135deg, #e0e
+            background: linear-gradient(135deg, #e0e7ff 0%, #e0f2fe 100%);
+        }
+        .trophy-icon { font-size: 5rem; margin-bottom: 20px; display: inline-block; animation: bounce 2s infinite ease-in-out; }
+        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+        @keyframes load { to { width: 100%; } }
+    </style>
+</head>
+<body>
+
+    <audio id="sound-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+    <audio id="sound-win" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
+
+    <div id="splash-screen" class="screen active">
+        <img class="innovine-logo" src="assets/logo.png" alt="Logo">
+        <div class="loading-bar">
+            <div class="loading-progress"></div>
+        </div>
+    </div>
+
+    <div id="menu-screen" class="screen">
+        <div class="content-box">
+            <h1>Challenge Quest</h1>
+            <ul class="instructions-list">
+                <li>A math expression card will spawn in the bottom deck pile.</li>
+                <li><strong>Click and drag</strong> the problem card across the workspace.</li>
+                <li>Drop it directly on top of the correct answer slot up top.</li>
+                <li>You get <strong>exactly 2 chances</strong> to hit the right slot per round!</li>
+                <li>Complete all 10 math pairs sequentially to clear the quest!</li>
+            </ul>
+            <button class="btn" onclick="startGame()">START QUEST</button>
+        </div>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div class="game-header">
+            <div>⭐ SCORE: <span id="score-display">0</span> / 10</div>
+            <div>❤️ CHANCES LEFT: <span id="chances-display">2</span></div>
+        </div>
+        
+        <div class="board-table" id="board-table">
+            <div class="slots-row">
+                <div class="target-slot" id="slot-0"></div>
+                <div class="target-slot" id="slot-1"></div>
+                <div class="target-slot" id="slot-2"></div>
+                <div class="target-slot" id="slot-3"></div>
+            </div>
+
+            <div class="deck-pile" id="deck-pile"></div>
+            <div id="deal-card" class="movable-card"></div>
+        </div>
+    </div>
+
+    <div id="win-screen" class="screen">
+        <div class="content-box">
+            <div class="trophy-icon">🏆</div>
+            <h1 style="color: #1e1b4b; margin-bottom: 10px;">Quest Complete!</h1>
+            <p style="font-size: 1.2rem; margin-bottom: 24px; color: var(--text-muted);">Quest finalized with your total performance score.</p>
+            <button class="btn" onclick="resetGame()">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        let score = 0;
+        let currentCorrectAnswer = 0;
+        const targetScore = 10;
+        let slotValues = [];
+        let attempts = 0;
+
+        let isDragging = false;
+        let startX, startY;
+        let cardStartX, cardStartY;
+
+        const card = document.getElementById('deal-card');
+        const table = document.getElementById('board-table');
+        const deckPile = document.getElementById('deck-pile');
+
+        const soundCorrect = document.getElementById('sound-correct');
+        const soundWrong = document.getElementById('sound-wrong');
+        const soundWin = document.getElementById('sound-win');
+
+        function createBackground() {
+            const symbols = ['-', '=', '✨', '🎈'];
+            for(let i = 0; i < 12; i++) {
+                let el = document.createElement('div');
+                el.className = 'bg-symbol';
+                el.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.animationDuration = (8 + Math.random() * 8) + 's';
+                el.style.fontSize = (24 + Math.random() * 24) + 'px';
+                document.body.appendChild(el);
+            }
+        }
+        createBackground();
+
+        function playSound(audioElement) {
+            audioElement.currentTime = 0;
+            audioElement.play().catch(e => {});
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => { transitionScreen('splash-screen', 'menu-screen'); }, 5000); 
+        });
+
+        function transitionScreen(fromId, toId) {
+            document.getElementById(fromId).classList.remove('active');
+            document.getElementById(toId).classList.add('active');
+        }
+
+        function startGame() {
+            score = 0;
+            document.getElementById('score-display').innerText = score;
+            transitionScreen('menu-screen', 'game-screen');
+            setupRound();
+        }
+
+        function setupRound() {
+            attempts = 0;
+            document.getElementById('chances-display').innerText = 2;
+
+            // Position Reset
+            card.style.left = deckPile.offsetLeft + "px";
+            card.style.top = deckPile.offsetTop + "px";
+            card.style.display = "flex";
+            card.style.transform = "none";
+
+            // Calculation values setup (3-4 digit sets)
+            const num1 = Math.floor(Math.random() * 6000) + 3000;
+            const num2 = Math.floor(Math.random() * (num1 - 500)) + 250;
+            currentCorrectAnswer = num1 - num2;
+            card.innerText = `${num1}\n-\n${num2}`;
+
+            let options = new Set();
+            options.add(currentCorrectAnswer);
+
+            while(options.size < 4) {
+                let variance = (Math.floor(Math.random() * 20) + 1) * (Math.random() > 0.5 ? 1 : -1);
+                if(Math.random() > 0.6) variance = Math.random() > 0.5 ? 10 : 100;
+                let wrongVal = currentCorrectAnswer + variance;
+                if(wrongVal > 0 && wrongVal !== currentCorrectAnswer) options.add(wrongVal);
+            }
+
+            slotValues = Array.from(options).sort(() => Math.random() - 0.5);
+            for(let i = 0; i < 4; i++) {
+                document.getElementById(`slot-${i}`).innerText = slotValues[i];
+            }
+        }
+
+        // Drag and Drop Engine Controls
+        card.addEventListener('mousedown', startDrag);
+        card.addEventListener('touchstart', startDrag, { passive: false });
+
+        window.addEventListener('mousemove', dragMove);
+        window.addEventListener('touchmove', dragMove, { passive: false });
+
+        window.addEventListener('mouseup', endDrag);
+        window.addEventListener('touchend', endDrag);
+
+        function startDrag(e) {
+            isDragging = true;
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+            
+            startX = clientX;
+            startY = clientY;
+            cardStartX = card.offsetLeft;
+            cardStartY = card.offsetTop;
+        }
+
+        function dragMove(e) {
+            if (!isDragging) return;
+            if(e.cancelable) e.preventDefault();
+
+            const clientX = e.type.includes('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.includes('touch') ? e.touches[0].clientY : e.clientY;
+
+            let deltaX = clientX - startX;
+            let deltaY = clientY - startY;
+
+            card.style.left = (cardStartX + deltaX) + 'px';
+            card.style.top = (cardStartY + deltaY) + 'px';
+        }
+
+        function endDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+
+            const cardRect = card.getBoundingClientRect();
+            let droppedSlotIndex = -1;
+
+            for (let i = 0; i < 4; i++) {
+                const slot = document.getElementById(`slot-${i}`);
+                const slotRect = slot.getBoundingClientRect();
+
+                if (!(cardRect.right < slotRect.left || 
+                      cardRect.left > slotRect.right || 
+                      cardRect.bottom < slotRect.top || 
+                      cardRect.top > slotRect.bottom)) {
+                    droppedSlotIndex = i;
+                    break;
+                }
+            }
+
+            if (droppedSlotIndex !== -1) {
+                if (slotValues[droppedSlotIndex] === currentCorrectAnswer) {
+                    score++;
+                    document.getElementById('score-display').innerText = score;
+                    playSound(soundCorrect);
+                    card.style.display = "none";
+
+                    setTimeout(() => {
+                        if (score >= targetScore) {
+                            playSound(soundWin);
+                            transitionScreen('game-screen', 'win-screen');
+                        } else {
+                            setupRound();
+                        }
+                    }, 500);
+                } else {
+                    attempts++;
+                    document.getElementById('chances-display').innerText = 2 - attempts;
+                    playSound(soundWrong);
+                    
+                    if (attempts >= 2) {
+                        card.style.display = "none";
+                        // Highlight correct slot automatically on final failure path
+                        for (let i = 0; i < 4; i++) {
+                            if (slotValues[i] === currentCorrectAnswer) {
+                                document.getElementById(`slot-${i}`).style.borderColor = "var(--accent-success)";
+                                document.getElementById(`slot-${i}`).style.backgroundColor = "rgba(16, 185, 129, 0.1)";
+                            }
+                        }
+                        setTimeout(() => {
+                            // Clear transient layout indicators before moving forward
+                            for (let i = 0; i < 4; i++) {
+                                document.getElementById(`slot-${i}`).style.borderColor = "";
+                                document.getElementById(`slot-${i}`).style.backgroundColor = "";
+                            }
+                            if (score >= targetScore) {
+                                playSound(soundWin);
+                                transitionScreen('game-screen', 'win-screen');
+                            } else {
+                                setupRound();
+                            }
+                        }, 2000);
+                    } else {
+                        snapBack();
+                    }
+                }
+            } else {
+                snapBack();
+            }
+        }
+
+        function snapBack() {
+            card.style.transition = "all 0.3s ease-out";
+            card.style.left = deckPile.offsetLeft + "px";
+            card.style.top = deckPile.offsetTop + "px";
+            setTimeout(() => { card.style.transition = "none"; }, 300);
+        }
+
+        function resetGame() {
+            transitionScreen('win-screen', 'menu-screen');
+        }
+    </script>
+</body>
+</html>
