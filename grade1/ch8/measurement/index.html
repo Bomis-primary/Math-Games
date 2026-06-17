@@ -38,7 +38,7 @@
             overflow-x: hidden;
         }
 
-        /* --- SPLASH SCREEN --- */
+        /* --- LOADING SPLASH --- */
         #splash-screen {
             position: fixed;
             top: 0;
@@ -79,14 +79,14 @@
             height: 100%;
             background: linear-gradient(90deg, var(--primary), var(--button-orange));
             transform: translateX(-100%);
-            animation: fillLoadingBar 3s linear forwards;
+            animation: fillLoadingBar 2s linear forwards;
         }
 
         @keyframes fillLoadingBar {
             to { transform: translateX(0%); }
         }
 
-        /* --- INTRO SCREEN --- */
+        /* --- INSTRUCTION DASHBOARD --- */
         #intro-screen {
             background: var(--bg-island);
             border-radius: 28px;
@@ -119,7 +119,7 @@
             box-shadow: var(--card-shadow);
         }
 
-        /* --- MAIN CONTAINER --- */
+        /* --- GAME WINDOW SHELL --- */
         .game-container {
             background: #ffffff;
             border-radius: 28px;
@@ -209,7 +209,7 @@
             text-align: left;
         }
 
-        /* --- DRAG & DROP INTERSPACE --- */
+        /* --- PLACEMENT CANVAS BLOCKS --- */
         .workspace {
             width: 100%;
             margin-bottom: 24px;
@@ -239,11 +239,6 @@
             transition: background-color 0.2s, border-color 0.2s;
         }
 
-        .target-slot.drag-over {
-            background: var(--primary-light);
-            border-color: var(--button-orange);
-        }
-
         .slot-rank-label {
             position: absolute;
             bottom: 8px;
@@ -265,11 +260,11 @@
             border-radius: 20px;
             border: 1px solid #e9ecef;
             width: 100%;
+            position: relative;
         }
 
         .draggable-asset {
             cursor: grab;
-            touch-action: none;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -285,6 +280,7 @@
             text-align: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.04);
             border: 1px solid #e9ecef;
+            user-select: none;
         }
 
         .draggable-asset img {
@@ -295,15 +291,13 @@
             pointer-events: none; 
         }
 
-        .draggable-asset:active {
+        .draggable-asset.dragging {
+            opacity: 0.7;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
             cursor: grabbing;
         }
 
-        .draggable-asset.dragging {
-            opacity: 0.3;
-        }
-
-        /* --- CONTROL ACTIONS --- */
+        /* --- MASTER ACTION BUTTON --- */
         .btn-action {
             background: var(--button-orange);
             border: none;
@@ -324,7 +318,7 @@
             border-bottom-width: 2px;
         }
 
-        /* --- FEEDBACK STYLES --- */
+        /* --- RESPONSE FEEDBACK COLORS --- */
         .target-slot.correct-flash {
             background-color: #20bf6b !important;
             border-color: #1dd1a1 !important;
@@ -366,7 +360,7 @@
         <div class="intro-body">
             Welcome, Young Explorer! Are you ready to organize items by weight, length, and capacity size?
             <br><br>
-            🖐️ <strong>Instructions:</strong> Drag each object into the boxes to sequence them correctly from side to side. Click verify once all three items are in place!
+            🖐️ <strong>Instructions:</strong> Press and hold down an item using your mouse or screen, slide it into a dashed box, and let go! Click the check button below once you've completed the order!
         </div>
         <button class="btn-action" onclick="startCoreJourney()">Start Adventure! 🚀</button>
     </div>
@@ -393,7 +387,7 @@
     </div>
 
     <script>
-        // High-Quality Data Core mapping clean visual text names directly to asset pictures
+        // High Quality Curriculum Array mapping graphic images precisely to their descriptive labels
         const taskPool = [
             {
                 instruction: "Arrange the objects from HEAVIEST to LIGHTEST!",
@@ -434,9 +428,14 @@
         let cumulativeScore = 0;
         let currentAttemptsUsed = 0;
         let lockInterface = false;
-        let draggedNodeRef = null;
 
-        // Sound System
+        // Pointer Drag Engine Global References
+        let activeDraggedElement = null;
+        let pointerOffsetX = 0;
+        let pointerOffsetY = 0;
+        let initialContainerParent = null;
+
+        // Feedback Sound FX System
         function playAudio(type) {
             let soundFile = type === 'correct' ? 'assets/correct.mp3' : 'assets/wrong.mp3';
             let audio = new Audio(soundFile);
@@ -450,7 +449,7 @@
             claps.play().catch(() => {});
         }
 
-        // Automatic Splash Control Loop
+        // Automatic 2-Second Brand Splash Control Loop
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
@@ -462,13 +461,14 @@
                         intro.style.display = 'block';
                     }, 500);
                 }
-            }, 3000); // Set to 3 seconds for snappy loading
+            }, 2000);
         });
 
         function startCoreJourney() {
             document.getElementById('intro-screen').remove();
             document.getElementById('main-game').style.display = 'block';
             loadTaskIteration();
+            setupGlobalPointerListeners();
         }
 
         function loadTaskIteration() {
@@ -491,18 +491,14 @@
             space.innerHTML = "";
 
             let containerMarkup = `<div class="drag-workspace-wrapper">`;
-            
-            // Drop targets row
             containerMarkup += `<div class="drop-zones-row">`;
             task.slots.forEach((slotLabel, idx) => {
                 containerMarkup += `
-                    <div class="target-slot" data-slot-index="${idx}" ondragover="allowSlotDrop(event)" ondragenter="handleDragEnter(event)" ondragleave="handleDragLeave(event)" ondrop="handleAssetDrop(event)">
+                    <div class="target-slot" data-slot-index="${idx}">
                         <div class="slot-rank-label">${slotLabel}</div>
                     </div>`;
             });
             containerMarkup += `</div>`;
-
-            // Elements Source Deck
             containerMarkup += `<div class="items-deck" id="items-source-deck"></div>`;
             containerMarkup += `</div>`;
             
@@ -513,93 +509,103 @@
                 const block = document.createElement('div');
                 block.className = "draggable-asset";
                 block.id = item.id;
-                block.draggable = true;
-                
                 block.innerHTML = `<img src="${item.img}" alt="${item.label}"><span>${item.label}</span>`;
                 
-                // Desktop Event Hooks
-                block.addEventListener('dragstart', handleDragStart);
-                block.addEventListener('dragend', handleDragEnd);
-                
-                // Mobile Touch Fix Event Hooks
-                block.addEventListener('touchstart', handleTouchStart, {passive: false});
-                block.addEventListener('touchmove', handleTouchMove, {passive: false});
-                block.addEventListener('touchend', handleTouchEnd);
+                // Track down interactions on both systems simultaneously
+                block.addEventListener('mousedown', initiatePointerDrag);
+                block.addEventListener('touchstart', initiatePointerDrag, { passive: false });
 
                 deckRef.appendChild(block);
             });
         }
 
-        /* --- DESKTOP HANDLERS --- */
-        function handleDragStart(e) {
+        /* --- TRACK WINDOW EVENT COORDINATES (MOUSE & TOUCH INTEGRATION) --- */
+        function initiatePointerDrag(e) {
             if (lockInterface) return;
-            draggedNodeRef = this;
-            this.classList.add('dragging');
-            e.dataTransfer.setData('text/plain', this.id);
-        }
-
-        function handleDragEnd() { this.classList.remove('dragging'); }
-        function allowSlotDrop(e) { e.preventDefault(); }
-        function handleDragEnter(e) { e.preventDefault(); this.classList.add('drag-over'); }
-        function handleDragLeave(e) { this.classList.remove('drag-over'); }
-
-        function handleAssetDrop(e) {
             e.preventDefault();
-            this.classList.remove('drag-over');
-            const dataId = e.dataTransfer.getData('text/plain') || draggedNodeRef.id;
-            const element = document.getElementById(dataId);
-            if (element && this.querySelectorAll('.draggable-asset').length === 0) {
-                this.appendChild(element);
-            }
+
+            activeDraggedElement = this;
+            initialContainerParent = this.parentElement;
+
+            const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY;
+
+            const rect = activeDraggedElement.getBoundingClientRect();
+            pointerOffsetX = clientX - rect.left;
+            pointerOffsetY = clientY - rect.top;
+
+            activeDraggedElement.classList.add('dragging');
+            
+            // Apply overlay tracking geometries to the card node object
+            activeDraggedElement.style.width = `${rect.width}px`;
+            activeDraggedElement.style.position = 'fixed';
+            activeDraggedElement.style.left = `${clientX - pointerOffsetX}px`;
+            activeDraggedElement.style.top = `${clientY - pointerOffsetY}px`;
+            activeDraggedElement.style.zIndex = '1000';
         }
 
-        /* --- TOUCH HOOK ENGINE (SOLVES SNAP-BACK BUG) --- */
-        let activeTouchElement = null;
+        function setupGlobalPointerListeners() {
+            // Track dynamic pointer coordinates across screen viewport
+            window.addEventListener('mousemove', processPointerMove);
+            window.addEventListener('touchmove', processPointerMove, { passive: false });
 
-        function handleTouchStart(e) {
-            if (lockInterface) return;
-            activeTouchElement = this;
-            this.classList.add('dragging');
+            // Fire standard completion drops on release across laptop or screen frames
+            window.addEventListener('mouseup', terminatePointerDrag);
+            window.addEventListener('touchend', terminatePointerDrag);
         }
 
-        function handleTouchMove(e) {
-            if (!activeTouchElement) return;
-            e.preventDefault(); 
-            const location = e.touches[0];
-            
-            activeTouchElement.style.position = 'fixed';
-            activeTouchElement.style.left = `${location.clientX - (activeTouchElement.offsetWidth / 2)}px`;
-            activeTouchElement.style.top = `${location.clientY - (activeTouchElement.offsetHeight / 2)}px`;
-            activeTouchElement.style.zIndex = '1000';
+        function processPointerMove(e) {
+            if (!activeDraggedElement) return;
+            if (e.cancelable) e.preventDefault();
+
+            const clientX = e.type.startsWith('touch') ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type.startsWith('touch') ? e.touches[0].clientY : e.clientY;
+
+            activeDraggedElement.style.left = `${clientX - pointerOffsetX}px`;
+            activeDraggedElement.style.top = `${clientY - pointerOffsetY}px`;
         }
 
-        function handleTouchEnd(e) {
-            if (!activeTouchElement) return;
-            activeTouchElement.classList.remove('dragging');
+        function terminatePointerDrag(e) {
+            if (!activeDraggedElement) return;
+
+            activeDraggedElement.classList.remove('dragging');
             
-            // Mask the pointer footprints so elementFromPoint checks directly through to the background slots!
-            activeTouchElement.style.pointerEvents = 'none';
+            // Strip pointer layout footprint temporarily so layout scanner drops down onto drop container elements behind
+            activeDraggedElement.style.pointerEvents = 'none';
 
-            const touchObj = e.changedTouches[0];
-            const targetNode = document.elementFromPoint(touchObj.clientX, touchObj.clientY);
-            
-            activeTouchElement.style.pointerEvents = '';
-            activeTouchElement.style.position = '';
-            activeTouchElement.style.left = '';
-            activeTouchElement.style.top = '';
-            activeTouchElement.style.zIndex = '';
-
-            const slot = targetNode ? targetNode.closest('.target-slot') : null;
-
-            if (slot && slot.querySelectorAll('.draggable-asset').length === 0) {
-                slot.appendChild(activeTouchElement);
+            let clientX, clientY;
+            if (e.type.startsWith('touch')) {
+                const touchObj = e.changedTouches[0];
+                clientX = touchObj.clientX;
+                clientY = touchObj.clientY;
             } else {
-                document.getElementById('items-source-deck').appendChild(activeTouchElement);
+                clientX = e.clientX;
+                clientY = e.clientY;
             }
-            activeTouchElement = null;
+
+            const elementUnderneath = document.elementFromPoint(clientX, clientY);
+            
+            // Re-enable asset item box properties
+            activeDraggedElement.style.pointerEvents = '';
+            activeDraggedElement.style.position = '';
+            activeDraggedElement.style.left = '';
+            activeDraggedElement.style.top = '';
+            activeDraggedElement.style.width = '';
+            activeDraggedElement.style.zIndex = '';
+
+            const matchingSlot = elementUnderneath ? elementUnderneath.closest('.target-slot') : null;
+
+            if (matchingSlot && matchingSlot.querySelectorAll('.draggable-asset').length === 0) {
+                matchingSlot.appendChild(activeDraggedElement);
+            } else {
+                // Return cleanly back to starting point shelf layout
+                initialContainerParent.appendChild(activeDraggedElement);
+            }
+
+            activeDraggedElement = null;
         }
 
-        /* --- EVALUATION LOGIC --- */
+        /* --- SCORE CALCULATOR & ANSWER LOGIC --- */
         function verifyDragSequence() {
             if (lockInterface) return;
             const task = taskPool[activeIndex];
@@ -650,7 +656,7 @@
                     setTimeout(() => slot.classList.remove('wrong-flash'), 400);
                 });
 
-                // Move items back to tray automatically on wrong submission
+                // Instantly clean up and clear workspace container slots back into bottom tray on mismatch
                 setTimeout(() => {
                     const deck = document.getElementById('items-source-deck');
                     currentSlots.forEach(slot => {
@@ -665,7 +671,7 @@
                     hintBox.style.display = "block";
                 } else {
                     lockInterface = true;
-                    // Auto-fill solution for kids if they miss twice
+                    // Auto-fill configuration for young minds if they get stuck twice
                     currentSlots.forEach((slot, index) => {
                         const correctId = task.expectedOrder[index];
                         const elementNode = document.getElementById(correctId);
