@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sorting Sam's Drag & Drop Blueprint</title>
+<title>Sorting Sam's Data Adventure</title>
 
 <style>
 :root {
@@ -65,7 +65,7 @@ body {
     100% { transform: rotate(360deg); }
 }
 
-/* --- STRUCTURE CONTAINER FRAME --- */
+/* --- MAIN FRAME CONTAINER --- */
 #gameMatrix {
     width: 100%;
     max-width: 900px;
@@ -74,7 +74,7 @@ body {
     padding: 25px;
     box-shadow: 0 12px 24px rgba(0,0,0,0.1);
     position: relative;
-    min-height: 580px;
+    min-height: 600px;
     display: flex;
     flex-direction: column;
 }
@@ -94,14 +94,17 @@ body {
     100% { opacity: 1; transform: translateY(0); }
 }
 
-/* --- INSTRUCTION PANEL SYSTEM --- */
+/* --- CARD TEXT & STORIES --- */
 .story-bubble {
-    background: #f1f8e9; padding: 22px; border-radius: 16px;
-    border: 2px dashed #81c784; max-width: 700px; margin: 20px auto;
-    font-size: 1.15rem; line-height: 1.6; color: #1b5e20;
+    background: #f1f8e9; padding: 20px; border-radius: 16px;
+    border: 2px dashed #81c784; max-width: 700px; margin: 15px auto;
+    font-size: 1.1rem; line-height: 1.6; color: #1b5e20;
+}
+.separator-bubble {
+    background: #fffde7; border: 2px dashed #fbc02d; color: #5d4037;
 }
 
-/* --- HUD COMPONENT STYLES --- */
+/* --- BADGES & HEADINGS --- */
 .level-badge {
     background: var(--accent-pink); color: white;
     padding: 6px 20px; border-radius: 20px;
@@ -110,7 +113,7 @@ body {
 }
 
 h1 {
-    margin: 5px 0 15px 0; font-size: clamp(24px, 4vw, 32px); color: var(--accent-blue);
+    margin: 5px 0 15px 0; font-size: clamp(22px, 4vw, 30px); color: var(--accent-blue);
 }
 
 .character-box {
@@ -129,7 +132,7 @@ h1 {
     font-size: 15px; font-weight: bold; color: #4e342e; line-height: 1.4;
 }
 
-/* --- INVENTORY MATRIX WORKSPACE --- */
+/* --- L1: INVENTORY SCRAMBLED PILE --- */
 .scrambled-inventory-box {
     background: #f5f5f5; border: 3px dashed #b0bec5; border-radius: 16px;
     padding: 15px; min-height: 110px; display: flex; flex-wrap: wrap;
@@ -144,15 +147,11 @@ h1 {
     touch-action: none; border: 2px solid transparent;
 }
 .scrambled-item.selected-tap {
-    border-color: var(--accent-pink);
-    transform: scale(1.08);
-    background: #fff0f5;
+    border-color: var(--accent-pink); transform: scale(1.08); background: #fff0f5;
 }
-.scrambled-item img {
-    width: 48px; height: 48px; object-fit: contain; pointer-events: none;
-}
+.scrambled-item img { width: 48px; height: 48px; object-fit: contain; pointer-events: none; }
 
-/* --- GRID CHART TRACK SYSTEM --- */
+/* --- GRID PICTOGRAPH STRUCTURE SYSTEM --- */
 .chart-container {
     width: 100%; overflow-x: auto; margin-bottom: 20px;
     border: 3px solid #b39ddb; border-radius: 16px; background: #fff;
@@ -160,8 +159,9 @@ h1 {
 
 .chart-row {
     display: flex; align-items: center; border-bottom: 3px solid #b39ddb;
-    min-width: 800px; transition: background-color 0.2s; cursor: pointer;
+    min-width: 800px; transition: background-color 0.2s;
 }
+.chart-row.interactive-row { cursor: pointer; }
 .chart-row:last-child { border-bottom: none; }
 .chart-row.drag-over { background-color: #ede7f6; }
 
@@ -173,18 +173,19 @@ h1 {
 
 .grid-track {
     display: flex; flex-grow: 1; min-height: 90px; align-items: center;
-    padding-left: 2px; gap: 4px;
+    padding-left: 10px; gap: 6px;
     background-image: linear-gradient(to right, #e0d7f3 1px, transparent 1px);
     background-size: 70px 100%;
 }
 
 .grid-cell-slot {
-    width: 66px; height: 80px; display: flex; align-items: center;
+    width: 64px; height: 75px; display: flex; align-items: center;
     justify-content: center; background: #fdfbfe; border: 1px solid #e1bee7; border-radius: 8px;
     animation: dropIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .grid-cell-slot img { width: 44px; height: 44px; object-fit: contain; }
 
+/* --- L1 SPECIFIC ANSWER SLOTS --- */
 .input-answer-zone {
     width: 140px; min-height: 90px; background: #fff9c4;
     border-left: 3px solid #b39ddb; display: flex; align-items: center;
@@ -195,11 +196,26 @@ h1 {
     width: 65px; height: 42px; font-size: 20px; font-weight: bold;
     text-align: center; border: 2px solid #fbc02d; border-radius: 8px; color: #5d4037;
 }
-.count-input:disabled {
-    background: #e8f5e9; border-color: #4caf50; color: #2e7d32;
-}
-
+.count-input:disabled { background: #e8f5e9; border-color: #4caf50; color: #2e7d32; }
 .status-indicator { font-size: 22px; width: 28px; text-align: center; }
+
+/* --- L2 QUEST CARD STYLING --- */
+.quest-wrapper {
+    background: #fff3e0; border: 3px solid #ffb74d; border-radius: 16px;
+    padding: 20px; margin-top: 10px; text-align: left;
+}
+.quest-title { font-size: 18px; font-weight: bold; color: #e65100; margin-bottom: 12px; }
+
+.options-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 15px;
+}
+.option-btn {
+    padding: 12px; font-size: 16px; font-weight: bold; background: white;
+    border: 2px solid #ffe0b2; border-radius: 12px; cursor: pointer; color: #5d4037;
+    transition: background-color 0.2s, transform 0.1s, border-color 0.2s;
+}
+.option-btn:hover { background: #fff8e1; border-color: #ffb74d; }
+.option-btn:active { transform: scale(0.98); }
 
 /* --- CORE INTERFACE BUTTONS --- */
 .btn {
@@ -208,14 +224,11 @@ h1 {
     background: var(--success-green); color: white;
     box-shadow: 0 5px 12px rgba(46, 125, 50, 0.3);
     transition: transform 0.1s, background-color 0.2s;
-    align-self: center; margin-top: 10px;
+    align-self: center; margin-top: 15px;
 }
 .btn:active { transform: scale(0.97); }
 .btn:disabled { background: #b0bec5; cursor: not-allowed; box-shadow: none; }
-.btn-blue {
-    background: var(--accent-blue);
-    box-shadow: 0 5px 12px rgba(13, 71, 161, 0.3);
-}
+.btn-blue { background: var(--accent-blue); box-shadow: 0 5px 12px rgba(13, 71, 161, 0.3); }
 
 #fireworks { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; }
 
@@ -235,31 +248,34 @@ h1 {
 
 <div id="splashScreen">
     <img id="splashLogo" src="assets/logo.png" alt="Innovine Logo" onerror="this.style.display='none'; document.getElementById('fallback-logo').style.display='block';">
-    <div id="fallback-logo" style="display:none; font-size:4rem; margin-bottom:15px;">🤖🧱</div>
+    <div id="fallback-logo" style="display:none; font-size:4rem; margin-bottom:15px;">🤖📊</div>
     <div class="splash-loader"></div>
 </div>
 
 <div id="gameMatrix">
     
+    <!-- LEVEL PANEL 1: INSTRUCTION SLIDE -->
     <div class="layer-panel active" id="layer-intro">
-        <div class="level-badge">THINKING SKILLS HOTS</div>
-        <h1>Sorting Sam's Alignment Challenge</h1>
+        <div class="level-badge">DATA HANDLING HOTS</div>
+        <h1>Sam's Grand Pictograph Quest</h1>
         <div class="story-bubble">
-            <p style="font-weight: bold; margin-bottom: 10px;">Hello Explorer! 😊 Let's help Sam organize his workspace!</p>
-            <p>Your task is simple: Pick up raw objects from the messy inventory pile and organize them into their matching rows. Once sorted, type the accurate totals in each data box!</p>
+            <p style="font-weight: bold; margin-bottom: 10px;">Hello Data Explorer! 😊 Let's help Sam organize and read graphs!</p>
+            <p style="margin-bottom: 8px;"><strong>Level 1:</strong> Sort the messy items into straight lines and count them.</p>
+            <p><strong>Level 2:</strong> Look closely at Sam's Sweet Treats chart and solve clever, real-world math questions!</p>
         </div>
         <button class="btn btn-blue" onclick="switchInterfacePanel('layer-gameplay')">Start Challenge! 🚀</button>
     </div>
 
+    <!-- LEVEL PANEL 2: LEVEL 1 GAMEPLAY (SORTING & COUNTING) -->
     <div class="layer-panel" id="layer-gameplay">
-        <div class="level-badge">THINKING SKILLS HOTS</div>
+        <div class="level-badge">LEVEL 1: SORT & COUNT</div>
         <h1 style="font-size: 24px;">Sam's Drag & Drop Alignment Board</h1>
 
         <div class="character-box">
             <div class="char-avatar">🤖</div>
             <div>
                 <p class="char-text" id="dialogueText">
-                    Drag the items into their matching row blueprint, or tap an item and then tap the matching row track! Put similar items together!
+                    Drag items into their matching blueprint row, or tap an item and then tap the row track to place it!
                 </p>
             </div>
         </div>
@@ -267,7 +283,7 @@ h1 {
         <div class="scrambled-inventory-box" id="scrambledPile"></div>
 
         <div class="chart-container">
-            <div class="chart-row" id="row-ball" onclick="handleRowTap('ball')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'ball')">
+            <div class="chart-row interactive-row" id="row-ball" onclick="handleRowTap('ball')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'ball')">
                 <div class="category-lead-cell"><img src="assets/ball.png" alt="Ball" onerror="this.parentNode.innerText='⚽'"></div> 
                 <div class="grid-track" id="track-ball"></div>
                 <div class="input-answer-zone" onclick="event.stopPropagation();">
@@ -276,7 +292,7 @@ h1 {
                 </div>
             </div>
 
-            <div class="chart-row" id="row-bear" onclick="handleRowTap('bear')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'bear')">
+            <div class="chart-row interactive-row" id="row-bear" onclick="handleRowTap('bear')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'bear')">
                 <div class="category-lead-cell"><img src="assets/bear.png" alt="Bear" onerror="this.parentNode.innerText='🧸'"></div> 
                 <div class="grid-track" id="track-bear"></div>
                 <div class="input-answer-zone" onclick="event.stopPropagation();">
@@ -285,7 +301,7 @@ h1 {
                 </div>
             </div>
 
-            <div class="chart-row" id="row-car" onclick="handleRowTap('car')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'car')">
+            <div class="chart-row interactive-row" id="row-car" onclick="handleRowTap('car')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'car')">
                 <div class="category-lead-cell"><img src="assets/car.png" alt="Car" onerror="this.parentNode.innerText='🚗'"></div> 
                 <div class="grid-track" id="track-car"></div>
                 <div class="input-answer-zone" onclick="event.stopPropagation();">
@@ -295,14 +311,67 @@ h1 {
             </div>
         </div>
 
-        <button id="verifyBtn" class="btn" onclick="verifyCalculations()" disabled>Verify Answers Check 🎯</button>
+        <button id="verifyBtn" class="btn" onclick="verifyCalculationsL1()" disabled>Verify Answers Check 🎯</button>
     </div>
 
+    <!-- LEVEL PANEL 3: MID-GAME SEPARATOR SLIDE -->
+    <div class="layer-panel" id="layer-separator">
+        <div style="font-size: 4rem; margin-bottom: 10px;">YAY! 🎉</div>
+        <h1 style="color: var(--accent-blue);">Level 1 Complete!</h1>
+        <div class="story-bubble separator-bubble">
+            <p style="font-weight: bold; margin-bottom: 10px;">Sensational Sorting Skills! 🌟</p>
+            <p>You successfully grouped and counted all of Sam's workspace items. Now, get ready for <strong>Level 2: Chart Analysis</strong>, where you will look at a full pictograph and decode tricky mystery questions!</p>
+        </div>
+        <button class="btn btn-blue" onclick="switchInterfacePanel('layer-pictograph-cbq')">Go to Level 2! 🚀</button>
+    </div>
+
+    <!-- LEVEL PANEL 4: LEVEL 2 GAMEPLAY (PICTOGRAPH INTERPRETATION CBQ) -->
+    <div class="layer-panel" id="layer-pictograph-cbq">
+        <div class="level-badge">LEVEL 2: CHART ANALYSIS</div>
+        <h1 style="font-size: 24px;">Sam's Sweet Treat Analysis Board</h1>
+
+        <div class="character-box">
+            <div class="char-avatar">🤖</div>
+            <div>
+                <p class="char-text" id="dialogueTextL2">
+                    Look at the sweet treats chart carefully to answer the question below. Tap the correct option!
+                </p>
+            </div>
+        </div>
+
+        <!-- The Filled Static Pictograph View -->
+        <div class="chart-container">
+            <div class="chart-row" id="row-candy">
+                <div class="category-lead-cell"><img src="assets/candy.png" alt="Candy" onerror="this.parentNode.innerText='🍬'"></div>
+                <div class="grid-track" id="track-candy"></div>
+            </div>
+            <div class="chart-row" id="row-cupcake">
+                <div class="category-lead-cell"><img src="assets/cupcake.png" alt="Cupcake" onerror="this.parentNode.innerText='🧁'"></div>
+                <div class="grid-track" id="track-cupcake"></div>
+            </div>
+            <div class="chart-row" id="row-muffin">
+                <div class="category-lead-cell"><img src="assets/muffin.png" alt="Muffin" onerror="this.parentNode.innerText='🧁'"></div>
+                <div class="grid-track" id="track-muffin"></div>
+            </div>
+            <div class="chart-row" id="row-pizza">
+                <div class="category-lead-cell"><img src="assets/pizza-slice.png" alt="Pizza" onerror="this.parentNode.innerText='🍕'"></div>
+                <div class="grid-track" id="track-pizza"></div>
+            </div>
+        </div>
+
+        <!-- Dynamic Question Box -->
+        <div class="quest-wrapper" id="questionBox">
+            <div class="quest-title" id="questString">Loading Question...</div>
+            <div class="options-grid" id="optionsContainer"></div>
+        </div>
+    </div>
+
+    <!-- LEVEL PANEL 5: GRAND COMPLETION OVERLAY -->
     <div class="layer-panel" id="layer-end">
         <div style="font-size: 4.5rem; margin-bottom: 15px; animation: pulseLogo 1.5s infinite alternate;">🏆</div>
         <h1 style="color: var(--success-green); font-size: 2.2rem;">Grand Champion!</h1>
         <div class="story-bubble">
-            <p>Absolutely magnificent! You safely tracked down, sorted, and cataloged every single item inside Sam's messy inventory pool.</p>
+            <p>Absolutely magnificent! You safely tracked, organized, and decoded every chart inside Sam's inventory database. You are a certified data genius! 🌟</p>
         </div>
         <button class="btn btn-blue" onclick="reinitializeSimulationEngine()">Play Challenge Again 🔄</button>
     </div>
@@ -310,19 +379,29 @@ h1 {
 
 <canvas id="fireworks"></canvas>
 
+<!-- System Audio Resource Engine -->
 <audio id="clickSound" preload="auto" src="assets/click.mp3"></audio>
 <audio id="correctSound" preload="auto" src="assets/correct.mp3"></audio>
 <audio id="wrongSound" preload="auto" src="assets/wrong.mp3"></audio>
+<audio id="clappedSound" preload="auto" src="assets/freesound_community-claps-44774.mp3"></audio>
 
 <script>
+// Level 1 Core States
 const targetsCount = { ball: 0, bear: 0, car: 0 };
 let currentSortedTotal = 0;
 let grandTotalPopulation = 0;
 let calculationAttemptsCounter = 0;
 let selectedActiveTokenData = null;
 
+// Level 2 Core States
+const l2Counts = { candy: 0, cupcake: 0, muffin: 0, pizza: 0 };
+let l2QuestionsPool = [];
+let currentL2QuestIdx = 0;
+let l2WrongAttempts = 0;
+
 function initGameLifecycle() {
     generateScrambledDeck();
+    setupLevel2DataStructures();
     
     // Exactly 5 seconds branding lock execution rule
     setTimeout(() => {
@@ -339,8 +418,14 @@ function initGameLifecycle() {
 function switchInterfacePanel(panelId) {
     document.querySelectorAll('.layer-panel').forEach(p => p.classList.remove('active'));
     document.getElementById(panelId).classList.add('active');
+    
+    if (panelId === 'layer-pictograph-cbq') {
+        renderLevel2Chart();
+        loadLevel2Question();
+    }
 }
 
+/* ================= LEVEL 1 SYSTEM MECHANICAL BLOCKS ================= */
 function generateScrambledDeck() {
     targetsCount.ball = Math.floor(Math.random() * 4) + 3; 
     targetsCount.bear = Math.floor(Math.random() * 4) + 3;
@@ -361,12 +446,11 @@ function generateScrambledDeck() {
     const pile = document.getElementById("scrambledPile");
     pile.innerHTML = "";
     
-    // Clear old visual cells and statuses
-    document.querySelectorAll('.grid-track').forEach(t => t.innerHTML = "");
-    document.querySelectorAll('.status-indicator').forEach(s => s.innerText = "");
-    document.querySelectorAll('.count-input').forEach(i => { i.value = ""; i.disabled = true; });
+    document.querySelectorAll('#layer-gameplay .grid-track').forEach(t => t.innerHTML = "");
+    document.querySelectorAll('#layer-gameplay .status-indicator').forEach(s => s.innerText = "");
+    document.querySelectorAll('#layer-gameplay .count-input').forEach(i => { i.value = ""; i.disabled = true; });
     document.getElementById("verifyBtn").disabled = true;
-    document.getElementById("dialogueText").innerText = "Drag the items into their matching row blueprint, or tap an item and then tap the matching row track!";
+    document.getElementById("dialogueText").innerText = "Drag items into their matching row blueprint, or tap an item and then tap the matching row track to place it!";
 
     totalPool.forEach((item, index) => {
         const element = document.createElement("div");
@@ -384,13 +468,11 @@ function generateScrambledDeck() {
         };
         element.appendChild(innerImg);
         
-        // Native Desktop Drag Event
         element.ondragstart = (e) => {
             selectedActiveTokenData = { id: element.id, type: item.type, src: item.src, fallback: item.fallback };
             e.dataTransfer.setData("text/plain", JSON.stringify(selectedActiveTokenData));
         };
 
-        // Mobile Friendly Tap Fallback Selection Mechanics
         element.onclick = (e) => {
             e.stopPropagation();
             document.querySelectorAll('.scrambled-item').forEach(el => el.classList.remove('selected-tap'));
@@ -403,34 +485,24 @@ function generateScrambledDeck() {
     });
 }
 
-function allowDrop(e) {
-    e.preventDefault();
-    e.currentTarget.classList.add("drag-over");
-}
-
-function dragLeave(e) {
-    e.currentTarget.classList.remove("drag-over");
-}
+function allowDrop(e) { e.preventDefault(); e.currentTarget.classList.add("drag-over"); }
+function dragLeave(e) { e.currentTarget.classList.remove("drag-over"); }
 
 function handleDrop(e, expectedType) {
     e.preventDefault();
     const rowElement = e.currentTarget;
     rowElement.classList.remove("drag-over");
-
     try {
         const dataPayload = JSON.parse(e.dataTransfer.getData("text/plain"));
         executeAssetSorting(dataPayload, expectedType, rowElement);
     } catch (err) {
-        if (selectedActiveTokenData) {
-            executeAssetSorting(selectedActiveTokenData, expectedType, rowElement);
-        }
+        if (selectedActiveTokenData) executeAssetSorting(selectedActiveTokenData, expectedType, rowElement);
     }
 }
 
 function handleRowTap(expectedType) {
     if (!selectedActiveTokenData) return;
-    const targetedRow = document.getElementById(`row-${expectedType}`);
-    executeAssetSorting(selectedActiveTokenData, expectedType, targetedRow);
+    executeAssetSorting(selectedActiveTokenData, expectedType, document.getElementById(`row-${expectedType}`));
 }
 
 function executeAssetSorting(payload, expectedType, rowDOMNode) {
@@ -439,7 +511,6 @@ function executeAssetSorting(payload, expectedType, rowDOMNode) {
         if (!sourceNode) return;
 
         playSoundEffect("clickSound");
-
         const targetTrack = document.getElementById(`track-${expectedType}`);
         const cellSlot = document.createElement("div");
         cellSlot.className = "grid-cell-slot";
@@ -472,7 +543,7 @@ function executeAssetSorting(payload, expectedType, rowDOMNode) {
     }
 }
 
-function verifyCalculations() {
+function verifyCalculationsL1() {
     const valBall = parseInt(document.getElementById("input-ball").value);
     const valBear = parseInt(document.getElementById("input-bear").value);
     const valCar = parseInt(document.getElementById("input-car").value);
@@ -487,6 +558,7 @@ function verifyCalculations() {
 
     if (rowBallCorrect && rowBearCorrect && rowCarCorrect) {
         playSoundEffect("correctSound");
+        playSoundEffect("clappedSound");
         document.getElementById("input-ball").disabled = true;
         document.getElementById("input-bear").disabled = true;
         document.getElementById("input-car").disabled = true;
@@ -494,21 +566,20 @@ function verifyCalculations() {
         
         triggerWinCelebration();
         
-        // Exact 5 seconds celebration pause requirement
+        // Exact 5 seconds milestone pause before transitioning to the Separator Slide
         setTimeout(() => {
-            switchInterfacePanel('layer-end');
+            switchInterfacePanel('layer-separator');
         }, 5000);
     } else {
         playSoundEffect("wrongSound");
         calculationAttemptsCounter++;
         
-        const container = document.getElementById("gameMatrix");
+        const container = document.getElementById("layer-gameplay");
         container.classList.add("error-shake");
         setTimeout(() => container.classList.remove("error-shake"), 400);
 
-        // 2 Attempts Rule before automatic corrective hint reveal trigger block
         if (calculationAttemptsCounter >= 2) {
-            alert(`💡 Quick Hint from Sam: Count carefully line by line. The total targets are: Ball = ${targetsCount.ball}, Bears = ${targetsCount.bear}, Cars = ${targetsCount.car}. Let's enter the values!`);
+            alert(`💡 Quick Hint from Sam: Count carefully item by item. The correct answers are: Ball = ${targetsCount.ball}, Bears = ${targetsCount.bear}, Cars = ${targetsCount.car}. Let's enter them!`);
             document.getElementById("input-ball").value = targetsCount.ball;
             document.getElementById("input-bear").value = targetsCount.bear;
             document.getElementById("input-car").value = targetsCount.car;
@@ -516,6 +587,155 @@ function verifyCalculations() {
     }
 }
 
+/* ================= LEVEL 2 SYSTEM MECHANICAL BLOCKS ================= */
+function setupLevel2DataStructures() {
+    l2Counts.candy = Math.floor(Math.random() * 4) + 3;   
+    l2Counts.cupcake = Math.floor(Math.random() * 4) + 2; 
+    l2Counts.muffin = Math.floor(Math.random() * 3) + 4;  
+    l2Counts.pizza = Math.floor(Math.random() * 4) + 2;   
+
+    if(l2Counts.candy === l2Counts.muffin) l2Counts.candy++;
+    if(l2Counts.cupcake === l2Counts.pizza) l2Counts.cupcake--;
+
+    l2QuestionsPool = [
+        {
+            type: 'count',
+            text: `How many delicious Cupcakes 🧁 are on Sam's chart in total?`,
+            answer: l2Counts.cupcake,
+            hint: `Look at the second row with the Cupcake lead cell. Count them one by one to find ${l2Counts.cupcake}!`
+        },
+        {
+            type: 'compare',
+            text: `Which delicious item has the HIGHEST (most) count on the chart?`,
+            answer: '', 
+            hint: `Look for the row that stretches out the furthest across the graph line!`
+        },
+        {
+            type: 'diff',
+            text: `HOTS Challenge: How many MORE Muffins 🧁 are there than Pizza slices 🍕?`,
+            answer: 0, 
+            hint: `Take the total number of Muffins (${l2Counts.muffin}) and subtract the total number of Pizza slices (${l2Counts.pizza})!`
+        }
+    ];
+    currentL2QuestIdx = 0;
+    l2WrongAttempts = 0;
+}
+
+function renderLevel2Chart() {
+    const mapping = [
+        { key: 'candy', src: 'assets/candy.png', alt: 'Candy', fallback: '🍬' },
+        { key: 'cupcake', src: 'assets/cupcake.png', alt: 'Cupcake', fallback: '🧁' },
+        { key: 'muffin', src: 'assets/muffin.png', alt: 'Muffin', fallback: '🧁' },
+        { key: 'pizza', src: 'assets/pizza-slice.png', alt: 'Pizza', fallback: '🍕' }
+    ];
+
+    mapping.forEach(item => {
+        const track = document.getElementById(`track-${item.key}`);
+        track.innerHTML = "";
+        const limit = l2Counts[item.key];
+        
+        for (let i = 0; i < limit; i++) {
+            const slot = document.createElement("div");
+            slot.className = "grid-cell-slot";
+            let img = document.createElement("img");
+            img.src = item.src;
+            img.alt = item.alt;
+            img.onerror = function() {
+                this.style.display = 'none';
+                slot.innerText = item.fallback;
+                slot.style.fontSize = "1.6rem";
+            };
+            slot.appendChild(img);
+            track.appendChild(slot);
+        }
+    });
+}
+
+function loadLevel2Question() {
+    l2WrongAttempts = 0;
+    let questObj = l2QuestionsPool[currentL2QuestIdx];
+    let titleString = document.getElementById("questString");
+    let container = document.getElementById("optionsContainer");
+    
+    container.innerHTML = "";
+    
+    if (questObj.type === 'count') {
+        titleString.innerText = questObj.text;
+        let pool = createNumericDistractors(questObj.answer);
+        pool.forEach(val => createOptionButton(val, val, questObj.answer));
+    } 
+    else if (questObj.type === 'compare') {
+        let maxVal = -1;
+        let maxKey = '';
+        Object.keys(l2Counts).forEach(k => {
+            if(l2Counts[k] > maxVal) { maxVal = l2Counts[k]; maxKey = k; }
+        });
+        
+        let displayNames = { candy: 'Candies 🍬', cupcake: 'Cupcakes 🧁', muffin: 'Muffins 🧁', pizza: 'Pizza Slices 🍕' };
+        questObj.answer = displayNames[maxKey];
+        
+        titleString.innerText = questObj.text;
+        Object.keys(displayNames).forEach(k => {
+            createOptionButton(displayNames[k], displayNames[k], questObj.answer);
+        });
+    } 
+    else if (questObj.type === 'diff') {
+        let accurateDiff = l2Counts.muffin - l2Counts.pizza;
+        questObj.answer = accurateDiff;
+        
+        titleString.innerText = questObj.text;
+        let pool = createNumericDistractors(accurateDiff);
+        pool.forEach(val => createOptionButton(val, val, questObj.answer));
+    }
+}
+
+function createOptionButton(labelText, checkingVal, correctValue) {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.innerText = labelText;
+    btn.onclick = () => verifyL2Answer(checkingVal, correctValue);
+    document.getElementById("optionsContainer").appendChild(btn);
+}
+
+function createNumericDistractors(correctNum) {
+    let choices = new Set([correctNum]);
+    while(choices.size < 4) {
+        let dev = Math.floor(Math.random() * 5) + 1;
+        let alt = Math.random() > 0.5 ? correctNum + dev : correctNum - dev;
+        if(alt >= 0 && alt <= 15) choices.add(alt);
+    }
+    return Array.from(choices).sort((a,b) => a - b);
+}
+
+function verifyL2Answer(chosen, correct) {
+    if (chosen === correct) {
+        playSoundEffect("correctSound");
+        triggerWinCelebration();
+        
+        currentL2QuestIdx++;
+        if (currentL2QuestIdx < l2QuestionsPool.length) {
+            document.getElementById("dialogueTextL2").innerHTML = "Splendid reasoning! Here comes the next data challenge... 🧠";
+            setTimeout(() => { loadLevel2Question(); }, 2000);
+        } else {
+            playSoundEffect("clappedSound");
+            document.getElementById("dialogueTextL2").innerHTML = "Incredible Job! Let's pull up your grand dashboard!";
+            setTimeout(() => { switchInterfacePanel('layer-end'); }, 2500);
+        }
+    } else {
+        playSoundEffect("wrongSound");
+        l2WrongAttempts++;
+        
+        const wrapper = document.getElementById("questionBox");
+        wrapper.classList.add("error-shake");
+        setTimeout(() => wrapper.classList.remove("error-shake"), 400);
+        
+        if (l2WrongAttempts >= 2) {
+            alert(`💡 Hint: ${l2QuestionsPool[currentL2QuestIdx].hint}`);
+        }
+    }
+}
+
+/* ================= SYSTEM HOUSEKEEPING UTILITIES ================= */
 function playSoundEffect(domId) {
     const audioNode = document.getElementById(domId);
     if(audioNode) {
@@ -525,8 +745,9 @@ function playSoundEffect(domId) {
 }
 
 function reinitializeSimulationEngine() {
-    switchInterfacePanel('layer-intro');
+    setupLevel2DataStructures();
     generateScrambledDeck();
+    switchInterfacePanel('layer-intro');
 }
 
 /* Confetti System Framework */
@@ -538,10 +759,10 @@ resize();
 window.addEventListener("resize", resize);
 
 function triggerWinCelebration() {
-    let duration = 4800;
+    let duration = 2000;
     let end = Date.now() + duration;
     (function frame() {
-        burstParticles(Math.random() * canvas.width, Math.random() * canvas.height * 0.4, 6);
+        burstParticles(Math.random() * canvas.width, Math.random() * canvas.height * 0.4, 5);
         if (Date.now() < end) requestAnimationFrame(frame);
     }());
 }
@@ -560,7 +781,7 @@ function burstParticles(x, y, count) {
 
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.alpha -= 0.012; });
+    particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.alpha -= 0.015; });
     particles = particles.filter(p => p.alpha > 0);
     particles.forEach(p => {
         ctx.fillStyle = `${p.color}${p.alpha})`;
