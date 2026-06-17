@@ -43,7 +43,7 @@ body {
     display: flex; flex-direction: column; justify-content: center; align-items: center;
     z-index: 9999;
     opacity: 1;
-    transition: opacity 0.4s ease;
+    transition: opacity 0.6s ease-in-out;
 }
 
 #splashLogo {
@@ -167,7 +167,6 @@ h1 {
     justify-content: center; background: #f3e5f5; border-right: 3px solid #b39ddb; flex-shrink: 0;
 }
 
-/* REMOVES WHITE BACKGROUNDS FROM USER IMAGE ASSETS */
 .category-lead-cell img, .grid-cell-slot img { 
     width: 50px; 
     height: 50px; 
@@ -248,7 +247,6 @@ h1 {
 <body>
 
 <div id="splashScreen">
-    <!-- Innovine Logo Restored Safely -->
     <img id="splashLogo" src="assets/logo.png" alt="Innovine Logo" onerror="this.style.display='none'; document.getElementById('fallback-logo').style.display='block';">
     <div id="fallback-logo" class="splash-fallback-logo" style="display:none;">🤖📊</div>
     <div class="splash-loader"></div>
@@ -341,7 +339,6 @@ h1 {
             </div>
         </div>
 
-        <!-- The Filled Static Pictograph View -->
         <div class="chart-container">
             <div class="chart-row" id="row-candy">
                 <div class="category-lead-cell"><img src="assets/candy.png" alt="Candy" onerror="this.style.display='none'; this.parentNode.innerText='🍬';"></div>
@@ -361,7 +358,6 @@ h1 {
             </div>
         </div>
 
-        <!-- Dynamic Question Box -->
         <div class="quest-wrapper" id="questionBox">
             <div class="quest-title" id="questString">Loading Question...</div>
             <div class="options-grid" id="optionsContainer"></div>
@@ -397,17 +393,14 @@ function clearSplashScreen() {
     const splash = document.getElementById("splashScreen");
     if (splash) {
         splash.style.opacity = "0";
-        setTimeout(() => { splash.style.display = "none"; }, 400);
+        setTimeout(() => { splash.style.display = "none"; }, 600);
     }
 }
-
-// 1.5 Second Failsafe Release Window
-setTimeout(clearSplashScreen, 1500);
 
 function initGameLifecycle() {
     generateScrambledDeck();
     setupLevel2DataStructures();
-    clearSplashScreen();
+    setTimeout(clearSplashScreen, 5000);
 }
 
 function switchInterfacePanel(panelId) {
@@ -571,6 +564,7 @@ function verifyCalculationsL1() {
 
 /* ================= LEVEL 2 SYSTEM MECHANICAL BLOCKS ================= */
 function setupLevel2DataStructures() {
+    // Generate base populations between 2 and 7
     l2Counts.candy = Math.floor(Math.random() * 4) + 3;   
     l2Counts.cupcake = Math.floor(Math.random() * 4) + 2; 
     l2Counts.muffin = Math.floor(Math.random() * 3) + 4;  
@@ -597,7 +591,7 @@ function setupLevel2DataStructures() {
         {
             type: 'diff',
             text: `HOTS Challenge: How many MORE Muffins 🥮 are there than Pizza slices 🍕?`,
-            answer: 0, 
+            answer: Math.max(0, l2Counts.muffin - l2Counts.pizza), 
             hint: `Take the total number of Muffins (${l2Counts.muffin}) and subtract the total number of Pizza slices (${l2Counts.pizza})!`
         },
         {
@@ -678,7 +672,7 @@ function loadLevel2Question() {
         });
     } 
     else if (questObj.type === 'diff') {
-        let accurateDiff = l2Counts.muffin - l2Counts.pizza;
+        let accurateDiff = Math.max(0, l2Counts.muffin - l2Counts.pizza);
         questObj.answer = accurateDiff;
         let pool = createNumericDistractors(accurateDiff);
         pool.forEach(val => createOptionButton(val, val, questObj.answer));
@@ -709,12 +703,16 @@ function createOptionButton(labelText, checkingVal, correctValue) {
     if (container) container.appendChild(btn);
 }
 
+/* STRICT ZERO FLOOR FOR GENERATED MATH MULTIPLE-CHOICE OPTIONS */
 function createNumericDistractors(correctNum) {
     let choices = new Set([correctNum]);
     while(choices.size < 4) {
-        let dev = Math.floor(Math.random() * 5) + 1;
+        let dev = Math.floor(Math.random() * 4) + 1;
+        // Check option bounds dynamically to ensure zero floor
         let alt = Math.random() > 0.5 ? correctNum + dev : correctNum - dev;
-        if(alt >= 0 && alt <= 30) choices.add(alt);
+        if(alt >= 0 && alt <= 35) {
+            choices.add(alt);
+        }
     }
     return Array.from(choices).sort((a,b) => a - b);
 }
