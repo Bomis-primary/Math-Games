@@ -133,11 +133,11 @@ h1 {
     border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     transition: transform 0.2s, border-color 0.2s;
     touch-action: none; border: 2px solid transparent;
-    font-size: 2rem;
 }
 .scrambled-item.selected-tap {
     border-color: var(--accent-pink); transform: scale(1.08); background: #fff0f5;
 }
+.scrambled-item img { width: 48px; height: 48px; object-fit: contain; pointer-events: none; }
 
 /* --- GRID PICTOGRAPH STRUCTURE SYSTEM --- */
 .chart-container {
@@ -156,7 +156,14 @@ h1 {
 .category-lead-cell {
     width: 100px; min-height: 90px; display: flex; align-items: center;
     justify-content: center; background: #f3e5f5; border-right: 3px solid #b39ddb; flex-shrink: 0;
-    font-size: 2rem;
+}
+
+/* REMOVES WHITE BACKGROUNDS FROM USER IMAGE ASSETS */
+.category-lead-cell img, .grid-cell-slot img { 
+    width: 50px; 
+    height: 50px; 
+    object-fit: contain; 
+    mix-blend-mode: multiply; 
 }
 
 .grid-track {
@@ -169,7 +176,6 @@ h1 {
 .grid-cell-slot {
     width: 64px; height: 75px; display: flex; align-items: center;
     justify-content: center; background: #fdfbfe; border: 1px solid #e1bee7; border-radius: 8px;
-    font-size: 1.8rem;
 }
 
 /* --- L1 SPECIFIC ANSWER SLOTS --- */
@@ -267,7 +273,7 @@ h1 {
 
         <div class="chart-container">
             <div class="chart-row interactive-row" id="row-ball" onclick="handleRowTap('ball')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'ball')">
-                <div class="category-lead-cell">⚽</div> 
+                <div class="category-lead-cell"><img src="assets/ball.png" alt="Ball" onerror="this.style.display='none'; this.parentNode.innerText='⚽';"></div> 
                 <div class="grid-track" id="track-ball"></div>
                 <div class="input-answer-zone" onclick="event.stopPropagation();">
                     <input type="number" id="input-ball" class="count-input" min="0" placeholder="?">
@@ -276,7 +282,7 @@ h1 {
             </div>
 
             <div class="chart-row interactive-row" id="row-bear" onclick="handleRowTap('bear')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'bear')">
-                <div class="category-lead-cell">🧸</div> 
+                <div class="category-lead-cell"><img src="assets/bear.png" alt="Bear" onerror="this.style.display='none'; this.parentNode.innerText='🧸';"></div> 
                 <div class="grid-track" id="track-bear"></div>
                 <div class="input-answer-zone" onclick="event.stopPropagation();">
                     <input type="number" id="input-bear" class="count-input" min="0" placeholder="?">
@@ -285,7 +291,7 @@ h1 {
             </div>
 
             <div class="chart-row interactive-row" id="row-car" onclick="handleRowTap('car')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'car')">
-                <div class="category-lead-cell">🚗</div> 
+                <div class="category-lead-cell"><img src="assets/car.png" alt="Car" onerror="this.style.display='none'; this.parentNode.innerText='🚗';"></div> 
                 <div class="grid-track" id="track-car"></div>
                 <div class="input-answer-zone" onclick="event.stopPropagation();">
                     <input type="number" id="input-car" class="count-input" min="0" placeholder="?">
@@ -322,19 +328,19 @@ h1 {
 
         <div class="chart-container">
             <div class="chart-row" id="row-candy">
-                <div class="category-lead-cell">🍬</div>
+                <div class="category-lead-cell"><img src="assets/candy.png" alt="Candy" onerror="this.style.display='none'; this.parentNode.innerText='🍬';"></div>
                 <div class="grid-track" id="track-candy"></div>
             </div>
             <div class="chart-row" id="row-cupcake">
-                <div class="category-lead-cell">🧁</div>
+                <div class="category-lead-cell"><img src="assets/cupcake.png" alt="Cupcake" onerror="this.style.display='none'; this.parentNode.innerText='🧁';"></div>
                 <div class="grid-track" id="track-cupcake"></div>
             </div>
             <div class="chart-row" id="row-muffin">
-                <div class="category-lead-cell">🥮</div>
+                <div class="category-lead-cell"><img src="image_38a5e9.png" alt="Muffin" onerror="this.style.display='none'; this.parentNode.innerText='🥮';"></div>
                 <div class="grid-track" id="track-muffin"></div>
             </div>
             <div class="chart-row" id="row-pizza">
-                <div class="category-lead-cell">🍕</div>
+                <div class="category-lead-cell"><img src="assets/pizza-slice.png" alt="Pizza" onerror="this.style.display='none'; this.parentNode.innerText='🍕';"></div>
                 <div class="grid-track" id="track-pizza"></div>
             </div>
         </div>
@@ -369,7 +375,6 @@ let l2QuestionsPool = [];
 let currentL2QuestIdx = 0;
 let l2WrongAttempts = 0;
 
-// AUTOMATIC FORCE-REMOVE SPLASH SCREEN FUNCTION
 function clearSplashScreen() {
     const splash = document.getElementById("splashScreen");
     if (splash) {
@@ -378,7 +383,7 @@ function clearSplashScreen() {
     }
 }
 
-// Failsafe backup timeout: Clears splash screen instantly after 1.5 seconds regardless of system load
+// 1.5 Second Safe Reveal Timeout 
 setTimeout(clearSplashScreen, 1500);
 
 function initGameLifecycle() {
@@ -410,9 +415,9 @@ function generateScrambledDeck() {
     selectedActiveTokenData = null;
 
     let totalPool = [];
-    for (let i = 0; i < targetsCount.ball; i++) totalPool.push({ type: 'ball', visual: '⚽' });
-    for (let i = 0; i < targetsCount.bear; i++) totalPool.push({ type: 'bear', visual: '🧸' });
-    for (let i = 0; i < targetsCount.car; i++) totalPool.push({ type: 'car', visual: '🚗' });
+    for (let i = 0; i < targetsCount.ball; i++) totalPool.push({ type: 'ball', src: 'assets/ball.png', fallback: '⚽' });
+    for (let i = 0; i < targetsCount.bear; i++) totalPool.push({ type: 'bear', src: 'assets/bear.png', fallback: '🧸' });
+    for (let i = 0; i < targetsCount.car; i++) totalPool.push({ type: 'car', src: 'assets/car.png', fallback: '🚗' });
 
     totalPool.sort(() => Math.random() - 0.5);
 
@@ -432,17 +437,26 @@ function generateScrambledDeck() {
         element.className = "scrambled-item";
         element.id = `drag-${index}`;
         element.setAttribute("draggable", "true");
-        element.innerText = item.visual;
+        
+        let innerImg = document.createElement('img');
+        innerImg.src = item.src;
+        innerImg.alt = item.type;
+        innerImg.onerror = function() {
+            this.style.display = 'none';
+            element.innerText = item.fallback;
+            element.style.fontSize = '2rem';
+        };
+        element.appendChild(innerImg);
         
         element.ondragstart = (e) => {
-            selectedActiveTokenData = { id: element.id, type: item.type, visual: item.visual };
+            selectedActiveTokenData = { id: element.id, type: item.type, src: item.src, fallback: item.fallback };
             e.dataTransfer.setData("text/plain", JSON.stringify(selectedActiveTokenData));
         };
 
         element.onclick = (e) => {
             e.stopPropagation();
             document.querySelectorAll('.scrambled-item').forEach(el => el.classList.remove('selected-tap'));
-            selectedActiveTokenData = { id: element.id, type: item.type, visual: item.visual };
+            selectedActiveTokenData = { id: element.id, type: item.type, src: item.src, fallback: item.fallback };
             element.classList.add('selected-tap');
         };
         
@@ -478,8 +492,15 @@ function executeAssetSorting(payload, expectedType, rowDOMNode) {
         const targetTrack = document.getElementById(`track-${expectedType}`);
         const cellSlot = document.createElement("div");
         cellSlot.className = "grid-cell-slot";
-        cellSlot.innerText = payload.visual;
         
+        let cellImg = document.createElement('img');
+        cellImg.src = payload.src;
+        cellImg.onerror = function() {
+            this.style.display = 'none';
+            cellSlot.innerText = payload.fallback;
+            cellSlot.style.fontSize = '1.8rem';
+        };
+        cellSlot.appendChild(cellImg);
         if (targetTrack) targetTrack.appendChild(cellSlot);
 
         sourceNode.remove();
@@ -516,240 +537,4 @@ function verifyCalculationsL1() {
     } else {
         calculationAttemptsCounter++;
         const container = document.getElementById("layer-gameplay");
-        if (container) {
-            container.classList.add("error-shake");
-            setTimeout(() => container.classList.remove("error-shake"), 400);
-        }
-
-        if (calculationAttemptsCounter >= 2) {
-            alert(`💡 Quick Hint from Sam: Count carefully item by item. The correct answers are: Ball = ${targetsCount.ball}, Bears = ${targetsCount.bear}, Cars = ${targetsCount.car}. Let's enter them!`);
-            document.getElementById("input-ball").value = targetsCount.ball;
-            document.getElementById("input-bear").value = targetsCount.bear;
-            document.getElementById("input-car").value = targetsCount.car;
-        }
-    }
-}
-
-/* ================= LEVEL 2 SYSTEM MECHANICAL BLOCKS ================= */
-function setupLevel2DataStructures() {
-    l2Counts.candy = Math.floor(Math.random() * 4) + 3;   
-    l2Counts.cupcake = Math.floor(Math.random() * 4) + 2; 
-    l2Counts.muffin = Math.floor(Math.random() * 3) + 4;  
-    l2Counts.pizza = Math.floor(Math.random() * 4) + 2;   
-
-    if(l2Counts.candy === l2Counts.muffin) l2Counts.candy++;
-    if(l2Counts.cupcake === l2Counts.pizza) l2Counts.cupcake--;
-    
-    let combinedGrandTotal = l2Counts.candy + l2Counts.cupcake + l2Counts.muffin + l2Counts.pizza;
-
-    l2QuestionsPool = [
-        {
-            type: 'count',
-            text: `How many delicious Cupcakes 🧁 are on Sam's chart in total?`,
-            answer: l2Counts.cupcake,
-            hint: `Look at the second row with the Cupcake lead cell. Count them one by one to find ${l2Counts.cupcake}!`
-        },
-        {
-            type: 'compare_high',
-            text: `Which delicious item has the HIGHEST (most) count on the chart?`,
-            answer: '', 
-            hint: `Look for the row that stretches out the furthest across the graph line!`
-        },
-        {
-            type: 'diff',
-            text: `HOTS Challenge: How many MORE Muffins 🥮 are there than Pizza slices 🍕?`,
-            answer: 0, 
-            hint: `Take the total number of Muffins (${l2Counts.muffin}) and subtract the total number of Pizza slices (${l2Counts.pizza})!`
-        },
-        {
-            type: 'compare_low',
-            text: `Which item has the LEAST (fewest) count on the chart?`,
-            answer: '',
-            hint: `Look for the row track that is the shortest or has the fewest items standing in line!`
-        },
-        {
-            type: 'sum_all',
-            text: `Grand Data Challenge: How many total Sweet Treats are there altogether on the whole chart?`,
-            answer: combinedGrandTotal,
-            hint: `Add up all the rows together: ${l2Counts.candy} Candies + ${l2Counts.cupcake} Cupcakes + ${l2Counts.muffin} Muffins + ${l2Counts.pizza} Pizzas to get ${combinedGrandTotal}!`
-        }
-    ];
-    currentL2QuestIdx = 0;
-    l2WrongAttempts = 0;
-}
-
-function renderLevel2Chart() {
-    const mapping = [
-        { key: 'candy', visual: '🍬' },
-        { key: 'cupcake', visual: '🧁' },
-        { key: 'muffin', visual: '🥮' },
-        { key: 'pizza', visual: '🍕' }
-    ];
-
-    mapping.forEach(item => {
-        const track = document.getElementById(`track-${item.key}`);
-        if (!track) return;
-        track.innerHTML = "";
-        const limit = l2Counts[item.key];
-        
-        for (let i = 0; i < limit; i++) {
-            const slot = document.createElement("div");
-            slot.className = "grid-cell-slot";
-            slot.innerText = item.visual;
-            track.appendChild(slot);
-        }
-    });
-}
-
-function loadLevel2Question() {
-    l2WrongAttempts = 0;
-    let questObj = l2QuestionsPool[currentL2QuestIdx];
-    let titleString = document.getElementById("questString");
-    let container = document.getElementById("optionsContainer");
-    
-    if (!container) return;
-    container.innerHTML = "";
-    
-    titleString.innerText = questObj.text;
-    let displayNames = { candy: 'Candies 🍬', cupcake: 'Cupcakes 🧁', muffin: 'Muffins 🥮', pizza: 'Pizza Slices 🍕' };
-
-    if (questObj.type === 'count') {
-        let pool = createNumericDistractors(questObj.answer);
-        pool.forEach(val => createOptionButton(val, val, questObj.answer));
-    } 
-    else if (questObj.type === 'compare_high') {
-        let maxVal = -1;
-        let maxKey = '';
-        Object.keys(l2Counts).forEach(k => {
-            if(l2Counts[k] > maxVal) { maxVal = l2Counts[k]; maxKey = k; }
-        });
-        questObj.answer = displayNames[maxKey];
-        Object.keys(displayNames).forEach(k => {
-            createOptionButton(displayNames[k], displayNames[k], questObj.answer);
-        });
-    } 
-    else if (questObj.type === 'diff') {
-        let accurateDiff = l2Counts.muffin - l2Counts.pizza;
-        questObj.answer = accurateDiff;
-        let pool = createNumericDistractors(accurateDiff);
-        pool.forEach(val => createOptionButton(val, val, questObj.answer));
-    }
-    else if (questObj.type === 'compare_low') {
-        let minVal = 999;
-        let minKey = '';
-        Object.keys(l2Counts).forEach(k => {
-            if(l2Counts[k] < minVal) { minVal = l2Counts[k]; minKey = k; }
-        });
-        questObj.answer = displayNames[minKey];
-        Object.keys(displayNames).forEach(k => {
-            createOptionButton(displayNames[k], displayNames[k], questObj.answer);
-        });
-    }
-    else if (questObj.type === 'sum_all') {
-        let pool = createNumericDistractors(questObj.answer);
-        pool.forEach(val => createOptionButton(val, val, questObj.answer));
-    }
-}
-
-function createOptionButton(labelText, checkingVal, correctValue) {
-    const btn = document.createElement("button");
-    btn.className = "option-btn";
-    btn.innerText = labelText;
-    btn.onclick = () => verifyL2Answer(checkingVal, correctValue);
-    const container = document.getElementById("optionsContainer");
-    if (container) container.appendChild(btn);
-}
-
-function createNumericDistractors(correctNum) {
-    let choices = new Set([correctNum]);
-    while(choices.size < 4) {
-        let dev = Math.floor(Math.random() * 5) + 1;
-        let alt = Math.random() > 0.5 ? correctNum + dev : correctNum - dev;
-        if(alt >= 0 && alt <= 30) choices.add(alt);
-    }
-    return Array.from(choices).sort((a,b) => a - b);
-}
-
-function verifyL2Answer(chosen, correct) {
-    if (chosen === correct) {
-        triggerWinCelebration();
-        currentL2QuestIdx++;
-        if (currentL2QuestIdx < l2QuestionsPool.length) {
-            document.getElementById("dialogueTextL2").innerHTML = "Splendid reasoning! Here comes the next data challenge... 🧠";
-            setTimeout(() => { loadLevel2Question(); }, 2000);
-        } else {
-            document.getElementById("dialogueTextL2").innerHTML = "Incredible Job! Let's pull up your grand dashboard!";
-            setTimeout(() => { switchInterfacePanel('layer-end'); }, 2500);
-        }
-    } else {
-        l2WrongAttempts++;
-        const wrapper = document.getElementById("questionBox");
-        if (wrapper) {
-            wrapper.classList.add("error-shake");
-            setTimeout(() => wrapper.classList.remove("error-shake"), 400);
-        }
-        if (l2WrongAttempts >= 2) {
-            alert(`💡 Hint: ${l2QuestionsPool[currentL2QuestIdx].hint}`);
-        }
-    }
-}
-
-function reinitializeSimulationEngine() {
-    setupLevel2DataStructures();
-    generateScrambledDeck();
-    switchInterfacePanel('layer-intro');
-}
-
-/* Particle Effects Canvas Controller */
-const canvas = document.getElementById("fireworks");
-let ctx = canvas ? canvas.getContext("2d") : null;
-let particles = [];
-
-function resize() { 
-    if (canvas) {
-        canvas.width = window.innerWidth; 
-        canvas.height = window.innerHeight; 
-    }
-}
-resize();
-window.addEventListener("resize", resize);
-
-function triggerWinCelebration() {
-    if (!canvas) return;
-    let duration = 2000;
-    let end = Date.now() + duration;
-    (function frame() {
-        burstParticles(Math.random() * canvas.width, Math.random() * canvas.height * 0.4, 5);
-        if (Date.now() < end) requestAnimationFrame(frame);
-    }());
-}
-
-function burstParticles(x, y, count) {
-    for(let i = 0; i < count; i++){
-        let angle = Math.random() * 2 * Math.PI;
-        let speed = Math.random() * 4 + 2;
-        particles.push({ 
-            x: x, y: y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, 
-            radius: Math.random() * 3 + 2, alpha: 1, gravity: 0.05,
-            color: `hsla(${Math.random() * 360}, 100%, 60%, `
-        });
-    }
-}
-
-function animate() {
-    if (!ctx || !canvas) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.alpha -= 0.015; });
-    particles = particles.filter(p => p.alpha > 0);
-    particles.forEach(p => {
-        ctx.fillStyle = `${p.color}${p.alpha})`;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
-    });
-    requestAnimationFrame(animate);
-}
-if (ctx) animate();
-
-window.addEventListener('DOMContentLoaded', initGameLifecycle);
-</script>
-</body>
-</html>
+        if (container
