@@ -2,14 +2,21 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Math Mystery Box Surprise - Grade 1</title>
 <style>
     :root {
         --room-bg: #fef08a; /* Warm sunny yellow room wallpaper */
         --accent-pink: #f472b6;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { 
+        box-sizing: border-box; 
+        margin: 0; 
+        padding: 0; 
+        user-select: none;
+        -webkit-user-select: none;
+        touch-action: manipulation;
+    }
     body, html {
         width: 100%; height: 100%;
         font-family: 'Segoe UI', Arial, sans-serif;
@@ -78,6 +85,7 @@
         background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
         box-shadow: 0 6px 0px #be185d, 0 10px 15px rgba(0,0,0,0.15);
         transition: transform 0.1s, box-shadow 0.1s;
+        -webkit-tap-highlight-color: transparent;
     }
     .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0px #be185d, 0 12px 20px rgba(0,0,0,0.2); }
     .btn:active { transform: translateY(4px); box-shadow: 0 2px 0px #be185d; }
@@ -115,6 +123,7 @@
         position: relative; width: 125px; height: 125px;
         display: flex; flex-direction: column; align-items: center;
         cursor: pointer; z-index: 10; transition: transform 0.2s ease;
+        -webkit-tap-highlight-color: transparent;
     }
     .gift-box-wrapper:hover { transform: scale(1.08) translateY(-5px); }
 
@@ -170,13 +179,24 @@
     }
 
     @keyframes loadProgress { 0% { left: -100%; } 100% { left: 0%; } }
+
+    /* Layout Responsive Adaptations */
+    @media (max-width: 520px) {
+        .stage-table-container { height: 200px; }
+        .gift-box-wrapper { width: 92px; height: 92px; }
+        .box-lid { width: 100px; height: 22px; }
+        .box-body { width: 88px; height: 70px; }
+        .choice-tag-label { font-size: 19px; padding: 4px 10px; }
+        .hanging-board { font-size: 32px; padding: 15px 30px; }
+        .surprise-prize-anchor { font-size: 42px; bottom: 65px; }
+    }
 </style>
 </head>
 <body>
 
 <div id="screen-splash">
     <div class="logo-container">
-        <img class="logo-img" src="assets/logo.png" alt="Innovine Logo">
+        <img class="logo-img" src="assets/logo.png" alt="Innovine Logo" onerror="this.src='https://placehold.co/280x100?text=Logo'">
     </div>
     <div class="splash-loader">
         <div class="splash-loader-bar"></div>
@@ -262,18 +282,20 @@
     const level1PrizesPool = ['🧸', '🚀', '🦄', '🚂', '🦖', '🚗', '✈️', '🎨'];
     const level2PrizesPool = ['👾', '🛸', '💎', '👑', '🎸', '🔮', '🤖', '⚡'];
 
-    // Absolute 5-Second Splash Exit
-    setTimeout(function() {
-        const splash = document.getElementById('screen-splash');
-        const appWrapper = document.getElementById('app-viewport-wrapper');
-        if (splash) {
-            splash.style.opacity = '0';
-            setTimeout(() => {
-                splash.style.display = 'none';
-                if (appWrapper) appWrapper.style.display = 'flex';
-            }, 500);
-        }
-    }, 5000);
+    // Absolute 5-Second Splash Exit Setup
+    window.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            const splash = document.getElementById('screen-splash');
+            const appWrapper = document.getElementById('app-viewport-wrapper');
+            if (splash) {
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    if (appWrapper) appWrapper.style.display = 'flex';
+                }, 500);
+            }
+        }, 5000);
+    });
 
     function goToScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -290,6 +312,13 @@
         if(wrapper) wrapper.style.background = "radial-gradient(circle, #fef9c3 0%, #fef08a 100%)";
         
         document.getElementById('hud-level-tag').innerText = "Room Status: Level 1 🎈";
+        document.getElementById('hud-score-tag').innerText = "Prizes Won: 🧸 0";
+        
+        const board = document.getElementById('problem-board-display');
+        if(board) {
+            board.style.borderColor = "#475569";
+            board.style.color = "#38bdf8";
+        }
     }
 
     function startMysteryGame() {
@@ -312,31 +341,50 @@
         // Setup Level Architecture
         let numA, numB;
         if (currentActiveLevel === 1) {
-            // Level 1: Multiples of 10 or Simple Subtraction without Borrowing
+            // Balanced Level 1 Mix: Multiples of 10 OR Non-borrowing standard pairs
             if (Math.random() > 0.5) {
-                let tensA = Math.floor(Math.random() * 7) + 3; // 30 - 90
+                let tensA = Math.floor(Math.random() * 7) + 3; // 30 to 90
                 let tensB = Math.floor(Math.random() * (tensA - 1)) + 1;
-                numA = tensA * 10; numB = tensB * 10;
+                numA = tensA * 10; 
+                numB = tensB * 10;
             } else {
-                numA = Math.floor(Math.random() * 40) + 20; // 20 - 60
-                let ones = numA % 10;
-                numB = ones > 1 ? Math.floor(Math.random() * ones) + 1 : 1;
+                let tensA = Math.floor(Math.random() * 4) + 2; // 20 to 50
+                let onesA = Math.floor(Math.random() * 8) + 1; // 1 to 8
+                numA = (tensA * 10) + onesA;
+
+                let tensB = Math.floor(Math.random() * tensA); // Lesser or equal tens
+                let onesB = Math.floor(Math.random() * onesA); // Lesser or equal ones (Guarantees NO borrowing)
+                numB = (tensB * 10) + onesB;
+                
+                if (numA === numB || numB === 0) { numB = onesA; } // Fallback sanity guard
             }
         } else {
-            // Level 2: Advanced Grade 1 Subtraction up to 100 (Slightly larger values)
+            // Level 2: Advanced Grade 1 Subtraction up to 100
             numA = Math.floor(Math.random() * 41) + 59; // 59 - 100
-            numB = Math.floor(Math.random() * 25) + 5;  // 5 - 30
-            if(numA - numB < 0) numB = 4;
+            numB = Math.floor(Math.random() * 35) + 5;  // 5 - 40
+            if(numA - numB <= 0) numB = 12;
         }
 
         roundTargetSolution = numA - numB;
         document.getElementById('problem-board-display').innerText = `${numA} - ${numB}`;
 
-        // Create Choices
-        let choiceA = roundTargetSolution + (Math.random() > 0.5 ? 10 : -10);
-        let choiceB = roundTargetSolution + (Math.random() > 0.5 ? 3 : -3);
-        if (choiceA === roundTargetSolution || choiceA < 0) choiceA = roundTargetSolution + 5;
-        if (choiceB === roundTargetSolution || choiceB === choiceA || choiceB < 0) choiceB = roundTargetSolution + 2;
+        // Create Unique Non-overlapping Choices
+        let choiceA, choiceB;
+        
+        let deltaA = Math.random() > 0.5 ? 10 : -10;
+        choiceA = roundTargetSolution + deltaA;
+        if (choiceA === roundTargetSolution || choiceA < 0 || choiceA > 100) {
+            choiceA = roundTargetSolution + (roundTargetSolution > 20 ? -5 : 5);
+        }
+
+        let deltaB = Math.random() > 0.5 ? 2 : -2;
+        choiceB = roundTargetSolution + deltaB;
+        if (choiceB === roundTargetSolution || choiceB === choiceA || choiceB < 0 || choiceB > 100) {
+            choiceB = roundTargetSolution + (roundTargetSolution > 15 ? -7 : 7);
+        }
+
+        // Final duplicate circuit breaker check
+        if (choiceB === choiceA) { choiceB += 3; }
 
         let itemsList = [roundTargetSolution, choiceA, choiceB];
         itemsList.sort(() => Math.random() - 0.5);
@@ -370,7 +418,7 @@
             if(selectedBoxNode) selectedBoxNode.classList.add('pop-open');
 
             const audioC = document.getElementById('snd-correct');
-            if(audioC) audioC.play().catch(() => {});
+            if(audioC) audioC.play().catch(() => { /* Silent fallback if gesture blocked */ });
 
             // Run Confetti Sparks Flight Sequence
             launchConfettiBurstFX();
@@ -393,7 +441,7 @@
         } else {
             // Wrong Box Click Action
             const audioW = document.getElementById('snd-wrong');
-            if(audioW) audioW.play().catch(() => {});
+            if(audioW) audioW.play().catch(() => { /* Silent fallback if gesture blocked */ });
 
             if(selectedBoxNode) {
                 selectedBoxNode.classList.add('wrong-shake');
