@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Grade 1: Sammy's Acorn Mission!</title>
     <style>
         :root {
@@ -17,6 +17,8 @@
             padding: 0;
             font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
             user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation; /* Prevents double-tap zoom delay on mobile */
         }
 
         body {
@@ -27,11 +29,11 @@
             align-items: center;
             min-height: 100vh;
             background-image: radial-gradient(#D7CCC8 20%, transparent 20%);
-            background-size: 30px 30px;
-            padding: 15px;
+            background-size: 20px 20px;
+            padding: 10px;
         }
 
-        /* --- SPLASH SCREEN LAYOUT --- */
+        /* --- SPLASH SCREEN --- */
         #splash-screen {
             position: fixed;
             top: 0;
@@ -44,44 +46,43 @@
             align-items: center;
             z-index: 9999;
             opacity: 1;
-            transition: opacity 0.6s ease-in-out, visibility 0.6s;
+            transition: opacity 0.5s ease-in-out, visibility 0.5s;
             visibility: visible;
         }
 
         .splash-logo {
-            max-width: 250px;
+            max-width: 180px;
             height: auto;
         }
 
-        /* --- MAIN GAME CONTAINER --- */
+        /* --- RESPONSIVE MAIN CONTAINER --- */
         #game-container {
             width: 100%;
-            max-width: 750px; 
+            max-width: 680px; 
             background: var(--card-bg);
-            padding: 25px;
-            border-radius: 35px;
-            box-shadow: 0 12px 24px rgba(0,0,0,0.15);
-            border: 6px solid #8D6E63;
+            padding: 15px;
+            border-radius: 28px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.12);
+            border: 5px solid #8D6E63;
             text-align: center;
             display: none; 
             opacity: 0;
             transition: opacity 0.4s ease-in;
-            position: relative;
         }
 
         .actor-img {
-            width: 120px;
+            width: 90px;
             height: auto;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
         .mission-text {
-            font-size: 1.25rem;
-            line-height: 1.6;
-            margin-bottom: 25px;
+            font-size: 1.1rem;
+            line-height: 1.5;
+            margin-bottom: 20px;
             background: #FFE0B2;
-            padding: 20px;
-            border-radius: 20px;
+            padding: 15px;
+            border-radius: 16px;
             border: 2px dashed #FB8C00;
         }
 
@@ -89,228 +90,263 @@
             background: linear-gradient(135deg, #8D6E63, #5D4037);
             color: white;
             border: none;
-            padding: 15px 45px;
-            font-size: 1.6rem;
+            padding: 12px 35px;
+            font-size: 1.4rem;
             font-weight: bold;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 6px 0 #3E2723;
+            box-shadow: 0 5px 0 #3E2723;
         }
 
-        /* --- GAMEPLAY INTERACTIVE SCREEN --- */
+        /* --- HEADER & PROGRESS --- */
         .game-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
-            font-size: 1.1rem;
+            margin-bottom: 12px;
+            font-size: 0.95rem;
             font-weight: bold;
         }
 
         .tracker-badge {
             background: #E8F5E9;
-            padding: 6px 14px;
-            border-radius: 15px;
+            padding: 5px 12px;
+            border-radius: 12px;
             color: #2E7D32;
         }
 
         .progress-bar {
             width: 100%;
-            height: 16px;
+            height: 12px;
             background-color: #E0E0E0;
-            border-radius: 15px;
+            border-radius: 10px;
             overflow: hidden;
-            margin-bottom: 20px;
-            border: 2px solid #BCAAA4;
+            margin-bottom: 15px;
+            border: 1.5px solid #BCAAA4;
         }
 
         #progress {
             height: 100%;
             width: 0%;
             background: linear-gradient(90deg, #A1887F, #8D6E63);
-            transition: width 0.4s ease;
+            transition: width 0.3s ease;
+        }
+
+        .outcome-banner {
+            font-size: 0.85rem;
+            background: #ECEFF1;
+            padding: 4px 10px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-weight: bold;
+            color: #546E7A;
+            text-transform: uppercase;
+            display: inline-block;
         }
 
         .story-text-container {
-            font-size: 1.2rem;
+            font-size: 1.05rem;
             background: #FFF3E0;
-            padding: 15px;
-            border-radius: 15px;
+            padding: 12px;
+            border-radius: 12px;
             border-left: 5px solid #FF9800;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             text-align: left;
+            line-height: 1.4;
         }
 
-        /* --- VISUAL DISPLAY ZONE (image_36d0ab.png STYLE) --- */
+        /* --- MOBILE FLEX WORKSPACE --- */
         .visual-math-box {
             background: #FFF8E1;
-            border: 4px dashed #FFB300;
-            border-radius: 24px;
-            padding: 20px;
-            margin-bottom: 20px;
+            border: 3px dashed #FFB300;
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 15px;
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 25px;
-            min-height: 150px;
+            gap: 15px;
+            min-height: 120px;
+            flex-wrap: wrap; /* Allows stacking neatly on extremely narrow portrait phones */
         }
 
         .side-panel {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 8px;
             flex-wrap: wrap;
-            padding: 10px;
-            min-width: 120px;
+            padding: 5px;
+            min-width: 110px;
+            max-width: 240px;
         }
 
-        /* Drop Basket Target */
         .basket-target {
             position: relative;
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             background: #EFEBE9;
-            border: 3px solid #8D6E63;
-            border-radius: 14px;
+            border: 2.5px solid #8D6E63;
+            border-radius: 12px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 2rem;
-            box-shadow: 0 4px 0 #5D4037;
+            font-size: 1.6rem;
+            box-shadow: 0 3px 0 #5D4037;
             transition: transform 0.2s;
         }
 
-        .basket-target.hovered {
-            background: #FFE082;
-            transform: scale(1.1);
+        .basket-target.packed-bump {
+            animation: packEffect 0.3s ease-out;
+        }
+
+        @keyframes packEffect {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); background-color: #FFE082; }
+            100% { transform: scale(1); }
         }
 
         .basket-target::after {
             content: "10";
             position: absolute;
-            bottom: -4px;
-            right: -4px;
-            font-size: 0.7rem;
+            bottom: -3px;
+            right: -3px;
+            font-size: 0.65rem;
             background: #D84315;
             color: #FFF;
-            padding: 1px 4px;
-            border-radius: 5px;
+            padding: 1px 3px;
+            border-radius: 4px;
             font-weight: bold;
         }
 
-        /* Draggable Loose Acorn elements */
+        /* Interactive Tap-to-Pack Acorn */
         .acorn-draggable {
-            width: 32px;
+            width: 28px;
             height: auto;
-            cursor: grab;
+            cursor: pointer;
             filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.15));
+            transition: transform 0.2s, opacity 0.2s;
+            animation: floatHint 2s infinite alternate ease-in-out;
         }
 
-        .acorn-draggable:active {
-            cursor: grabbing;
+        @keyframes floatHint {
+            from { transform: translateY(0); }
+            to { transform: translateY(-3px); }
         }
 
         .math-sign {
-            font-size: 3rem;
+            font-size: 2.2rem;
             font-weight: bold;
             color: #E65100;
         }
 
+        /* --- RESPONSIVE TYPOGRAPHY --- */
         .equation-text {
-            font-size: 3.2rem;
+            font-size: 2.4rem;
             color: #D84315;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-weight: bold;
         }
 
         #try-again-prompt {
-            height: 24px;
-            font-size: 1.2rem;
+            height: 20px;
+            font-size: 1.05rem;
             font-weight: bold;
             color: #D32F2F;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
-        /* --- OPTIONS SELECTION GRID --- */
+        /* --- BIG MOBILE BUTTON TOUCH TARGETS --- */
         .options-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
+            gap: 12px;
         }
 
         .option-btn {
             background-color: #FFF;
-            border: 4px solid #8D6E63;
-            border-radius: 20px;
-            padding: 12px;
-            font-size: 2rem;
+            border: 3.5px solid #8D6E63;
+            border-radius: 16px;
+            padding: 14px 10px; /* Enhanced vertical padding for small fingers */
+            font-size: 1.6rem;
             font-weight: bold;
             color: #5D4037;
             cursor: pointer;
-            box-shadow: 0 5px 0 #5D4037;
+            box-shadow: 0 4px 0 #5D4037;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .option-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #5D4037;
         }
 
         .option-btn.correct {
             background-color: #4CAF50 !important;
             border-color: #2E7D32 !important;
             color: white !important;
-            box-shadow: 0 5px 0 #2E7D32;
+            box-shadow: 0 4px 0 #2E7D32 !important;
         }
 
         .option-btn.wrong {
             background-color: #EF5350 !important;
             border-color: #C62828 !important;
             color: white !important;
-            box-shadow: 0 5px 0 #C62828;
+            box-shadow: 0 4px 0 #C62828 !important;
         }
 
         #restart-btn {
             background: linear-gradient(135deg, #8D6E63, #5D4037);
             color: white;
             border: none;
-            padding: 15px 45px;
-            font-size: 1.8rem;
+            padding: 12px 40px;
+            font-size: 1.5rem;
             font-weight: bold;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 6px 0 #3E2723;
+            box-shadow: 0 5px 0 #3E2723;
             display: none;
-            margin: 20px auto 0 auto;
+            margin: 15px auto 0 auto;
+        }
+
+        /* Media queries for minor dynamic sizing optimizations on tiny screens */
+        @media (max-width: 480px) {
+            .equation-text { font-size: 2rem; }
+            .option-btn { font-size: 1.4rem; padding: 12px 6px; }
+            .visual-math-box { gap: 8px; }
+            .math-sign { font-size: 1.8rem; }
         }
     </style>
 </head>
 <body>
 
     <div id="splash-screen">
-        <img src="assets/logo.png" alt="Logo" class="splash-logo" onerror="this.src='https://placehold.co/200?text=Innovine'">
+        <img src="assets/logo.png" alt="Logo" class="splash-logo" onerror="this.src='https://placehold.co/150?text=Innovine'">
     </div>
 
     <div id="game-container">
-        <!-- START SCREEN -->
         <div id="mission-screen">
-            <img src="assets/squirrel.png" class="actor-img" onerror="this.src='https://placehold.co/120?text=🐿️'">
-            <h2 style="font-size: 2rem; margin-bottom: 10px;">Help Sammy the Squirrel!</h2>
+            <img src="assets/squirrel.png" class="actor-img" onerror="this.src='https://placehold.co/90?text=🐿️'">
+            <h2 style="font-size: 1.7rem; margin-bottom: 8px;">Help Sammy the Squirrel!</h2>
             <p class="mission-text">
-                Winter is near! Drag loose acorns directly into the baskets to help count them up, then tap the right answer button!
+                Winter is near! Tap loose acorns to pack them inside the baskets to count them easily, then tap the right answer button!
             </p>
             <button class="start-btn" onclick="startMission()">Let's Go! 🚀</button>
         </div>
 
-        <!-- MAIN GAME PANEL -->
         <div id="play-screen" style="display: none;">
             <div class="game-header">
                 <span id="question-number">🧩 Problem: 1/10</span>
-                <span class="tracker-badge">Acorns Saved: <span id="acorn-count">0</span></span>
+                <span class="tracker-badge">Saved: <span id="acorn-count">0</span></span>
             </div>
 
             <div class="progress-bar">
                 <div id="progress"></div>
             </div>
 
+            <div class="outcome-banner" id="outcome-label">Outcome Tracker</div>
             <div class="story-text-container" id="story-container"></div>
 
-            <!-- VISUAL PLAY ZONE DISPLAY (image_36d0ab.png DESIGN) -->
             <div class="visual-math-box">
                 <div class="side-panel" id="left-panel"></div>
                 <div class="math-sign">+</div>
@@ -322,11 +358,10 @@
             <div class="options-grid" id="options-container"></div>
         </div>
 
-        <!-- RESULTS END SCREEN -->
         <div id="result-screen" style="display:none;">
-            <img src="assets/squirrel.png" class="actor-img" onerror="this.src='https://placehold.co/120?text=🐿️'">
-            <h1 style="font-size: 2.2rem; color: #4CAF50; margin-bottom: 10px;">Mission Complete! 🏆</h1>
-            <p id="score-display" style="font-size: 2rem; font-weight: bold; color: #EF6C00;"></p>
+            <img src="assets/squirrel.png" class="actor-img" onerror="this.src='https://placehold.co/90?text=🐿️'">
+            <h1 style="font-size: 2rem; color: #4CAF50; margin-bottom: 10px;">Mission Complete! 🏆</h1>
+            <p id="score-display" style="font-size: 1.7rem; font-weight: bold; color: #EF6C00;"></p>
         </div>
         
         <button id="restart-btn" onclick="resetGame()">Play Again! 🌟</button>
@@ -347,16 +382,16 @@
         }
 
         var staticQuestionPool = [
-            { story: "Sammy has 10 acorns on the left, and 20 on the right. Count them all!", num1: 10, num2: 20, answer: 30, options: [3, 13, 30, 40] },
-            { story: "Sammy has 20 acorns, then finds 10 loose ones. Put them together!", num1: 20, num2: 10, answer: 30, options: [21, 12, 30, 40] },
-            { story: "Let's count! There are 30 acorns inside boxes, plus 10 loose acorns.", num1: 30, num2: 10, answer: 40, options: [31, 40, 50, 14] },
-            { story: "Sammy gathers 40 acorns, then spots 10 more next to a rock.", num1: 40, num2: 10, answer: 50, options: [41, 50, 60, 90] },
-            { story: "Let's pack a total sum! Count 20 acorns added to 20 more.", num1: 20, num2: 20, answer: 40, options: [30, 40, 50, 60] },
-            { story: "There are 10 acorns hidden in the grass and 30 acorns in a tree hole.", num1: 10, num2: 30, answer: 40, options: [20, 30, 40, 50] },
-            { story: "Sammy counts 30 acorns gathered on Monday and 30 on Tuesday.", num1: 30, num2: 30, answer: 60, options: [50, 60, 70, 80] },
-            { story: "Sammy has 50 packed acorns and finds 10 loose ones on the ground.", num1: 50, num2: 10, answer: 60, options: [51, 60, 70, 80] },
-            { story: "Look at the panels! Let's find the total sum for 20 plus 30.", num1: 20, num2: 30, answer: 50, options: [40, 45, 50, 60] },
-            { story: "Final challenge! Sammy has 40 acorns and collects 20 more.", num1: 40, num2: 20, answer: 60, options: [50, 55, 60, 70] }
+            { outcome: "Groups of Tens", story: "Sammy has 2 boxes of acorns. Each box has 10 acorns. How many does he have?", num1: 20, num2: 10, answer: 30, options: [3, 21, 30, 40] },
+            { outcome: "Groups of Tens", story: "Sammy finds 4 baskets of tens, then finds 2 more baskets of tens. Count them up!", num1: 40, num2: 20, answer: 60, options: [6, 42, 50, 60] },
+            { outcome: "Arrange & Solve Order", story: "Sammy changes the order! What is the total sum if we calculate 30 + 50?", num1: 30, num2: 50, answer: 80, options: [35, 70, 80, 90] },
+            { outcome: "Arrange & Solve Order", story: "Let's arrange these in order. What do you get when you add 10 to 70?", num1: 70, num2: 10, answer: 80, options: [17, 71, 80, 90] },
+            { outcome: "Addition without Carry Over", story: "Sammy has 42 acorns in his nest and finds 5 more under a leaf.", num1: 42, num2: 5, answer: 47, options: [45, 47, 49, 52] },
+            { outcome: "Addition without Carry Over", story: "There are 51 acorns inside a tree hole and 23 acorns on the grass.", num1: 51, num2: 23, answer: 74, options: [74, 75, 84, 94] },
+            { outcome: "Addition with Carry Over", story: "Sammy has 25 brown acorns and gathers 8 shiny gold acorns.", num1: 25, num2: 8, answer: 33, options: [32, 33, 43, 53] },
+            { outcome: "Addition with Carry Over", story: "Sammy gathers 48 acorns in the morning and 15 more after lunch.", num1: 48, num2: 15, answer: 63, options: [53, 62, 63, 73] },
+            { outcome: "Story Sums", story: '\"I want to save 90 acorns,\" says Sammy. If he has 60 acorns and finds 30 more, what is his total?', num1: 60, num2: 30, answer: 90, options: [63, 80, 90, 100] },
+            { outcome: "Story Sums", story: "Sammy hides 36 acorns near an oak tree and 43 acorns near a big pine tree. How many are hidden altogether?", num1: 36, num2: 43, answer: 79, options: [77, 78, 79, 89] }
         ];
 
         var currentIdx = 0;
@@ -369,7 +404,7 @@
                 var splash = document.getElementById('splash-screen');
                 var gameBox = document.getElementById('game-container');
                 if (splash) { splash.style.opacity = '0'; splash.style.visibility = 'hidden'; }
-                setTimeout(function() { gameBox.style.display = 'block'; gameBox.style.opacity = '1'; }, 600);
+                setTimeout(function() { gameBox.style.display = 'block'; gameBox.style.opacity = '1'; }, 500);
             }, 1000); 
         });
 
@@ -379,7 +414,7 @@
             loadQuestion();
         }
 
-        /* GENERATE PANELS: BASKETS + DRAGGABLE LOOSE ACORNS */
+        /* MOBILE TOUCH SYSTEM: TAPPING LOOSE ACORNS RE-RANKS/PACKS THEM */
         function populateSidePanel(panelId, totalCount) {
             var panel = document.getElementById(panelId);
             panel.innerHTML = "";
@@ -387,37 +422,37 @@
             var tens = Math.floor(totalCount / 10);
             var ones = totalCount % 10;
 
-            // Generate Baskets (Drop targets)
+            // Render existing baseline baskets
             for (var t = 0; t < tens; t++) {
                 var basket = document.createElement('div');
                 basket.className = 'basket-target';
+                basket.id = panelId + '-basket-' + t;
                 basket.innerText = "🧺";
-                
-                // Allow elements to drag-drop onto baskets directly
-                basket.addEventListener('dragover', function(e) { e.preventDefault(); this.classList.add('hovered'); });
-                basket.addEventListener('dragleave', function() { this.classList.remove('hovered'); });
-                basket.addEventListener('drop', function(e) {
-                    e.preventDefault();
-                    this.classList.remove('hovered');
-                    var draggedId = e.dataTransfer.getData('text/plain');
-                    var item = document.getElementById(draggedId);
-                    if(item) item.remove(); // Drops perfectly right into the box!
-                });
-
                 panel.appendChild(basket);
             }
 
-            // Generate loose acorns if any exist (Can be dragged into basket boxes)
+            // Render loose interactive touch targets
             for (var o = 0; o < ones; o++) {
                 var acorn = document.createElement('img');
                 acorn.className = 'acorn-draggable';
                 acorn.src = 'assets/acorn.png';
-                acorn.id = panelId + '-acorn-' + o;
-                acorn.setAttribute('draggable', 'true');
-                acorn.onerror = function() { this.src = 'https://placehold.co/32?text=🌰'; };
+                acorn.onerror = function() { this.src = 'https://placehold.co/28?text=🌰'; };
                 
-                acorn.addEventListener('dragstart', function(e) {
-                    e.dataTransfer.setData('text/plain', e.target.id);
+                // Pure mobile click tracking action handler
+                acorn.addEventListener('click', function(e) {
+                    var targetedAcorn = e.target;
+                    targetedAcorn.style.transform = 'scale(0.2)';
+                    targetedAcorn.style.opacity = '0';
+                    
+                    // Animate first available static basket on the panel layout
+                    var companionBasket = panel.querySelector('.basket-target');
+                    if (companionBasket) {
+                        companionBasket.classList.remove('packed-bump');
+                        void companionBasket.offsetWidth; // Force CSS repaint trigger
+                        companionBasket.classList.add('packed-bump');
+                    }
+                    
+                    setTimeout(function() { targetedAcorn.remove(); }, 200);
                 });
 
                 panel.appendChild(acorn);
@@ -433,15 +468,14 @@
             document.getElementById('acorn-count').innerText = acornsSaved;
             document.getElementById('progress').style.width = (currentIdx * 10) + "%";
             document.getElementById('try-again-prompt').innerText = "";
+            document.getElementById('outcome-label').innerText = currentQuest.outcome;
             document.getElementById('story-container').innerText = currentQuest.story;
 
-            // Render matching visual panels side-by-side
             populateSidePanel('left-panel', currentQuest.num1);
             populateSidePanel('right-panel', currentQuest.num2);
 
             document.getElementById('equation-display').innerText = currentQuest.num1 + " + " + currentQuest.num2 + " = ?";
 
-            // Render option buttons immediately ready to interact
             var optContainer = document.getElementById('options-container');
             optContainer.innerHTML = "";
             
@@ -467,13 +501,12 @@
                 acornsSaved++;
                 document.getElementById('acorn-count').innerText = acornsSaved;
 
-                setTimeout(advanceToNextQuestion, 1800);
+                setTimeout(advanceToNextQuestion, 1500);
             } else {
                 selectedBtn.classList.add('wrong');
                 playSound('wrong');
 
                 if(currentQuestionAttempts === 1) {
-                    // Gives student exactly 2 chances
                     document.getElementById('try-again-prompt').innerText = "❌ Not quite! Try one more time! 🤔";
                 } else {
                     optionLocked = true;
@@ -486,7 +519,7 @@
                         }
                     });
 
-                    setTimeout(advanceToNextQuestion, 2200);
+                    setTimeout(advanceToNextQuestion, 2000);
                 }
             }
         }
