@@ -6,294 +6,227 @@
 <title>Sorting Sam's Drag & Drop Blueprint</title>
 
 <style>
-/* Splash Screen Overlay System */
-#splashScreen {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: #ffffff;
+:root {
+    --text-dark: #333333;
+    --accent-blue: #0d47a1;
+    --accent-pink: #ec407a;
+    --gold-dark: #fbc02d;
+    --success-green: #2e7d32;
+    --error-red: #ef5350;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+    background: linear-gradient(to bottom, #e3f2fd 0%, #bbdefb 100%);
+    color: var(--text-dark);
+    min-height: 100vh;
+    padding: 20px;
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
+}
+
+/* --- SPLASH SCREEN SYSTEM --- */
+#splashScreen {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background-color: #ffffff;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
     z-index: 9999;
-    transition: opacity 0.8s ease, transform 0.8s ease;
+    transition: opacity 0.6s ease, transform 0.6s ease;
 }
 
 #splashLogo {
-    width: 280px;
-    height: auto;
-    object-fit: contain;
+    width: 280px; height: auto; object-fit: contain;
     animation: pulseLogo 2s infinite ease-in-out;
 }
 
 .splash-loader {
-    margin-top: 20px;
-    width: 50px;
-    height: 50px;
-    border: 5px solid #f3f3f3;
-    border-top: 5px solid #0d47a1;
-    border-radius: 50%;
-    animation: spinLoader 1s linear infinite;
+    margin-top: 20px; width: 50px; height: 50px;
+    border: 5px solid #f3f3f3; border-top: 5px solid var(--accent-blue);
+    border-radius: 50%; animation: spinLoader 1s linear infinite;
 }
 
 @keyframes pulseLogo {
     0%, 100% { transform: scale(1); }
     50% { transform: scale(1.05); }
 }
-
 @keyframes spinLoader {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
-/* Base Layout styling */
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    text-align: center;
-    background: linear-gradient(to bottom, #e3f2fd 0%, #bbdefb 100%);
-    color: #333;
-    margin: 0;
-    padding: 20px;
-    min-height: 100vh;
-    box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    user-select: none;
-}
-
-#gameContainer {
+/* --- STRUCTURE CONTAINER FRAME --- */
+#gameMatrix {
     width: 100%;
     max-width: 900px;
     background: #ffffff;
     border-radius: 24px;
     padding: 25px;
     box-shadow: 0 12px 24px rgba(0,0,0,0.1);
-    box-sizing: border-box;
-    opacity: 0; /* Hidden until splash screen fades out */
-    transition: opacity 0.5s ease;
-}
-
-.character-box {
-    background: #ffffff;
-    border: 4px solid #ffb74d;
-    border-radius: 20px;
-    padding: 15px;
-    margin: 15px 0 25px 0;
+    position: relative;
+    min-height: 580px;
     display: flex;
-    align-items: center;
-    gap: 15px;
-    box-shadow: 0 6px 12px rgba(0,0,0,0.08);
-    text-align: left;
+    flex-direction: column;
 }
 
-.char-avatar {
-    font-size: 44px;
-    background: #fff3e0;
-    border-radius: 50%;
-    padding: 8px;
-    width: 60px;
-    height: 60px;
+.layer-panel {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    animation: fadeReveal 0.4s ease-in-out forwards;
+}
+.layer-panel.active {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 3px solid #ffa726;
-    flex-shrink: 0;
 }
 
-.char-text {
-    font-size: 16px;
-    font-weight: bold;
-    color: #4e342e;
-    line-height: 1.4;
-    margin: 0;
+@keyframes fadeReveal {
+    0% { opacity: 0; transform: translateY(10px); }
+    100% { opacity: 1; transform: translateY(0); }
 }
 
+/* --- INSTRUCTION PANEL SYSTEM --- */
+.story-bubble {
+    background: #f1f8e9; padding: 22px; border-radius: 16px;
+    border: 2px dashed #81c784; max-width: 700px; margin: 20px auto;
+    font-size: 1.15rem; line-height: 1.6; color: #1b5e20;
+}
+
+/* --- HUD COMPONENT STYLES --- */
 .level-badge {
-    background: #ec407a;
-    color: white;
-    padding: 6px 20px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: bold;
-    display: inline-block;
-    margin-bottom: 10px;
+    background: var(--accent-pink); color: white;
+    padding: 6px 20px; border-radius: 20px;
+    font-size: 14px; font-weight: bold; display: inline-block;
+    align-self: center; margin-bottom: 10px;
 }
 
 h1 {
-    margin: 5px 0;
-    font-size: clamp(24px, 4vw, 32px);
-    color: #0d47a1;
+    margin: 5px 0 15px 0; font-size: clamp(24px, 4vw, 32px); color: var(--accent-blue);
 }
 
-/* Scrambled source elements box */
+.character-box {
+    background: #ffffff; border: 4px solid #ffb74d; border-radius: 20px;
+    padding: 15px; margin-bottom: 20px; display: flex; align-items: center;
+    gap: 15px; box-shadow: 0 6px 12px rgba(0,0,0,0.08); text-align: left;
+}
+
+.char-avatar {
+    font-size: 44px; background: #fff3e0; border-radius: 50%;
+    padding: 8px; width: 60px; height: 60px; display: flex;
+    align-items: center; justify-content: center; border: 3px solid #ffa726; flex-shrink: 0;
+}
+
+.char-text {
+    font-size: 15px; font-weight: bold; color: #4e342e; line-height: 1.4;
+}
+
+/* --- INVENTORY MATRIX WORKSPACE --- */
 .scrambled-inventory-box {
-    background: #f5f5f5;
-    border: 3px dashed #b0bec5;
-    border-radius: 16px;
-    padding: 20px;
-    min-height: 120px;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 30px;
+    background: #f5f5f5; border: 3px dashed #b0bec5; border-radius: 16px;
+    padding: 15px; min-height: 110px; display: flex; flex-wrap: wrap;
+    justify-content: center; align-items: center; gap: 12px; margin-bottom: 20px;
 }
 
 .scrambled-item {
-    cursor: grab;
-    background: #ffffff;
-    width: 70px;
-    height: 70px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    transition: transform 0.2s;
-    touch-action: none;
+    cursor: grab; background: #ffffff; width: 68px; height: 68px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s, border-color 0.2s;
+    touch-action: none; border: 2px solid transparent;
 }
-.scrambled-item:active {
-    cursor: grabbing;
-    transform: scale(0.95);
+.scrambled-item.selected-tap {
+    border-color: var(--accent-pink);
+    transform: scale(1.08);
+    background: #fff0f5;
 }
 .scrambled-item img {
-    width: 50px;
-    height: 50px;
-    object-fit: contain;
-    pointer-events: none;
+    width: 48px; height: 48px; object-fit: contain; pointer-events: none;
 }
 
-/* Graph Matrix Structure Grid Frame */
+/* --- GRID CHART TRACK SYSTEM --- */
 .chart-container {
-    width: 100%;
-    overflow-x: auto;
-    margin-bottom: 25px;
-    border: 3px solid #b39ddb;
-    border-radius: 16px;
-    background: #fff;
+    width: 100%; overflow-x: auto; margin-bottom: 20px;
+    border: 3px solid #b39ddb; border-radius: 16px; background: #fff;
 }
 
 .chart-row {
-    display: flex;
-    align-items: center;
-    border-bottom: 3px solid #b39ddb;
-    min-width: 800px;
-    transition: background-color 0.2s;
+    display: flex; align-items: center; border-bottom: 3px solid #b39ddb;
+    min-width: 800px; transition: background-color 0.2s; cursor: pointer;
 }
-.chart-row:last-child {
-    border-bottom: none;
-}
-
-.chart-row.drag-over {
-    background-color: #ede7f6;
-}
+.chart-row:last-child { border-bottom: none; }
+.chart-row.drag-over { background-color: #ede7f6; }
 
 .category-lead-cell {
-    width: 100px;
-    min-height: 95px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: #f3e5f5;
-    border-right: 3px solid #b39ddb;
-    flex-shrink: 0;
+    width: 100px; min-height: 90px; display: flex; align-items: center;
+    justify-content: center; background: #f3e5f5; border-right: 3px solid #b39ddb; flex-shrink: 0;
 }
-.category-lead-cell img {
-    width: 55px;
-    height: 55px;
-    object-fit: contain;
-}
+.category-lead-cell img { width: 50px; height: 50px; object-fit: contain; }
 
-/* Droppable Track Zone */
 .grid-track {
-    display: flex;
-    flex-grow: 1;
-    background-image: linear-gradient(to right, #b39ddb 2px, transparent 2px);
-    background-size: 75px 100%;
-    min-height: 95px;
-    align-items: center;
-    padding-left: 2px;
-    gap: 2px;
+    display: flex; flex-grow: 1; min-height: 90px; align-items: center;
+    padding-left: 2px; gap: 4px;
+    background-image: linear-gradient(to right, #e0d7f3 1px, transparent 1px);
+    background-size: 70px 100%;
 }
 
 .grid-cell-slot {
-    width: 73px;
-    height: 95px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    animation: dropIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    width: 66px; height: 80px; display: flex; align-items: center;
+    justify-content: center; background: #fdfbfe; border: 1px solid #e1bee7; border-radius: 8px;
+    animation: dropIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
-.grid-cell-slot img {
-    width: 50px;
-    height: 50px;
-    object-fit: contain;
-}
+.grid-cell-slot img { width: 44px; height: 44px; object-fit: contain; }
 
 .input-answer-zone {
-    width: 130px;
-    min-height: 95px;
-    background: #fff9c4;
-    border-left: 3px solid #b39ddb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    gap: 5px;
+    width: 140px; min-height: 90px; background: #fff9c4;
+    border-left: 3px solid #b39ddb; display: flex; align-items: center;
+    justify-content: center; flex-shrink: 0; gap: 6px;
 }
 
 .count-input {
-    width: 65px;
-    height: 45px;
-    font-size: 22px;
-    font-weight: bold;
-    text-align: center;
-    border: 2px solid #fbc02d;
-    border-radius: 8px;
-    color: #5d4037;
+    width: 65px; height: 42px; font-size: 20px; font-weight: bold;
+    text-align: center; border: 2px solid #fbc02d; border-radius: 8px; color: #5d4037;
 }
 .count-input:disabled {
-    background: #e8f5e9;
-    border-color: #4caf50;
-    color: #2e7d32;
+    background: #e8f5e9; border-color: #4caf50; color: #2e7d32;
 }
 
-.status-indicator {
-    font-size: 24px;
-    width: 30px;
-}
+.status-indicator { font-size: 22px; width: 28px; text-align: center; }
 
+/* --- CORE INTERFACE BUTTONS --- */
 .btn {
-    padding: 14px 45px;
-    font-size: 20px;
-    font-weight: bold;
-    border: none;
-    border-radius: 50px;
-    cursor: pointer;
-    background: #2e7d32;
-    color: white;
-    box-shadow: 0 6px 14px rgba(46, 125, 50, 0.3);
-    transition: transform 0.1s;
-    margin-top: 10px;
+    padding: 12px 40px; font-size: 18px; font-weight: bold;
+    border: none; border-radius: 50px; cursor: pointer;
+    background: var(--success-green); color: white;
+    box-shadow: 0 5px 12px rgba(46, 125, 50, 0.3);
+    transition: transform 0.1s, background-color 0.2s;
+    align-self: center; margin-top: 10px;
 }
-.btn:active { transform: scale(0.96); }
+.btn:active { transform: scale(0.97); }
 .btn:disabled { background: #b0bec5; cursor: not-allowed; box-shadow: none; }
+.btn-blue {
+    background: var(--accent-blue);
+    box-shadow: 0 5px 12px rgba(13, 71, 161, 0.3);
+}
 
 #fireworks { position: fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; }
 
 @keyframes dropIn {
-    0% { transform: scale(0.5); opacity: 0; }
+    0% { transform: scale(0.4); opacity: 0; }
     100% { transform: scale(1); opacity: 1; }
 }
 @keyframes shake {
     0%, 100% { transform: translateX(0); }
-    20%, 60% { transform: translateX(-5px); }
-    40%, 80% { transform: translateX(5px); }
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
 }
 .error-shake { animation: shake 0.4s ease-in-out; }
 </style>
@@ -301,51 +234,78 @@ h1 {
 <body>
 
 <div id="splashScreen">
-    <img id="splashLogo" src="assets/logo.png" alt="Innovine Logo"> <div class="splash-loader"></div>
+    <img id="splashLogo" src="assets/logo.png" alt="Innovine Logo" onerror="this.style.display='none'; document.getElementById('fallback-logo').style.display='block';">
+    <div id="fallback-logo" style="display:none; font-size:4rem; margin-bottom:15px;">🤖🧱</div>
+    <div class="splash-loader"></div>
 </div>
 
-<div id="gameContainer">
-    <div class="level-badge">THINKING SKILLS HOTS</div>
-    <h1>Sam's Drag & Drop Alignment Board</h1>
-
-    <div class="character-box">
-        <div class="char-avatar">🤖</div>
-        <div>
-            <p class="char-text" id="dialogueText">
-                Pick up the items from the messy pile and **drag them down** into their matching row blueprint! Put similar items together!
-            </p>
+<div id="gameMatrix">
+    
+    <div class="layer-panel active" id="layer-intro">
+        <div class="level-badge">THINKING SKILLS HOTS</div>
+        <h1>Sorting Sam's Alignment Challenge</h1>
+        <div class="story-bubble">
+            <p style="font-weight: bold; margin-bottom: 10px;">Hello Explorer! 😊 Let's help Sam organize his workspace!</p>
+            <p>Your task is simple: Pick up raw objects from the messy inventory pile and organize them into their matching rows. Once sorted, type the accurate totals in each data box!</p>
         </div>
+        <button class="btn btn-blue" onclick="switchInterfacePanel('layer-gameplay')">Start Challenge! 🚀</button>
     </div>
 
-    <div class="scrambled-inventory-box" id="scrambledPile"></div>
+    <div class="layer-panel" id="layer-gameplay">
+        <div class="level-badge">THINKING SKILLS HOTS</div>
+        <h1 style="font-size: 24px;">Sam's Drag & Drop Alignment Board</h1>
 
-    <div class="chart-container">
-        <div class="chart-row" id="row-ball" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'ball')">
-            <div class="category-lead-cell"><img src="assets/ball.png" alt="Ball"></div> <div class="grid-track" id="track-ball"></div>
-            <div class="input-answer-zone">
-                <input type="number" id="input-ball" class="count-input" min="0" placeholder="?" disabled>
-                <span id="status-ball" class="status-indicator"></span>
+        <div class="character-box">
+            <div class="char-avatar">🤖</div>
+            <div>
+                <p class="char-text" id="dialogueText">
+                    Drag the items into their matching row blueprint, or tap an item and then tap the matching row track! Put similar items together!
+                </p>
             </div>
         </div>
 
-        <div class="chart-row" id="row-bear" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'bear')">
-            <div class="category-lead-cell"><img src="assets/bear.png" alt="Bear"></div> <div class="grid-track" id="track-bear"></div>
-            <div class="input-answer-zone">
-                <input type="number" id="input-bear" class="count-input" min="0" placeholder="?" disabled>
-                <span id="status-bear" class="status-indicator"></span>
+        <div class="scrambled-inventory-box" id="scrambledPile"></div>
+
+        <div class="chart-container">
+            <div class="chart-row" id="row-ball" onclick="handleRowTap('ball')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'ball')">
+                <div class="category-lead-cell"><img src="assets/ball.png" alt="Ball" onerror="this.parentNode.innerText='⚽'"></div> 
+                <div class="grid-track" id="track-ball"></div>
+                <div class="input-answer-zone" onclick="event.stopPropagation();">
+                    <input type="number" id="input-ball" class="count-input" min="0" placeholder="?" disabled>
+                    <span id="status-ball" class="status-indicator"></span>
+                </div>
+            </div>
+
+            <div class="chart-row" id="row-bear" onclick="handleRowTap('bear')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'bear')">
+                <div class="category-lead-cell"><img src="assets/bear.png" alt="Bear" onerror="this.parentNode.innerText='🧸'"></div> 
+                <div class="grid-track" id="track-bear"></div>
+                <div class="input-answer-zone" onclick="event.stopPropagation();">
+                    <input type="number" id="input-bear" class="count-input" min="0" placeholder="?" disabled>
+                    <span id="status-bear" class="status-indicator"></span>
+                </div>
+            </div>
+
+            <div class="chart-row" id="row-car" onclick="handleRowTap('car')" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'car')">
+                <div class="category-lead-cell"><img src="assets/car.png" alt="Car" onerror="this.parentNode.innerText='🚗'"></div> 
+                <div class="grid-track" id="track-car"></div>
+                <div class="input-answer-zone" onclick="event.stopPropagation();">
+                    <input type="number" id="input-car" class="count-input" min="0" placeholder="?" disabled>
+                    <span id="status-car" class="status-indicator"></span>
+                </div>
             </div>
         </div>
 
-        <div class="chart-row" id="row-car" ondragover="allowDrop(event)" ondragleave="dragLeave(event)" ondrop="handleDrop(event, 'car')">
-            <div class="category-lead-cell"><img src="assets/car.png" alt="Car"></div> <div class="grid-track" id="track-car"></div>
-            <div class="input-answer-zone">
-                <input type="number" id="input-car" class="count-input" min="0" placeholder="?" disabled>
-                <span id="status-car" class="status-indicator"></span>
-            </div>
-        </div>
+        <button id="verifyBtn" class="btn" onclick="verifyCalculations()" disabled>Verify Answers Check 🎯</button>
     </div>
 
-    <button id="verifyBtn" class="btn" onclick="verifyCalculations()" disabled>Verify Answers Check 🎯</button>
+    <div class="layer-panel" id="layer-end">
+        <div style="font-size: 4.5rem; margin-bottom: 15px; animation: pulseLogo 1.5s infinite alternate;">🏆</div>
+        <h1 style="color: var(--success-green); font-size: 2.2rem;">Grand Champion!</h1>
+        <div class="story-bubble">
+            <p>Absolutely magnificent! You safely tracked down, sorted, and cataloged every single item inside Sam's messy inventory pool.</p>
+        </div>
+        <button class="btn btn-blue" onclick="reinitializeSimulationEngine()">Play Challenge Again 🔄</button>
+    </div>
 </div>
 
 <canvas id="fireworks"></canvas>
@@ -358,25 +318,27 @@ h1 {
 const targetsCount = { ball: 0, bear: 0, car: 0 };
 let currentSortedTotal = 0;
 let grandTotalPopulation = 0;
+let calculationAttemptsCounter = 0;
+let selectedActiveTokenData = null;
 
-// Setup Splash Screen Lifecycle Engine
 function initGameLifecycle() {
     generateScrambledDeck();
     
-    // Exactly 5 seconds timer block execution
+    // Exactly 5 seconds branding lock execution rule
     setTimeout(() => {
         const splash = document.getElementById("splashScreen");
-        const gameBoard = document.getElementById("gameContainer");
-        
         splash.style.opacity = "0";
         splash.style.transform = "scale(1.05)";
-        gameBoard.style.opacity = "1";
         
-        // Fully unload element from processing context tree after animation completes
         setTimeout(() => {
             splash.style.display = "none";
-        }, 800);
+        }, 600);
     }, 5000); 
+}
+
+function switchInterfacePanel(panelId) {
+    document.querySelectorAll('.layer-panel').forEach(p => p.classList.remove('active'));
+    document.getElementById(panelId).classList.add('active');
 }
 
 function generateScrambledDeck() {
@@ -385,26 +347,56 @@ function generateScrambledDeck() {
     targetsCount.car = Math.floor(Math.random() * 4) + 3;
     
     grandTotalPopulation = targetsCount.ball + targetsCount.bear + targetsCount.car;
+    currentSortedTotal = 0;
+    calculationAttemptsCounter = 0;
+    selectedActiveTokenData = null;
 
     let totalPool = [];
-    for (let i = 0; i < targetsCount.ball; i++) totalPool.push({ type: 'ball', src: 'assets/ball.png' });
-    for (let i = 0; i < targetsCount.bear; i++) totalPool.push({ type: 'bear', src: 'assets/bear.png' });
-    for (let i = 0; i < targetsCount.car; i++) totalPool.push({ type: 'car', src: 'assets/car.png' });
+    for (let i = 0; i < targetsCount.ball; i++) totalPool.push({ type: 'ball', src: 'assets/ball.png', fallback: '⚽' });
+    for (let i = 0; i < targetsCount.bear; i++) totalPool.push({ type: 'bear', src: 'assets/bear.png', fallback: '🧸' });
+    for (let i = 0; i < targetsCount.car; i++) totalPool.push({ type: 'car', src: 'assets/car.png', fallback: '🚗' });
 
     totalPool.sort(() => Math.random() - 0.5);
 
     const pile = document.getElementById("scrambledPile");
     pile.innerHTML = "";
+    
+    // Clear old visual cells and statuses
+    document.querySelectorAll('.grid-track').forEach(t => t.innerHTML = "");
+    document.querySelectorAll('.status-indicator').forEach(s => s.innerText = "");
+    document.querySelectorAll('.count-input').forEach(i => { i.value = ""; i.disabled = true; });
+    document.getElementById("verifyBtn").disabled = true;
+    document.getElementById("dialogueText").innerText = "Drag the items into their matching row blueprint, or tap an item and then tap the matching row track!";
 
     totalPool.forEach((item, index) => {
         const element = document.createElement("div");
         element.className = "scrambled-item";
         element.id = `drag-${index}`;
         element.setAttribute("draggable", "true");
-        element.innerHTML = `<img src="${item.src}" alt="${item.type}">`;
         
+        let innerImg = document.createElement('img');
+        innerImg.src = item.src;
+        innerImg.alt = item.type;
+        innerImg.onerror = function() {
+            this.style.display = 'none';
+            element.innerText = item.fallback;
+            element.style.fontSize = '2rem';
+        };
+        element.appendChild(innerImg);
+        
+        // Native Desktop Drag Event
         element.ondragstart = (e) => {
-            e.dataTransfer.setData("text/plain", JSON.stringify({ id: element.id, type: item.type, src: item.src }));
+            selectedActiveTokenData = { id: element.id, type: item.type, src: item.src, fallback: item.fallback };
+            e.dataTransfer.setData("text/plain", JSON.stringify(selectedActiveTokenData));
+        };
+
+        // Mobile Friendly Tap Fallback Selection Mechanics
+        element.onclick = (e) => {
+            e.stopPropagation();
+            document.querySelectorAll('.scrambled-item').forEach(el => el.classList.remove('selected-tap'));
+            selectedActiveTokenData = { id: element.id, type: item.type, src: item.src, fallback: item.fallback };
+            element.classList.add('selected-tap');
+            playSoundEffect("clickSound");
         };
         
         pile.appendChild(element);
@@ -426,40 +418,57 @@ function handleDrop(e, expectedType) {
     rowElement.classList.remove("drag-over");
 
     try {
-        const rawData = e.dataTransfer.getData("text/plain");
-        const draggedData = JSON.parse(rawData);
-
-        if (draggedData.type === expectedType) {
-            const sourceNode = document.getElementById(draggedData.id);
-            if (!sourceNode) return;
-
-            document.getElementById("clickSound").currentTime = 0;
-            document.getElementById("clickSound").play().catch(()=>{});
-
-            const targetTrack = document.getElementById(`track-${expectedType}`);
-            const cellSlot = document.createElement("div");
-            cellSlot.className = "grid-cell-slot";
-            cellSlot.innerHTML = `<img src="${draggedData.src}" alt="${expectedType}">`;
-            targetTrack.appendChild(cellSlot);
-
-            sourceNode.remove();
-            currentSortedTotal++;
-
-            if (currentSortedTotal === grandTotalPopulation) {
-                document.getElementById("input-ball").disabled = false;
-                document.getElementById("input-bear").disabled = false;
-                document.getElementById("input-car").disabled = false;
-                document.getElementById("verifyBtn").disabled = false;
-                document.getElementById("dialogueText").innerHTML = "Fantastic organization! Now use your counting skills to check each row and fill in the text boxes! 📝";
-            }
-        } else {
-            document.getElementById("wrongSound").currentTime = 0;
-            document.getElementById("wrongSound").play().catch(()=>{});
-            rowElement.classList.add("error-shake");
-            setTimeout(() => rowElement.classList.remove("error-shake"), 400);
-        }
+        const dataPayload = JSON.parse(e.dataTransfer.getData("text/plain"));
+        executeAssetSorting(dataPayload, expectedType, rowElement);
     } catch (err) {
-        console.error("Drop Parse Fail", err);
+        if (selectedActiveTokenData) {
+            executeAssetSorting(selectedActiveTokenData, expectedType, rowElement);
+        }
+    }
+}
+
+function handleRowTap(expectedType) {
+    if (!selectedActiveTokenData) return;
+    const targetedRow = document.getElementById(`row-${expectedType}`);
+    executeAssetSorting(selectedActiveTokenData, expectedType, targetedRow);
+}
+
+function executeAssetSorting(payload, expectedType, rowDOMNode) {
+    if (payload.type === expectedType) {
+        const sourceNode = document.getElementById(payload.id);
+        if (!sourceNode) return;
+
+        playSoundEffect("clickSound");
+
+        const targetTrack = document.getElementById(`track-${expectedType}`);
+        const cellSlot = document.createElement("div");
+        cellSlot.className = "grid-cell-slot";
+        
+        let cellImg = document.createElement('img');
+        cellImg.src = payload.src;
+        cellImg.onerror = function() {
+            this.style.display = 'none';
+            cellSlot.innerText = payload.fallback;
+            cellSlot.style.fontSize = '1.8rem';
+        };
+        cellSlot.appendChild(cellImg);
+        targetTrack.appendChild(cellSlot);
+
+        sourceNode.remove();
+        selectedActiveTokenData = null;
+        currentSortedTotal++;
+
+        if (currentSortedTotal === grandTotalPopulation) {
+            document.getElementById("input-ball").disabled = false;
+            document.getElementById("input-bear").disabled = false;
+            document.getElementById("input-car").disabled = false;
+            document.getElementById("verifyBtn").disabled = false;
+            document.getElementById("dialogueText").innerHTML = "Fantastic organization! Now use your counting skills to check each row and fill in the text boxes! 📝";
+        }
+    } else {
+        playSoundEffect("wrongSound");
+        rowDOMNode.classList.add("error-shake");
+        setTimeout(() => rowDOMNode.classList.remove("error-shake"), 400);
     }
 }
 
@@ -477,20 +486,47 @@ function verifyCalculations() {
     document.getElementById("status-car").innerText = rowCarCorrect ? "✅" : "❌";
 
     if (rowBallCorrect && rowBearCorrect && rowCarCorrect) {
-        document.getElementById("correctSound").play().catch(()=>{});
+        playSoundEffect("correctSound");
         document.getElementById("input-ball").disabled = true;
         document.getElementById("input-bear").disabled = true;
         document.getElementById("input-car").disabled = true;
         document.getElementById("verifyBtn").disabled = true;
         
-        document.getElementById("dialogueText").innerHTML = "Mission Successful! 🏆 You tracked, sorted, and counted every single asset. Incredible work!";
         triggerWinCelebration();
+        
+        // Exact 5 seconds celebration pause requirement
+        setTimeout(() => {
+            switchInterfacePanel('layer-end');
+        }, 5000);
     } else {
-        document.getElementById("wrongSound").play().catch(()=>{});
-        const container = document.getElementById("gameContainer");
+        playSoundEffect("wrongSound");
+        calculationAttemptsCounter++;
+        
+        const container = document.getElementById("gameMatrix");
         container.classList.add("error-shake");
         setTimeout(() => container.classList.remove("error-shake"), 400);
+
+        // 2 Attempts Rule before automatic corrective hint reveal trigger block
+        if (calculationAttemptsCounter >= 2) {
+            alert(`💡 Quick Hint from Sam: Count carefully line by line. The total targets are: Ball = ${targetsCount.ball}, Bears = ${targetsCount.bear}, Cars = ${targetsCount.car}. Let's enter the values!`);
+            document.getElementById("input-ball").value = targetsCount.ball;
+            document.getElementById("input-bear").value = targetsCount.bear;
+            document.getElementById("input-car").value = targetsCount.car;
+        }
     }
+}
+
+function playSoundEffect(domId) {
+    const audioNode = document.getElementById(domId);
+    if(audioNode) {
+        audioNode.currentTime = 0;
+        audioNode.play().catch(() => {});
+    }
+}
+
+function reinitializeSimulationEngine() {
+    switchInterfacePanel('layer-intro');
+    generateScrambledDeck();
 }
 
 /* Confetti System Framework */
@@ -502,10 +538,10 @@ resize();
 window.addEventListener("resize", resize);
 
 function triggerWinCelebration() {
-    let duration = 3000;
+    let duration = 4800;
     let end = Date.now() + duration;
     (function frame() {
-        burstParticles(Math.random() * canvas.width, Math.random() * canvas.height * 0.4, 8);
+        burstParticles(Math.random() * canvas.width, Math.random() * canvas.height * 0.4, 6);
         if (Date.now() < end) requestAnimationFrame(frame);
     }());
 }
@@ -524,7 +560,7 @@ function burstParticles(x, y, count) {
 
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.alpha -= 0.015; });
+    particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.alpha -= 0.012; });
     particles = particles.filter(p => p.alpha > 0);
     particles.forEach(p => {
         ctx.fillStyle = `${p.color}${p.alpha})`;
