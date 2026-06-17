@@ -199,7 +199,7 @@ h1 {
 .count-input:disabled { background: #e8f5e9; border-color: #4caf50; color: #2e7d32; }
 .status-indicator { font-size: 22px; width: 28px; text-align: center; }
 
-/* --- L2 QUEST CARD STYLING (2x2 Grid) --- */
+/* --- L2 QUEST CARD STYLING (2x2 Grid Layout) --- */
 .quest-wrapper {
     background: #fff3e0; border: 3px solid #ffb74d; border-radius: 16px;
     padding: 20px; margin-top: 10px; text-align: left;
@@ -403,18 +403,21 @@ function initGameLifecycle() {
     // Exactly 5 seconds branding lock execution rule
     setTimeout(() => {
         const splash = document.getElementById("splashScreen");
-        splash.style.opacity = "0";
-        splash.style.transform = "scale(1.05)";
-        
-        setTimeout(() => {
-            splash.style.display = "none";
-        }, 600);
+        if (splash) {
+            splash.style.opacity = "0";
+            splash.style.transform = "scale(1.05)";
+            
+            setTimeout(() => {
+                splash.style.display = "none";
+            }, 600);
+        }
     }, 5000); 
 }
 
 function switchInterfacePanel(panelId) {
     document.querySelectorAll('.layer-panel').forEach(p => p.classList.remove('active'));
-    document.getElementById(panelId).classList.add('active');
+    const targetedPanel = document.getElementById(panelId);
+    if (targetedPanel) targetedPanel.classList.add('active');
     
     if (panelId === 'layer-pictograph-cbq') {
         renderLevel2Chart();
@@ -441,13 +444,18 @@ function generateScrambledDeck() {
     totalPool.sort(() => Math.random() - 0.5);
 
     const pile = document.getElementById("scrambledPile");
+    if (!pile) return;
     pile.innerHTML = "";
     
     document.querySelectorAll('#layer-gameplay .grid-track').forEach(t => t.innerHTML = "");
     document.querySelectorAll('#layer-gameplay .status-indicator').forEach(s => s.innerText = "");
     document.querySelectorAll('#layer-gameplay .count-input').forEach(i => { i.value = ""; i.disabled = true; });
-    document.getElementById("verifyBtn").disabled = true;
-    document.getElementById("dialogueText").innerText = "Drag items into their matching row blueprint, or tap an item and then tap the matching row track to place it!";
+    
+    const verifyBtn = document.getElementById("verifyBtn");
+    if (verifyBtn) verifyBtn.disabled = true;
+    
+    const dialTxt = document.getElementById("dialogueText");
+    if (dialTxt) dialTxt.innerText = "Drag items into their matching row blueprint, or tap an item and then tap the matching row track to place it!";
 
     totalPool.forEach((item, index) => {
         const element = document.createElement("div");
@@ -520,7 +528,7 @@ function executeAssetSorting(payload, expectedType, rowDOMNode) {
             cellSlot.style.fontSize = '1.8rem';
         };
         cellSlot.appendChild(cellImg);
-        targetTrack.appendChild(cellSlot);
+        if (targetTrack) targetTrack.appendChild(cellSlot);
 
         sourceNode.remove();
         selectedActiveTokenData = null;
@@ -535,8 +543,10 @@ function executeAssetSorting(payload, expectedType, rowDOMNode) {
         }
     } else {
         playSoundEffect("wrongSound");
-        rowDOMNode.classList.add("error-shake");
-        setTimeout(() => rowDOMNode.classList.remove("error-shake"), 400);
+        if (rowDOMNode) {
+            rowDOMNode.classList.add("error-shake");
+            setTimeout(() => rowDOMNode.classList.remove("error-shake"), 400);
+        }
     }
 }
 
@@ -572,8 +582,10 @@ function verifyCalculationsL1() {
         calculationAttemptsCounter++;
         
         const container = document.getElementById("layer-gameplay");
-        container.classList.add("error-shake");
-        setTimeout(() => container.classList.remove("error-shake"), 400);
+        if (container) {
+            container.classList.add("error-shake");
+            setTimeout(() => container.classList.remove("error-shake"), 400);
+        }
 
         if (calculationAttemptsCounter >= 2) {
             alert(`💡 Quick Hint from Sam: Count carefully item by item. The correct answers are: Ball = ${targetsCount.ball}, Bears = ${targetsCount.bear}, Cars = ${targetsCount.car}. Let's enter them!`);
@@ -628,6 +640,7 @@ function renderLevel2Chart() {
 
     mapping.forEach(item => {
         const track = document.getElementById(`track-${item.key}`);
+        if (!track) return;
         track.innerHTML = "";
         const limit = l2Counts[item.key];
         
@@ -654,6 +667,7 @@ function loadLevel2Question() {
     let titleString = document.getElementById("questString");
     let container = document.getElementById("optionsContainer");
     
+    if (!container) return;
     container.innerHTML = "";
     
     if (questObj.type === 'count') {
@@ -691,7 +705,8 @@ function createOptionButton(labelText, checkingVal, correctValue) {
     btn.className = "option-btn";
     btn.innerText = labelText;
     btn.onclick = () => verifyL2Answer(checkingVal, correctValue);
-    document.getElementById("optionsContainer").appendChild(btn);
+    const container = document.getElementById("optionsContainer");
+    if (container) container.appendChild(btn);
 }
 
 function createNumericDistractors(correctNum) {
@@ -714,4 +729,70 @@ function verifyL2Answer(chosen, correct) {
             document.getElementById("dialogueTextL2").innerHTML = "Splendid reasoning! Here comes the next data challenge... 🧠";
             setTimeout(() => { loadLevel2Question(); }, 2000);
         } else {
-            playSoundEffect("clappedSound
+            playSoundEffect("clappedSound");
+            document.getElementById("dialogueTextL2").innerHTML = "Incredible Job! Let's pull up your grand dashboard!";
+            setTimeout(() => { switchInterfacePanel('layer-end'); }, 2500);
+        }
+    } else {
+        playSoundEffect("wrongSound");
+        l2WrongAttempts++;
+        
+        const wrapper = document.getElementById("questionBox");
+        if (wrapper) {
+            wrapper.classList.add("error-shake");
+            setTimeout(() => wrapper.classList.remove("error-shake"), 400);
+        }
+        
+        if (l2WrongAttempts >= 2) {
+            alert(`💡 Hint: ${l2QuestionsPool[currentL2QuestIdx].hint}`);
+        }
+    }
+}
+
+/* ================= SYSTEM HOUSEKEEPING UTILITIES ================= */
+function playSoundEffect(domId) {
+    const audioNode = document.getElementById(domId);
+    if(audioNode) {
+        audioNode.currentTime = 0;
+        audioNode.play().catch(() => {});
+    }
+}
+
+function reinitializeSimulationEngine() {
+    setupLevel2DataStructures();
+    generateScrambledDeck();
+    switchInterfacePanel('layer-intro');
+}
+
+/* Confetti System Framework */
+const canvas = document.getElementById("fireworks");
+let ctx = canvas ? canvas.getContext("2d") : null;
+let particles = [];
+
+function resize() { 
+    if (canvas) {
+        canvas.width = window.innerWidth; 
+        canvas.height = window.innerHeight; 
+    }
+}
+resize();
+window.addEventListener("resize", resize);
+
+function triggerWinCelebration() {
+    if (!canvas) return;
+    let duration = 2000;
+    let end = Date.now() + duration;
+    (function frame() {
+        burstParticles(Math.random() * canvas.width, Math.random() * canvas.height * 0.4, 5);
+        if (Date.now() < end) requestAnimationFrame(frame);
+    }());
+}
+
+function burstParticles(x, y, count) {
+    for(let i = 0; i < count; i++){
+        let angle = Math.random() * 2 * Math.PI;
+        let speed = Math.random() * 4 + 2;
+        particles.push({ 
+            x: x, y: y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, 
+            radius: Math.random() * 3 + 2, alpha: 1, gravity: 0.05,
+            color: `hsla(${Math.random() *
