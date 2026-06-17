@@ -164,6 +164,22 @@
             flex-direction: column;
         }
 
+        /* Student-Facing Digital Target Layout */
+        .target-digital-badge {
+            display: inline-block;
+            background: #23395d;
+            color: #00ff00;
+            border: 3px solid #34495e;
+            padding: 4px 16px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 8px;
+            margin-top: 8px;
+            letter-spacing: 2px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+
         .input-view { display: none; }
         .crank-box { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
         .action-row { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
@@ -275,11 +291,12 @@
     <audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
     <script>
+        // Confined structure setting up Q1 text and Q2, Q3, Q4 digital clock types
         const level1Puzzles = [
-            { text: "CRITICAL SYNC: Move hands to exactly quarter past 3 o'clock! (3:15)", h: 3, m: 15 },
-            { text: "CRITICAL SYNC: Move hands to show 6 hours and 42 minutes! (6:42)", h: 6, m: 42 },
-            { text: "CRITICAL SYNC: Set the dial to quarter to 9 o'clock! (8:45)", h: 8, m: 45 },
-            { text: "CRITICAL SYNC: Tune carefully to exactly 11:07!", h: 11, m: 7 }
+            { isDigital: false, text: "CRITICAL SYNC: Move hands to exactly quarter past 3 o'clock! (3:15)", h: 3, m: 15 },
+            { isDigital: true, text: "⏰ Look at the digital clock below. Change the analog clock to match it:", displayTime: "06:42", h: 6, m: 42 },
+            { isDigital: true, text: "⏰ Look at the digital clock below. Change the analog clock to match it:", displayTime: "08:45", h: 8, m: 45 },
+            { isDigital: true, text: "⏰ Look at the digital clock below. Change the analog clock to match it:", displayTime: "11:07", h: 11, m: 7 }
         ];
 
         const level2Puzzles = [
@@ -365,9 +382,10 @@
                 document.getElementById('visual-clock').style.display = 'block';
                 document.getElementById('clock-digital').style.display = 'block';
                 document.getElementById('view-l1').style.display = 'block';
+                
+                // Shuffle Level 1 setup variables cleanly
                 activePool = [...level1Puzzles].sort(() => Math.random() - 0.5);
                 
-                // FORCE 12:00 AT THE START OF LEVEL 1
                 hValue = 12;
                 mValue = 0;
                 calculateHandRotations();
@@ -394,9 +412,18 @@
         function executeStageLoad() {
             inputLock = false;
             const puzzle = activePool[puzzleIndex];
-            document.getElementById('display-prompt').textContent = puzzle.text;
+            
+            // Output text for words or render structural layout box for digital questions
+            if (currentLevel === 1 && puzzle.isDigital) {
+                document.getElementById('display-prompt').innerHTML = `
+                    <div style="margin-bottom: 4px;">${puzzle.text}</div>
+                    <div class="target-digital-badge">${puzzle.displayTime}</div>
+                `;
+            } else {
+                document.getElementById('display-prompt').textContent = puzzle.text;
+            }
 
-            // FORCE 12:00 AT THE START OF EACH INDIVIDUAL CLOCK QUESTION
+            // GUARANTEE 12:00 AT EVERY FRESH ENTRY PIPELINE
             if (currentLevel === 1) {
                 hValue = 12;
                 mValue = 0;
@@ -446,7 +473,7 @@
             document.getElementById('hr-needle').style.transform = `translate(-50%, 0) rotate(${rotHr}deg)`;
             
             let displayMin = mValue < 10 ? '0' + mValue : mValue;
-            document.getElementById('clock-digital').textContent = `Current Tuning: ${hValue}:${displayMin}`;
+            document.getElementById('clock-digital').textContent = `Your Clock: ${hValue}:${displayMin}`;
         }
 
         function verifyLevel1State() {
@@ -481,11 +508,21 @@
             try { clipLose.play(); } catch(err){}
 
             if (attemptsUsed < 2) {
-                document.getElementById('display-prompt').innerHTML = "⚠️ <strong>Matrix Mismatch!</strong> Rerouting sensors. Readjust coordinates and try once more!";
+                const puzzle = activePool[puzzleIndex];
+                let retryPrompt = "⚠️ <strong>Mismatch!</strong> Readjust the gears and try once more!";
+                
+                if (currentLevel === 1 && puzzle.isDigital) {
+                    document.getElementById('display-prompt').innerHTML = `
+                        <div style="margin-bottom: 4px;">${retryPrompt}</div>
+                        <div class="target-digital-badge">${puzzle.displayTime}</div>
+                    `;
+                } else {
+                    document.getElementById('display-prompt').innerHTML = retryPrompt;
+                }
                 if (currentLevel === 1) inputLock = false; 
             } else {
                 inputLock = true;
-                document.getElementById('display-prompt').innerHTML = "❌ <strong>Grid Overheated!</strong> Forcing automatic core safety calibration override...";
+                document.getElementById('display-prompt').innerHTML = "❌ <strong>Grid Overheated!</strong> Forcing safety sync override...";
                 
                 if (currentLevel === 1) {
                     const challenge = activePool[puzzleIndex];
