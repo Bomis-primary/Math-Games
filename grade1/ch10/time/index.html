@@ -163,9 +163,10 @@
             z-index: 10;
         }
 
+        /* Fixed absolute layout container rules for hands to rotate safely from the pin center */
         .hand {
             position: absolute;
-            bottom: 50%;
+            top: 50%;
             left: 50%;
             transform-origin: bottom center;
             border-radius: 4px;
@@ -177,7 +178,7 @@
             height: 50px;
             background: #EF476F;
             z-index: 5;
-            margin-left: -3px;
+            transform: translate(-50%, -100%) rotate(0deg);
         }
 
         .minute-hand {
@@ -185,7 +186,7 @@
             height: 70px;
             background: #073B4C;
             z-index: 4;
-            margin-left: -2px;
+            transform: translate(-50%, -100%) rotate(0deg);
         }
 
         .clock-number {
@@ -303,21 +304,17 @@
             z-index: 999;
         }
     </style>
-    <!-- Include SortableJS for flawless mobile/tablet touch sequencing drags -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 </head>
 <body>
 
-    <!-- Splash Screen Layout -->
     <div id="splash-screen">
-        <img id="splash-logo" src="assets/logo.png" alt="School Logo" onerror="this.style.display='none'; document.getElementById('splash-text').innerText='⏰ TIME CHAMP ⏰';">
-        <div id="splash-text">Loading Game...</div>
+        <img id="splash-logo" src="assets/logo.png" alt="Innovine Logo" onerror="this.style.display='none'; document.getElementById('splash-text').innerText='⏰ TIME CHAMP ⏰';">
+        <div id="splash-text">Innovine Learning presents Suite Hub...</div>
     </div>
 
-    <!-- Feedback Particles Canvas -->
     <canvas id="confetti-canvas"></canvas>
 
-    <!-- Main Game Window Box -->
     <div class="game-container" id="game-card">
         <div class="header-controls">
             <div class="level-badge" id="level-indicator">Level 1: Set Time</div>
@@ -334,7 +331,6 @@
         <div id="game-playground">
             <div class="prompt-box" id="question-prompt">Loading puzzle prompt...</div>
 
-            <!-- VIEW FOR LEVEL 1: CLOCKFACE INTERACTION -->
             <div id="clock-view" class="clock-wrapper">
                 <div class="clock" id="analog-clock">
                     <div class="clock-center"></div>
@@ -348,16 +344,14 @@
                 </div>
             </div>
 
-            <!-- VIEW FOR LEVEL 2 & LEVEL 3: SEQUENCING CONTAINER -->
             <div id="sequence-view" style="display: none;">
                 <p style="font-size: 14px; color: #666; margin-bottom: 8px;">Drag and arrange items in order (Left to Right / Top to Bottom):</p>
                 <div class="cards-container" id="sortable-list"></div>
             </div>
 
-            <button class="submit-btn" onclick="verifyCurrentAnswer()">Check Answer Check ✔</button>
+            <button class="submit-btn" onclick="verifyCurrentAnswer()">Check Answer ✔</button>
         </div>
 
-        <!-- RESTART & END GAME CONTROLS -->
         <div id="end-view" style="display: none;">
             <h2 style="font-size: 26px; color: #118AB2; margin-bottom: 10px;">You are a Time Master! 🌟</h2>
             <p style="font-size: 18px; color: #4A4A4A;">Fantastic job finishing all levels successfully.</p>
@@ -368,23 +362,23 @@
     <script>
         // Game Mission Structures Across 3 Levels
         const level1Missions = [
-            { text: "I get up early for school at _____ o'clock.", target: 7 },
-            { text: "I eat my tasty lunch at _____ o'clock.", target: 1 },
-            { text: "I return home from school at _____ o'clock.", target: 3 },
-            { text: "I go out to play with my friends at _____ o'clock.", target: 5 },
-            { text: "It is night! I jump into bed to sleep at _____ o'clock.", target: 9 }
+            { text: "I get up early for school at _____ o'clock.", target: 7, hint: "Think of early morning when the sun comes up! It's right before 8." },
+            { text: "I eat my tasty lunch at _____ o'clock.", target: 1, hint: "This happens just one hour after 12 o'clock in the afternoon!" },
+            { text: "I return home from school at _____ o'clock.", target: 3, hint: "This afternoon time is right between 2 and 4 o'clock!" },
+            { text: "I go out to play with my friends at _____ o'clock.", target: 5, hint: "Late afternoon fun! It's one hour before 6 o'clock." },
+            { text: "It is night! I jump into bed to sleep at _____ o'clock.", target: 9, hint: "Bedtime! It's one hour after 8 o'clock at night." }
         ];
 
         const level2Missions = [
-            { text: "Arrange these days of the week in correct order!", items: ["Monday", "Tuesday", "Wednesday", "Thursday"], correctOrder: ["Monday", "Tuesday", "Wednesday", "Thursday"] },
-            { text: "Put these days starting right after Thursday!", items: ["Saturday", "Friday", "Sunday"], correctOrder: ["Friday", "Saturday", "Sunday"] },
-            { text: "Put these early months of the year in order!", items: ["March", "January", "February", "April"], correctOrder: ["January", "February", "March", "April"] },
-            { text: "Sort these late months of the year correctly!", items: ["November", "September", "October", "December"], correctOrder: ["September", "October", "November", "December"] }
+            { text: "Arrange these days of the week in correct order!", items: ["Wednesday", "Tuesday", "Thursday", "Monday"], correctOrder: ["Monday", "Tuesday", "Wednesday", "Thursday"], hint: "The school week starts with Monday!" },
+            { text: "Put these days starting right after Thursday!", items: ["Saturday", "Sunday", "Friday"], correctOrder: ["Friday", "Saturday", "Sunday"], hint: "Friday comes right after Thursday!" },
+            { text: "Put these early months of the year in order!", items: ["March", "January", "February", "April"], correctOrder: ["January", "February", "March", "April"], hint: "The very first month of the New Year is January!" },
+            { text: "Sort these late months of the year correctly!", items: ["November", "September", "December", "October"], correctOrder: ["September", "October", "November", "December"], hint: "The last month of the entire year is December!" }
         ];
 
         const level3Missions = [
-            { text: "Sequence your morning routine activities step-by-step!", items: ["Wake Up", "Brush Teeth", "Eat Breakfast", "Go to School"], correctOrder: ["Wake Up", "Brush Teeth", "Eat Breakfast", "Go to School"] },
-            { text: "Sequence your evening routine activities step-by-step!", items: ["Do Homework", "Play Outside", "Eat Dinner", "Go to Bed"], correctOrder: ["Play Outside", "Do Homework", "Eat Dinner", "Go to Bed"] }
+            { text: "Sequence your morning routine activities step-by-step!", items: ["Eat Breakfast", "Go to School", "Wake Up", "Brush Teeth"], correctOrder: ["Wake Up", "Brush Teeth", "Eat Breakfast", "Go to School"], hint: "You must Wake Up before you can do anything else!" },
+            { text: "Sequence your evening routine activities step-by-step!", items: ["Go to Bed", "Play Outside", "Eat Dinner", "Do Homework"], correctOrder: ["Play Outside", "Do Homework", "Eat Dinner", "Go to Bed"], hint: "Going to Bed is always the very last thing we do at night!" }
         ];
 
         let currentLevel = 1; 
@@ -393,6 +387,7 @@
         let sortableInstance = null;
         let volumeLevel = 0.8;
         let runningMission = null;
+        let wrongAttemptsCount = 0; // Tracking variable for the 2-attempt QA check Rule
 
         // Native Web Audio API Sound Generator Block
         function audioBeep(freq, type, duration) {
@@ -466,7 +461,7 @@
         window.addEventListener('DOMContentLoaded', () => {
             generateClockTicks();
             
-            // Hard hold splash timer matching 'Simple Steps to Create a QR Learning Game.docx' workflow rules
+            // Branding Splash Screen Hold Rules: 5 Full Seconds
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 splash.style.opacity = 0;
@@ -503,22 +498,23 @@
         function launchCoreGameEngine() {
             currentLevel = 1;
             internalStep = 0;
+            wrongAttemptsCount = 0;
             updateGlobalProgressBar();
             loadCurrentMission();
         }
 
         function updateGlobalProgressBar() {
-            // Total of 9 steps (5 in L1, 2 in L2, 2 in L3)
             let rawProgress = 0;
             if (currentLevel === 1) rawProgress = internalStep;
             else if (currentLevel === 2) rawProgress = 5 + internalStep;
-            else if (currentLevel === 3) rawProgress = 7 + internalStep;
+            else if (currentLevel === 3) rawProgress = 9 + internalStep;
             
-            document.getElementById('progress-indicator').style.width = `${(rawProgress / 9) * 100}%`;
+            document.getElementById('progress-indicator').style.width = `${(rawProgress / 11) * 100}%`;
         }
 
         function loadCurrentMission() {
             updateGlobalProgressBar();
+            wrongAttemptsCount = 0; 
             
             if (currentLevel === 1) {
                 document.getElementById('level-indicator').innerText = "Level 1: Set Clock Time 🕒";
@@ -528,7 +524,7 @@
                 runningMission = level1Missions[internalStep];
                 document.getElementById('question-prompt').innerText = runningMission.text;
                 
-                // Start with hands pointing to 12 as requested
+                // Perfect vertical start at exactly 12 o'clock point
                 currentLevel1Hour = 12; 
                 refreshClockHandNodePositions();
             } 
@@ -541,8 +537,17 @@
                 runningMission = setPool[internalStep];
                 document.getElementById('question-prompt').innerText = runningMission.text;
                 
-                // Shuffle array items securely before presenting to student
-                const scrambledItems = [...runningMission.items].sort(() => Math.random() - 0.5);
+                // Randomized non-repetitive layout generation
+                let scrambledItems;
+                let loops = 0;
+                do {
+                    scrambledItems = [...runningMission.items].sort(() => Math.random() - 0.5);
+                    loops++;
+                } while (
+                    scrambledItems.every((val, index) => val === runningMission.correctOrder[index]) && 
+                    loops < 20
+                );
+
                 const listbox = document.getElementById('sortable-list');
                 listbox.innerHTML = '';
                 
@@ -561,7 +566,7 @@
             }
         }
 
-        // Stepper Mechanics controlling + - button interactions
+        // Stepper mechanics controlling rotation offsets securely
         function adjustClockTime(delta) {
             currentLevel1Hour += delta;
             if (currentLevel1Hour > 12) currentLevel1Hour = 1;
@@ -571,9 +576,9 @@
 
         function refreshClockHandNodePositions() {
             const hrDeg = currentLevel1Hour * 30;
-            document.getElementById('hour-hand').style.transform = `translate(-50%, 0) rotate(${hrDeg}deg)`;
-            // Keep minute hand at 12 (0 degrees) for direct hourly evaluations
-            document.getElementById('minute-hand').style.transform = `translate(-50%, 0) rotate(0deg)`;
+            // Translate offsets combined with dynamic rotations for responsive layout stability
+            document.getElementById('hour-hand').style.transform = `translate(-50%, -100%) rotate(${hrDeg}deg)`;
+            document.getElementById('minute-hand').style.transform = `translate(-50%, -100%) rotate(0deg)`;
             document.getElementById('digital-bubble').innerText = `${currentLevel1Hour}:00 O'clock`;
         }
 
@@ -599,7 +604,13 @@
                 advanceGamePipeline();
             } else {
                 playWrongSound();
-                alert("Try again! Move the pieces or change the clock to find the right order! ✨");
+                wrongAttemptsCount++;
+                
+                if (wrongAttemptsCount >= 2) {
+                    alert(`💡 Hint: ${runningMission.hint}`);
+                } else {
+                    alert("Try again! Change the clock or move the pieces to find the right order! ✨");
+                }
             }
         }
 
@@ -614,7 +625,6 @@
                 currentLevel = 3;
                 internalStep = 0;
             } else if (currentLevel === 3 && internalStep >= level3Missions.length) {
-                // Game completely finished! Show end screen
                 document.getElementById('progress-indicator').style.width = '100%';
                 document.getElementById('game-playground').style.display = 'none';
                 document.getElementById('end-view').style.display = 'block';
