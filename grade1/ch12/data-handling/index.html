@@ -291,7 +291,7 @@ h1 {
                 <div class="category-lead-cell"><img src="assets/ball.png" alt="Ball" onerror="this.parentNode.innerText='⚽'"></div> 
                 <div class="grid-track" id="track-ball"></div>
                 <div class="input-answer-zone" onclick="event.stopPropagation();">
-                    <input type="number" id="input-ball" class="count-input" min="0" placeholder="?" disabled>
+                    <input type="number" id="input-ball" class="count-input" min="0" placeholder="?">
                     <span id="status-ball" class="status-indicator"></span>
                 </div>
             </div>
@@ -300,7 +300,7 @@ h1 {
                 <div class="category-lead-cell"><img src="assets/bear.png" alt="Bear" onerror="this.parentNode.innerText='🧸'"></div> 
                 <div class="grid-track" id="track-bear"></div>
                 <div class="input-answer-zone" onclick="event.stopPropagation();">
-                    <input type="number" id="input-bear" class="count-input" min="0" placeholder="?" disabled>
+                    <input type="number" id="input-bear" class="count-input" min="0" placeholder="?">
                     <span id="status-bear" class="status-indicator"></span>
                 </div>
             </div>
@@ -309,13 +309,13 @@ h1 {
                 <div class="category-lead-cell"><img src="assets/car.png" alt="Car" onerror="this.parentNode.innerText='🚗'"></div> 
                 <div class="grid-track" id="track-car"></div>
                 <div class="input-answer-zone" onclick="event.stopPropagation();">
-                    <input type="number" id="input-car" class="count-input" min="0" placeholder="?" disabled>
+                    <input type="number" id="input-car" class="count-input" min="0" placeholder="?">
                     <span id="status-car" class="status-indicator"></span>
                 </div>
             </div>
         </div>
 
-        <button id="verifyBtn" class="btn" onclick="verifyCalculationsL1()" disabled>Verify Answers Check 🎯</button>
+        <button id="verifyBtn" class="btn" onclick="verifyCalculationsL1()">Verify Answers Check 🎯</button>
     </div>
 
     <div class="layer-panel" id="layer-separator">
@@ -384,39 +384,36 @@ h1 {
 <audio id="clappedSound" preload="auto" src="assets/freesound_community-claps-44774.mp3"></audio>
 
 <script>
-// Level 1 Core States
+// Core Architectural State Engines
 const targetsCount = { ball: 0, bear: 0, car: 0 };
 let currentSortedTotal = 0;
 let grandTotalPopulation = 0;
 let calculationAttemptsCounter = 0;
 let selectedActiveTokenData = null;
 
-// Level 2 Core States
 const l2Counts = { candy: 0, cupcake: 0, muffin: 0, pizza: 0 };
 let l2QuestionsPool = [];
 let currentL2QuestIdx = 0;
 let l2WrongAttempts = 0;
 
+// FORCED ABSOLUTE CRITICAL FAILSAFE OVERRIDE
+// Removes splash screen after 5 seconds regardless of resource or script status
+setTimeout(() => {
+    const splash = document.getElementById("splashScreen");
+    if (splash && splash.style.display !== "none") {
+        splash.style.opacity = "0";
+        splash.style.transform = "scale(1.02)";
+        setTimeout(() => { splash.style.display = "none"; }, 600);
+    }
+}, 5000);
+
 function initGameLifecycle() {
     try {
         generateScrambledDeck();
         setupLevel2DataStructures();
-    } catch(e) {
-        console.error("Initialization warning catching: ", e);
+    } catch (err) {
+        console.warn("Safety pipeline processed exception catch initialization safely:", err);
     }
-    
-    // Exactly 5 seconds branding lock execution rule
-    setTimeout(() => {
-        const splash = document.getElementById("splashScreen");
-        if (splash) {
-            splash.style.opacity = "0";
-            splash.style.transform = "scale(1.05)";
-            
-            setTimeout(() => {
-                splash.style.display = "none";
-            }, 600);
-        }
-    }, 5000); 
 }
 
 function switchInterfacePanel(panelId) {
@@ -430,7 +427,7 @@ function switchInterfacePanel(panelId) {
     }
 }
 
-/* ================= LEVEL 1 SYSTEM MECHANICAL BLOCKS ================= */
+/* ================= LEVEL 1 LOGIC ENGINES ================= */
 function generateScrambledDeck() {
     targetsCount.ball = Math.floor(Math.random() * 4) + 3; 
     targetsCount.bear = Math.floor(Math.random() * 4) + 3;
@@ -454,13 +451,10 @@ function generateScrambledDeck() {
     
     document.querySelectorAll('#layer-gameplay .grid-track').forEach(t => t.innerHTML = "");
     document.querySelectorAll('#layer-gameplay .status-indicator').forEach(s => s.innerText = "");
-    document.querySelectorAll('#layer-gameplay .count-input').forEach(i => { i.value = ""; i.disabled = true; });
-    
-    const verifyBtn = document.getElementById("verifyBtn");
-    if (verifyBtn) verifyBtn.disabled = true;
+    document.querySelectorAll('#layer-gameplay .count-input').forEach(i => { i.value = ""; });
     
     const dialTxt = document.getElementById("dialogueText");
-    if (dialTxt) dialTxt.innerText = "Drag items into their matching row blueprint, or tap an item and then tap the matching row track to place it!";
+    if (dialTxt) dialTxt.innerText = "Drag items into their matching blueprint row, or tap an item and then tap the matching row track to place it!";
 
     totalPool.forEach((item, index) => {
         const element = document.createElement("div");
@@ -540,10 +534,6 @@ function executeAssetSorting(payload, expectedType, rowDOMNode) {
         currentSortedTotal++;
 
         if (currentSortedTotal === grandTotalPopulation) {
-            document.getElementById("input-ball").disabled = false;
-            document.getElementById("input-bear").disabled = false;
-            document.getElementById("input-car").disabled = false;
-            document.getElementById("verifyBtn").disabled = false;
             document.getElementById("dialogueText").innerHTML = "Fantastic organization! Now use your counting skills to check each row and fill in the text boxes! 📝";
         }
     } else {
@@ -556,6 +546,263 @@ function executeAssetSorting(payload, expectedType, rowDOMNode) {
 }
 
 function verifyCalculationsL1() {
-    const valBall = parseInt(document.getElementById("input-ball").value);
-    const valBear = parseInt(document.getElementById("input-bear").value);
-    const valCar = parseInt(document.getElementById("input-
+    const valBall = parseInt(document.getElementById("input-ball").value) || 0;
+    const valBear = parseInt(document.getElementById("input-bear").value) || 0;
+    const valCar = parseInt(document.getElementById("input-car").value) || 0;
+
+    let rowBallCorrect = (valBall === targetsCount.ball);
+    let rowBearCorrect = (valBear === targetsCount.bear);
+    let rowCarCorrect = (valCar === targetsCount.car);
+
+    document.getElementById("status-ball").innerText = rowBallCorrect ? "✅" : "❌";
+    document.getElementById("status-bear").innerText = rowBearCorrect ? "✅" : "❌";
+    document.getElementById("status-car").innerText = rowCarCorrect ? "✅" : "❌";
+
+    if (rowBallCorrect && rowBearCorrect && rowCarCorrect) {
+        playSoundEffect("correctSound");
+        playSoundEffect("clappedSound");
+        
+        triggerWinCelebration();
+        setTimeout(() => { switchInterfacePanel('layer-separator'); }, 4000);
+    } else {
+        playSoundEffect("wrongSound");
+        calculationAttemptsCounter++;
+        
+        const container = document.getElementById("layer-gameplay");
+        if (container) {
+            container.classList.add("error-shake");
+            setTimeout(() => container.classList.remove("error-shake"), 400);
+        }
+
+        if (calculationAttemptsCounter >= 2) {
+            alert(`💡 Quick Hint from Sam: Count carefully item by item. The correct answers are: Ball = ${targetsCount.ball}, Bears = ${targetsCount.bear}, Cars = ${targetsCount.car}. Let's enter them!`);
+            document.getElementById("input-ball").value = targetsCount.ball;
+            document.getElementById("input-bear").value = targetsCount.bear;
+            document.getElementById("input-car").value = targetsCount.car;
+        }
+    }
+}
+
+/* ================= LEVEL 2 LOGIC ENGINES ================= */
+function setupLevel2DataStructures() {
+    l2Counts.candy = Math.floor(Math.random() * 4) + 3;   
+    l2Counts.cupcake = Math.floor(Math.random() * 4) + 2; 
+    l2Counts.muffin = Math.floor(Math.random() * 3) + 4;  
+    l2Counts.pizza = Math.floor(Math.random() * 4) + 2;   
+
+    if(l2Counts.candy === l2Counts.muffin) l2Counts.candy++;
+    if(l2Counts.cupcake === l2Counts.pizza) l2Counts.cupcake--;
+
+    l2QuestionsPool = [
+        {
+            type: 'count',
+            text: `How many delicious Cupcakes 🧁 are on Sam's chart in total?`,
+            answer: l2Counts.cupcake,
+            hint: `Look at the second row with the Cupcake lead cell. Count them one by one to find ${l2Counts.cupcake}!`
+        },
+        {
+            type: 'compare',
+            text: `Which delicious item has the HIGHEST (most) count on the chart?`,
+            answer: '', 
+            hint: `Look for the row that stretches out the furthest across the graph line!`
+        },
+        {
+            type: 'diff',
+            text: `HOTS Challenge: How many MORE Muffins 🥮 are there than Pizza slices 🍕?`,
+            answer: 0, 
+            hint: `Take the total number of Muffins (${l2Counts.muffin}) and subtract the total number of Pizza slices (${l2Counts.pizza})!`
+        }
+    ];
+    currentL2QuestIdx = 0;
+    l2WrongAttempts = 0;
+}
+
+function renderLevel2Chart() {
+    const mapping = [
+        { key: 'candy', src: 'assets/candy.png', alt: 'Candy', fallback: '🍬' },
+        { key: 'cupcake', src: 'assets/cupcake.png', alt: 'Cupcake', fallback: '🧁' },
+        { key: 'muffin', src: 'image_38a5e9.png', alt: 'Muffin', fallback: '🥮' },
+        { key: 'pizza', src: 'assets/pizza-slice.png', alt: 'Pizza', fallback: '🍕' }
+    ];
+
+    mapping.forEach(item => {
+        const track = document.getElementById(`track-${item.key}`);
+        if (!track) return;
+        track.innerHTML = "";
+        const limit = l2Counts[item.key];
+        
+        for (let i = 0; i < limit; i++) {
+            const slot = document.createElement("div");
+            slot.className = "grid-cell-slot";
+            let img = document.createElement("img");
+            img.src = item.src;
+            img.alt = item.alt;
+            img.onerror = function() {
+                this.style.display = 'none';
+                slot.innerText = item.fallback;
+                slot.style.fontSize = "1.6rem";
+            };
+            slot.appendChild(img);
+            track.appendChild(slot);
+        }
+    });
+}
+
+function loadLevel2Question() {
+    l2WrongAttempts = 0;
+    let questObj = l2QuestionsPool[currentL2QuestIdx];
+    let titleString = document.getElementById("questString");
+    let container = document.getElementById("optionsContainer");
+    
+    if (!container) return;
+    container.innerHTML = "";
+    
+    if (questObj.type === 'count') {
+        titleString.innerText = questObj.text;
+        let pool = createNumericDistractors(questObj.answer);
+        pool.forEach(val => createOptionButton(val, val, questObj.answer));
+    } 
+    else if (questObj.type === 'compare') {
+        let maxVal = -1;
+        let maxKey = '';
+        Object.keys(l2Counts).forEach(k => {
+            if(l2Counts[k] > maxVal) { maxVal = l2Counts[k]; maxKey = k; }
+        });
+        
+        let displayNames = { candy: 'Candies 🍬', cupcake: 'Cupcakes 🧁', muffin: 'Muffins 🥮', pizza: 'Pizza Slices 🍕' };
+        questObj.answer = displayNames[maxKey];
+        
+        titleString.innerText = questObj.text;
+        Object.keys(displayNames).forEach(k => {
+            createOptionButton(displayNames[k], displayNames[k], questObj.answer);
+        });
+    } 
+    else if (questObj.type === 'diff') {
+        let accurateDiff = l2Counts.muffin - l2Counts.pizza;
+        questObj.answer = accurateDiff;
+        
+        titleString.innerText = questObj.text;
+        let pool = createNumericDistractors(accurateDiff);
+        pool.forEach(val => createOptionButton(val, val, questObj.answer));
+    }
+}
+
+function createOptionButton(labelText, checkingVal, correctValue) {
+    const btn = document.createElement("button");
+    btn.className = "option-btn";
+    btn.innerText = labelText;
+    btn.onclick = () => verifyL2Answer(checkingVal, correctValue);
+    const container = document.getElementById("optionsContainer");
+    if (container) container.appendChild(btn);
+}
+
+function createNumericDistractors(correctNum) {
+    let choices = new Set([correctNum]);
+    while(choices.size < 4) {
+        let dev = Math.floor(Math.random() * 5) + 1;
+        let alt = Math.random() > 0.5 ? correctNum + dev : correctNum - dev;
+        if(alt >= 0 && alt <= 15) choices.add(alt);
+    }
+    return Array.from(choices).sort((a,b) => a - b);
+}
+
+function verifyL2Answer(chosen, correct) {
+    if (chosen === correct) {
+        playSoundEffect("correctSound");
+        triggerWinCelebration();
+        
+        currentL2QuestIdx++;
+        if (currentL2QuestIdx < l2QuestionsPool.length) {
+            document.getElementById("dialogueTextL2").innerHTML = "Splendid reasoning! Here comes the next data challenge... 🧠";
+            setTimeout(() => { loadLevel2Question(); }, 2000);
+        } else {
+            playSoundEffect("clappedSound");
+            document.getElementById("dialogueTextL2").innerHTML = "Incredible Job! Let's pull up your grand dashboard!";
+            setTimeout(() => { switchInterfacePanel('layer-end'); }, 2500);
+        }
+    } else {
+        playSoundEffect("wrongSound");
+        l2WrongAttempts++;
+        
+        const wrapper = document.getElementById("questionBox");
+        if (wrapper) {
+            wrapper.classList.add("error-shake");
+            setTimeout(() => wrapper.classList.remove("error-shake"), 400);
+        }
+        
+        if (l2WrongAttempts >= 2) {
+            alert(`💡 Hint: ${l2QuestionsPool[currentL2QuestIdx].hint}`);
+        }
+    }
+}
+
+/* ================= SYSTEM UTILITIES ================= */
+function playSoundEffect(domId) {
+    const audioNode = document.getElementById(domId);
+    if(audioNode) {
+        audioNode.currentTime = 0;
+        audioNode.play().catch((e) => {
+            console.log("Audio play request swallowed safely to prevent app stalling.");
+        });
+    }
+}
+
+function reinitializeSimulationEngine() {
+    setupLevel2DataStructures();
+    generateScrambledDeck();
+    switchInterfacePanel('layer-intro');
+}
+
+/* Confetti Particles Rendering System Engine */
+const canvas = document.getElementById("fireworks");
+let ctx = canvas ? canvas.getContext("2d") : null;
+let particles = [];
+
+function resize() { 
+    if (canvas) {
+        canvas.width = window.innerWidth; 
+        canvas.height = window.innerHeight; 
+    }
+}
+resize();
+window.addEventListener("resize", resize);
+
+function triggerWinCelebration() {
+    if (!canvas) return;
+    let duration = 2000;
+    let end = Date.now() + duration;
+    (function frame() {
+        burstParticles(Math.random() * canvas.width, Math.random() * canvas.height * 0.4, 5);
+        if (Date.now() < end) requestAnimationFrame(frame);
+    }());
+}
+
+function burstParticles(x, y, count) {
+    for(let i = 0; i < count; i++){
+        let angle = Math.random() * 2 * Math.PI;
+        let speed = Math.random() * 4 + 2;
+        particles.push({ 
+            x: x, y: y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, 
+            radius: Math.random() * 3 + 2, alpha: 1, gravity: 0.05,
+            color: `hsla(${Math.random() * 360}, 100%, 60%, `
+        });
+    }
+}
+
+function animate() {
+    if (!ctx || !canvas) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.alpha -= 0.015; });
+    particles = particles.filter(p => p.alpha > 0);
+    particles.forEach(p => {
+        ctx.fillStyle = `${p.color}${p.alpha})`;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
+    });
+    requestAnimationFrame(animate);
+}
+if (ctx) animate();
+
+window.addEventListener('DOMContentLoaded', initGameLifecycle);
+</script>
+</body>
+</html>
