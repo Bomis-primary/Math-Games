@@ -17,6 +17,7 @@
             margin: 0;
             padding: 0;
             font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+            user-select: none;
         }
 
         body {
@@ -26,12 +27,13 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            overflow: hidden;
+            overflow-x: hidden;
             background-image: radial-gradient(#D7CCC8 20%, transparent 20%);
             background-size: 30px 30px;
+            padding: 15px;
         }
 
-        /* --- 5-SECOND SPLASH SCREEN --- */
+        /* --- FIXED SPLASH SCREEN LAYOUT --- */
         #splash-screen {
             position: fixed;
             top: 0;
@@ -43,7 +45,9 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            transition: opacity 0.5s ease-out;
+            opacity: 1; /* Explicit initial state */
+            transition: opacity 0.6s ease-in-out, visibility 0.6s;
+            visibility: visible;
         }
 
         .splash-logo {
@@ -53,7 +57,7 @@
 
         /* --- MAIN GAME CONTAINER --- */
         #game-container {
-            width: 95%;
+            width: 100%;
             max-width: 650px;
             background: var(--card-bg);
             padding: 25px;
@@ -96,6 +100,7 @@
             border-radius: 50px;
             cursor: pointer;
             box-shadow: 0 6px 0 #3E2723;
+            transition: transform 0.1s;
         }
         .start-btn:active {
             transform: translateY(6px);
@@ -108,8 +113,9 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: bold;
+            gap: 10px;
         }
 
         .tracker-badge {
@@ -235,11 +241,11 @@
             color: #5D4037;
             cursor: pointer;
             box-shadow: 0 6px 0 #5D4037;
+            transition: transform 0.1s, background-color 0.2s;
         }
 
-        .option-btn:active {
-            transform: translateY(6px);
-            box-shadow: 0 0 0 transparent;
+        .option-btn:disabled {
+            cursor: default;
         }
 
         .option-btn.correct {
@@ -292,7 +298,7 @@
 
     <div id="game-container">
         <div id="mission-screen">
-            <img src="assets/squirrel.png" class="actor-img" alt="Sammy the Squirrel" onerror="this.style.display='none'">
+            <img src="assets/squirrel.png" class="actor-img" alt="Sammy the Squirrel" onerror="this.src='https://placehold.co/120?text=🐿️'">
             <h2>Help Sammy the Squirrel!</h2>
             <p class="mission-text">
                 Winter is near! Sammy must store enough food in his treehouse. 
@@ -305,7 +311,7 @@
             <div class="game-header">
                 <span id="question-number">🧩 Problem: 1/10</span>
                 <span class="tracker-badge">
-                    <img src="assets/acorn.png" alt="Acorn" onerror="this.style.display='none'"> 
+                    <img src="assets/acorn.png" alt="Acorn" onerror="this.src='https://placehold.co/20?text=🌰'"> 
                     Acorns Saved: <span id="acorn-count">0</span>
                 </span>
                 <div class="volume-control">
@@ -332,7 +338,7 @@
         </div>
 
         <div id="result-screen" style="display:none;">
-            <img src="assets/squirrel.png" class="actor-img" alt="Happy Sammy">
+            <img src="assets/squirrel.png" class="actor-img" alt="Happy Sammy" onerror="this.src='https://placehold.co/120?text=🐿️'">
             <h1 style="font-size: 2.2rem; color: #4CAF50; margin-bottom: 10px;">Mission Complete! 🏆</h1>
             <p style="font-size: 1.3rem; margin-bottom: 20px; padding: 0 15px;">
                 Wonderful! Sammy's stockpile is fully complete. His family will stay safe and satisfied all winter!
@@ -406,10 +412,154 @@
         var staticQuestionPool = [
             { type: "Groups of Tens", story: "Sammy has 3 boxes of acorns. Each box has exactly 10 acorns inside. How many acorns does he have in total?", num1: 10, num2: 20, answer: 30, options: [3, 13, 30, 40], visual: false },
             { type: "Groups of Tens", story: "Sammy finds 5 groups of 10 acorns on the ground. How many total acorns did he find?", num1: 20, num2: 30, answer: 50, options: [15, 50, 5, 60], visual: false },
-            { type: "Addition without Carry Over", story: "", num1: 42, num2: 5, answer: 47, options: [45, 46, 47, 52], visual: true },
-            { type: "Addition without Carry Over", story: "", num1: 21, num2: 34, answer: 55, options: [54, 55, 56, 65], visual: true },
-            { type: "Addition with Carry Over", story: "", num1: 25, num2: 8, answer: 33, options: [32, 33, 34, 43], visual: true },
-            { type: "Addition with Carry Over", story: "", num1: 48, num2: 15, answer: 63, options: [53, 62, 63, 73], visual: true },
-            { type: "Addition with Carry Over", story: "", num1: 57, num2: 26, answer: 83, options: [83, 73, 84, 93], visual: true },
-            { type: "Story Sums", story: "\"I want to save 70 acorns for winter,\" says Sammy. If he has 60 acorns and finds 10 more, what is his total?", num1: 60, num2: 10, answer: 70, options: [61, 70, 80, 100], visual: false },
-            { type: "Story Sums", story: "Sammy hides 36 acorns near an oak tree and 43 acorns near a pine tree. How many hidden acorns are there altogether?", num1: 36, num
+            { type: "Addition without Carry Over", story: "Sammy found 42 acorns under a big tree, then spotted 5 more next to a rock. Let's count them all together!", num1: 42, num2: 5, answer: 47, options: [45, 46, 47, 52], visual: true },
+            { type: "Addition without Carry Over", story: "There are 21 acorns hidden in the grass and 34 acorns resting inside a hollow branch. Let's add them up!", num1: 21, num2: 34, answer: 55, options: [54, 55, 56, 65], visual: true },
+            { type: "Addition with Carry Over", story: "Sammy gathered 25 brown acorns and 8 shiny gold acorns. Help him find the sum!", num1: 25, num2: 8, answer: 33, options: [32, 33, 34, 43], visual: true },
+            { type: "Addition with Carry Over", story: "Sammy has 48 acorns in his small pouch and 15 acorns inside a little basket. How many are there in total?", num1: 48, num2: 15, answer: 63, options: [53, 62, 63, 73], visual: true },
+            { type: "Addition with Carry Over", story: "Sammy counts 57 acorns gathered on Monday and 26 acorns collected on Tuesday. What is the total sum?", num1: 57, num2: 26, answer: 83, options: [83, 73, 84, 93], visual: true },
+            { type: "Story Sums", story: '\"I want to save 70 acorns for winter,\" says Sammy. If he has 60 acorns and finds 10 more, what is his total?', num1: 60, num2: 10, answer: 70, options: [61, 70, 80, 100], visual: false },
+            { type: "Story Sums", story: "Sammy hides 36 acorns near an oak tree and 43 acorns near a pine tree. How many hidden acorns are there altogether?", num1: 36, num2: 43, answer: 79, options: [77, 78, 79, 89], visual: false },
+            { type: "Story Sums", story: "Sammy finds 14 acorns in the morning and 18 acorns after lunchtime. How many total acorns did Sammy grab?", num1: 14, num2: 18, answer: 32, options: [22, 31, 32, 42], visual: false }
+        ];
+
+        var currentIdx = 0;
+        var acornsSaved = 0;
+        var optionLocked = false;
+
+        // FIXED UNBIASED TIMER LOOP CONTROL
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                var splash = document.getElementById('splash-screen');
+                var gameBox = document.getElementById('game-container');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    splash.style.visibility = 'hidden';
+                }
+                setTimeout(function() {
+                    if (splash) splash.style.display = 'none';
+                    if (gameBox) {
+                        gameBox.style.display = 'block';
+                        setTimeout(function() { gameBox.style.opacity = '1'; }, 50);
+                    }
+                }, 600);
+            }, 5000); // 5 Seconds exact hold time
+        });
+
+        function startMission() {
+            document.getElementById('mission-screen').style.display = 'none';
+            document.getElementById('play-screen').style.display = 'block';
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            optionLocked = false;
+            var currentQuest = staticQuestionPool[currentIdx];
+            
+            document.getElementById('question-number').innerText = "🧩 Problem: " + (currentIdx + 1) + "/10";
+            document.getElementById('acorn-count').innerText = acornsSaved;
+            document.getElementById('outcome-label').innerText = currentQuest.type;
+            document.getElementById('progress').style.width = (currentIdx * 10) + "%";
+
+            var storyBox = document.getElementById('story-container');
+            if(currentQuest.story) {
+                storyBox.innerText = currentQuest.story;
+                storyBox.style.display = 'block';
+            } else {
+                storyBox.style.display = 'none';
+            }
+
+            var visualBox = document.getElementById('visual-box');
+            var leftGroup = document.getElementById('items-left');
+            var rightGroup = document.getElementById('items-right');
+            
+            leftGroup.innerHTML = "";
+            rightGroup.innerHTML = "";
+
+            if(currentQuest.visual) {
+                visualBox.style.display = 'flex';
+                var renderLeft = Math.min(currentQuest.num1, 15);
+                var renderRight = Math.min(currentQuest.num2, 15);
+
+                for(var i=0; i<renderLeft; i++) {
+                    var img = document.createElement('img');
+                    img.src = 'assets/acorn.png';
+                    img.onerror = function() { this.src = 'https://placehold.co/26?text=🌰'; };
+                    leftGroup.appendChild(img);
+                }
+                for(var j=0; j<renderRight; j++) {
+                    var img = document.createElement('img');
+                    img.src = 'assets/acorn.png';
+                    img.onerror = function() { this.src = 'https://placehold.co/26?text=🌰'; };
+                    rightGroup.appendChild(img);
+                }
+            } else {
+                visualBox.style.display = 'none';
+            }
+
+            document.getElementById('equation-display').innerText = currentQuest.num1 + " + " + currentQuest.num2 + " = ?";
+
+            var optContainer = document.getElementById('options-container');
+            optContainer.innerHTML = "";
+            
+            currentQuest.options.forEach(function(opt) {
+                var btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = function() { handleAnswerSelection(btn, opt, currentQuest.answer); };
+                optContainer.appendChild(btn);
+            });
+        }
+
+        function handleAnswerSelection(selectedBtn, chosenVal, realAnswer) {
+            if(optionLocked) return;
+            optionLocked = true;
+
+            var buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(function(b) { b.disabled = true; });
+
+            if(chosenVal === realAnswer) {
+                selectedBtn.classList.add('correct');
+                playSound('correct');
+                launchLocalConfetti();
+                acornsSaved++;
+                document.getElementById('acorn-count').innerText = acornsSaved;
+            } else {
+                selectedBtn.classList.add('wrong');
+                playSound('wrong');
+                buttons.forEach(function(b) {
+                    if(parseInt(b.innerText) === realAnswer) {
+                        b.classList.add('correct');
+                    }
+                });
+            }
+
+            setTimeout(function() {
+                currentIdx++;
+                if(currentIdx < staticQuestionPool.length) {
+                    loadQuestion();
+                } else {
+                    displayEndScreen();
+                }
+            }, 2000);
+        }
+
+        function displayEndScreen() {
+            document.getElementById('progress').style.width = "100%";
+            document.getElementById('play-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            document.getElementById('restart-btn').style.display = 'block';
+            
+            document.getElementById('score-display').innerText = "Score: " + acornsSaved + " / 10 Acorns Saved!";
+        }
+
+        function resetGame() {
+            currentIdx = 0;
+            acornsSaved = 0;
+            document.getElementById('result-screen').style.display = 'none';
+            document.getElementById('restart-btn').style.display = 'none';
+            document.getElementById('play-screen').style.display = 'block';
+            loadQuestion();
+        }
+    </script>
+</body>
+</html>
