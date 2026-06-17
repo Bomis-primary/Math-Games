@@ -394,7 +394,7 @@
                 <div class="cards-container" id="sortable-list"></div>
             </div>
 
-            <button class="action-btn" id="submit-btn" onclick="verifyCurrentAnswer()">Check Answer ✔</button>
+            <button class="action-btn" id="submit-btn" onclick="verifyCurrentAnswer()">Check Answer ✓</button>
         </div>
 
         <div id="story-playground" class="story-view">
@@ -411,6 +411,9 @@
             <button class="restart-btn" onclick="restartEntireGame()">Play Again 🔄</button>
         </div>
     </div>
+
+    <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
     <script>
         const level1Missions = [
@@ -430,7 +433,8 @@
 
         const level3Missions = [
             { text: "Sequence your morning routine activities step-by-step!", items: ["Eat Breakfast", "Go to School", "Wake Up", "Brush Teeth"], correctOrder: ["Wake Up", "Brush Teeth", "Eat Breakfast", "Go to School"], hint: "You must Wake Up before you can do anything else!" },
-            { text: "Sequence your evening routine activities step-by-step!", items: ["Go to Bed", "Play Outside", "Eat Dinner", "Do Homework"], correctOrder: ["Play Outside", "Do Homework", "Eat Dinner", "Go to Bed"], hint: "Going to Bed is always the very last thing we do at night!" }
+            // FIXED: Expanded prompt with an explicit clue to eliminate order confusion
+            { text: "Sequence your evening routine! Riya loves to play outside right after school, then finishes her homework before eating dinner!", items: ["Go to Bed", "Play Outside", "Eat Dinner", "Do Homework"], correctOrder: ["Play Outside", "Do Homework", "Eat Dinner", "Go to Bed"], hint: "Riya plays outside first, does her homework next, eats dinner, and goes to bed last!" }
         ];
 
         // Narrative Configuration Mapping Data for Level Entrances
@@ -464,29 +468,29 @@
         let wrongAttemptsCount = 0;
         let storyProgressState = "gameIntro"; 
 
-        function audioBeep(freq, type, duration) {
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const amp = ctx.createGain();
-                osc.type = type;
-                osc.frequency.setValueAtTime(freq, ctx.currentTime);
-                amp.gain.setValueAtTime(volumeLevel, ctx.currentTime);
-                amp.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + duration);
-                osc.connect(amp);
-                amp.connect(ctx.destination);
-                osc.start();
-                osc.stop(ctx.currentTime + duration);
-            } catch(e) {}
-        }
-
-        function playCorrectSound() {
-            audioBeep(523.25, 'triangle', 0.15);
-            setTimeout(() => audioBeep(659.25, 'triangle', 0.25), 100);
-        }
-
-        function playWrongSound() {
-            audioBeep(220.00, 'sawtooth', 0.3);
+        // FIXED: Audio playback rewritten to look for correct.mp3 and wrong.mp3 in the assets directory
+        function playSoundEffect(isCorrect) {
+            const audioNode = document.getElementById(isCorrect ? 'audio-correct' : 'audio-wrong');
+            if (audioNode) {
+                audioNode.volume = volumeLevel;
+                audioNode.currentTime = 0;
+                audioNode.play().catch(err => {
+                    // Fallback to synthesized sound if file asset engine is blocked
+                    try {
+                        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                        const osc = ctx.createOscillator();
+                        const amp = ctx.createGain();
+                        osc.type = isCorrect ? 'triangle' : 'sawtooth';
+                        osc.frequency.setValueAtTime(isCorrect ? 523.25 : 220.00, ctx.currentTime);
+                        amp.gain.setValueAtTime(volumeLevel, ctx.currentTime);
+                        amp.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.3);
+                        osc.connect(amp);
+                        amp.connect(ctx.destination);
+                        osc.start();
+                        osc.stop(ctx.currentTime + 0.3);
+                    } catch(e) {}
+                });
+            }
         }
 
         const canvas = document.getElementById("confetti-canvas");
@@ -666,11 +670,11 @@
             }
 
             if (userIsCorrect) {
-                playCorrectSound();
+                playSoundEffect(true);
                 dropConfetti();
                 advanceGamePipeline();
             } else {
-                playWrongSound();
+                playSoundEffect(false);
                 wrongAttemptsCount++;
                 
                 if (wrongAttemptsCount >= 2) {
