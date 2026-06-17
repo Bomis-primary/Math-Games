@@ -81,7 +81,7 @@
         }
         .screen-layer.active { display: flex; opacity: 1; }
 
-        #screen-intro { justify-content: center; align-items: center; text-align: center; }
+        #screen-intro, #screen-transition { justify-content: center; align-items: center; text-align: center; }
         .hero-banner { font-size: 5rem; margin-bottom: 15px; animation: bounce 2s infinite alternate; }
         @keyframes bounce { 0% { transform: translateY(0); } 100% { transform: translateY(-12px); } }
 
@@ -203,7 +203,7 @@
             object-fit: contain; 
             pointer-events: none; 
             display: block;
-            mix-blend-mode: multiply;
+            /* mix-blend-mode removed so clean transparency shines! */
         }
         .note-asset-img { 
             width: 75px; 
@@ -211,7 +211,6 @@
             object-fit: contain; 
             pointer-events: none; 
             display: block;
-            mix-blend-mode: multiply;
         }
         
         .currency-fallback-circle {
@@ -275,6 +274,7 @@
     <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
+    <!-- Innovine Logo Screen (5 Seconds Timer) -->
     <div id="screen-splash">
         <div class="splash-inner">
             <img class="splash-logo" src="assets/logo.png" alt="Innovine Logo" onerror="this.style.display='none'; document.getElementById('splash-icon-fallback').style.display='block';">
@@ -285,6 +285,7 @@
 
     <div class="game-container">
         
+        <!-- Interactive Mode Instructions Page -->
         <div class="screen-layer" id="screen-intro">
             <div class="hero-banner">🪙🐷🛍️</div>
             <h1 style="margin-bottom: 10px; font-size: 2.3rem; color: var(--text-dark);">Indian Money Game</h1>
@@ -301,6 +302,17 @@
             <button class="cta-btn" onclick="switchActiveLayer('screen-play')">Start Challenge! 🚀</button>
         </div>
 
+        <!-- NEW SLIDE: Level Up / Appreciation & Introduction Screen Interstitial -->
+        <div class="screen-layer" id="screen-transition">
+            <div class="hero-banner" id="trans-banner-icon">🎉👏🌟</div>
+            <h1 id="trans-headline-title" style="margin-bottom: 12px; font-size: 2.3rem; color: #2e7d32;">Level Completed!</h1>
+            <div class="story-bubble" id="trans-msg-bubble">
+                Dynamic transition texts inject into this panel segment box area.
+            </div>
+            <button class="cta-btn" id="trans-continue-btn" onclick="switchActiveLayer('screen-play')">Let's Play! ➡️</button>
+        </div>
+
+        <!-- Main Workspace Layer Screen -->
         <div class="screen-layer" id="screen-play">
             <div class="hud-row">
                 <div>⭐ Score: <span id="label-score-val">0</span></div>
@@ -336,6 +348,7 @@
                         <div class="price-tag" id="shelf-toy-price">Target: ₹0</div>
                     </div>
 
+                    <!-- Drop Zone Mat Area -->
                     <div class="drop-counter-zone" id="checkout-mat-target" ondragover="allowDrop(event)" ondrop="handleDropEvent(event)">
                         <div class="drop-label" id="mat-placeholder-hint">🛒 Drag currency elements into this mat!</div>
                         <div class="live-math-feed" id="mat-running-total" style="display: none;">Counter Total: ₹0</div>
@@ -344,6 +357,7 @@
                     <div class="quiz-options-matrix" id="l2-quiz-row" style="display: none;"></div>
                 </div>
 
+                <!-- Source Wallet Vault Block -->
                 <div class="wallet-rack" id="source-wallet-rack">
                     <div class="wallet-title" id="wallet-header-title">🎒 Infinite Wallet Pocket</div>
                     <div class="inventory-hint" id="wallet-sub-hint">Unlimited coins & notes</div>
@@ -388,6 +402,7 @@
             <div class="banner-msg" id="counter-status-feedback"></div>
         </div>
 
+        <!-- End Score Reporting Screen Container -->
         <div class="screen-layer" id="screen-end">
             <div class="hero-banner">👑🏆🥇</div>
             <h1 style="color: #2e7d32; font-size: 2.4rem; margin-bottom: 12px;">Grand Champion!</h1>
@@ -406,10 +421,11 @@
         let runningBasketTotal = 0;
         let currentTargetPrice = 0;
         let level3SelectedTarget = 0;
-        let wrongAttemptsCounter = 0; // Tracks consecutive mistakes per round
+        let wrongAttemptsCounter = 0; 
+        let isInternalTaskTransitioning = false; 
 
         let level3PurchasedRegistry = { teddy: false, car: false, book: false };
-        let walletInventoryStock = { v1: 99, v2: 99, v5: 99, v10: 99, v20: 99, v50: 99 };
+        let walletInventoryStock = { v1: 5, v2: 5, v5: 4, v10: 4, v20: 3, v50: 2 };
 
         const masterSimulationPool = [
             // Level 1 Configurations
@@ -449,11 +465,9 @@
             let timerId = setInterval(() => {
                 let coin = document.createElement('div');
                 coin.className = 'falling-gold-coin';
-                
                 coin.style.left = Math.random() * 95 + 'vw';
                 coin.style.setProperty('--deviation', (Math.random() - 0.5) * 180 + 'px');
                 coin.style.setProperty('--dur', (Math.random() * 1.0 + 1.4) + 's');
-                
                 document.body.appendChild(coin);
                 setTimeout(() => coin.remove(), 2500);
             }, intervalTime);
@@ -469,7 +483,6 @@
             }
         }
 
-        // Delay system handling transition from Splash screen to Content Screen
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
                 const splashNode = document.getElementById('screen-splash');
@@ -489,6 +502,65 @@
             if (screenId === 'screen-play') {
                 buildActiveGameLevel();
             }
+        }
+
+        // Handles level-to-level transitions with praise and descriptions
+        function processNextGameplayStep() {
+            activeTurnIndex++;
+            
+            if (activeTurnIndex >= TOTAL_TURNS_MAX) {
+                concludeSimulationWorkflow();
+                return;
+            }
+
+            let nextConfig = masterSimulationPool[activeTurnIndex];
+            let currentConfig = masterSimulationPool[activeTurnIndex - 1];
+
+            // Trigger a milestone slide if the task mode changes
+            if (nextConfig.mode !== currentConfig.mode) {
+                setupMilestoneSlide(currentConfig.mode, nextConfig.mode);
+            } else {
+                buildActiveGameLevel();
+            }
+        }
+
+        function setupMilestoneSlide(completedMode, incomingMode) {
+            let iconBox = document.getElementById('trans-banner-icon');
+            let headline = document.getElementById('trans-headline-title');
+            let textBubble = document.getElementById('trans-msg-bubble');
+            let proceedBtn = document.getElementById('trans-continue-btn');
+
+            let praiseText = "";
+            let introText = "";
+
+            if (completedMode === 1) {
+                praiseText = "<p style='color:#2e7d32; font-weight:bold; font-size:1.3rem;'>🌟 Fantastic Job filling up the Piggy Banks! You matched the targets perfectly!</p>";
+            } else if (completedMode === 2) {
+                praiseText = "<p style='color:#2e7d32; font-weight:bold; font-size:1.3rem;'>🏆 Incredible Brain Power! You counted up all the loose coins scattered from the broken banks perfectly!</p>";
+            }
+
+            if (incomingMode === 2) {
+                iconBox.innerText = "🔨🐷🔍";
+                headline.innerText = "Unlock Task 2: Break the Bank!";
+                introText = `
+                    <div style='margin-top:15px; text-align:left;'>
+                        <p><strong>What to do next:</strong> The piggy banks are open! Inside, you will see groups of mixed coins and notes.</p>
+                        <p style='margin-top:8px; color:#e65100;'>Look inside the blue mat, add the values together mentally, and click the correct multiple-choice button below!</p>
+                    </div>`;
+                proceedBtn.innerText = "Start Level 2! 🚀";
+            } else if (incomingMode === 3) {
+                iconBox.innerText = "🛍️🧸🚗";
+                headline.innerText = "Unlock Task 3: The Toy Shop!";
+                introText = `
+                    <div style='margin-top:15px; text-align:left;'>
+                        <p><strong>What to do next:</strong> Welcome to the dynamic Toy Marketplace! Your task is to buy the items on the shelf.</p>
+                        <p style='margin-top:8px; color:#0288d1;'>⚠️ <strong>Heads Up!</strong> Your wallet isn't infinite anymore. You have a limited number of coins and notes. Spend wisely to buy all 3 items!</p>
+                    </div>`;
+                proceedBtn.innerText = "Go to the Toy Shop! 🛒";
+            }
+
+            textBubble.innerHTML = praiseText + introText;
+            switchActiveLayer('screen-transition');
         }
 
         function buildActiveGameLevel() {
@@ -578,11 +650,6 @@
                 
                 document.getElementById('btn-verify-trigger').disabled = true;
 
-                if (activeTurnIndex === 10) { 
-                    level3PurchasedRegistry = { teddy: false, car: false, book: false };
-                    walletInventoryStock = { v1: 5, v2: 5, v5: 4, v10: 4, v20: 3, v50: 2 };
-                }
-
                 document.getElementById('l3-card-teddy').className = level3PurchasedRegistry.teddy ? "carousel-item-card bought" : "carousel-item-card";
                 document.getElementById('l3-card-car').className = level3PurchasedRegistry.car ? "carousel-item-card bought" : "carousel-item-card";
                 document.getElementById('l3-card-book').className = level3PurchasedRegistry.book ? "carousel-item-card bought" : "carousel-item-card";
@@ -630,15 +697,16 @@
             document.getElementById('btn-verify-trigger').disabled = false;
         }
 
-        /* --- DRAG & DROP & TAP ADAPTIVE CORE ENGINE --- */
         function handleDragStart(e) {
             let targetConfig = masterSimulationPool[activeTurnIndex];
             if(targetConfig.mode === 2) { e.preventDefault(); return; }
             
             let val = e.currentTarget.getAttribute('data-value');
-            if(targetConfig.mode === 3 && walletInventoryStock["v" + val] <= 0) {
-                e.preventDefault();
-                return;
+            if(targetConfig.mode === 3) {
+                if(level3SelectedTarget === 0 || walletInventoryStock["v" + val] <= 0) {
+                    e.preventDefault();
+                    return;
+                }
             }
             e.dataTransfer.setData("text/plain", val);
         }
@@ -683,7 +751,6 @@
             tokenWrapper.className = 'dropped-currency-token';
             tokenWrapper.setAttribute('data-value', val);
             
-            // Allow dynamic removal on single tap
             tokenWrapper.onclick = function() {
                 removeSingleToken(tokenWrapper, val);
             };
@@ -731,7 +798,6 @@
         function clearCheckoutMat() {
             let targetConfig = masterSimulationPool[activeTurnIndex];
             if(targetConfig.mode === 3) {
-                // Refund items back to inventory balances
                 let itemsOnMat = document.getElementById('checkout-mat-target').querySelectorAll('.dropped-currency-token');
                 itemsOnMat.forEach(item => {
                     let v = parseInt(item.getAttribute('data-value'));
@@ -744,7 +810,6 @@
             let hint = document.getElementById('mat-placeholder-hint');
             let feed = document.getElementById('mat-running-total');
 
-            // Purge everything except placeholder hints and mathematical feeds
             mat.innerHTML = "";
             mat.appendChild(hint);
             mat.appendChild(feed);
@@ -755,7 +820,6 @@
             document.getElementById('counter-status-feedback').innerText = "";
         }
 
-        /* --- TWO-ATTEMPT COMPETENCY EVALUATION LOGIC --- */
         function evaluateSimulatorBasket() {
             let currentConfig = masterSimulationPool[activeTurnIndex];
             if (currentConfig.mode === 2) return; 
@@ -766,7 +830,6 @@
             }
 
             if (runningBasketTotal === currentTargetPrice) {
-                // Correct Pathway Handling Rule
                 playSound('success');
                 triggerGoldenCoinShowerEffect();
                 currentScore += 10;
@@ -785,12 +848,10 @@
                 document.getElementById('counter-status-feedback').innerText = "🎉 Marvelous! Correct Money Amount!";
                 
                 setTimeout(() => {
-                    activeTurnIndex++;
-                    buildActiveGameLevel();
+                    processNextGameplayStep();
                 }, 1400);
 
             } else {
-                // Miscalculation Pathway Rule
                 playSound('wrong');
                 wrongAttemptsCounter++;
                 document.getElementById('counter-status-feedback').style.color = "#d32f2f";
@@ -804,9 +865,6 @@
         }
 
         function evaluateQuizSelection(clickedBtn, userValue, correctValue) {
-            let currentConfig = masterSimulationPool[activeTurnIndex];
-            
-            // Block repeat clicks if answer already processing
             if(clickedBtn.parentNode.classList.contains('locked-state')) return;
 
             if (userValue === correctValue) {
@@ -818,8 +876,7 @@
 
                 setTimeout(() => {
                     clickedBtn.parentNode.classList.remove('locked-state');
-                    activeTurnIndex++;
-                    buildActiveGameLevel();
+                    processNextGameplayStep();
                 }, 1400);
 
             } else {
@@ -829,13 +886,14 @@
                 setTimeout(() => clickedBtn.classList.remove('wrong'), 600);
 
                 if (wrongAttemptsCounter >= 2) {
-                    alert(`💡 Hint: ${currentConfig.hint}`);
+                    alert(`💡 Hint: ${masterSimulationPool[activeTurnIndex].hint}`);
                 }
             }
         }
 
         function concludeSimulationWorkflow() {
             document.getElementById('screen-play').classList.remove('active');
+            document.getElementById('screen-transition').classList.remove('active');
             document.getElementById('screen-end').classList.add('active');
             document.getElementById('final-score-report').innerText = `Final Score: ${currentScore} / 130`;
         }
@@ -844,7 +902,7 @@
             currentScore = 0;
             activeTurnIndex = 0;
             level3PurchasedRegistry = { teddy: false, car: false, book: false };
-            walletInventoryStock = { v1: 99, v2: 99, v5: 99, v10: 99, v20: 99, v50: 99 };
+            walletInventoryStock = { v1: 5, v2: 5, v5: 4, v10: 4, v20: 3, v50: 2 };
             switchActiveLayer('screen-intro');
         }
     </script>
