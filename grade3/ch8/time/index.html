@@ -1,181 +1,547 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>G3 Time Explorer</title>
-<style>
-body { margin:0; font-family:'Arial', sans-serif; background: linear-gradient(135deg, #ffe6f0, #e0f7ff); display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; }
-#game-container { width:100%; max-width:700px; text-align:center; position:relative; }
-#logo-slide, #end-slide, #question-slide, #timeline-slide { display:none; }
-.option { background-color:#fff; border:2px solid #cfa; border-radius:10px; padding:15px 25px; margin:10px; display:inline-block; cursor:pointer; font-size:1.2em; transition:transform 0.2s; }
-.option:hover { transform:scale(1.05); }
-.correct { border-color:green; background-color:#cfc; }
-.wrong { border-color:red; background-color:#fcc; animation:jiggle 0.3s; }
-@keyframes jiggle {0%{transform:translateX(0);} 25%{transform:translateX(-5px);} 50%{transform:translateX(5px);} 75%{transform:translateX(-5px);} 100%{transform:translateX(0);}}
-#confetti-canvas { position:absolute; top:0; left:0; pointer-events:none; }
-#instruction { background-color:#ffd; padding:10px; border-radius:8px; font-weight:bold; margin-bottom:15px; }
-#play-again-btn { padding:12px 25px; font-size:1.2em; border-radius:12px; border:none; background-color:#ffcc66; cursor:pointer; margin-top:20px; }
-#timeline-cards { display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:15px; }
-.timeline-card { width:100px; padding:10px; background:#fff; border-radius:10px; cursor:grab; user-select:none; text-align:center; font-weight:bold; border:2px solid #ccc; }
-.timeline-drop { width:100px; height:120px; border:2px dashed #aaa; border-radius:10px; margin:10px; display:inline-block; vertical-align:top; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Machine II: Quantum Paradox</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif;
+            user-select: none;
+        }
+
+        body {
+            background-color: #2c3e50;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+        }
+
+        /* --- BLANK WHITE SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+        #splash-screen img { max-width: 280px; height: auto; }
+
+        /* --- ARCADE CABINET --- */
+        .arcade-cabinet {
+            background: linear-gradient(135deg, #111, #222);
+            border: 6px solid #00f0ff;
+            border-radius: 24px;
+            padding: 16px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 20px 45px rgba(0,240,255,0.3);
+            color: #fff;
+        }
+
+        /* --- GRAPHICS STAGE --- */
+        .graphics-stage {
+            background: #1a252f;
+            width: 100%;
+            height: 240px;
+            border-radius: 16px;
+            border: 4px solid #00f0ff;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        /* Analog Clock Layout */
+        .toy-clock {
+            width: 170px;
+            height: 170px;
+            background: #fff8e1;
+            border: 4px solid #f39c12;
+            border-radius: 50%;
+            position: relative;
+            display: none;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.5);
+        }
+        
+        /* Dynamic CSS Clock Numbers */
+        .clock-number {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+            padding: 4px;
+        }
+        .n12 { transform: rotate(0deg); } .n12 span { display: inline-block; transform: rotate(0deg); }
+        .n3 { transform: rotate(90deg); } .n3 span { display: inline-block; transform: rotate(-90deg); }
+        .n6 { transform: rotate(180deg); } .n6 span { display: inline-block; transform: rotate(-180deg); }
+        .n9 { transform: rotate(270deg); } .n9 span { display: inline-block; transform: rotate(-270deg); }
+
+        .clock-center {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 12px; height: 12px;
+            background: #212121;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+        .hand {
+            position: absolute;
+            bottom: 50%; left: 50%;
+            transform-origin: bottom center;
+            border-radius: 4px;
+            transition: transform 0.2s ease-out;
+        }
+        .hour-hand { width: 6px; height: 42px; background: #212121; transform: translate(-50%, 0) rotate(0deg); z-index: 5; }
+        .minute-hand { width: 4px; height: 62px; background: #00f0ff; transform: translate(-50%, 0) rotate(0deg); z-index: 6; }
+
+        /* Digital Readout Indicator */
+        .digital-readout {
+            position: absolute;
+            bottom: 10px;
+            background: rgba(0,0,0,0.85);
+            border: 1px solid #00f0ff;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #00f0ff;
+            font-family: monospace;
+            display: none;
+        }
+
+        .badge-display {
+            max-height: 150px;
+            width: auto;
+            object-fit: contain;
+            display: none;
+        }
+
+        /* --- CONTROL CONSOLE --- */
+        .control-board {
+            background: #f4f6f7;
+            border: 4px solid #333;
+            border-radius: 16px;
+            padding: 15px;
+            color: #333;
+        }
+        .meta-strip {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: bold;
+            color: #7f8c8d;
+            margin-bottom: 8px;
+        }
+        .task-card {
+            background: #fff;
+            border: 3px dashed #00f0ff;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            color: #2c3e50;
+            text-align: center;
+            min-height: 85px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+
+        .input-view { display: none; }
+        .crank-box { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+        .action-row { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; }
+        .grid-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+        /* Buttons styling */
+        .btn-game {
+            background: #34495e;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #2c3e50;
+            transition: transform 0.1s;
+        }
+        .btn-game:hover:not(:disabled) { background: #455a64; }
+        .btn-game:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #2c3e50; }
+        
+        .btn-game.correct { background: #2ecc71 !important; box-shadow: 0 4px 0 #27ae60 !important; color: white !important; }
+        .btn-game.wrong { background: #e74c3c !important; box-shadow: 0 4px 0 #c0392b !important; color: white !important; }
+
+        .btn-submit {
+            background: #00f0ff;
+            color: #111;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            font-size: 17px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #00b8d4;
+            margin-top: 5px;
+        }
+        .btn-submit:active { transform: translateY(4px); box-shadow: 0 1px 0 #00b8d4; }
+    </style>
 </head>
 <body>
 
-<div id="game-container">
-  <!-- Logo Slide -->
-  <div id="logo-slide">
-    <img src="assets/logo.png" alt="Innovine Logo" style="width:200px;">
-  </div>
+    <div id="splash-screen">
+        <img src="assets/innovine-logo.png" alt="Innovine Logo" onerror="this.src='https://placehold.co/280x150?text=Innovine+Logo'">
+    </div>
 
-  <!-- Question Slide -->
-  <div id="question-slide">
-    <div id="instruction"></div>
-    <img id="clock-image" style="width:250px; margin:15px 0;"><br>
-    <div id="options-container"></div>
-  </div>
+    <div class="arcade-cabinet">
+        
+        <div class="graphics-stage" id="stage-area">
+            <div class="toy-clock" id="visual-clock">
+                <div class="clock-number n12"><span>12</span></div>
+                <div class="clock-number n3"><span>3</span></div>
+                <div class="clock-number n6"><span>6</span></div>
+                <div class="clock-number n9"><span>9</span></div>
+                <div class="clock-center"></div>
+                <div id="hr-needle" class="hand hour-hand"></div>
+                <div id="min-needle" class="hand minute-hand"></div>
+            </div>
+            <div class="digital-readout" id="clock-digital">Current: 12:00</div>
 
-  <!-- Timeline Slide -->
-  <div id="timeline-slide">
-    <div id="instruction"></div>
-    <div id="timeline-drop-container"></div>
-    <div id="timeline-cards"></div>
-  </div>
+            <img class="badge-display" id="visual-image" src="" alt="Paradox Monitor" onerror="this.style.display='none';">
+        </div>
 
-  <!-- End Slide -->
-  <div id="end-slide">
-    <h2>🎉 Well Done! All objectives completed! 🎉</h2>
-    <button id="play-again-btn">Play Again</button>
-  </div>
-</div>
+        <div class="control-board">
+            <div class="meta-strip">
+                <span id="label-level">QUANTUM CORE ACTIVE</span>
+                <div>🔊 <input type="range" id="volume" min="0" max="1" step="0.1" value="0.7" style="width:50px; vertical-align:middle; cursor:pointer;"></div>
+            </div>
 
-<!-- Sounds -->
-<audio id="correct-sound" src="assets/correct.mp3"></audio>
-<audio id="wrong-sound" src="assets/wrong.mp3"></audio>
-<audio id="applause-sound" src="assets/freesound_community-claps-44774.mp3"></audio>
+            <div class="task-card" id="display-prompt">Booting paradox containment shields...</div>
 
-<canvas id="confetti-canvas"></canvas>
+            <div id="router-panel">
+                
+                <div id="view-prologue" class="input-view" style="display: block;">
+                    <button class="btn-submit" onclick="advanceToLevel(1)">INITIALIZE MACHINE 🚀</button>
+                </div>
 
-<script>
-// --- Lesson-Aligned Game Data ---
-const rounds = [
-  { type:'tap', instruction:"Read the clock to the minute:", image:"assets/analog-3-15.png", options:["3:00","3:15","3:30"], answer:1 },
-  { type:'tap', instruction:"Read the clock to the minute:", image:"assets/analog-7-45.png", options:["7:30","7:45","8:00"], answer:1 },
-  { type:'tap', instruction:"Read the clock to the minute:", image:"assets/analog-2-15.png", options:["2:00","2:15","2:30"], answer:1 },
-  { type:'tap', instruction:"Read the clock to the minute:", image:"assets/analog-1-30.png", options:["1:15","1:30","1:45"], answer:1 },
-  { type:'tap', instruction:"Walk takes 10 min. Actual: 12 min. Select correct time:", image:"assets/digital-12.png", options:["10 min","12 min"], answer:1 },
-  { type:'tap', instruction:"If today is Monday, what is the day after tomorrow?", image:"assets/digital-3.png", options:["Tuesday","Wednesday","Thursday"], answer:1 },
-  { type:'tap', instruction:"If this year is 2026, next year is:", image:"assets/digital-6-45.png", options:["2026","2027","2028"], answer:1 },
-  { type:'tap', instruction:"If this year is 2026, the year two years from now is:", image:"assets/digital-8-20.png", options:["2027","2028","2029"], answer:1 },
-  { type:'timeline', instruction:"Arrange the events in correct order:", cards:["Birth","Start School","Win a Prize","Birthday","Family Trip"], order:["Birth","Start School","Win a Prize","Birthday","Family Trip"] }
-];
+                <div id="view-transition" class="input-view">
+                    <button class="btn-submit" style="background:#9b59b6; box-shadow:0 5px 0 #8e44ad; color:white;" onclick="startLoadedLevel()">ENGAGE ZONE CONVERGENCE ⚡</button>
+                </div>
 
-let currentRound=-1, attempt=0;
+                <div id="view-l1" class="input-view">
+                    <div class="crank-box">
+                        <button class="btn-game" onclick="turnGears(1, 0)">⚙️ +1 Hour</button>
+                        <button class="btn-game" onclick="turnGears(0, 15)" style="background:#00b8d4;">⚙️ +15 Min (Quarter)</button>
+                        <button class="btn-game" onclick="turnGears(0, 5)" style="background:#2e4053;">⚙️ +5 Min</button>
+                        <button class="btn-game" onclick="turnGears(0, 1)" style="background:#7f8c8d;">⚙️ +1 Min Precision</button>
+                    </div>
+                    <div class="action-row">
+                        <button class="btn-game" style="background: #e67e22; box-shadow: 0 4px 0 #d35400;" onclick="resetHandsToTwelve()">🔄 Reset</button>
+                        <button class="btn-submit" style="background:#2ecc71; box-shadow:0 5px 0 #27ae60; margin-top:0;" onclick="verifyLevel1State()">LOCK TIME MATRIX 🕹️</button>
+                    </div>
+                </div>
 
-// --- Elements ---
-const logoSlide=document.getElementById("logo-slide");
-const questionSlide=document.getElementById("question-slide");
-const timelineSlide=document.getElementById("timeline-slide");
-const endSlide=document.getElementById("end-slide");
-const instructionEl=document.getElementById("instruction");
-const optionsContainer=document.getElementById("options-container");
-const clockImage=document.getElementById("clock-image");
-const timelineDropContainer=document.getElementById("timeline-drop-container");
-const timelineCardsEl=document.getElementById("timeline-cards");
-const correctSound=document.getElementById("correct-sound");
-const wrongSound=document.getElementById("wrong-sound");
-const applauseSound=document.getElementById("applause-sound");
-const playAgainBtn=document.getElementById("play-again-btn");
-const confettiCanvas=document.getElementById("confetti-canvas");
+                <div id="view-grid" class="input-view">
+                    <div class="grid-choices" id="grid-container"></div>
+                </div>
 
-// --- Game Flow ---
-function startGame(){
-  logoSlide.style.display="block"; questionSlide.style.display="none"; timelineSlide.style.display="none"; endSlide.style.display="none";
-  currentRound=-1; attempt=0; setTimeout(nextRound,3000);
-}
+                <div id="view-epilogue" class="input-view">
+                    <button class="btn-submit" style="background:#e67e22; box-shadow:0 5px 0 #d35400;" onclick="resetEngine()">REBOOT ENGINE MATRIX 🔄</button>
+                </div>
 
-function nextRound(){
-  currentRound++; attempt=0;
-  if(currentRound>=rounds.length){ showEndSlide(); return; }
-  const round=rounds[currentRound];
-  if(round.type==='tap'){ showTapQuestion(round); }
-  else if(round.type==='timeline'){ showTimeline(round); }
-}
+            </div>
+        </div>
 
-// --- Tap Question ---
-function showTapQuestion(round){
-  logoSlide.style.display="none"; questionSlide.style.display="block"; timelineSlide.style.display="none"; endSlide.style.display="none";
-  instructionEl.textContent=round.instruction;
-  clockImage.src=round.image;
-  optionsContainer.innerHTML="";
-  round.options.forEach((opt,idx)=>{
-    const btn=document.createElement("div"); btn.classList.add("option"); btn.textContent=opt;
-    btn.addEventListener("click",()=>handleTapAnswer(idx)); optionsContainer.appendChild(btn);
-  });
-}
+    </div>
 
-function handleTapAnswer(selectedIdx){
-  const round=rounds[currentRound];
-  const buttons=optionsContainer.children;
-  if(selectedIdx===round.answer){
-    buttons[selectedIdx].classList.add("correct"); correctSound.play(); setTimeout(nextRound,1000);
-  } else {
-    buttons[selectedIdx].classList.add("wrong"); wrongSound.play(); attempt++;
-    if(attempt>=2){ buttons[round.answer].classList.add("correct"); setTimeout(nextRound,1500); }
-  }
-}
+    <audio id="sound-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
-// --- Timeline Drag & Drop ---
-function showTimeline(round){
-  logoSlide.style.display="none"; questionSlide.style.display="none"; timelineSlide.style.display="block"; endSlide.style.display="none";
-  instructionEl.textContent=round.instruction;
-  timelineDropContainer.innerHTML=""; timelineCardsEl.innerHTML="";
-  round.order.forEach(o=>{
-    const div=document.createElement("div"); div.classList.add("timeline-drop"); div.dataset.accept=o; div.addEventListener("dragover",e=>e.preventDefault());
-    div.addEventListener("drop",dropCard); timelineDropContainer.appendChild(div);
-  });
-  round.cards.forEach(c=>{
-    const div=document.createElement("div"); div.classList.add("timeline-card"); div.draggable=true; div.textContent=c;
-    div.addEventListener("dragstart",dragStart); timelineCardsEl.appendChild(div);
-  });
-}
+    <script>
+        const level1Puzzles = [
+            { text: "CRITICAL SYNC: Move hands to exactly quarter past 3 o'clock! (3:15)", h: 3, m: 15 },
+            { text: "CRITICAL SYNC: Move hands to show 6 hours and 42 minutes! (6:42)", h: 6, m: 42 },
+            { text: "CRITICAL SYNC: Set the dial to quarter to 9 o'clock! (8:45)", h: 8, m: 45 },
+            { text: "CRITICAL SYNC: Tune carefully to exactly 11:07!", h: 11, m: 7 }
+        ];
 
-let dragged=null;
-function dragStart(e){ dragged=e.target; }
-function dropCard(e){
-  e.preventDefault();
-  if(!dragged) return;
-  if(e.target.children.length===0){
-    e.target.appendChild(dragged);
-    dragged.style.cursor="default";
-    dragged.draggable=false;
-  }
-  checkTimelineComplete();
-}
+        const level2Puzzles = [
+            { text: "QUANTUM SHIFT: Today is Tuesday. Jump to 'the day after tomorrow'. What day is it?", choices: ["Thursday", "Wednesday", "Friday", "Monday"], correct: "Thursday" },
+            { text: "QUANTUM SHIFT: The current calendar tracker reads 2026. Jump precisely 'two years from now'. What year is it?", choices: ["2028", "2027", "2025", "2024"], correct: "2028" },
+            { text: "QUANTUM SHIFT: If tomorrow is Sunday, what day is today?", choices: ["Saturday", "Sunday", "Friday", "Monday"], correct: "Saturday" },
+            { text: "QUANTUM SHIFT: The warp drive says the current year is 2026. What was the 'previous year'?", choices: ["2025", "2024", "2027", "2026"], correct: "2025" }
+        ];
 
-function checkTimelineComplete(){
-  const round=rounds[currentRound];
-  const drops=document.querySelectorAll(".timeline-drop");
-  let correct=true;
-  drops.forEach(d=>{
-    if(d.children.length===0 || d.children[0].textContent!==d.dataset.accept) correct=false;
-  });
-  if(correct){ correctSound.play(); setTimeout(nextRound,1000); }
-}
+        const level3Puzzles = [
+            { text: "TIMELINE REPAIR: Which history log lists events in the correct, sequential timeline order?", choices: ["Past ➔ Present ➔ Future", "Present ➔ Past ➔ Future", "Future ➔ Past ➔ Present", "Past ➔ Future ➔ Present"], correct: "Past ➔ Present ➔ Future" },
+            { text: "TIMELINE REPAIR: Arrange these sequence metrics safely from shortest duration to longest duration:", choices: ["Minute ➔ Hour ➔ Day", "Hour ➔ Minute ➔ Day", "Day ➔ Hour ➔ Minute", "Minute ➔ Day ➔ Hour"], correct: "Minute ➔ Hour ➔ Day" },
+            { text: "TIMELINE REPAIR: Choose the sequence ordered correctly by timeline logic:", choices: ["Yesterday ➔ Today ➔ Tomorrow", "Tomorrow ➔ Today ➔ Yesterday", "Today ➔ Tomorrow ➔ Yesterday", "Yesterday ➔ Tomorrow ➔ Today"], correct: "Yesterday ➔ Today ➔ Tomorrow" }
+        ];
 
-// --- End Slide ---
-function showEndSlide(){ questionSlide.style.display="none"; timelineSlide.style.display="none"; endSlide.style.display="block"; applauseSound.play(); launchConfetti(); }
+        let currentLevel = 0;
+        let puzzleIndex = 0;
+        let activePool = [];
+        let inputLock = false;
+        let attemptsUsed = 0;
 
-playAgainBtn.addEventListener("click",()=>{ clearConfetti(); startGame(); });
+        let hValue = 12;
+        let mValue = 0;
 
-// --- Confetti ---
-let confettiCtx=confettiCanvas.getContext('2d'); confettiCanvas.width=window.innerWidth; confettiCanvas.height=window.innerHeight; let confettiPieces=[];
-function launchConfetti(){ confettiPieces=[]; for(let i=0;i<150;i++){ confettiPieces.push({x:Math.random()*confettiCanvas.width,y:Math.random()*confettiCanvas.height,r:Math.random()*6+2,d:Math.random()*20,color:`hsl(${Math.random()*360},100%,50%)`,tilt:Math.random()*10-10}); } requestAnimationFrame(drawConfetti);}
-function drawConfetti(){ confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height); confettiPieces.forEach(p=>{ confettiCtx.beginPath(); confettiCtx.lineWidth=p.r/2; confettiCtx.strokeStyle=p.color; confettiCtx.moveTo(p.x+p.tilt+p.r/4,p.y); confettiCtx.lineTo(p.x+p.tilt,p.y+p.r); confettiCtx.stroke(); p.y+=Math.cos(0.1+p.d)*2+1; p.x+=Math.sin(0.05)*2; if(p.y>confettiCanvas.height){p.y=0;p.x=Math.random()*confettiCanvas.width;} }); if(endSlide.style.display==="block") requestAnimationFrame(drawConfetti);}
-function clearConfetti(){ confettiCtx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height); }
+        const clipWin = document.getElementById('sound-correct');
+        const clipLose = document.getElementById('sound-wrong');
 
-window.onload=startGame;
-</script>
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    document.getElementById('display-prompt').innerHTML = "Quantum anomalies detected! Synchronize the clock coordinates, bridge calendar wormholes, and realign chronological timelines!";
+                }, 500);
+            }, 3000);
+        });
+
+        function clearViewPorts() {
+            document.querySelectorAll('.input-view').forEach(v => v.style.display = 'none');
+            document.getElementById('visual-clock').style.display = 'none';
+            document.getElementById('clock-digital').style.display = 'none';
+            document.getElementById('visual-image').style.display = 'none';
+        }
+
+        function advanceToLevel(targetLevelId) {
+            currentLevel = targetLevelId;
+            puzzleIndex = 0;
+            clearViewPorts();
+
+            const promptBox = document.getElementById('display-prompt');
+            const visualImg = document.getElementById('visual-image');
+
+            if (currentLevel === 1) {
+                document.getElementById('label-level').textContent = "MATRIX LEVEL 1";
+                visualImg.src = "assets/clock-face.png";
+                visualImg.style.display = "block";
+                promptBox.innerHTML = "⚡ <strong>ZONE 1: PRECISION CLOCKWORK LOGS</strong><br>The gears are loose! Sync the analog dial mechanism to the exact minutes and specific hour quarter intervals.";
+                document.getElementById('view-transition').style.display = 'block';
+            }
+            else if (currentLevel === 2) {
+                document.getElementById('label-level').textContent = "MATRIX LEVEL 2";
+                visualImg.src = "assets/calendar.png";
+                visualImg.style.display = "block";
+                promptBox.innerHTML = "🌀 <strong>ZONE 2: CALENDAR CALIBRATION DRIVES</strong><br>The chronological anchors are slipstreaming. Solve relative day shifts and jump multiple calendar years into the continuum!";
+                document.getElementById('view-transition').style.display = 'block';
+            }
+            else if (currentLevel === 3) {
+                document.getElementById('label-level').textContent = "MATRIX LEVEL 3";
+                visualImg.src = "assets/time-bg.png";
+                visualImg.style.display = "block";
+                promptBox.innerHTML = "📜 <strong>ZONE 3: CHRONOLOGICAL SEQUENCE REPAIR</strong><br>Final Paradox! Order structural blocks and sequential timelines to freeze history arrays in their proper, linear paths.";
+                document.getElementById('view-transition').style.display = 'block';
+            }
+        }
+
+        function startLoadedLevel() {
+            clearViewPorts();
+            attemptsUsed = 0;
+
+            if (currentLevel === 1) {
+                document.getElementById('label-level').textContent = "L1: ANALOG CHRONO-METRICS";
+                document.getElementById('visual-clock').style.display = 'block';
+                document.getElementById('clock-digital').style.display = 'block';
+                document.getElementById('view-l1').style.display = 'block';
+                activePool = [...level1Puzzles].sort(() => Math.random() - 0.5);
+                
+                // FORCE 12:00 AT THE START OF LEVEL 1
+                hValue = 12;
+                mValue = 0;
+                calculateHandRotations();
+                executeStageLoad();
+            }
+            else if (currentLevel === 2) {
+                document.getElementById('label-level').textContent = "L2: QUANTUM LEAP CALENDAR";
+                document.getElementById('visual-image').src = "assets/calendar.png";
+                document.getElementById('visual-image').style.display = 'block';
+                document.getElementById('view-grid').style.display = 'block';
+                activePool = [...level2Puzzles].sort(() => Math.random() - 0.5);
+                executeStageLoad();
+            }
+            else if (currentLevel === 3) {
+                document.getElementById('label-level').textContent = "L3: TIMELINE SEQUENCERS";
+                document.getElementById('visual-image').src = "assets/time-bg.png";
+                document.getElementById('visual-image').style.display = 'block';
+                document.getElementById('view-grid').style.display = 'block';
+                activePool = [...level3Puzzles].sort(() => Math.random() - 0.5);
+                executeStageLoad();
+            }
+        }
+
+        function executeStageLoad() {
+            inputLock = false;
+            const puzzle = activePool[puzzleIndex];
+            document.getElementById('display-prompt').textContent = puzzle.text;
+
+            // FORCE 12:00 AT THE START OF EACH INDIVIDUAL CLOCK QUESTION
+            if (currentLevel === 1) {
+                hValue = 12;
+                mValue = 0;
+                calculateHandRotations();
+            }
+
+            if (currentLevel === 2 || currentLevel === 3) {
+                const container = document.getElementById('grid-container');
+                container.innerHTML = '';
+                
+                let matrixMix = [...puzzle.choices].sort(() => Math.random() - 0.5);
+                matrixMix.forEach(choiceText => {
+                    const choiceBtn = document.createElement('button');
+                    choiceBtn.className = 'btn-game';
+                    choiceBtn.textContent = choiceText;
+                    choiceBtn.onclick = () => parseGridSelection(choiceBtn, choiceText === puzzle.correct);
+                    container.appendChild(choiceBtn);
+                });
+            }
+        }
+
+        // --- CLOCK MECHANICS ---
+        function turnGears(hrDelta, minDelta) {
+            if (inputLock) return;
+            mValue += minDelta;
+            if (mValue >= 60) {
+                let extraHours = Math.floor(mValue / 60);
+                mValue = mValue % 60;
+                hValue += extraHours;
+            }
+            hValue += hrDelta;
+            while (hValue > 12) hValue -= 12;
+            calculateHandRotations();
+        }
+
+        function resetHandsToTwelve() {
+            if (inputLock) return;
+            hValue = 12;
+            mValue = 0;
+            calculateHandRotations();
+        }
+
+        function calculateHandRotations() {
+            const rotMin = mValue * 6;
+            const rotHr = (hValue * 30) + (mValue * 0.5);
+            document.getElementById('min-needle').style.transform = `translate(-50%, 0) rotate(${rotMin}deg)`;
+            document.getElementById('hr-needle').style.transform = `translate(-50%, 0) rotate(${rotHr}deg)`;
+            
+            let displayMin = mValue < 10 ? '0' + mValue : mValue;
+            document.getElementById('clock-digital').textContent = `Current Tuning: ${hValue}:${displayMin}`;
+        }
+
+        function verifyLevel1State() {
+            if (inputLock) return;
+            const challenge = activePool[puzzleIndex];
+            
+            if (hValue === challenge.h && mValue === challenge.m) {
+                processValidationSuccess();
+            } else {
+                handleIncorrectAttempt(null);
+            }
+        }
+
+        // --- CHOICE SELECTION LOGIC ---
+        function parseGridSelection(clickedElement, pointsMatch) {
+            if (inputLock) return;
+
+            if (pointsMatch) {
+                inputLock = true;
+                clickedElement.classList.add('correct');
+                processValidationSuccess();
+            } else {
+                clickedElement.classList.add('wrong');
+                clickedElement.disabled = true; 
+                handleIncorrectAttempt(clickedElement);
+            }
+        }
+
+        // --- ATTEMPT DISPATCH ENGINE ---
+        function handleIncorrectAttempt(clickedElement) {
+            attemptsUsed++;
+            try { clipLose.play(); } catch(err){}
+
+            if (attemptsUsed < 2) {
+                document.getElementById('display-prompt').innerHTML = "⚠️ <strong>Matrix Mismatch!</strong> Rerouting sensors. Readjust coordinates and try once more!";
+                if (currentLevel === 1) inputLock = false; 
+            } else {
+                inputLock = true;
+                document.getElementById('display-prompt').innerHTML = "❌ <strong>Grid Overheated!</strong> Forcing automatic core safety calibration override...";
+                
+                if (currentLevel === 1) {
+                    const challenge = activePool[puzzleIndex];
+                    hValue = challenge.h;
+                    mValue = challenge.m;
+                    setTimeout(() => { calculateHandRotations(); }, 500);
+                } else {
+                    const buttons = document.querySelectorAll('.grid-choices .btn-game');
+                    buttons.forEach(btn => {
+                        if (btn.textContent === activePool[puzzleIndex].correct) btn.classList.add('correct');
+                        btn.disabled = true;
+                    });
+                }
+
+                puzzleIndex++;
+                setTimeout(() => { evaluateGameProgression(); }, 2500);
+            }
+        }
+
+        function processValidationSuccess() {
+            inputLock = true;
+            try { clipWin.play(); } catch(err){}
+            confetti({ particleCount: 50, spread: 60 });
+
+            puzzleIndex++;
+            setTimeout(() => { evaluateGameProgression(); }, 1800);
+        }
+
+        function evaluateGameProgression() {
+            attemptsUsed = 0; 
+            
+            if (puzzleIndex < activePool.length) {
+                executeStageLoad();
+            } else {
+                if (currentLevel === 1) advanceToLevel(2);
+                else if (currentLevel === 2) advanceToLevel(3);
+                else triggerVictoryEpilogue();
+            }
+        }
+
+        function triggerVictoryEpilogue() {
+            clearViewPorts();
+            document.getElementById('label-level').textContent = "ALL LOGIC STABLE";
+            
+            const trophyAsset = document.getElementById('visual-image');
+            trophyAsset.src = "assets/innovine-logo.png";
+            trophyAsset.style.display = 'block';
+
+            document.getElementById('display-prompt').innerHTML = "🏆 <strong>QUANTUM CONVERGENCE SECURED!</strong><br>All analog variables, timeline directions, and chronological grids are completely stable!";
+            document.getElementById('view-epilogue').style.display = 'block';
+            confetti({ particleCount: 150, spread: 85 });
+        }
+
+        function resetEngine() {
+            advanceToLevel(1);
+        }
+    </script>
 </body>
 </html>
