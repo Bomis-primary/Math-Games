@@ -3,453 +3,529 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grade 2: Time Machine Mechanic</title>
+    <title>Time Machine: 3-Level Restoration Adventure</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        :root {
-            --text-main: #2C3E50;
-            --primary: #009688;
-            --primary-dark: #00796B;
-            --gear-color: #78909C;
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif;
             user-select: none;
         }
 
         body {
-            background: linear-gradient(135deg, #ECEFF1 0%, #CFD8DC 100%);
-            color: var(--text-main);
+            background-color: #2c3e50;
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            overflow: hidden;
-            position: relative;
+            padding: 12px;
         }
 
-        /* --- EXPLICIT 5-SECOND SPLASH SCREEN --- */
+        /* --- BLANK WHITE SPLASH SCREEN --- */
         #splash-screen {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #FFFFFF;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #ffffff;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            transition: opacity 0.6s ease-out;
+            transition: opacity 0.5s ease-out;
         }
-        .splash-logo { max-width: 260px; height: auto; margin-bottom: 20px; }
-        .timer-loader {
-            width: 120px; height: 6px; background: #E0E0E0; border-radius: 3px; overflow: hidden;
-        }
-        .timer-progress {
-            width: 0%; height: 100%; background: var(--primary);
-            animation: fillBar 5s linear forwards;
-        }
-        @keyframes fillBar { 100% { width: 100%; } }
+        #splash-screen img { max-width: 280px; height: auto; }
 
-        /* --- MAIN LAYOUT CONTROLLER --- */
-        #game-container {
-            width: 95%;
-            max-width: 800px;
-            background: #FFFFFF;
-            padding: 25px;
+        /* --- HARDWARE CABINET CONTAINER --- */
+        .arcade-cabinet {
+            background: linear-gradient(135deg, #1e272e, #0f171e);
+            border: 6px solid #ff9800;
             border-radius: 24px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.12);
-            border: 6px solid var(--primary);
-            text-align: center;
+            padding: 16px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 20px 45px rgba(0,0,0,0.6);
+            color: #fff;
+        }
+
+        /* --- DYNAMIC GRAPHICS STAGE --- */
+        .graphics-stage {
+            background: url('assets/time-bg.png') center/cover no-repeat, #85c1e9;
+            width: 100%;
+            height: 240px;
+            border-radius: 16px;
+            border: 4px solid #000;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        /* Level 1 Custom Clock Visual Layout */
+        .toy-clock {
+            width: 170px;
+            height: 170px;
+            background: url('assets/clock-face.png') center/cover no-repeat, #fff8e1;
+            border-radius: 50%;
+            position: relative;
             display: none;
-            opacity: 0;
-            transition: opacity 0.4s ease-in;
-            z-index: 10;
-        }
-
-        .mission-text {
-            font-size: 1.2rem; line-height: 1.6; margin-bottom: 25px;
-            background: #E0F2F1; padding: 20px; border-radius: 16px; border: 2px dashed var(--primary);
-        }
-        .start-btn {
-            background: linear-gradient(135deg, #00B0FF, #0091EA); color: white;
-            border: none; padding: 16px 50px; font-size: 1.4rem; font-weight: bold;
-            border-radius: 50px; cursor: pointer; box-shadow: 0 6px 0 #007BB6;
-            transition: transform 0.1s;
-        }
-        .start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
-
-        /* --- HUD TRACKER --- */
-        #active-playfield { display: none; }
-        .hud-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 12px; font-weight: bold; font-size: 1.1rem;
-        }
-        .phase-badge { background: #B2DFDB; padding: 6px 16px; border-radius: 20px; color: #004D40; font-weight: bold;}
-
-        .progress-track {
-            width: 100%; height: 14px; background: #ECEFF1; border-radius: 10px;
-            overflow: hidden; margin-bottom: 20px; border: 1px solid #CFD8DC;
-        }
-        #progress-bar { height: 100%; width: 0%; background: #009688; transition: width 0.3s; }
-
-        .question-banner {
-            font-size: 1.4rem; font-weight: bold; color: #37474F; background: #F5F7F8;
-            padding: 16px; border-radius: 16px; margin-bottom: 20px; border-bottom: 4px solid #DFE4E8;
-        }
-
-        /* --- THE TIME MACHINE CORE STAGE --- */
-        #machine-core-arena {
-            width: 100%; height: 220px; background: #263238; border-radius: 20px;
-            display: flex; justify-content: center; align-items: center; position: relative;
-            margin-bottom: 25px; border: 4px solid #455A64;
-            box-shadow: inset 0 6px 15px rgba(0,0,0,0.5);
-        }
-
-        /* Large Clear CSS Analog Clock Face */
-        .analog-clock {
-            width: 160px; height: 160px; background: #FFFFFF;
-            border: 8px solid #FFB300; border-radius: 50%; position: relative;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
         }
         .clock-center {
-            position: absolute; width: 12px; height: 12px; background: #D32F2F;
-            border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10;
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 12px; height: 12px;
+            background: #212121;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
         }
         .hand {
-            position: absolute; bottom: 50%; left: 50%; transform-origin: bottom center;
-            border-radius: 4px; transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+            position: absolute;
+            bottom: 50%; left: 50%;
+            transform-origin: bottom center;
+            border-radius: 4px;
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.2);
         }
-        .hour-hand { width: 6px; height: 42px; background: #212121; z-index: 5; }
-        .minute-hand { width: 4px; height: 62px; background: #546E7A; z-index: 4; }
-        .clock-num { position: absolute; font-size: 1rem; font-weight: bold; color: #212121; }
-        .num12 { top: 4px; left: calc(50% - 8px); }
-        .num3  { right: 6px; top: calc(50% - 9px); }
-        .num6  { bottom: 4px; left: calc(50% - 5px); }
-        .num9  { left: 6px; top: calc(50% - 9px); }
+        .hour-hand { width: 6px; height: 42px; background: #212121; transform: translate(-50%, 0) rotate(0deg); z-index: 5; }
+        .minute-hand { width: 4px; height: 62px; background: #e91e63; transform: translate(-50%, 0) rotate(0deg); z-index: 6; }
 
-        #calendar-core-emoji { font-size: 5rem; display: none; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); }
-
-        /* --- STATIC, HIGH-READABILITY INTERACTIVE GEAR SELECTIONS --- */
-        .gear-matrix {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;
+        /* Level 2 & 3 Dynamic Asset Box */
+        .badge-display {
+            max-height: 150px;
+            width: auto;
+            object-fit: contain;
+            animation: floatAnimation 2.5s infinite ease-in-out;
+            display: none;
         }
+        @keyframes floatAnimation {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* --- CONTROL CONSOLE (BOTTOM AREA) --- */
+        .control-board {
+            background: #f4f6f7;
+            border: 4px solid #000;
+            border-radius: 16px;
+            padding: 15px;
+            color: #333;
+        }
+        .meta-strip {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: bold;
+            color: #7f8c8d;
+            margin-bottom: 8px;
+        }
+        .task-card {
+            background: #fff;
+            border: 3px dashed #ff9800;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            border-radius: 10px;
+            color: #d84315;
+            text-align: center;
+            min-height: 85px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Views Switching */
+        .input-view { display: none; }
+        .crank-box { display: flex; justify-content: center; gap: 12px; margin-bottom: 12px; }
         
-        .part-card {
-            background: #FFFFFF; border: 4px solid #B0BEC5; border-radius: 18px;
-            padding: 20px; font-size: 1.4rem; font-weight: bold; color: #37474F;
-            cursor: pointer; box-shadow: 0 6px 0 #B0BEC5; transition: all 0.1s;
-            display: flex; align-items: center; justify-content: center; gap: 10px;
+        .grid-choices {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
         }
-        .part-card:hover { background: #FAFAFA; border-color: #78909C; }
-        .part-card:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
+
+        /* Action Buttons */
+        .btn-game {
+            background: #2980b9;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #1b4f72;
+            transition: transform 0.1s;
+        }
+        .btn-game:hover:not(:disabled) { background: #3498db; }
+        .btn-game:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #1b4f72; }
         
-        /* Clear Grade-2 Color Code Signaling */
-        .part-card.correct { background: #C8E6C9 !important; border-color: #4CAF50 !important; color: #2E7D32 !important; box-shadow: 0 6px 0 #388E3C !important; }
-        .part-card.wrong { background: #FFCDD2 !important; border-color: #F44336 !important; color: #C62828 !important; box-shadow: 0 6px 0 #D32F2F !important; }
+        .btn-game.correct { background: #2ecc71 !important; box-shadow: 0 4px 0 #27ae60 !important; color: white !important; }
+        .btn-game.wrong { background: #e74c3c !important; box-shadow: 0 4px 0 #c0392b !important; color: white !important; }
 
-        /* --- CELEBRATION BALLOONS (RELEASED FROM SIDES ONLY ON SUCCESS) --- */
-        .side-balloon {
-            position: fixed; bottom: -120px; width: 75px; height: 95px;
-            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%; z-index: 99; pointer-events: none;
-            animation: launchUp 3.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.15));
+        .btn-submit {
+            background: #2ecc71;
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 14px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #27ae60;
+            margin-top: 5px;
         }
-        .side-balloon::before {
-            content: ''; position: absolute; bottom: -5px; left: 50%; transform: translateX(-50%);
-            border-left: 5px solid transparent; border-right: 5px solid transparent; border-bottom: 7px solid currentColor;
-        }
-        .side-balloon::after {
-            content: ''; position: absolute; bottom: -40px; left: 50%; width: 2px; height: 35px; background: rgba(0,0,0,0.2);
-        }
-        @keyframes launchUp {
-            0% { transform: translateY(0) rotate(0deg); opacity: 0; }
-            10% { opacity: 1; }
-            90% { opacity: 1; }
-            100% { transform: translateY(-120vh) rotate(10deg); opacity: 0; }
-        }
-
-        .confetti-element {
-            position: absolute; width: 8px; height: 8px; top: 50%; left: 50%;
-            opacity: 0; pointer-events: none; z-index: 95; border-radius: 2px;
-        }
+        .btn-submit:active { transform: translateY(4px); box-shadow: 0 1px 0 #27ae60; }
     </style>
 </head>
 <body>
 
-    <!-- Splash Screen showing your logo for exactly 5 seconds -->
+    <!-- 5-SECOND BLANK WHITE SPLASH (TEXT REMOVED) -->
     <div id="splash-screen">
-        <img src="assets/innovine-logo.png" alt="Innovine Logo" class="splash-logo" onerror="this.src='https://placehold.co/220x60/009688/fff?text=Innovine'">
-        <div class="timer-loader"><div class="timer-progress"></div></div>
+        <img src="assets/innovine-logo.png" alt="Innovine Logo" onerror="this.src='https://placehold.co/280x150?text=Innovine+Logo'">
     </div>
 
-    <!-- Game Container Frame -->
-    <div id="game-container">
+    <!-- PHYSICAL DEVICE FRAMEWAY -->
+    <div class="arcade-cabinet">
         
-        <!-- Welcome Intro Deck Card -->
-        <div id="intro-card">
-            <div style="font-size: 4.5rem; margin-bottom: 12px;">⚙️⏳🚀</div>
-            <h2 style="color: var(--primary-dark); font-size: 2.2rem; margin-bottom: 12px;">Time Machine Repair Shop</h2>
-            <p class="mission-text">
-                The Time Machine has broken down! We need a master mechanic to install the correct parts and fix the timeline.
-                <br><br>
-                <strong>Your Mission:</strong> Look at the clock face or reading prompt carefully, choose the engine gear with the correct time text, and fix the machine!
-            </p>
-            <button class="start-btn" onclick="startRepairShop()">Enter Engine Room 🛠️</button>
-        </div>
-
-        <!-- Gameplay Field Layout -->
-        <div id="active-playfield">
-            <div class="hud-header">
-                <span id="label-task">Engine Fix: 1 / 12</span>
-                <span class="phase-badge" id="label-phase">Level 1: Hour Gears</span>
-                <span>Score: <span id="label-score" style="color: var(--primary-dark);">0</span></span>
+        <!-- VISUAL PANEL (CANVAS STAGE) -->
+        <div class="graphics-stage">
+            <!-- Level 1 Dynamic Overlay Mesh -->
+            <div class="toy-clock" id="visual-clock">
+                <div class="clock-center"></div>
+                <div id="hr-needle" class="hand hour-hand"></div>
+                <div id="min-needle" class="hand minute-hand"></div>
             </div>
 
-            <div class="progress-track"><div id="progress-bar"></div></div>
+            <!-- Level 2 & 3 Image Renderer Target -->
+            <img class="badge-display" id="visual-image" src="" alt="Game Asset Reference">
+        </div>
 
-            <div class="question-banner" id="field-question">Checking system alignment...</div>
+        <!-- CONTROLLER DECK -->
+        <div class="control-board">
+            <div class="meta-strip">
+                <span id="label-level">TIME MACHINE ADVENTURE</span>
+                <div>🔊 <input type="range" id="volume" min="0" max="1" step="0.1" value="0.7" style="width:50px; vertical-align:middle; cursor:pointer;"></div>
+            </div>
 
-            <!-- CORE VISUAL AREA (No falling parts, completely static for Grade 2 focus) -->
-            <div id="machine-core-arena">
-                <!-- Level 1 Analog Engine Layout -->
-                <div class="analog-clock" id="live-clock">
-                    <div class="clock-center"></div>
-                    <div class="hand hour-hand" id="hw-hour"></div>
-                    <div class="hand minute-hand" id="hw-minute"></div>
-                    <div class="clock-num num12">12</div>
-                    <div class="clock-num num3">3</div>
-                    <div class="clock-num num6">6</div>
-                    <div class="clock-num num9">9</div>
+            <!-- Context Dialogue Output Slot -->
+            <div class="task-card" id="display-prompt">Booting primary parameters...</div>
+
+            <!-- INPUT HANDLER PANELS -->
+            <div id="router-panel">
+                
+                <!-- BOOT ENTRY SPLASH PANEL -->
+                <div id="view-prologue" class="input-view" style="display: block;">
+                    <button class="btn-submit" style="background:#e67e22; box-shadow:0 5px 0 #d35400;" onclick="advanceToLevel(1)">START GAME 🚀</button>
                 </div>
-                <!-- Level 2 Calendar Crystal Display Layout -->
-                <div id="calendar-core-emoji">📅</div>
+
+                <!-- TRANSITION SCREEN BETWEEN LEVELS -->
+                <div id="view-transition" class="input-view">
+                    <button class="btn-submit" id="btn-next-level" style="background:#34495e; box-shadow:0 5px 0 #2c3e50;" onclick="startLoadedLevel()">ENTER NEXT ZONE 🚪</button>
+                </div>
+
+                <!-- LEVEL 1 LAYOUT CONTROL PANEL (GEARS) -->
+                <div id="view-l1" class="input-view">
+                    <div class="crank-box">
+                        <button class="btn-game" onclick="turnGears(1, 0)">⚙️ +1 Hour</button>
+                        <button class="btn-game" onclick="turnGears(0, 30)" style="background:#8e44ad; box-shadow:0 4px 0 #5b2c6f;">⚙️ +30 Mins</button>
+                    </div>
+                    <button class="btn-submit" onclick="verifyLevel1State()">PULL VERIFICATION LEVER 🕹️</button>
+                </div>
+
+                <!-- LEVEL 2 & 3 LAYOUT CONTROL PANEL (SELECTION GRID) -->
+                <div id="view-grid" class="input-view">
+                    <div class="grid-choices" id="grid-container">
+                        <!-- Filled at runtime dynamically by script modules -->
+                    </div>
+                </div>
+
+                <!-- COMPLETED GAME CARD -->
+                <div id="view-epilogue" class="input-view">
+                    <button class="btn-submit" style="background:#9b59b6; box-shadow:0 5px 0 #8e44ad;" onclick="resetEngine()">PLAY ADVENTURE AGAIN 🔄</button>
+                </div>
+
             </div>
-
-            <!-- Large, highly readable text option grid -->
-            <div class="gear-matrix" id="field-options"></div>
-        </div>
-
-        <!-- Ultimate Victory Screen Card -->
-        <div id="victory-card" style="display: none;">
-            <div style="font-size: 5rem;">🏆🛠️⚡</div>
-            <h1 style="color: #2E7D32; font-size: 2.5rem; margin: 15px 0;">Chief Time Engineer!</h1>
-            <p style="font-size: 1.3rem; margin-bottom: 25px; padding: 0 20px;">
-                Amazing! The engine is humming smoothly and time is moving perfectly again!
-            </p>
-            <h2 id="final-stats" style="color: var(--primary-dark); margin-bottom: 25px;"></h2>
-            <button class="start-btn" onclick="resetSimulator()">Repair Another Machine 🔄</button>
         </div>
 
     </div>
 
-    <!-- Audio Asset Anchors -->
-    <audio id="snd-correct" src="assets/correct.mp3" preload="none"></audio>
-    <audio id="snd-wrong" src="assets/wrong.mp3" preload="none"></audio>
-    <audio id="snd-claps" src="assets/freesound_community-claps-44774.mp3" preload="none"></audio>
+    <!-- AUDIO ENGINE TARGET HOOKS -->
+    <audio id="sound-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
     <script>
-        var phase1Pool = [
-            { question: "What time does the clock machine show?", answers: ["3 o'clock", "4 o'clock", "Half past 3", "12 o'clock"], correct: "3 o'clock", hourAngle: 90, minAngle: 0 },
-            { question: "The hour hand is past 1 and the minute hand is on 6. What time is it?", answers: ["1 o'clock", "Half past 1", "Half past 2", "6 o'clock"], correct: "Half past 1", hourAngle: 45, minAngle: 180 },
-            { question: "What time does the clock machine show?", answers: ["8 o'clock", "9 o'clock", "Half past 8", "12 o'clock"], correct: "8 o'clock", hourAngle: 240, minAngle: 0 },
-            { question: "Both clock hands are pointing straight up at 12. What time is it?", answers: ["12 o'clock", "6 o'clock", "Half past 12", "1 o'clock"], correct: "12 o'clock", hourAngle: 0, minAngle: 0 },
-            { question: "What time does the clock machine show?", answers: ["Half past 5", "Half past 6", "5 o'clock", "6 o'clock"], correct: "Half past 5", hourAngle: 165, minAngle: 180 }
+        // Puzzle storage mapped precisely to assets files and syllabus thresholds
+        const level1Puzzles = [
+            { text: "GEAR SHIFT: Turn the mechanical gears until the clock displays exactly 4:00 o'clock!", h: 4, m: 0 },
+            { text: "GEAR SHIFT: Spin the hands to represent half past 10 o'clock! (10:30)", h: 10, m: 30 },
+            { text: "GEAR SHIFT: Turn the clock dials to point directly to 7:00 o'clock!", h: 7, m: 0 },
+            { text: "GEAR SHIFT: Calibrate the hands to show half past 1 o'clock! (1:30)", h: 1, m: 30 }
         ];
 
-        var phase2Pool = [
-            { question: "If today is Wednesday, what day was yesterday?", answers: ["Tuesday", "Thursday", "Monday", "Friday"], correct: "Tuesday", emoji: "📅" },
-            { question: "What day comes right after Friday?", answers: ["Saturday", "Sunday", "Thursday", "Monday"], correct: "Saturday", emoji: "📆" },
-            { question: "How many months are there in one full year?", answers: ["12 months", "7 months", "30 months", "10 months"], correct: "12 months", emoji: "🗓️" },
-            { question: "Which of these months has exactly 30 days?", answers: ["April", "January", "March", "December"], correct: "April", emoji: "📝" },
-            { question: "How many days does February have in a Leap Year?", answers: ["29 days", "28 days", "30 days", "31 days"], correct: "29 days", emoji: "🚀" },
-            { question: "Which season is known for cold weather and winter clothes?", answers: ["Winter", "Summer", "Spring", "Autumn"], correct: "Winter", emoji: "❄️" },
-            { question: "Finish the season order: Spring, Summer, Autumn, and then ______?", answers: ["Winter", "Rainy", "Holiday", "January"], correct: "Winter", emoji: "🍂" }
+        const level2Puzzles = [
+            { text: "CALENDAR CORE: If Today is Wednesday, what day was Yesterday?", choices: ["Tuesday", "Thursday", "Monday", "Friday"], correct: "Tuesday" },
+            { text: "CALENDAR CORE: Which day comes right after Saturday?", choices: ["Sunday", "Monday", "Friday", "Wednesday"], correct: "Sunday" },
+            { text: "CALENDAR CORE: How many days are inside February during a Leap Year?", choices: ["29 days", "28 days", "30 days", "31 days"], correct: "29 days" },
+            { text: "CALENDAR CORE: Find the month that contains exactly 30 calendar days.", choices: ["April", "January", "July", "December"], correct: "April" }
         ];
 
-        var currentPhase = 1;
-        var pIndex = 0;
-        var gameScore = 0;
+        const level3Puzzles = [
+            { text: "SEASONS DIAL: Bright hot sun, swimming pools, and ice creams!", choices: ["Summer", "Winter", "Autumn", "Spring"], correct: "Summer", img: "summer.png" },
+            { text: "SEASONS DIAL: Cold snow falling down, warm jackets, and cozy fires!", choices: ["Winter", "Summer", "Autumn", "Spring"], correct: "Winter", img: "winter.png" },
+            { text: "SEASONS DIAL: Crunchy leaves turning red and brown and falling from trees!", choices: ["Autumn", "Spring", "Summer", "Winter"], correct: "Autumn", img: "autumn.png" },
+            { text: "SEASONS DIAL: Beautiful flowers blooming and birds singing in the garden!", choices: ["Spring", "Autumn", "Winter", "Summer"], correct: "Spring", img: "spring.png" }
+        ];
 
-        function triggerAudio(mode) {
-            try {
-                var audioCorrect = document.getElementById('snd-correct');
-                var audioWrong = document.getElementById('snd-wrong');
-                var audioClaps = document.getElementById('snd-claps');
-                if (mode === 'correct' && audioCorrect) {
-                    audioCorrect.volume = 0.4; audioCorrect.currentTime = 0; audioCorrect.play().catch(function(){});
-                } else if (mode === 'wrong' && audioWrong) {
-                    audioWrong.volume = 0.4; audioWrong.currentTime = 0; audioWrong.play().catch(function(){});
-                } else if (mode === 'victory' && audioClaps) {
-                    audioClaps.volume = 0.5; audioClaps.currentTime = 0; audioClaps.play().catch(function(){});
-                }
-            } catch(err) {}
-        }
+        let currentLevel = 0;
+        let puzzleIndex = 0;
+        let activePool = [];
+        let inputLock = false;
+        
+        // Chance Tracking variables
+        let attemptsUsed = 0;
 
-        // Fires off two beautiful reward balloons from the left and right ends only upon a correct choice
-        function triggerSideBalloons() {
-            var colorList = ['#E91E63', '#9C27B0', '#2196F3', '#4CAF50', '#FFEB3B', '#FF9800', '#00BCD4'];
-            
-            var leftB = document.createElement('div');
-            leftB.className = 'side-balloon';
-            var lc = colorList[Math.floor(Math.random() * colorList.length)];
-            leftB.style.backgroundColor = lc; leftB.style.color = lc;
-            leftB.style.left = '4%';
-            document.body.appendChild(leftB);
+        // Visual hands calculation coordinates
+        let hValue = 12;
+        let mValue = 0;
 
-            var rightB = document.createElement('div');
-            rightB.className = 'side-balloon';
-            var rc = colorList[Math.floor(Math.random() * colorList.length)];
-            rightB.style.backgroundColor = rc; rightB.style.color = rc;
-            rightB.style.right = '4%';
-            document.body.appendChild(rightB);
+        const clipWin = document.getElementById('sound-correct');
+        const clipLose = document.getElementById('sound-wrong');
+        const sliderVol = document.getElementById('volume');
 
-            setTimeout(function() { leftB.remove(); rightB.remove(); }, 3600);
-        }
+        sliderVol.addEventListener('input', (e) => {
+            clipWin.volume = e.target.value;
+            clipLose.volume = e.target.value;
+        });
 
-        function deployConfetti() {
-            try {
-                var frame = document.getElementById('game-container');
-                if(!frame) return;
-                var palettes = ['#009688', '#FF9800', '#FFD54F', '#4CAF50', '#2196F3', '#FFFFFF'];
-                for (var i = 0; i < 30; i++) {
-                    var atom = document.createElement('div');
-                    atom.className = 'confetti-element';
-                    atom.style.backgroundColor = palettes[Math.floor(Math.random() * palettes.length)];
-                    frame.appendChild(atom);
-                    var angle = Math.random() * Math.PI * 2;
-                    var force = Math.random() * 150 + 50;
-                    var shiftX = Math.cos(angle) * force;
-                    var shiftY = Math.sin(angle) * force - 10;
-                    atom.animate([
-                        { transform: 'translate(-50%, -50%) scale(1) rotate(0deg)', opacity: 1 },
-                        { transform: 'translate(calc(-50% + ' + shiftX + 'px), calc(-50% + ' + shiftY + 'px)) scale(0.3) rotate(' + (Math.random() * 360) + 'deg)', opacity: 0 }
-                    ], { duration: Math.random() * 400 + 600, easing: 'ease-out', fill: 'forwards' });
-                    (function(el) { setTimeout(function() { if(el) el.remove(); }, 1100); })(atom);
-                }
-            } catch(e){}
-        }
-
-        function startRepairShop() {
-            document.getElementById('intro-card').style.display = 'none';
-            document.getElementById('active-playfield').style.display = 'block';
-            initLevel1();
-        }
-
-        function initLevel1() {
-            currentPhase = 1; pIndex = 0;
-            document.getElementById('live-clock').style.display = 'block';
-            document.getElementById('calendar-core-emoji').style.display = 'none';
-            document.getElementById('label-phase').innerText = "Level 1: Hour Gears";
-            executeChallenge();
-        }
-
-        function initLevel2() {
-            currentPhase = 2; pIndex = 0;
-            document.getElementById('live-clock').style.display = 'none';
-            document.getElementById('calendar-core-emoji').style.display = 'block';
-            document.getElementById('label-phase').innerText = "Level 2: Calendar System";
-            document.getElementById('label-phase').style.background = "#E0F2F1";
-            document.getElementById('label-phase').style.color = "#004D40";
-            executeChallenge();
-        }
-
-        function executeChallenge() {
-            var pool = (currentPhase === 1) ? phase1Pool : phase2Pool;
-            var totalQuestions = phase1Pool.length + phase2Pool.length;
-            var cumulativeIndex = (currentPhase === 1) ? pIndex : phase1Pool.length + pIndex;
-            
-            document.getElementById('label-task').innerText = "Engine Fix: " + (cumulativeIndex + 1) + " / " + totalQuestions;
-            document.getElementById('progress-bar').style.width = ((cumulativeIndex / totalQuestions) * 100) + "%";
-
-            var item = pool[pIndex];
-            document.getElementById('field-question').innerText = item.question;
-
-            if (currentPhase === 1) {
-                document.getElementById('hw-hour').style.transform = 'rotate(' + item.hourAngle + 'deg)';
-                document.getElementById('hw-minute').style.transform = 'rotate(' + item.minAngle + 'deg)';
-            } else {
-                document.getElementById('calendar-core-emoji').innerText = item.emoji;
-            }
-
-            var optionsBox = document.getElementById('field-options');
-            optionsBox.innerHTML = '';
-            
-            item.answers.forEach(function(ans) {
-                var card = document.createElement('div');
-                card.className = 'part-card';
-                card.innerHTML = '⚙️ ' + ans;
-                card.onclick = function() { checkAnswer(card, ans, item.correct); };
-                optionsBox.appendChild(card);
-            });
-        }
-
-        function checkAnswer(cardElement, chosen, correct) {
-            document.querySelectorAll('.part-card').forEach(function(el) { el.style.pointerEvents = 'none'; });
-
-            if (chosen === correct) {
-                cardElement.classList.add('correct');
-                triggerAudio('correct');
-                deployConfetti();
-                triggerSideBalloons(); // Celebration balloons trigger cleanly from left/right margins!
-                gameScore++;
-                document.getElementById('label-score').innerText = gameScore;
-            } else {
-                cardElement.classList.add('wrong');
-                triggerAudio('wrong');
-                document.querySelectorAll('.part-card').forEach(function(el) {
-                    if (el.innerText.replace('⚙️ ', '') === correct) el.classList.add('correct');
-                });
-            }
-
-            setTimeout(function() {
-                pIndex++;
-                var pool = (currentPhase === 1) ? phase1Pool : phase2Pool;
-                if(pIndex < pool.length) {
-                    executeChallenge();
-                } else if(currentPhase === 1) {
-                    initLevel2();
-                } else {
-                    showVictoryScreen();
-                }
-            }, 2000);
-        }
-
-        function showVictoryScreen() {
-            document.getElementById('active-playfield').style.display = 'none';
-            document.getElementById('victory-card').style.display = 'block';
-            triggerAudio('victory');
-            var totalQ = phase1Pool.length + phase2Pool.length;
-            document.getElementById('final-stats').innerText = "Timeline Repair Accuracy: " + gameScore + " / " + totalQ;
-        }
-
-        function resetSimulator() {
-            location.reload();
-        }
-
-        /* --- STABLE 5-SECOND SPLASH SCREEN DISPATCH --- */
-        window.addEventListener('load', function() {
-            var splash = document.getElementById('splash-screen');
-            var mainContainer = document.getElementById('game-container');
-            
-            setTimeout(function() {
-                if (splash) {
-                    splash.style.opacity = '0';
-                    if (mainContainer) {
-                        mainContainer.style.display = 'block';
-                        setTimeout(function() { 
-                            mainContainer.style.opacity = '1'; 
-                            if (splash.parentNode) splash.parentNode.removeChild(splash);
-                        }, 600);
-                    }
-                }
+        // Splash lifecycle hook - exactly 5 seconds
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                    document.getElementById('display-prompt').innerHTML = "Welcome Time Detective! Fix the three matrix channels to restore order to the timeline!";
+                }, 500);
             }, 5000);
         });
+
+        function clearViewPorts() {
+            document.querySelectorAll('.input-view').forEach(v => v.style.display = 'none');
+            document.getElementById('visual-clock').style.display = 'none';
+            document.getElementById('visual-image').style.display = 'none';
+        }
+
+        // Handles short introductions before transitioning to a level
+        function advanceToLevel(targetLevelId) {
+            currentLevel = targetLevelId;
+            puzzleIndex = 0;
+            clearViewPorts();
+
+            const promptBox = document.getElementById('display-prompt');
+            const visualImg = document.getElementById('visual-image');
+
+            if (currentLevel === 1) {
+                document.getElementById('label-level').textContent = "LEVEL 1 PREVIEW";
+                visualImg.src = "assets/clock-face.png";
+                visualImg.style.display = "block";
+                promptBox.innerHTML = "🏁 <strong>LEVEL 1: THE CLOCKWORK GEARS</strong><br>The master clock towers have frozen out of sync! Use the mechanical cranks to rotate the hands and match the timelines.";
+                document.getElementById('view-transition').style.display = 'block';
+            }
+            else if (currentLevel === 2) {
+                document.getElementById('label-level').textContent = "LEVEL 2 PREVIEW";
+                visualImg.src = "assets/calendar.png";
+                visualImg.style.display = "block";
+                promptBox.innerHTML = "📅 <strong>LEVEL 2: THE CALENDAR MATRIX</strong><br>Great work! Next up, the days of the week and month trackers are scrambled. Let's stabilize the calendar pages!";
+                document.getElementById('view-transition').style.display = 'block';
+            }
+            else if (currentLevel === 3) {
+                document.getElementById('label-level').textContent = "LEVEL 3 PREVIEW";
+                visualImg.src = "assets/innovine-logo.png";
+                visualImg.style.display = "block";
+                promptBox.innerHTML = "🌤️ <strong>LEVEL 3: THE ECOSYSTEM DIAL</strong><br>Final Lock! The seasons are crashing into each other. Use your climate clues to sort through the four weather patterns!";
+                document.getElementById('view-transition').style.display = 'block';
+            }
+        }
+
+        // Starts the actual gameplay view after the introduction screen
+        function startLoadedLevel() {
+            clearViewPorts();
+            attemptsUsed = 0;
+
+            if (currentLevel === 1) {
+                document.getElementById('label-level').textContent = "LEVEL 1: CLOCK GEARS";
+                document.getElementById('visual-clock').style.display = 'block';
+                document.getElementById('view-l1').style.display = 'block';
+                activePool = [...level1Puzzles].sort(() => Math.random() - 0.5);
+                
+                hValue = Math.floor(Math.random() * 11) + 1;
+                mValue = Math.random() > 0.5 ? 30 : 0;
+                calculateHandRotations();
+                executeStageLoad();
+            }
+            else if (currentLevel === 2) {
+                document.getElementById('label-level').textContent = "LEVEL 2: CALENDAR MATRIX";
+                const imgTag = document.getElementById('visual-image');
+                imgTag.src = "assets/calendar.png";
+                imgTag.style.display = 'block';
+                document.getElementById('view-grid').style.display = 'block';
+                activePool = [...level2Puzzles].sort(() => Math.random() - 0.5);
+                executeStageLoad();
+            }
+            else if (currentLevel === 3) {
+                document.getElementById('label-level').textContent = "LEVEL 3: SEASONS DIAL";
+                document.getElementById('view-grid').style.display = 'block';
+                activePool = [...level3Puzzles].sort(() => Math.random() - 0.5);
+                executeStageLoad();
+            }
+        }
+
+        function executeStageLoad() {
+            inputLock = false;
+            const puzzle = activePool[puzzleIndex];
+            document.getElementById('display-prompt').textContent = puzzle.text;
+
+            if (currentLevel === 3) {
+                const seasonImg = document.getElementById('visual-image');
+                seasonImg.src = `assets/${puzzle.img}`;
+                seasonImg.style.display = 'block';
+            }
+
+            if (currentLevel === 2 || currentLevel === 3) {
+                const container = document.getElementById('grid-container');
+                container.innerHTML = '';
+                
+                let matrixMix = [...puzzle.choices].sort(() => Math.random() - 0.5);
+                matrixMix.forEach(choiceText => {
+                    const choiceBtn = document.createElement('button');
+                    choiceBtn.className = 'btn-game';
+                    choiceBtn.textContent = choiceText;
+                    choiceBtn.onclick = () => parseGridSelection(choiceBtn, choiceText === puzzle.correct);
+                    container.appendChild(choiceBtn);
+                });
+            }
+        }
+
+        // --- CLOCK MECHANICS ---
+        function turnGears(hrDelta, minDelta) {
+            mValue += minDelta;
+            if (mValue >= 60) { mValue = 0; hValue += 1; }
+            hValue += hrDelta;
+            if (hValue > 12) hValue = 1;
+            calculateHandRotations();
+        }
+
+        function calculateHandRotations() {
+            const rotMin = mValue * 6;
+            const rotHr = (hValue * 30) + (mValue * 0.5);
+            document.getElementById('min-needle').style.transform = `translate(-50%, 0) rotate(${rotMin}deg)`;
+            document.getElementById('hr-needle').style.transform = `translate(-50%, 0) rotate(${rotHr}deg)`;
+        }
+
+        function verifyLevel1State() {
+            if (inputLock) return;
+            const challenge = activePool[puzzleIndex];
+            
+            if (hValue === challenge.h && mValue === challenge.m) {
+                processValidationSuccess();
+            } else {
+                handleIncorrectAttempt(null);
+            }
+        }
+
+        // --- SELECTION GRID MECHANICS ---
+        function parseGridSelection(clickedElement, pointsMatch) {
+            if (inputLock) return;
+
+            if (pointsMatch) {
+                inputLock = true;
+                clickedElement.classList.add('correct');
+                processValidationSuccess();
+            } else {
+                clickedElement.classList.add('wrong');
+                clickedElement.disabled = true; 
+                handleIncorrectAttempt(clickedElement);
+            }
+        }
+
+        // --- MULTI-CHANCE LOGIC COMPONENT ---
+        function handleIncorrectAttempt(clickedElement) {
+            attemptsUsed++;
+            try { clipLose.play(); } catch(err){}
+
+            if (attemptsUsed < 2) {
+                document.getElementById('display-prompt').innerHTML = "⚠️ <strong>Not quite right!</strong> Check your settings and try one more time! 🔍";
+                
+                if (currentLevel === 1) {
+                    inputLock = false; 
+                }
+            } else {
+                inputLock = true;
+                document.getElementById('display-prompt').innerHTML = "❌ <strong>Let's calibrate together!</strong> Revealing the pattern coordinates...";
+                
+                if (currentLevel === 1) {
+                    const challenge = activePool[puzzleIndex];
+                    hValue = challenge.h;
+                    mValue = challenge.m;
+                    setTimeout(() => { calculateHandRotations(); }, 500);
+                } else if (currentLevel === 2 || currentLevel === 3) {
+                    const buttons = document.querySelectorAll('.grid-choices .btn-game');
+                    buttons.forEach(btn => {
+                        if (btn.textContent === activePool[puzzleIndex].correct) {
+                            btn.classList.add('correct');
+                        }
+                        btn.disabled = true;
+                    });
+                }
+
+                puzzleIndex++;
+                setTimeout(() => { evaluateGameProgression(); }, 2500);
+            }
+        }
+
+        // --- LIFECYCLE MANAGEMENT DISPATCHERS ---
+        function processValidationSuccess() {
+            inputLock = true;
+            try { clipWin.play(); } catch(err){}
+            confetti({ particleCount: 50, spread: 60 });
+
+            puzzleIndex++;
+            setTimeout(() => { evaluateGameProgression(); }, 1800);
+        }
+
+        function evaluateGameProgression() {
+            attemptsUsed = 0; 
+            
+            if (puzzleIndex < activePool.length) {
+                executeStageLoad();
+            } else {
+                if (currentLevel === 1) advanceToLevel(2);
+                else if (currentLevel === 2) advanceToLevel(3);
+                else triggerVictoryEpilogue();
+            }
+        }
+
+        function triggerVictoryEpilogue() {
+            clearViewPorts();
+            document.getElementById('label-level').textContent = "STATUS: SAFE";
+            
+            const trophyAsset = document.getElementById('visual-image');
+            trophyAsset.src = "assets/innovine-logo.png";
+            trophyAsset.style.display = 'block';
+
+            document.getElementById('display-prompt').innerHTML = "🏆 <strong>MISSION ACCOMPLISHED!</strong><br>The Time Machine has been perfectly restored across all three dimensions!";
+            document.getElementById('view-epilogue').style.display = 'block';
+            confetti({ particleCount: 150, spread: 85 });
+        }
+
+        function resetEngine() {
+            advanceToLevel(1);
+        }
     </script>
 </body>
 </html>
