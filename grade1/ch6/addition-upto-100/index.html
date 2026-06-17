@@ -33,7 +33,7 @@
             padding: 15px;
         }
 
-        /* --- FIXED SPLASH SCREEN LAYOUT --- */
+        /* --- SPLASH SCREEN LAYOUT --- */
         #splash-screen {
             position: fixed;
             top: 0;
@@ -45,7 +45,7 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            opacity: 1; /* Explicit initial state */
+            opacity: 1;
             transition: opacity 0.6s ease-in-out, visibility 0.6s;
             visibility: visible;
         }
@@ -192,20 +192,54 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 15px;
+            gap: 20px;
             flex-wrap: wrap;
-            min-height: 90px;
+            min-height: 100px;
         }
 
         .item-group {
             display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            max-width: 44%;
+            gap: 8px;
+        }
+
+        .tens-row, .ones-row {
+            display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            max-width: 42%;
             gap: 6px;
         }
 
-        .item-group img {
+        .visual-basket {
+            position: relative;
+            width: 44px;
+            height: 44px;
+            background: #D7CCC8;
+            border: 2px solid #8D6E63;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.3rem;
+            box-shadow: 0 3px 0 #5D4037;
+        }
+        .visual-basket::after {
+            content: "10";
+            position: absolute;
+            bottom: -2px;
+            right: 2px;
+            font-size: 0.65rem;
+            background: #5D4037;
+            color: #FFF;
+            padding: 0 3px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .item-group img.loose-acorn {
             width: 26px;
             height: auto;
         }
@@ -219,9 +253,18 @@
         .equation-text {
             font-size: 3.5rem;
             color: #D84315;
-            margin-bottom: 25px;
+            margin-bottom: 10px;
             text-shadow: 2px 2px 0px #FFE082;
             font-weight: bold;
+        }
+
+        /* TRY AGAIN COMPACT NOTIFICATION FEEDBACK */
+        #try-again-prompt {
+            height: 24px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #D32F2F;
+            margin-bottom: 15px;
         }
 
         .options-grid {
@@ -260,6 +303,7 @@
             border-color: #C62828 !important;
             color: white !important;
             box-shadow: 0 6px 0 #C62828;
+            transform: scale(0.96);
         }
 
         #restart-btn {
@@ -302,7 +346,7 @@
             <h2>Help Sammy the Squirrel!</h2>
             <p class="mission-text">
                 Winter is near! Sammy must store enough food in his treehouse. 
-                <br><br><strong>Your Mission:</strong> Solve 10 textbook addition challenges correctly to help him secure <strong>10 Acorns</strong>!
+                <br><br><strong>Your Mission:</strong> Solve addition challenges correctly to help him secure <strong>10 Acorns</strong>!
             </p>
             <button class="start-btn" onclick="startMission()">Accept Mission! 🚀</button>
         </div>
@@ -329,12 +373,12 @@
 
             <div class="visual-math-box" id="visual-box">
                 <div class="item-group" id="items-left"></div>
-                <div class="math-sign">+</div>
+                <div class="math-sign" id="math-operator">+</div>
                 <div class="item-group" id="items-right"></div>
             </div>
 
             <div class="equation-text" id="equation-display">0 + 0 = ?</div>
-            <div class="options-grid" id="options-container"></div>
+            <div id="try-again-prompt"></div> <div class="options-grid" id="options-container"></div>
         </div>
 
         <div id="result-screen" style="display:none;">
@@ -410,23 +454,23 @@
         }
 
         var staticQuestionPool = [
-            { type: "Groups of Tens", story: "Sammy has 3 boxes of acorns. Each box has exactly 10 acorns inside. How many acorns does he have in total?", num1: 10, num2: 20, answer: 30, options: [3, 13, 30, 40], visual: false },
-            { type: "Groups of Tens", story: "Sammy finds 5 groups of 10 acorns on the ground. How many total acorns did he find?", num1: 20, num2: 30, answer: 50, options: [15, 50, 5, 60], visual: false },
+            { type: "Groups of Tens", story: "Sammy has 3 boxes of acorns. Each box has exactly 10 acorns inside. How many acorns does he have in total?", num1: 10, num2: 20, answer: 30, options: [3, 13, 30, 40], visual: true },
+            { type: "Groups of Tens", story: "Sammy finds 5 groups of 10 acorns on the ground. How many total acorns did he find?", num1: 20, num2: 30, answer: 50, options: [15, 50, 5, 60], visual: true },
             { type: "Addition without Carry Over", story: "Sammy found 42 acorns under a big tree, then spotted 5 more next to a rock. Let's count them all together!", num1: 42, num2: 5, answer: 47, options: [45, 46, 47, 52], visual: true },
             { type: "Addition without Carry Over", story: "There are 21 acorns hidden in the grass and 34 acorns resting inside a hollow branch. Let's add them up!", num1: 21, num2: 34, answer: 55, options: [54, 55, 56, 65], visual: true },
             { type: "Addition with Carry Over", story: "Sammy gathered 25 brown acorns and 8 shiny gold acorns. Help him find the sum!", num1: 25, num2: 8, answer: 33, options: [32, 33, 34, 43], visual: true },
             { type: "Addition with Carry Over", story: "Sammy has 48 acorns in his small pouch and 15 acorns inside a little basket. How many are there in total?", num1: 48, num2: 15, answer: 63, options: [53, 62, 63, 73], visual: true },
             { type: "Addition with Carry Over", story: "Sammy counts 57 acorns gathered on Monday and 26 acorns collected on Tuesday. What is the total sum?", num1: 57, num2: 26, answer: 83, options: [83, 73, 84, 93], visual: true },
-            { type: "Story Sums", story: '\"I want to save 70 acorns for winter,\" says Sammy. If he has 60 acorns and finds 10 more, what is his total?', num1: 60, num2: 10, answer: 70, options: [61, 70, 80, 100], visual: false },
-            { type: "Story Sums", story: "Sammy hides 36 acorns near an oak tree and 43 acorns near a pine tree. How many hidden acorns are there altogether?", num1: 36, num2: 43, answer: 79, options: [77, 78, 79, 89], visual: false },
-            { type: "Story Sums", story: "Sammy finds 14 acorns in the morning and 18 acorns after lunchtime. How many total acorns did Sammy grab?", num1: 14, num2: 18, answer: 32, options: [22, 31, 32, 42], visual: false }
+            { type: "Story Sums", story: '\"I want to save 70 acorns for winter,\" says Sammy. If he has 60 acorns and finds 10 more, what is his total?', num1: 60, num2: 10, answer: 70, options: [61, 70, 80, 100], visual: true },
+            { type: "Story Sums", story: "Sammy hides 36 acorns near an oak tree and 43 acorns near a pine tree. How many hidden acorns are there altogether?", num1: 36, num2: 43, answer: 79, options: [77, 78, 79, 89], visual: true },
+            { type: "Story Sums", story: "Sammy finds 14 acorns in the morning and 18 acorns after lunchtime. How many total acorns did Sammy grab?", num1: 14, num2: 18, answer: 32, options: [22, 31, 32, 42], visual: true }
         ];
 
         var currentIdx = 0;
         var acornsSaved = 0;
         var optionLocked = false;
+        var currentQuestionAttempts = 0; // TRACKS PER-QUESTION CHANCES
 
-        // FIXED UNBIASED TIMER LOOP CONTROL
         window.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
                 var splash = document.getElementById('splash-screen');
@@ -442,7 +486,7 @@
                         setTimeout(function() { gameBox.style.opacity = '1'; }, 50);
                     }
                 }, 600);
-            }, 5000); // 5 Seconds exact hold time
+            }, 5000);
         });
 
         function startMission() {
@@ -451,14 +495,47 @@
             loadQuestion();
         }
 
+        function renderPlaceValueGroup(targetEl, totalCount) {
+            targetEl.innerHTML = "";
+            var tens = Math.floor(totalCount / 10);
+            var ones = totalCount % 10;
+
+            if(tens > 0) {
+                var tensRow = document.createElement('div');
+                tensRow.className = 'tens-row';
+                for(var t=0; t<tens; t++) {
+                    var basket = document.createElement('div');
+                    basket.className = 'visual-basket';
+                    basket.innerText = "🧺";
+                    tensRow.appendChild(basket);
+                }
+                targetEl.appendChild(tensRow);
+            }
+
+            if(ones > 0) {
+                var onesRow = document.createElement('div');
+                onesRow.className = 'ones-row';
+                for(var o=0; o<ones; o++) {
+                    var img = document.createElement('img');
+                    img.className = 'loose-acorn';
+                    img.src = 'assets/acorn.png';
+                    img.onerror = function() { this.src = 'https://placehold.co/26?text=🌰'; };
+                    onesRow.appendChild(img);
+                }
+                targetEl.appendChild(onesRow);
+            }
+        }
+
         function loadQuestion() {
             optionLocked = false;
+            currentQuestionAttempts = 0; // Reset attempts for new question
             var currentQuest = staticQuestionPool[currentIdx];
             
             document.getElementById('question-number').innerText = "🧩 Problem: " + (currentIdx + 1) + "/10";
             document.getElementById('acorn-count').innerText = acornsSaved;
             document.getElementById('outcome-label').innerText = currentQuest.type;
             document.getElementById('progress').style.width = (currentIdx * 10) + "%";
+            document.getElementById('try-again-prompt').innerText = ""; // Clear hints
 
             var storyBox = document.getElementById('story-container');
             if(currentQuest.story) {
@@ -471,27 +548,11 @@
             var visualBox = document.getElementById('visual-box');
             var leftGroup = document.getElementById('items-left');
             var rightGroup = document.getElementById('items-right');
-            
-            leftGroup.innerHTML = "";
-            rightGroup.innerHTML = "";
 
             if(currentQuest.visual) {
                 visualBox.style.display = 'flex';
-                var renderLeft = Math.min(currentQuest.num1, 15);
-                var renderRight = Math.min(currentQuest.num2, 15);
-
-                for(var i=0; i<renderLeft; i++) {
-                    var img = document.createElement('img');
-                    img.src = 'assets/acorn.png';
-                    img.onerror = function() { this.src = 'https://placehold.co/26?text=🌰'; };
-                    leftGroup.appendChild(img);
-                }
-                for(var j=0; j<renderRight; j++) {
-                    var img = document.createElement('img');
-                    img.src = 'assets/acorn.png';
-                    img.onerror = function() { this.src = 'https://placehold.co/26?text=🌰'; };
-                    rightGroup.appendChild(img);
-                }
+                renderPlaceValueGroup(leftGroup, currentQuest.num1);
+                renderPlaceValueGroup(rightGroup, currentQuest.num2);
             } else {
                 visualBox.style.display = 'none';
             }
@@ -511,40 +572,62 @@
         }
 
         function handleAnswerSelection(selectedBtn, chosenVal, realAnswer) {
-            if(optionLocked) return;
-            optionLocked = true;
-
-            var buttons = document.querySelectorAll('.option-btn');
-            buttons.forEach(function(b) { b.disabled = true; });
+            if(optionLocked || selectedBtn.classList.contains('wrong')) return;
+            
+            currentQuestionAttempts++;
 
             if(chosenVal === realAnswer) {
+                optionLocked = true;
                 selectedBtn.classList.add('correct');
                 playSound('correct');
                 launchLocalConfetti();
+                
+                // Reward full credit only if solved inside the 2-chance window
                 acornsSaved++;
                 document.getElementById('acorn-count').innerText = acornsSaved;
+
+                var buttons = document.querySelectorAll('.option-btn');
+                buttons.forEach(function(b) { b.disabled = true; });
+
+                setTimeout(advanceToNextQuestion, 2000);
             } else {
+                // WRONG CHOICE LOGIC
                 selectedBtn.classList.add('wrong');
                 playSound('wrong');
-                buttons.forEach(function(b) {
-                    if(parseInt(b.innerText) === realAnswer) {
-                        b.classList.add('correct');
-                    }
-                });
-            }
 
-            setTimeout(function() {
-                currentIdx++;
-                if(currentIdx < staticQuestionPool.length) {
-                    loadQuestion();
+                if(currentQuestionAttempts === 1) {
+                    // CHANCE 1: Prompt nicely to try again without locking out other keys
+                    document.getElementById('try-again-prompt').innerText = "❌ Not quite! Try one more time! 🤔";
                 } else {
-                    displayEndScreen();
+                    // CHANCE 2: Spent all available opportunities. Force transition out.
+                    optionLocked = true;
+                    document.getElementById('try-again-prompt').innerText = "Let's see the correct solution! ✨";
+                    
+                    var buttons = document.querySelectorAll('.option-btn');
+                    buttons.forEach(function(b) {
+                        b.disabled = true;
+                        if(parseInt(b.innerText) === realAnswer) {
+                            b.classList.add('correct'); // Reveal destination math target
+                        }
+                    });
+
+                    setTimeout(advanceToNextQuestion, 2500);
                 }
-            }, 2000);
+            }
+        }
+
+        function advanceToNextQuestion() {
+            currentIdx++;
+            if(currentIdx < staticQuestionPool.length) {
+                loadQuestion();
+            } else {
+                displayEndScreen();
+            }
         }
 
         function displayEndScreen() {
             document.getElementById('progress').style.width = "100%";
+            document.getElementById('try-again-prompt').innerText = "";
             document.getElementById('play-screen').style.display = 'none';
             document.getElementById('result-screen').style.display = 'block';
             document.getElementById('restart-btn').style.display = 'block';
@@ -555,6 +638,7 @@
         function resetGame() {
             currentIdx = 0;
             acornsSaved = 0;
+            currentQuestionAttempts = 0;
             document.getElementById('result-screen').style.display = 'none';
             document.getElementById('restart-btn').style.display = 'none';
             document.getElementById('play-screen').style.display = 'block';
