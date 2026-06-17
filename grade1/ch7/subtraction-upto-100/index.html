@@ -109,7 +109,7 @@
         transition: all 0.5s ease;
     }
 
-    /* Level 2 Neon Animation Board Override */
+    /* Neon Animations Board Override */
     @keyframes neon-pulse {
         0%, 100% { box-shadow: 0 0 15px #a855f7, inset 0 2px 8px rgba(0,0,0,0.6); }
         50% { box-shadow: 0 0 30px #06b6d4, inset 0 2px 8px rgba(0,0,0,0.3); }
@@ -224,9 +224,14 @@
             <h1>Math Mystery Box! 🎁✨</h1>
             <p>Solve the subtraction problems to open the magical gift boxes on the table and collect awesome hidden rewards!</p>
             <p style="font-weight: bold; color: #e11d48; margin-bottom: 12px;">✏️ Students: Grab your pencils and paper to solve your math calculations!</p>
-            <p style="font-weight: bold; color: #db2777;">🎯 Complete 5 problems to conquer Level 1 and unlock the Neon Arcade Level 2 Room!</p>
+            <p style="font-weight: bold; color: #db2777;">🎯 Complete 5 problems to conquer Level 1 and unlock your next Mystery Room adventure!</p>
             <button class="btn" onclick="startMysteryGame();">Enter Gift Room</button>
         </div>
+    </div>
+
+    <div id="screen-story-bridge" class="screen">
+        <div class="card" id="story-card-content">
+            </div>
     </div>
 
     <div id="screen-game" class="screen">
@@ -290,6 +295,10 @@
     let roundTargetSolution = 0;
     let rightAnswerBoxIndex = 0;
     let userInteractionMutexLocked = false;
+    
+    // Performance metrics trackers
+    let totalAttemptsThisRound = 0;
+    let totalMistakesInLevel1 = 0;
 
     const level1PrizesPool = ['🧸', '🚀', '🦄', '🚂', '🦖', '🚗', '✈️', '🎨'];
     const level2PrizesPool = ['👾', '🛸', '💎', '👑', '🎸', '🔮', '🤖', '⚡'];
@@ -318,6 +327,8 @@
     function resetGameSystemState() {
         currentActiveLevel = 1;
         productsSolvedScore = 0;
+        totalAttemptsThisRound = 0;
+        totalMistakesInLevel1 = 0;
         userInteractionMutexLocked = false;
         
         // Restore Level 1 Typography & Textures
@@ -330,288 +341,3 @@
         if(decor) {
             decor.style.backgroundImage = "radial-gradient(#f472b6 2px, transparent 2px)";
             decor.style.opacity = "0.3";
-        }
-
-        const table = document.getElementById('table-base-node');
-        if(table) {
-            table.style.background = "linear-gradient(135deg, #b45309 0%, #78350f 100%)";
-            table.style.borderColor = "#f59e0b";
-        }
-
-        const hud = document.querySelector('.hud-header');
-        if(hud) {
-            hud.style.background = "white";
-            hud.style.borderColor = "#f472b6";
-            hud.style.color = "#db2777";
-        }
-        
-        document.getElementById('hud-level-tag').innerText = "Room Status: Level 1 🎈";
-        document.getElementById('hud-score-tag').innerText = "Prizes Won: 🧸 0";
-        
-        const board = document.getElementById('problem-board-display');
-        if(board) {
-            board.style.borderColor = "#475569";
-            board.style.color = "#38bdf8";
-            board.style.background = "#1e293b";
-            board.style.animation = "none";
-        }
-
-        for(let i=0; i<3; i++) {
-            const label = document.getElementById(`tag-text-${i}`);
-            if(label) {
-                label.style.fontFamily = "inherit";
-                label.style.background = "white";
-                label.style.color = "#1e293b";
-            }
-        }
-    }
-
-    function startMysteryGame() {
-        resetGameSystemState();
-        goToScreen('screen-game');
-        prepareNextQuestionRound();
-    }
-
-    function prepareNextQuestionRound() {
-        userInteractionMutexLocked = false;
-        document.getElementById('room-feedback-text').innerText = "Click the gift box with the right answer!";
-        document.getElementById('room-feedback-text').style.color = currentActiveLevel === 1 ? "#db2777" : "#06b6d4";
-
-        // Reset Box Visual State Classes safely
-        for(let i=0; i<3; i++) {
-            const box = document.getElementById(`box-node-${i}`);
-            if(box) box.className = box.className.replace('pop-open', '').replace('wrong-shake', '').trim();
-        }
-
-        // Setup Level Architecture
-        let numA, numB;
-        if (currentActiveLevel === 1) {
-            // Balanced Level 1 Mix: Multiples of 10 OR Non-borrowing standard pairs
-            if (Math.random() > 0.5) {
-                let tensA = Math.floor(Math.random() * 7) + 3; // 30 to 90
-                let tensB = Math.floor(Math.random() * (tensA - 1)) + 1;
-                numA = tensA * 10; 
-                numB = tensB * 10;
-            } else {
-                let tensA = Math.floor(Math.random() * 4) + 2; // 20 to 50
-                let onesA = Math.floor(Math.random() * 8) + 1; // 1 to 8
-                numA = (tensA * 10) + onesA;
-
-                let tensB = Math.floor(Math.random() * tensA); // Lesser or equal tens
-                let onesB = Math.floor(Math.random() * onesA); // Lesser or equal ones (Guarantees NO borrowing)
-                numB = (tensB * 10) + onesB;
-                
-                if (numA === numB || numB === 0) { numB = onesA; } // Fallback sanity guard
-            }
-        } else {
-            // Level 2: Advanced Grade 1 Subtraction up to 100
-            numA = Math.floor(Math.random() * 41) + 59; // 59 - 100
-            numB = Math.floor(Math.random() * 35) + 5;  // 5 - 40
-            if(numA - numB <= 0) numB = 12;
-        }
-
-        roundTargetSolution = numA - numB;
-        document.getElementById('problem-board-display').innerText = `${numA} - ${numB}`;
-
-        // Create Unique Non-overlapping Choices
-        let choiceA, choiceB;
-        
-        let deltaA = Math.random() > 0.5 ? 10 : -10;
-        choiceA = roundTargetSolution + deltaA;
-        if (choiceA === roundTargetSolution || choiceA < 0 || choiceA > 100) {
-            choiceA = roundTargetSolution + (roundTargetSolution > 20 ? -5 : 5);
-        }
-
-        let deltaB = Math.random() > 0.5 ? 2 : -2;
-        choiceB = roundTargetSolution + deltaB;
-        if (choiceB === roundTargetSolution || choiceB === choiceA || choiceB < 0 || choiceB > 100) {
-            choiceB = roundTargetSolution + (roundTargetSolution > 15 ? -7 : 7);
-        }
-
-        // Final duplicate circuit breaker check
-        if (choiceB === choiceA) { choiceB += 3; }
-
-        let itemsList = [roundTargetSolution, choiceA, choiceB];
-        itemsList.sort(() => Math.random() - 0.5);
-
-        rightAnswerBoxIndex = itemsList.indexOf(roundTargetSolution);
-
-        // Map Choices & Assign Random Prize Elements inside the box buffers
-        const targetedPool = currentActiveLevel === 1 ? level1PrizesPool : level2PrizesPool;
-        
-        for (let i = 0; i < 3; i++) {
-            document.getElementById(`tag-text-${i}`).innerText = itemsList[i];
-            const randomPrize = targetedPool[Math.floor(Math.random() * targetedPool.length)];
-            document.getElementById(`prize-node-${i}`).innerText = randomPrize;
-        }
-    }
-
-    function handleBoxClick(boxIndex) {
-        if (userInteractionMutexLocked) return;
-
-        const selectedBoxNode = document.getElementById(`box-node-${boxIndex}`);
-
-        if (boxIndex === rightAnswerBoxIndex) {
-            userInteractionMutexLocked = true;
-            productsSolvedScore++;
-            
-            // Assign custom dynamic score prefix according to level theme
-            let prizePrefix = currentActiveLevel === 1 ? "🧸" : "⚡";
-            document.getElementById('hud-score-tag').innerText = `Prizes Won: ${prizePrefix} ${productsSolvedScore}`;
-            document.getElementById('room-feedback-text').innerText = "WOW! YOU OPENED IT! ✨🎁";
-            document.getElementById('room-feedback-text').style.color = "#22c55e";
-
-            // Trigger Pop Animation
-            if(selectedBoxNode) selectedBoxNode.classList.add('pop-open');
-
-            const audioC = document.getElementById('snd-correct');
-            if(audioC) audioC.play().catch(() => {});
-
-            // Run Confetti Sparks Flight Sequence
-            launchConfettiBurstFX();
-
-            // Handle Room Transitions or Game Completion Loop
-            setTimeout(() => {
-                if (productsSolvedScore === 5 && currentActiveLevel === 1) {
-                    // Unlock Level 2 Room State
-                    currentActiveLevel = 2;
-                    triggerLevel2TransitionEffects();
-                    prepareNextQuestionRound();
-                } else if (productsSolvedScore >= 10) {
-                    // Win Final Game View
-                    goToScreen('screen-end');
-                } else {
-                    prepareNextQuestionRound();
-                }
-            }, 2500);
-
-        } else {
-            // Wrong Box Click Action
-            const audioW = document.getElementById('snd-wrong');
-            if(audioW) audioW.play().catch(() => {});
-
-            if(selectedBoxNode) {
-                selectedBoxNode.classList.add('wrong-shake');
-                setTimeout(() => selectedBoxNode.classList.remove('wrong-shake'), 450);
-            }
-            document.getElementById('room-feedback-text').innerText = "Locked! Try a different box tag!";
-            document.getElementById('room-feedback-text').style.color = "#ef4444";
-        }
-    }
-
-    function triggerLevel2TransitionEffects() {
-        // 1. Shift Entire Document Font Stack to Retro Cyber/Arcade Style
-        document.body.style.fontFamily = "'Courier New', Courier, monospace";
-
-        // 2. Transform Background Canvas into Dark Deep Space/Neon Arcade Theme
-        const wrapper = document.getElementById('app-viewport-wrapper');
-        if(wrapper) {
-            wrapper.style.background = "radial-gradient(circle, #1e1b4b 0%, #090514 100%)";
-        }
-
-        // 3. Swap Wall Pattern Mesh layer from Polka Dots to a Cyber Grid Grid Layout
-        const decor = document.getElementById('room-wallpaper-mesh');
-        if(decor) {
-            decor.style.backgroundImage = "linear-gradient(to right, #06b6d4 1px, transparent 1px), linear-gradient(to bottom, #06b6d4 1px, transparent 1px)";
-            decor.style.backgroundSize = "45px 45px";
-            decor.style.opacity = "0.15";
-        }
-
-        // 4. Transform Table surface into a Neon Steel Platform
-        const table = document.getElementById('table-base-node');
-        if(table) {
-            table.style.background = "linear-gradient(135deg, #334155 0%, #1e293b 100%)";
-            table.style.borderColor = "#06b6d4";
-        }
-
-        // 5. Update HUD styling for high-contrast neon theme look
-        const hud = document.querySelector('.hud-header');
-        if(hud) {
-            hud.style.background = "#0f172a";
-            hud.style.borderColor = "#a855f7";
-            hud.style.color = "#a855f7";
-        }
-        document.getElementById('hud-level-tag').innerText = "Room Status: Level 2 ⚡";
-        document.getElementById('hud-level-tag').style.color = "#06b6d4";
-        
-        // 6. Give the Main Equation Blackboard an active glowing pulse cycle
-        const board = document.getElementById('problem-board-display');
-        if(board) {
-            board.style.background = "#020617";
-            board.style.borderColor = "#06b6d4";
-            board.style.color = "#a855f7";
-            board.style.animation = "neon-pulse 2s infinite ease-in-out";
-        }
-
-        // 7. Update active giftbox numeric tag surfaces to complement the interface styling
-        for(let i=0; i<3; i++) {
-            const label = document.getElementById(`tag-text-${i}`);
-            if(label) {
-                label.style.fontFamily = "'Courier New', monospace";
-                label.style.background = "#1e1b4b";
-                label.style.color = "#06b6d4";
-                label.style.borderColor = "#06b6d4";
-            }
-        }
-    }
-
-    /* Simple native HTML5 Particle Canvas Confetti Framework */
-    let confettiSystemActiveParticles = [];
-    const canvasNode = document.getElementById('confetti-canvas-plane');
-    const ctxEngine = canvasNode.getContext('2d');
-
-    function resizeConfettiCanvas() {
-        canvasNode.width = window.innerWidth;
-        canvasNode.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resizeConfettiCanvas);
-    resizeConfettiCanvas();
-
-    function launchConfettiBurstFX() {
-        confettiSystemActiveParticles = [];
-        // Tint particle bursts according to the active level profile color configurations
-        let baseHue = currentActiveLevel === 1 ? 320 : 190; 
-        for (let i = 0; i < 85; i++) {
-            confettiSystemActiveParticles.push({
-                x: canvasNode.width / 2,
-                y: canvasNode.height / 2 + 50,
-                radius: Math.random() * 5 + 4,
-                color: `hsl(${baseHue + (Math.random() * 60 - 30)}, 100%, 60%)`,
-                vx: (Math.random() - 0.5) * 14,
-                vy: (Math.random() - 0.8) * 16,
-                opacity: 1
-            });
-        }
-        requestAnimationFrame(renderConfettiLoopFrame);
-    }
-
-    function renderConfettiLoopFrame() {
-        ctxEngine.clearRect(0, 0, canvasNode.width, canvasNode.height);
-        let continuingParticlesLeft = false;
-
-        confettiSystemActiveParticles.forEach(p => {
-            p.x += p.vx;
-            p.y += p.vy;
-            p.vy += 0.35; // Gravity
-            p.opacity -= 0.012;
-
-            if (p.opacity > 0) {
-                continuingParticlesLeft = true;
-                ctxEngine.beginPath();
-                ctxEngine.fillStyle = p.color;
-                ctxEngine.globalAlpha = p.opacity;
-                ctxEngine.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-                ctxEngine.fill();
-            }
-        });
-
-        ctxEngine.globalAlpha = 1.0;
-        if (continuingParticlesLeft) {
-            requestAnimationFrame(renderConfettiLoopFrame);
-        } else {
-            ctxEngine.clearRect(0, 0, canvasNode.width, canvasNode.height);
-        }
-    }
-</script>
-</body>
-</html>
