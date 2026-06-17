@@ -40,17 +40,16 @@
         }
 
         #splash-logo {
-            max-width: 220px;
+            max-width: 240px;
             width: 60%;
             height: auto;
             animation: pulse 1.5s infinite ease-in-out;
         }
 
-        #splash-text {
-            margin-top: 25px;
-            font-size: 24px;
-            color: #4A4A4A;
-            font-weight: bold;
+        #splash-fallback {
+            font-size: 80px;
+            animation: pulse 1.5s infinite ease-in-out;
+            display: none;
         }
 
         @keyframes pulse {
@@ -130,9 +129,11 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            padding: 0 10px;
+            line-height: 1.4;
         }
 
-        /* --- LEVEL 1: INTERACTIVE CLOCKFACE --- */
+        /* --- UNIFIED CLOCK ENGINE FACE MECHANICS (GR 2/3 PARITY) --- */
         .clock-wrapper {
             display: flex;
             flex-direction: column;
@@ -142,18 +143,18 @@
         }
 
         .clock {
-            width: 180px;
-            height: 180px;
-            border: 8px solid #118AB2;
+            width: 200px;
+            height: 200px;
+            border: 10px solid #118AB2;
             border-radius: 50%;
             position: relative;
             background: #FFF;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: inset 0 0 12px rgba(0,0,0,0.1), 0 4px 10px rgba(0,0,0,0.08);
         }
 
         .clock-center {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             background: #06D6A0;
             border-radius: 50%;
             position: absolute;
@@ -161,44 +162,45 @@
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: 10;
+            border: 2px solid #FFF;
         }
 
-        /* Adjusted styles to establish a genuine lower anchor axis matching image_8736ac.png */
+        /* True Mechanical Pivot Axis Constraints */
         .hand {
             position: absolute;
             left: 50%;
-            transform-origin: bottom center;
-            border-radius: 4px;
+            transform-origin: 50% 100%; 
+            border-radius: 6px;
             transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         .hour-hand {
             width: 6px;
-            height: 45px;
+            height: 50px;
             background: #EF476F;
             z-index: 5;
-            top: 45px; /* (Clock height 180 / 2) - Hand height 45 */
-            margin-left: -3px; /* Negative half width */
+            top: 40px; 
+            margin-left: -3px;
         }
 
         .minute-hand {
             width: 4px;
-            height: 65px;
+            height: 75px;
             background: #073B4C;
             z-index: 4;
-            top: 25px; /* (Clock height 180 / 2) - Hand height 65 */
-            margin-left: -2px; /* Negative half width */
+            top: 15px; 
+            margin-left: -2px;
         }
 
         .clock-number {
             position: absolute;
-            font-size: 14px;
+            font-size: 16px;
             font-weight: bold;
-            color: #333;
-            width: 20px;
-            height: 20px;
+            color: #2D3436;
+            width: 24px;
+            height: 24px;
             text-align: center;
-            line-height: 20px;
+            line-height: 24px;
         }
 
         .stepper-controls {
@@ -218,6 +220,9 @@
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .step-btn:active { transform: scale(0.95); }
@@ -230,6 +235,7 @@
             font-size: 18px;
             color: #118AB2;
             border: 2px dashed #118AB2;
+            min-width: 140px;
         }
 
         /* --- LEVEL 2 & 3: DRAG/DROP & SEQUENCING --- */
@@ -305,21 +311,18 @@
             z-index: 999;
         }
     </style>
-    <!-- Include SortableJS for flawless mobile/tablet touch sequencing drags -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 </head>
 <body>
 
-    <!-- Splash Screen Layout -->
+    <!-- Splash Screen - Holds exclusively the image asset icon -->
     <div id="splash-screen">
-        <img id="splash-logo" src="assets/logo.png" alt="Innovine Logo" onerror="this.style.display='none'; document.getElementById('splash-text').innerText='⏰ TIME CHAMP ⏰';">
-        <div id="splash-text">Innovine Learning presents Suite Hub...</div>
+        <img id="splash-logo" src="assets/logo.png" alt="Logo" onerror="this.style.display='none'; document.getElementById('splash-fallback').style.display='block';">
+        <div id="splash-fallback">⏰</div>
     </div>
 
-    <!-- Feedback Particles Canvas -->
     <canvas id="confetti-canvas"></canvas>
 
-    <!-- Main Game Window Box -->
     <div class="game-container" id="game-card">
         <div class="header-controls">
             <div class="level-badge" id="level-indicator">Level 1: Set Time</div>
@@ -336,7 +339,7 @@
         <div id="game-playground">
             <div class="prompt-box" id="question-prompt">Loading puzzle prompt...</div>
 
-            <!-- VIEW FOR LEVEL 1: CLOCKFACE INTERACTION -->
+            <!-- VIEW FOR LEVEL 1: UNIFIED CLOCK MECHANISM -->
             <div id="clock-view" class="clock-wrapper">
                 <div class="clock" id="analog-clock">
                     <div class="clock-center"></div>
@@ -352,15 +355,13 @@
 
             <!-- VIEW FOR LEVEL 2 & LEVEL 3: SEQUENCING CONTAINER -->
             <div id="sequence-view" style="display: none;">
-                <p style="font-size: 14px; color: #666; margin-bottom: 8px;">Drag and arrange items in order (Left to Right / Top to Bottom):</p>
+                <p style="font-size: 14px; color: #666; margin-bottom: 8px;">Drag and arrange items in order (Left to Right):</p>
                 <div class="cards-container" id="sortable-list"></div>
             </div>
 
-            <!-- Fixed duplicate verification label text bug from image_8736ac.png -->
             <button class="submit-btn" onclick="verifyCurrentAnswer()">Check Answer ✔</button>
         </div>
 
-        <!-- RESTART & END GAME CONTROLS -->
         <div id="end-view" style="display: none;">
             <h2 style="font-size: 26px; color: #118AB2; margin-bottom: 10px;">You are a Time Master! 🌟</h2>
             <p style="font-size: 18px; color: #4A4A4A;">Fantastic job finishing all levels successfully.</p>
@@ -369,13 +370,12 @@
     </div>
 
     <script>
-        // Game Mission Structures Across 3 Levels
         const level1Missions = [
-            { text: "I get up early for school at _____ o'clock.", target: 7, hint: "Think of early morning when the sun comes up! It's right before 8." },
-            { text: "I eat my tasty lunch at _____ o'clock.", target: 1, hint: "This happens just one hour after 12 o'clock in the afternoon!" },
-            { text: "I return home from school at _____ o'clock.", target: 3, hint: "This afternoon time is right between 2 and 4 o'clock!" },
-            { text: "I go out to play with my friends at _____ o'clock.", target: 5, hint: "Late afternoon fun! It's one hour before 6 o'clock." },
-            { text: "It is night! I jump into bed to sleep at _____ o'clock.", target: 9, hint: "Bedtime! It's one hour after 8 o'clock at night." }
+            { text: "Riya wakes up early for school at 7:00 o'clock. Show this time on the clock face!", target: 7, hint: "Turn the short clock hand until it points directly at the number 7!" },
+            { text: "Riya eats her tasty lunch at 1:00 o'clock. Show this time on the clock face!", target: 1, hint: "Move the short red hand up to point right at the number 1!" },
+            { text: "Riya returns home from school at 3:00 o'clock. Show this time on the clock face!", target: 3, hint: "Click the buttons until the short hand points straight at the number 3." },
+            { text: "Riya goes out to play with friends at 5:00 o'clock. Show this time on the clock face!", target: 5, hint: "Make the short red hand point straight towards the number 5!" },
+            { text: "It is bedtime! Riya goes to sleep at 9:00 o'clock. Show this time on the clock face!", target: 9, hint: "Turn the clock hand until the short hand points directly at the number 9!" }
         ];
 
         const level2Missions = [
@@ -398,7 +398,6 @@
         let runningMission = null;
         let wrongAttemptsCount = 0;
 
-        // Native Web Audio API Sound Generator Block
         function audioBeep(freq, type, duration) {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -424,7 +423,6 @@
             audioBeep(220.00, 'sawtooth', 0.3);
         }
 
-        // Particle Canvas Graphics Layout Control Engine
         const canvas = document.getElementById("confetti-canvas");
         const ctx = canvas.getContext("2d");
         let activeConfetti = [];
@@ -466,11 +464,26 @@
             requestAnimationFrame(animateConfettiStream);
         }
 
-        // Set up the app on window load
+        function generateClockTicks() {
+            const face = document.getElementById('analog-clock');
+            const radius = 68; 
+            for (let i = 1; i <= 12; i++) {
+                const angle = (i * 30) * Math.PI / 180;
+                const num = document.createElement('div');
+                num.className = 'clock-number';
+                num.innerText = i;
+                const x = 90 + radius * Math.sin(angle) - 12; 
+                const y = 90 - radius * Math.cos(angle) - 12;
+                num.style.left = `${x}px`;
+                num.style.top = `${y}px`;
+                face.appendChild(num);
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             generateClockTicks();
             
-            // Branding Splash Screen Hold Rules: 5 Full Seconds
+            // Explicit 5-second clean hold rule for the pure logo screen
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 splash.style.opacity = 0;
@@ -486,24 +499,6 @@
             });
         });
 
-        // Procedural Face Layout Rendering for Numbers 1-12
-        function generateClockTicks() {
-            const face = document.getElementById('analog-clock');
-            const radius = 72; 
-            for (let i = 1; i <= 12; i++) {
-                const angle = (i * 30) * Math.PI / 180;
-                const num = document.createElement('div');
-                num.className = 'clock-number';
-                num.innerText = i;
-                const x = 90 + radius * Math.sin(angle) - 10;
-                const y = 90 - radius * Math.cos(angle) - 10;
-                num.style.left = `${x}px`;
-                num.style.top = `${y}px`;
-                face.appendChild(num);
-            }
-        }
-
-        // Master Game Session Orchestration
         function launchCoreGameEngine() {
             currentLevel = 1;
             internalStep = 0;
@@ -582,13 +577,11 @@
 
         function refreshClockHandNodePositions() {
             const hrDeg = currentLevel1Hour * 30;
-            // Clean inline style rotations with unified CSS variables
             document.getElementById('hour-hand').style.transform = `rotate(${hrDeg}deg)`;
             document.getElementById('minute-hand').style.transform = `rotate(0deg)`;
             document.getElementById('digital-bubble').innerText = `${currentLevel1Hour}:00 O'clock`;
         }
 
-        // Core Mission Verification Matrix
         function verifyCurrentAnswer() {
             let userIsCorrect = false;
 
@@ -620,7 +613,6 @@
             }
         }
 
-        // Pipeline Advance Route State Machine
         function advanceGamePipeline() {
             internalStep++;
             
