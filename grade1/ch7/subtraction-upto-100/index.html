@@ -19,9 +19,10 @@
     }
     body, html {
         width: 100%; height: 100%;
-        font-family: 'Segoe UI', Arial, sans-serif;
+        font-family: 'Chalkboard SE', 'Comic Sans MS', 'Segoe UI', Arial, sans-serif;
         color: #1e293b; overflow: hidden;
         background-color: #ffffff;
+        transition: font-family 0.5s ease;
     }
 
     /* Splash Screen Overlay */
@@ -56,12 +57,13 @@
         transition: background 1s ease;
     }
 
-    /* Game State Rooms */
+    /* Game State Rooms Pattern mesh layers */
     .room-decor {
         position: absolute; width: 100%; height: 100%; top: 0; left: 0;
         pointer-events: none; z-index: 1; opacity: 0.3;
         background-image: radial-gradient(#f472b6 2px, transparent 2px);
         background-size: 32px 32px;
+        transition: background-image 0.8s ease, opacity 0.5s ease;
     }
 
     .screen {
@@ -95,6 +97,7 @@
         width: 100%; display: flex; justify-content: space-between; font-weight: bold;
         background: white; padding: 12px 24px; border-radius: 20px; margin-bottom: 15px;
         font-size: 16px; border: 3px solid #f472b6; color: #db2777;
+        transition: all 0.5s ease;
     }
 
     /* Hanging Wall Screen Board */
@@ -103,6 +106,13 @@
         padding: 20px 45px; border-radius: 24px; border: 6px solid #475569;
         margin-bottom: 30px; display: inline-block; letter-spacing: 2px;
         box-shadow: 0 10px 20px rgba(0,0,0,0.2), inset 0 4px 10px rgba(0,0,0,0.5);
+        transition: all 0.5s ease;
+    }
+
+    /* Level 2 Neon Animation Board Override */
+    @keyframes neon-pulse {
+        0%, 100% { box-shadow: 0 0 15px #a855f7, inset 0 2px 8px rgba(0,0,0,0.6); }
+        50% { box-shadow: 0 0 30px #06b6d4, inset 0 2px 8px rgba(0,0,0,0.3); }
     }
 
     /* Interactive Table Environment Setup */
@@ -116,6 +126,7 @@
         background: linear-gradient(135deg, #b45309 0%, #78350f 100%);
         border-radius: 12px; border-top: 4px solid #f59e0b;
         box-shadow: 0 10px 15px rgba(0,0,0,0.2);
+        transition: all 0.8s ease;
     }
 
     /* Gift Boxes Structural Layout */
@@ -152,6 +163,7 @@
         background: white; color: #1e293b; padding: 6px 16px; border-radius: 12px;
         font-weight: 900; font-size: 26px; border: 3px solid #475569;
         box-shadow: 0 4px 6px rgba(0,0,0,0.1); pointer-events: none;
+        transition: all 0.3s ease;
     }
 
     /* Surprise Reveal Element Engine */
@@ -251,7 +263,7 @@
                 </div>
             </div>
 
-            <div class="wooden-table-surface"></div>
+            <div class="wooden-table-surface" id="table-base-node"></div>
         </div>
         
         <div id="room-feedback-text" style="font-weight: 800; font-size: 20px; color: #db2777; margin-top: 15px; min-height: 30px;">
@@ -308,8 +320,30 @@
         productsSolvedScore = 0;
         userInteractionMutexLocked = false;
         
+        // Restore Level 1 Typography & Textures
+        document.body.style.fontFamily = "'Chalkboard SE', 'Comic Sans MS', 'Segoe UI', Arial, sans-serif";
+        
         const wrapper = document.getElementById('app-viewport-wrapper');
         if(wrapper) wrapper.style.background = "radial-gradient(circle, #fef9c3 0%, #fef08a 100%)";
+        
+        const decor = document.getElementById('room-wallpaper-mesh');
+        if(decor) {
+            decor.style.backgroundImage = "radial-gradient(#f472b6 2px, transparent 2px)";
+            decor.style.opacity = "0.3";
+        }
+
+        const table = document.getElementById('table-base-node');
+        if(table) {
+            table.style.background = "linear-gradient(135deg, #b45309 0%, #78350f 100%)";
+            table.style.borderColor = "#f59e0b";
+        }
+
+        const hud = document.querySelector('.hud-header');
+        if(hud) {
+            hud.style.background = "white";
+            hud.style.borderColor = "#f472b6";
+            hud.style.color = "#db2777";
+        }
         
         document.getElementById('hud-level-tag').innerText = "Room Status: Level 1 🎈";
         document.getElementById('hud-score-tag').innerText = "Prizes Won: 🧸 0";
@@ -318,6 +352,17 @@
         if(board) {
             board.style.borderColor = "#475569";
             board.style.color = "#38bdf8";
+            board.style.background = "#1e293b";
+            board.style.animation = "none";
+        }
+
+        for(let i=0; i<3; i++) {
+            const label = document.getElementById(`tag-text-${i}`);
+            if(label) {
+                label.style.fontFamily = "inherit";
+                label.style.background = "white";
+                label.style.color = "#1e293b";
+            }
         }
     }
 
@@ -410,7 +455,9 @@
             userInteractionMutexLocked = true;
             productsSolvedScore++;
             
-            document.getElementById('hud-score-tag').innerText = `Prizes Won: 🧸 ${productsSolvedScore}`;
+            // Assign custom dynamic score prefix according to level theme
+            let prizePrefix = currentActiveLevel === 1 ? "🧸" : "⚡";
+            document.getElementById('hud-score-tag').innerText = `Prizes Won: ${prizePrefix} ${productsSolvedScore}`;
             document.getElementById('room-feedback-text').innerText = "WOW! YOU OPENED IT! ✨🎁";
             document.getElementById('room-feedback-text').style.color = "#22c55e";
 
@@ -418,7 +465,7 @@
             if(selectedBoxNode) selectedBoxNode.classList.add('pop-open');
 
             const audioC = document.getElementById('snd-correct');
-            if(audioC) audioC.play().catch(() => { /* Silent fallback if gesture blocked */ });
+            if(audioC) audioC.play().catch(() => {});
 
             // Run Confetti Sparks Flight Sequence
             launchConfettiBurstFX();
@@ -441,7 +488,7 @@
         } else {
             // Wrong Box Click Action
             const audioW = document.getElementById('snd-wrong');
-            if(audioW) audioW.play().catch(() => { /* Silent fallback if gesture blocked */ });
+            if(audioW) audioW.play().catch(() => {});
 
             if(selectedBoxNode) {
                 selectedBoxNode.classList.add('wrong-shake');
@@ -453,18 +500,58 @@
     }
 
     function triggerLevel2TransitionEffects() {
+        // 1. Shift Entire Document Font Stack to Retro Cyber/Arcade Style
+        document.body.style.fontFamily = "'Courier New', Courier, monospace";
+
+        // 2. Transform Background Canvas into Dark Deep Space/Neon Arcade Theme
         const wrapper = document.getElementById('app-viewport-wrapper');
         if(wrapper) {
-            // Transform Room Wallpaper into Neon Cyber Arcade Room Theme
-            wrapper.style.background = "radial-gradient(circle, #1e1b4b 0%, #0f172a 100%)";
+            wrapper.style.background = "radial-gradient(circle, #1e1b4b 0%, #090514 100%)";
+        }
+
+        // 3. Swap Wall Pattern Mesh layer from Polka Dots to a Cyber Grid Grid Layout
+        const decor = document.getElementById('room-wallpaper-mesh');
+        if(decor) {
+            decor.style.backgroundImage = "linear-gradient(to right, #06b6d4 1px, transparent 1px), linear-gradient(to bottom, #06b6d4 1px, transparent 1px)";
+            decor.style.backgroundSize = "45px 45px";
+            decor.style.opacity = "0.15";
+        }
+
+        // 4. Transform Table surface into a Neon Steel Platform
+        const table = document.getElementById('table-base-node');
+        if(table) {
+            table.style.background = "linear-gradient(135deg, #334155 0%, #1e293b 100%)";
+            table.style.borderColor = "#06b6d4";
+        }
+
+        // 5. Update HUD styling for high-contrast neon theme look
+        const hud = document.querySelector('.hud-header');
+        if(hud) {
+            hud.style.background = "#0f172a";
+            hud.style.borderColor = "#a855f7";
+            hud.style.color = "#a855f7";
         }
         document.getElementById('hud-level-tag').innerText = "Room Status: Level 2 ⚡";
         document.getElementById('hud-level-tag').style.color = "#06b6d4";
         
+        // 6. Give the Main Equation Blackboard an active glowing pulse cycle
         const board = document.getElementById('problem-board-display');
         if(board) {
+            board.style.background = "#020617";
             board.style.borderColor = "#06b6d4";
             board.style.color = "#a855f7";
+            board.style.animation = "neon-pulse 2s infinite ease-in-out";
+        }
+
+        // 7. Update active giftbox numeric tag surfaces to complement the interface styling
+        for(let i=0; i<3; i++) {
+            const label = document.getElementById(`tag-text-${i}`);
+            if(label) {
+                label.style.fontFamily = "'Courier New', monospace";
+                label.style.background = "#1e1b4b";
+                label.style.color = "#06b6d4";
+                label.style.borderColor = "#06b6d4";
+            }
         }
     }
 
@@ -482,12 +569,14 @@
 
     function launchConfettiBurstFX() {
         confettiSystemActiveParticles = [];
+        // Tint particle bursts according to the active level profile color configurations
+        let baseHue = currentActiveLevel === 1 ? 320 : 190; 
         for (let i = 0; i < 85; i++) {
             confettiSystemActiveParticles.push({
                 x: canvasNode.width / 2,
                 y: canvasNode.height / 2 + 50,
                 radius: Math.random() * 5 + 4,
-                color: `hsl(${Math.random() * 360}, 100%, 60%)`,
+                color: `hsl(${baseHue + (Math.random() * 60 - 30)}, 100%, 60%)`,
                 vx: (Math.random() - 0.5) * 14,
                 vy: (Math.random() - 0.8) * 16,
                 opacity: 1
