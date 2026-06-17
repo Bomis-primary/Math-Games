@@ -30,7 +30,7 @@
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: #ffffff !important; z-index: 99999;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        opacity: 1; transition: opacity 0.5s ease, visibility 0.5s ease;
+        opacity: 1; transition: opacity 0.5s ease;
     }
     .logo-container {
         display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -43,7 +43,7 @@
     }
     .splash-loader-bar {
         position: absolute; background: #ec4899; width: 100%; height: 100%;
-        left: -100%; animation: loadProgress 5s linear forwards; 
+        left: -100%; animation: loadProgress 2.5s linear forwards; 
     }
 
     /* Main Viewport Wrapper */
@@ -286,8 +286,8 @@
     </div>
 </div>
 
-<audio id="snd-correct" src="assets/correct.mp3" preload="auto"></audio>
-<audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+<audio id="snd-correct" preload="auto"></audio>
+<audio id="snd-wrong" preload="auto"></audio>
 
 <script>
     let currentActiveLevel = 1;
@@ -302,24 +302,22 @@
     const level1PrizesPool = ['🧸', '🚀', '🦄', '🚂', '🦖', '🚗', '✈️', '🎨'];
     const level2PrizesPool = ['👾', '🛸', '💎', '👑', '🎸', '🔮', '🤖', '⚡'];
 
-    // FORCE LOAD FAILSAFE TIMER: Automatically removes splash screen at 5 seconds no matter what
-    function dismissSplashScreen() {
+    // FIXED SPEED TRIGGER: Remove dependencies on server resource tree loading
+    // Fades splash and displays viewport instantly in 2.5 seconds max
+    setTimeout(function() {
         const splash = document.getElementById('screen-splash');
         const appWrapper = document.getElementById('app-viewport-wrapper');
-        if (splash && splash.style.display !== 'none') {
+        if (splash) {
             splash.style.opacity = '0';
             setTimeout(() => {
                 splash.style.display = 'none';
-                if (appWrapper) appWrapper.style.display = 'flex';
+                if (appWrapper) {
+                    appWrapper.style.display = 'flex';
+                    resizeConfettiCanvas();
+                }
             }, 500);
         }
-    }
-
-    // Trigger dismiss instantly when asset tree finishes loading...
-    window.addEventListener('load', dismissSplashScreen);
-
-    // ...and have the safety net trigger anyway at 5 seconds max
-    setTimeout(dismissSplashScreen, 5000);
+    }, 2500);
 
     function goToScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -335,7 +333,6 @@
         userInteractionMutexLocked = false;
         
         document.body.style.fontFamily = "'Chalkboard SE', 'Comic Sans MS', 'Segoe UI', Arial, sans-serif";
-        
         const wrapper = document.getElementById('app-viewport-wrapper');
         if(wrapper) wrapper.style.background = "radial-gradient(circle, #fef9c3 0%, #fef08a 100%)";
         
@@ -381,3 +378,265 @@
     }
 
     function startMysteryGame() {
+        resetGameSystemState();
+        goToScreen('screen-game');
+        prepareNextQuestionRound();
+    }
+
+    function prepareNextQuestionRound() {
+        userInteractionMutexLocked = false;
+        totalAttemptsThisRound = 0;
+        document.getElementById('room-feedback-text').innerText = "Click the gift box with the right answer!";
+        document.getElementById('room-feedback-text').style.color = currentActiveLevel === 1 ? "#db2777" : "#06b6d4";
+
+        for(let i=0; i<3; i++) {
+            const box = document.getElementById(`box-node-${i}`);
+            if(box) box.className = box.className.replace('pop-open', '').replace('wrong-shake', '').trim();
+        }
+
+        let numA, numB;
+        if (currentActiveLevel === 1) {
+            if (Math.random() > 0.5) {
+                let tensA = Math.floor(Math.random() * 7) + 3; 
+                let tensB = Math.floor(Math.random() * (tensA - 1)) + 1;
+                numA = tensA * 10; 
+                numB = tensB * 10;
+            } else {
+                let tensA = Math.floor(Math.random() * 4) + 2; 
+                let onesA = Math.floor(Math.random() * 8) + 1; 
+                numA = (tensA * 10) + onesA;
+
+                let tensB = Math.floor(Math.random() * tensA); 
+                let onesB = Math.floor(Math.random() * onesA); 
+                numB = (tensB * 10) + onesB;
+                
+                if (numA === numB || numB === 0) { numB = onesA; }
+            }
+        } else {
+            numA = Math.floor(Math.random() * 41) + 59; 
+            numB = Math.floor(Math.random() * 35) + 5;  
+            if(numA - numB <= 0) numB = 12;
+        }
+
+        roundTargetSolution = numA - numB;
+        document.getElementById('problem-board-display').innerText = `${numA} - ${numB}`;
+
+        let choiceA, choiceB;
+        
+        let deltaA = Math.random() > 0.5 ? 10 : -10;
+        choiceA = roundTargetSolution + deltaA;
+        if (choiceA === roundTargetSolution || choiceA < 0 || choiceA > 100) {
+            choiceA = roundTargetSolution + (roundTargetSolution > 20 ? -5 : 5);
+        }
+
+        let deltaB = Math.random() > 0.5 ? 2 : -2;
+        choiceB = roundTargetSolution + deltaB;
+        if (choiceB === roundTargetSolution || choiceB === choiceA || choiceB < 0 || choiceB > 100) {
+            choiceB = roundTargetSolution + (roundTargetSolution > 15 ? -7 : 7);
+        }
+
+        if (choiceB === choiceA) { choiceB += 3; }
+
+        let itemsList = [roundTargetSolution, choiceA, choiceB];
+        itemsList.sort(() => Math.random() - 0.5);
+
+        rightAnswerBoxIndex = itemsList.indexOf(roundTargetSolution);
+
+        const targetedPool = currentActiveLevel === 1 ? level1PrizesPool : level2PrizesPool;
+        
+        for (let i = 0; i < 3; i++) {
+            document.getElementById(`tag-text-${i}`).innerText = itemsList[i];
+            const randomPrize = targetedPool[Math.floor(Math.random() * targetedPool.length)];
+            document.getElementById(`prize-node-${i}`).innerText = randomPrize;
+        }
+    }
+
+    function handleBoxClick(boxIndex) {
+        if (userInteractionMutexLocked) return;
+
+        const selectedBoxNode = document.getElementById(`box-node-${boxIndex}`);
+        totalAttemptsThisRound++;
+
+        if (boxIndex === rightAnswerBoxIndex) {
+            userInteractionMutexLocked = true;
+            productsSolvedScore++;
+            
+            let prizePrefix = currentActiveLevel === 1 ? "🧸" : "⚡";
+            document.getElementById('hud-score-tag').innerText = `Prizes Won: ${prizePrefix} ${productsSolvedScore}`;
+            document.getElementById('room-feedback-text').innerText = "WOW! YOU OPENED IT! ✨🎁";
+            document.getElementById('room-feedback-text').style.color = "#22c55e";
+
+            if(selectedBoxNode) selectedBoxNode.classList.add('pop-open');
+
+            // Play correct sound safely with no blockages
+            const audioC = document.getElementById('snd-correct');
+            if(audioC && audioC.src) { audioC.play().catch(() => {}); }
+
+            launchConfettiBurstFX();
+
+            setTimeout(() => {
+                if (productsSolvedScore === 5 && currentActiveLevel === 1) {
+                    loadStoryBridgeScreen();
+                } else if (productsSolvedScore >= 10) {
+                    goToScreen('screen-end');
+                } else {
+                    prepareNextQuestionRound();
+                }
+            }, 2500);
+
+        } else {
+            if (currentActiveLevel === 1 && totalAttemptsThisRound === 1) {
+                totalMistakesInLevel1++;
+            }
+
+            // Play wrong sound safely with no blockages
+            const audioW = document.getElementById('snd-wrong');
+            if(audioW && audioW.src) { audioW.play().catch(() => {}); }
+
+            if(selectedBoxNode) {
+                selectedBoxNode.classList.add('wrong-shake');
+                setTimeout(() => selectedBoxNode.classList.remove('wrong-shake'), 450);
+            }
+            document.getElementById('room-feedback-text').innerText = "Locked! Try a different box tag!";
+            document.getElementById('room-feedback-text').style.color = "#ef4444";
+        }
+    }
+
+    function loadStoryBridgeScreen() {
+        const container = document.getElementById('story-card-content');
+        
+        if (totalMistakesInLevel1 === 0) {
+            container.innerHTML = `
+                <div style="font-size: 75px; margin-bottom: 10px;">🏆✨🎁</div>
+                <h1>Hope you like your gifts!</h1>
+                <p style="font-size: 19px; color: #1e293b; font-weight: bold; margin-top: 10px;">
+                    You answered every problem correctly on your first attempt! That is wonderful!
+                </p>
+                <p>Let's collect some more rare treasures waiting inside the glowing Neon Arcade Room!</p>
+                <button class="btn" onclick="proceedToNextLevelFromStory(2)">Unlock Neon Level 2</button>
+            `;
+        } else {
+            container.innerHTML = `
+                <div style="font-size: 75px; margin-bottom: 10px;">🌟💖🎁</div>
+                <h1>Hope you like your gifts!</h1>
+                <p style="font-size: 19px; color: #1e293b; font-weight: bold; margin-top: 10px;">
+                    You worked so hard to unlock those gifts! Every problem you solve makes you stronger.
+                </p>
+                <p>Let's collect some more amazing items together inside the Neon Room! You can do it!</p>
+                <button class="btn" style="background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%); box-shadow: 0 6px 0px #6b21a8;" onclick="proceedToNextLevelFromStory(2)">Continue to Level 2</button>
+            `;
+        }
+        goToScreen('screen-story-bridge');
+    }
+
+    function proceedToNextLevelFromStory(targetLevel) {
+        currentActiveLevel = targetLevel;
+        goToScreen('screen-game');
+        triggerLevel2TransitionEffects();
+        prepareNextQuestionRound();
+    }
+
+    function triggerLevel2TransitionEffects() {
+        document.body.style.fontFamily = "'Courier New', Courier, monospace";
+        const wrapper = document.getElementById('app-viewport-wrapper');
+        if(wrapper) wrapper.style.background = "radial-gradient(circle, #1e1b4b 0%, #090514 100%)";
+
+        const decor = document.getElementById('room-wallpaper-mesh');
+        if(decor) {
+            decor.style.backgroundImage = "linear-gradient(to right, #06b6d4 1px, transparent 1px), linear-gradient(to bottom, #06b6d4 1px, transparent 1px)";
+            decor.style.backgroundSize = "45px 45px";
+            decor.style.opacity = "0.15";
+        }
+
+        const table = document.getElementById('table-base-node');
+        if(table) {
+            table.style.background = "linear-gradient(135deg, #334155 0%, #1e293b 100%)";
+            table.style.borderColor = "#06b6d4";
+        }
+
+        const hud = document.querySelector('.hud-header');
+        if(hud) {
+            hud.style.background = "#0f172a";
+            hud.style.borderColor = "#a855f7";
+            hud.style.color = "#a855f7";
+        }
+        document.getElementById('hud-level-tag').innerText = "Room Status: Level 2 ⚡";
+        document.getElementById('hud-level-tag').style.color = "#06b6d4";
+        
+        const board = document.getElementById('problem-board-display');
+        if(board) {
+            board.style.background = "#020617";
+            board.style.borderColor = "#06b6d4";
+            board.style.color = "#a855f7";
+            board.style.animation = "neon-pulse 2s infinite ease-in-out";
+        }
+
+        for(let i=0; i<3; i++) {
+            const label = document.getElementById(`tag-text-${i}`);
+            if(label) {
+                label.style.fontFamily = "'Courier New', monospace";
+                label.style.background = "#1e1b4b";
+                label.style.color = "#06b6d4";
+                label.style.borderColor = "#06b6d4";
+            }
+        }
+    }
+
+    /* Confetti Burst Engine */
+    let confettiSystemActiveParticles = [];
+    const canvasNode = document.getElementById('confetti-canvas-plane');
+    const ctxEngine = canvasNode.getContext('2d');
+
+    function resizeConfettiCanvas() {
+        canvasNode.width = window.innerWidth;
+        canvasNode.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeConfettiCanvas);
+
+    function launchConfettiBurstFX() {
+        confettiSystemActiveParticles = [];
+        let baseHue = currentActiveLevel === 1 ? 320 : 190; 
+        for (let i = 0; i < 85; i++) {
+            confettiSystemActiveParticles.push({
+                x: canvasNode.width / 2,
+                y: canvasNode.height / 2 + 50,
+                radius: Math.random() * 5 + 4,
+                color: `hsl(${baseHue + (Math.random() * 60 - 30)}, 100%, 60%)`,
+                vx: (Math.random() - 0.5) * 14,
+                vy: (Math.random() - 0.8) * 16,
+                opacity: 1
+            });
+        }
+        requestAnimationFrame(renderConfettiLoopFrame);
+    }
+
+    function renderConfettiLoopFrame() {
+        ctxEngine.clearRect(0, 0, canvasNode.width, canvasNode.height);
+        let continuingParticlesLeft = false;
+
+        confettiSystemActiveParticles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.35; 
+            p.opacity -= 0.012;
+
+            if (p.opacity > 0) {
+                continuingParticlesLeft = true;
+                ctxEngine.beginPath();
+                ctxEngine.fillStyle = p.color;
+                ctxEngine.globalAlpha = p.opacity;
+                ctxEngine.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctxEngine.fill();
+            }
+        });
+
+        ctxEngine.globalAlpha = 1.0;
+        if (continuingParticlesLeft) {
+            requestAnimationFrame(renderConfettiLoopFrame);
+        } else {
+            ctxEngine.clearRect(0, 0, canvasNode.width, canvasNode.height);
+        }
+    }
+</script>
+</body>
+</html>
