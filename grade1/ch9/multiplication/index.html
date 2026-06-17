@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Multiplication Island Expedition</title>
+    <title>Multiplication Island Quest</title>
+    <!-- Premium Confetti Engine for Success Feedback Loops -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -15,6 +16,7 @@
             --text-dark: #2c3e50;
             --text-muted: #5a738e;
             --accent-yellow: #ffd54f;
+            --success: #2e7d32;
         }
 
         * {
@@ -36,7 +38,7 @@
             overflow: hidden;
         }
 
-        /* --- SPLASH SCREEN PANEL --- */
+        /* --- SPLASH SCREEN PANEL (FIXED 5s GATED INTRO) --- */
         #splash-screen {
             position: fixed;
             top: 0;
@@ -55,7 +57,7 @@
             padding: 20px;
         }
 
-        .innovone-logo-container {
+        .innovine-logo-container {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -64,10 +66,15 @@
             animation: floatLogo 3s ease-in-out infinite alternate;
         }
 
-        .brand-logo-img {
-            max-width: 180px;
-            max-height: 120px;
-            object-fit: contain;
+        .brand-logo-text {
+            font-size: 42px;
+            font-weight: 900;
+            letter-spacing: -1px;
+            color: #1e293b;
+        }
+
+        .brand-logo-text span {
+            color: var(--secondary);
         }
 
         @keyframes floatLogo {
@@ -76,10 +83,10 @@
         }
 
         .splash-subtitle {
-            font-size: 18px;
+            font-size: 16px;
             margin-bottom: 35px;
-            color: var(--primary);
-            font-weight: bold;
+            color: #94a3b8;
+            font-weight: 500;
             letter-spacing: 1px;
         }
 
@@ -95,17 +102,17 @@
         .bar-loader-progress {
             width: 100%;
             height: 100%;
-            background: var(--primary);
+            background: #1e293b;
             transform: translateX(-100%);
-            animation: fillLoadingBar 3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+            animation: fillLoadingBar 5s linear forwards;
         }
 
         @keyframes fillLoadingBar {
             to { transform: translateX(0%); }
         }
 
-        /* --- PROGRESSION SLIDE OVERLAY --- */
-        #progression-slide {
+        /* --- STAGE OVERLAYS --- */
+        .stage-overlay {
             position: fixed;
             top: 0;
             left: 0;
@@ -116,30 +123,35 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 9998;
+            z-index: 9990;
             color: white;
             text-align: center;
+            padding: 25px;
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.4s ease;
         }
 
-        #progression-slide.active {
+        .stage-overlay.active {
             opacity: 1;
             pointer-events: auto;
         }
 
-        .slide-title {
-            font-size: 36px;
-            font-weight: 800;
-            margin-bottom: 10px;
-            text-shadow: 0 4px 6px rgba(0,0,0,0.2);
-            animation: bouncePop 0.6s ease infinite alternate;
+        .overlay-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            padding: 30px 20px;
+            border-radius: 24px;
+            backdrop-filter: blur(10px);
+            max-width: 400px;
+            width: 100%;
         }
 
-        @keyframes bouncePop {
-            from { transform: translateY(0); }
-            to { transform: translateY(-10px); }
+        .slide-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 6px rgba(0,0,0,0.15);
         }
 
         /* --- MAIN GAME CONTAINER --- */
@@ -162,31 +174,44 @@
             to { transform: scale(1); opacity: 1; }
         }
 
+        .header-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
         .level-badge {
             background: var(--primary);
             color: white;
-            padding: 6px 18px;
+            padding: 6px 16px;
             border-radius: 50px;
-            font-size: 14px;
-            display: inline-block;
-            margin-bottom: 10px;
+            font-size: 13px;
             font-weight: bold;
-            box-shadow: 0 4px 6px rgba(108,92,231,0.2);
+        }
+
+        .score-badge {
+            background: #fff;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 4px 14px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: bold;
         }
 
         h1 {
             color: var(--text-dark);
-            margin: 0 0 10px 0;
-            font-size: 24px;
+            margin: 0 0 12px 0;
+            font-size: 22px;
         }
 
         .progress-bar {
-            background: #e6eedf;
+            background: #e2e8f0;
             border-radius: 50px;
-            height: 16px;
+            height: 12px;
             margin-bottom: 20px;
             overflow: hidden;
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .progress {
@@ -194,23 +219,38 @@
             height: 100%;
             width: 0%;
             border-radius: 50px;
-            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.4s ease;
         }
 
         .instruction-card {
-            font-size: 16px;
+            font-size: 15px;
             color: var(--text-dark);
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             font-weight: bold;
             line-height: 1.5;
             background: white;
             padding: 15px;
             border-radius: 18px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
             border-left: 6px solid var(--primary);
+            text-align: left;
         }
 
-        /* --- DYNAMIC WORKSPACE --- */
+        .hint-box {
+            background: #fef9c3;
+            border: 2px dashed #facc15;
+            color: #713f12;
+            padding: 10px 15px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: none;
+            text-align: left;
+            animation: popIn 0.3s ease;
+        }
+
+        /* --- INTERACTIVE WORKSPACE --- */
         .workspace {
             background: #ffffff;
             border: 3px dashed #cbd5e1;
@@ -223,41 +263,33 @@
             justify-content: center;
             align-items: center;
             padding: 15px;
-            box-shadow: inset 0 4px 12px rgba(0,0,0,0.02);
         }
 
-        /* --- GROUPS & ITEMS ENGINE --- */
         .grid-container {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 15px;
+            gap: 12px;
             width: 100%;
         }
 
         .visual-group {
-            background: #f1f5f9;
-            border: 2px solid #cbd5e1;
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
             border-radius: 16px;
             padding: 10px;
             display: flex;
             gap: 6px;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
         }
 
         .group-item {
-            font-size: 28px;
-            animation: itemPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 26px;
         }
 
-        @keyframes itemPop {
-            from { transform: scale(0); }
-            to { transform: scale(1); }
-        }
-
-        /* --- BUTTON ZONE --- */
+        /* --- CONTROLS / OPTIONS ZONE --- */
         .options-box {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -271,11 +303,10 @@
             border-bottom: 5px solid var(--secondary-dark);
             border-radius: 16px;
             color: white;
-            font-size: 18px;
+            font-size: 17px;
             font-weight: bold;
             padding: 14px 10px;
             cursor: pointer;
-            text-shadow: 1px 1px 0px rgba(0,0,0,0.15);
             transition: all 0.1s ease;
         }
 
@@ -285,7 +316,7 @@
         }
 
         .btn.correct {
-            background: #2e7d32 !important;
+            background: var(--success) !important;
             border-color: #1b5e20 !important;
             animation: pulseSuccess 0.4s ease;
         }
@@ -294,11 +325,33 @@
             background: #c62828 !important;
             border-color: #5a1212 !important;
             animation: shakeError 0.4s ease;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .action-btn {
+            background: #fff;
+            color: var(--primary);
+            border: none;
+            border-bottom: 5px solid #cbd5e1;
+            padding: 14px 28px;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            width: 100%;
+            transition: all 0.1s ease;
+        }
+
+        .action-btn:active {
+            transform: translateY(3px);
+            border-bottom-width: 2px;
         }
 
         @keyframes pulseSuccess {
             0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
+            50% { transform: scale(1.04); }
             100% { transform: scale(1); }
         }
 
@@ -311,25 +364,44 @@
 </head>
 <body>
 
+    <!-- Splash Screen Panel -->
     <div id="splash-screen">
-        <div class="innovone-logo-container">
-            <div style="font-size: 65px;">🏝️</div>
+        <div class="innovine-logo-container">
+            <div class="brand-logo-text">inno<span>vine</span></div>
         </div>
-        <div class="splash-subtitle">Chapter 9: Multiplication Quest</div>
+        <div class="splash-subtitle">Chapter 9: Multiplication Explorer</div>
         <div class="bar-loader">
             <div class="bar-loader-progress"></div>
         </div>
-        <p style="margin-top: 25px; font-weight: bold; font-size: 11px; letter-spacing: 2px; color: #94a3b8;">LOADING LEVEL PACKS...</p>
+        <p style="margin-top: 25px; font-weight: bold; font-size: 11px; letter-spacing: 2px; color: #94a3b8;">LOADING GAME EXPERIENCES...</p>
     </div>
 
-    <div id="progression-slide">
-        <div style="font-size: 70px; margin-bottom: 15px;">🚀</div>
-        <div class="slide-title" id="slide-level-text">Outcomes Cleared!</div>
-        <p style="font-size: 18px; color: #dff9fb; font-weight: bold; margin: 0;">Next multiplication gateway unlocking...</p>
+    <!-- Introduction Screen -->
+    <div id="intro-screen" class="stage-overlay">
+        <div class="overlay-card">
+            <div style="font-size: 60px; margin-bottom: 10px;">🏝️</div>
+            <div class="slide-title">Multiplication Quest</div>
+            <p style="font-size: 15px; color: #eee; line-height: 1.6; margin-bottom: 25px;">
+                Welcome Explorer! Prepare to navigate through visual groups, skip-count along shores, and clear story sums. You have 2 attempts per puzzle!
+            </p>
+            <button class="action-btn" id="btn-start-game">Begin Expedition 🧭</button>
+        </div>
     </div>
 
+    <!-- Level Progression Slide Overlays -->
+    <div id="progression-slide" class="stage-overlay">
+        <div style="font-size: 65px; margin-bottom: 10px;">⚡</div>
+        <div class="slide-title" id="slide-level-text">Level Completed!</div>
+        <p style="font-size: 16px; color: #dff9fb; font-weight: bold; margin: 0;">Unlocking next mathematical island gateway...</p>
+    </div>
+
+    <!-- Main Active Gameplay Box -->
     <div class="game-container" id="main-game">
-        <div class="level-badge" id="level-lbl">Loading...</div>
+        <div class="header-meta">
+            <div class="level-badge" id="level-lbl">Level 1</div>
+            <div class="score-badge" id="score-lbl">Score: 0</div>
+        </div>
+        
         <h1 id="game-title">Multiplication Journey</h1>
 
         <div class="progress-bar">
@@ -337,116 +409,151 @@
         </div>
 
         <div class="instruction-card" id="instruction-txt">...</div>
+        <div class="hint-box" id="hint-display">💡 Hint goes here...</div>
         <div class="workspace" id="interactive-space"></div>
         <div class="options-box" id="options-zone"></div>
     </div>
 
+    <!-- Appreciation / Summary Screen -->
+    <div id="appreciation-screen" class="stage-overlay">
+        <div class="overlay-card">
+            <div style="font-size: 70px; margin-bottom: 15px;" id="appreciation-emoji">🏆</div>
+            <div class="slide-title" id="appreciation-heading">Outstanding!</div>
+            <div style="font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 10px;" id="final-score-txt">Score: 0/0</div>
+            <p style="color: #e0f2f1; font-size: 14px; line-height: 1.5; margin-bottom: 25px;" id="appreciation-desc">
+                You have successfully completed all competency loops for Chapter 9.
+            </p>
+            <button class="action-btn" id="btn-restart-game" style="color: #6c5ce7;">Play Again 🔄</button>
+        </div>
+    </div>
+
     <script>
-        const puzzleBank = [
-            {
-                level: 1,
-                title: "➕ Repeated Addition",
-                instruction: "Look at the groupings of apples! Choose the addition statement that matches the groups.",
-                type: "visual-math",
-                groups: 3,
-                itemsPerGroup: 2,
-                emoji: "🍎",
-                answer: "2 + 2 + 2",
-                options: ["2 + 2 + 2", "3 + 3", "2 + 2 + 2 + 2"]
-            },
-            {
-                level: 1,
-                title: "➕ Repeated Addition to Multiply",
-                instruction: "Now convert this repeated addition into a quick multiplication sentence!",
-                type: "visual-math",
-                groups: 4,
-                itemsPerGroup: 5,
-                emoji: "⭐",
-                answer: "4 × 5",
-                options: ["5 × 5", "4 × 5", "4 × 4"]
-            },
-            {
-                level: 2,
-                title: "🔢 Skipping by 2s Table",
-                instruction: "Count the total number of bicycle tires. What is 5 groups of 2?",
-                type: "visual-math",
-                groups: 5,
-                itemsPerGroup: 2,
-                emoji: "🚲",
-                answer: "10 tires",
-                options: ["8 tires", "10 tires", "12 tires"]
-            },
-            {
-                level: 2,
-                title: "🔢 Mastering the 5s Table",
-                instruction: "There are 3 starfish containers, each holding exactly 5 starfish. Find the total!",
-                type: "visual-math",
-                groups: 3,
-                itemsPerGroup: 5,
-                emoji: "⭐",
-                answer: "15 starfish",
-                options: ["12 starfish", "15 starfish", "20 starfish"]
-            },
-            {
-                level: 2,
-                title: "🔢 Powerful 10s Table",
-                instruction: "Each treasure chest holds 10 gold coins. How many coins are in 2 chests?",
-                type: "visual-math",
-                groups: 2,
-                itemsPerGroup: 10,
-                emoji: "🪙",
-                answer: "20 coins",
-                options: ["15 coins", "20 coins", "30 coins"]
-            },
-            {
-                level: 3,
-                title: "📖 Real-Life Story Sums",
-                instruction: "An island explorer buys 6 boxes of pencils. Each box containing exactly 2 pencils. How many pencils are there in total?",
-                type: "story-sum",
-                textBlock: "📝 6 boxes × 2 pencils per box =",
-                answer: "12 pencils",
-                options: ["10 pencils", "12 pencils", "14 pencils"]
-            },
-            {
-                level: 3,
-                title: "📖 Real-Life Story Sums",
-                instruction: "A farmer packages organic coconuts into sacks. If there are 4 sacks and each contains 10 coconuts, what's the combined value?",
-                type: "story-sum",
-                textBlock: "📝 4 sacks × 10 coconuts per sack =",
-                answer: "40 coconuts",
-                options: ["30 coconuts", "35 coconuts", "40 coconuts"]
-            }
+        // Production Grade Question Bank Array
+        const rawPuzzleBank = [
+            // --- LEVEL 1: REPEATED ADDITION (5 QUESTIONS) ---
+            { level: 1, title: "➕ Repeated Addition Groups", instruction: "Look at the groupings of fresh apples! Choose the addition sentence that matches the groups.", type: "visual-math", groups: 3, itemsPerGroup: 2, emoji: "🍎", answer: "2 + 2 + 2", options: ["2 + 2 + 2", "3 + 3", "2 + 2 + 2 + 2"], hint: "Count how many items are inside one individual bubble group first!" },
+            { level: 1, title: "➕ Converting to Multiplication", instruction: "Convert this repeated addition grid of stars into a quick multiplication sentence!", type: "visual-math", groups: 4, itemsPerGroup: 5, emoji: "⭐", answer: "4 × 5", options: ["5 × 5", "4 × 5", "4 × 4"], hint: "Multiplication is written as: (Number of Groups) × (Items in each Group)." },
+            { level: 1, title: "➕ Fish Tank Addition", instruction: "Count the friendly goldfish swimming in groups. Find the correct addition matching layout.", type: "visual-math", groups: 2, itemsPerGroup: 4, emoji: "🐟", answer: "4 + 4", options: ["4 + 4", "2 + 2 + 2 + 2", "4 + 4 + 4"], hint: "There are 2 groups. Each group has exactly 4 fishes inside." },
+            { level: 1, title: "➕ Sweet Treat Groupings", instruction: "Look at these delicious cookies! Which repeated addition sentence models this group accurately?", type: "visual-math", groups: 3, itemsPerGroup: 3, emoji: "🍪", answer: "3 + 3 + 3", options: ["3 + 3", "3 + 3 + 3", "3 + 3 + 3 + 3"], hint: "Add the number 3 together as many times as there are cookie containers." },
+            { level: 1, title: "➕ Diamond Match Up", instruction: "Translate this dynamic cluster of gemstones into a fast multiplication statement.", type: "visual-math", groups: 5, itemsPerGroup: 1, emoji: "💎", answer: "5 × 1", options: ["1 × 5", "5 × 1", "5 × 5"], hint: "Count the separate blocks. There are 5 blocks containing 1 gem each." },
+
+            // --- LEVEL 2: MASTERING TABLES 1, 2, 5, 10 (5 QUESTIONS) ---
+            { level: 2, title: "🔢 Counting Bicycles", instruction: "Count the total number of bicycles on the rack. What is 5 groups of 2?", type: "visual-math", groups: 5, itemsPerGroup: 2, emoji: "🚲", answer: "10 bicycles", options: ["8 bicycles", "10 bicycles", "12 bicycles"], hint: "Skip count by 2s five times: 2, 4, 6, 8..." },
+            { level: 2, title: "🔢 Starfish Containers", instruction: "There are 3 specific beach buckets, each containing 5 starfish. Solve the total!", type: "visual-math", groups: 3, itemsPerGroup: 5, emoji: "⭐", answer: "15 starfish", options: ["12 starfish", "15 starfish", "20 starfish"], hint: "Use your 5 times table skip counting rules: 5, 10..." },
+            { level: 2, title: "🔢 Golden Chest Value", instruction: "Each ancient treasure box contains 10 gold coins. How many coins are in 2 chests?", type: "visual-math", groups: 2, itemsPerGroup: 10, emoji: "🪙", answer: "20 coins", options: ["15 coins", "20 coins", "30 coins"], hint: "What is 10 plus 10? Or calculate 2 groups of 10." },
+            { level: 2, title: "🔢 Singly Grouped Butterflies", instruction: "Look at these unique branches holding 6 butterflies altogether. What is 6 groups of 1?", type: "visual-math", groups: 6, itemsPerGroup: 1, emoji: "🦋", answer: "6 butterflies", options: ["1 butterfly", "5 butterflies", "6 butterflies"], hint: "Any number multiplied by 1 always stays exactly the same!" },
+            { level: 2, title: "🔢 Tropical Palm Trees", instruction: "Count the coconuts growing on these trees. What value do we get from 4 groups of 5?", type: "visual-math", groups: 4, itemsPerGroup: 5, emoji: "🥥", answer: "20 coconuts", options: ["15 coconuts", "20 coconuts", "25 coconuts"], hint: "Count up by fives: 5, 10, 15..." },
+
+            // --- LEVEL 3: APPLICATION STORY SUMS (3 QUESTIONS) ---
+            { level: 3, title: "📖 Packaged Pencil Supplies", instruction: "An island scholar buys 6 small boxes of pencils. Each box contains exactly 2 pencils. How many pencils are there in total?", type: "story-sum", textBlock: "📝 6 boxes × 2 pencils per box =", answer: "12 pencils", options: ["10 pencils", "12 pencils", "14 pencils"], hint: "This represents 6 groups of 2. Think about 6 doubled!" },
+            { level: 3, title: "📖 Coconut Farm Harvest", instruction: "A farmer packages organic coconuts into large sacks. If there are 4 sacks and each contains 10 coconuts, what's the combined total?", type: "story-sum", textBlock: "📝 4 sacks × 10 coconuts per sack =", answer: "40 coconuts", options: ["30 coconuts", "35 coconuts", "40 coconuts"], hint: "Count up by tens four separate times: 10, 20, 30..." },
+            { level: 3, title: "📖 Box of Colorful Crayons", instruction: "A classroom helper opens 5 brand new boxes of crayons. If each box contains exactly 5 crayons, what is the total count?", type: "story-sum", textBlock: "📝 5 boxes × 5 crayons per box =", answer: "25 crayons", options: ["20 crayons", "25 crayons", "30 crayons"], hint: "Multiply 5 by 5 to find out the grand answer layout." }
         ];
 
+        let activeQuestionSuite = [];
         let currentIndex = 0;
         let runningScore = 0;
+        let questionAttempts = 0;
         let interactionLock = false;
 
+        // --- WEB AUDIO API PROCEDURAL AUDIO ENGINE ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSoundEffect(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                // Success Chime Arpeggio
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); // G5
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+                // Simulate rhythmic cheering/clapping applause bursts
+                for(let i=0; i<3; i++) {
+                    setTimeout(() => {
+                        const burstOsc = audioCtx.createOscillator();
+                        const burstGain = audioCtx.createGain();
+                        burstOsc.type = 'sine';
+                        burstOsc.frequency.setValueAtTime(400 + (Math.random()*200), audioCtx.currentTime);
+                        burstOsc.connect(burstGain);
+                        burstGain.connect(audioCtx.destination);
+                        burstGain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                        burstGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                        burstOsc.start(); burstOsc.stop(audioCtx.currentTime + 0.1);
+                    }, 100 + (i * 120));
+                }
+            } else if (type === 'wrong') {
+                // Low Hum Error Buzzer
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(130.81, audioCtx.currentTime); // C3
+                osc.frequency.linearRampToValueAtTime(110.00, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.35);
+            }
+        }
+
+        // --- SHUFFLE UTILITY ENGINE ---
+        function assembleRandomizedWorkflow() {
+            const lvl1 = rawPuzzleBank.filter(p => p.level === 1).sort(() => Math.random() - 0.5);
+            const lvl2 = rawPuzzleBank.filter(p => p.level === 2).sort(() => Math.random() - 0.5);
+            const lvl3 = rawPuzzleBank.filter(p => p.level === 3).sort(() => Math.random() - 0.5);
+            activeQuestionSuite = [...lvl1, ...lvl2, ...lvl3];
+        }
+
+        // Force exactly 5 seconds for the Innovine logo gate screen
         setTimeout(() => {
-            document.getElementById('splash-screen').style.opacity = '0';
-            setTimeout(() => {
-                document.getElementById('splash-screen').style.display = 'none';
-                document.getElementById('main-game').style.display = 'block';
-                loadIslandLevel();
-            }, 600);
-        }, 3000);
+            const splashElement = document.getElementById('splash-screen');
+            if (splashElement) {
+                splashElement.style.opacity = '0';
+                setTimeout(() => {
+                    splashElement.style.display = 'none';
+                    document.getElementById('intro-screen').classList.add('active');
+                }, 600);
+            }
+        }, 5000);
+
+        document.getElementById('btn-start-game').addEventListener('pointerdown', () => {
+            // Warm up audio context context via user gesture
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            document.getElementById('intro-screen').classList.remove('active');
+            document.getElementById('main-game').style.display = 'block';
+            assembleRandomizedWorkflow();
+            loadIslandLevel();
+        });
 
         function loadIslandLevel() {
             interactionLock = false;
+            questionAttempts = 0;
+            
             const targetSpace = document.getElementById('interactive-space');
             const choicesZone = document.getElementById('options-zone');
             const fillProgress = document.getElementById('progress-bar-fill');
+            const hintDisplay = document.getElementById('hint-display');
             
-            fillProgress.style.width = `${(currentIndex / puzzleBank.length) * 100}%`;
+            hintDisplay.style.display = 'none';
+            document.getElementById('score-lbl').innerText = `Score: ${runningScore}`;
+            fillProgress.style.width = `${(currentIndex / activeQuestionSuite.length) * 100}%`;
 
-            if (currentIndex >= puzzleBank.length) {
-                renderAdventureSummary();
+            if (currentIndex >= activeQuestionSuite.length) {
+                renderAppreciationSummary();
                 return;
             }
 
-            const activeNode = puzzleBank[currentIndex];
+            const activeNode = activeQuestionSuite[currentIndex];
             
-            document.getElementById('level-lbl').innerText = `Level ${activeNode.level} • Multiplication Quest`;
+            document.getElementById('level-lbl').innerText = `Level ${activeNode.level}`;
             document.getElementById('game-title').innerText = activeNode.title;
             document.getElementById('instruction-txt').innerText = activeNode.instruction;
 
@@ -479,91 +586,118 @@
                 choiceBtn.innerText = choiceText;
                 choiceBtn.addEventListener('pointerdown', (e) => {
                     e.preventDefault(); 
-                    evaluateTargetAnswer(choiceText);
+                    evaluateTargetAnswer(choiceText, choiceBtn);
                 });
                 choicesZone.appendChild(choiceBtn);
             });
         }
 
-        function evaluateTargetAnswer(selectedString) {
+        function evaluateTargetAnswer(selectedString, pressedButton) {
             if (interactionLock) return;
-            interactionLock = true;
 
-            const activeNode = puzzleBank[currentIndex];
+            const activeNode = activeQuestionSuite[currentIndex];
             let isUserCorrect = (selectedString === activeNode.answer);
 
-            const interfaceButtons = document.querySelectorAll('#options-zone .btn');
-
-            interfaceButtons.forEach(btn => {
-                if (btn.innerText === selectedString) {
-                    btn.classList.add(isUserCorrect ? 'correct' : 'wrong');
-                }
-                if (!isUserCorrect && btn.innerText === activeNode.answer) {
-                    setTimeout(() => { btn.classList.add('correct'); }, 200);
-                }
-            });
-
             if (isUserCorrect) {
-                runningScore++;
-                confetti({ particleCount: 40, spread: 60, origin: { y: 0.85 } });
-            }
-
-            setTimeout(() => {
-                const nextIndex = currentIndex + 1;
+                interactionLock = true;
+                pressedButton.classList.add('correct');
+                runningScore += (questionAttempts === 0) ? 2 : 1; // Bonus points for clean first attempt
+                document.getElementById('score-lbl').innerText = `Score: ${runningScore}`;
                 
-                if (nextIndex < puzzleBank.length && puzzleBank[nextIndex].level > activeNode.level) {
-                    const slide = document.getElementById('progression-slide');
-                    const slideText = document.getElementById('slide-level-text');
-                    
-                    slideText.innerText = `Entering Level ${puzzleBank[nextIndex].level}! 🚀`;
-                    slide.classList.add('active');
-                    
-                    let end = Date.now() + 1500;
-                    (function frame() {
-                        confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0 } });
-                        confetti({ particleCount: 2, angle: 120, spread: 55, origin: { x: 1 } });
-                        if (Date.now() < end) { requestAnimationFrame(frame); }
-                    }());
+                playSoundEffect('correct');
+                confetti({ particleCount: 40, spread: 60, origin: { y: 0.85 } });
 
-                    setTimeout(() => {
-                        slide.classList.remove('active');
-                        currentIndex++;
-                        loadIslandLevel();
-                    }, 2000);
-                } else {
+                setTimeout(advanceGameSequence, 2000);
+            } else {
+                questionAttempts++;
+                playSoundEffect('wrong');
+                pressedButton.classList.add('wrong');
+
+                if (questionAttempts === 1) {
+                    // First failure reveals target hints dynamically
+                    const hintDisplay = document.getElementById('hint-display');
+                    hintDisplay.innerText = `💡 Hint: ${activeNode.hint}`;
+                    hintDisplay.style.display = 'block';
+                } else if (questionAttempts >= 2) {
+                    // Second failure locks interactive buttons and reveals answers
+                    interactionLock = true;
+                    const interfaceButtons = document.querySelectorAll('#options-zone .btn');
+                    interfaceButtons.forEach(btn => {
+                        if (btn.innerText === activeNode.answer) {
+                            btn.classList.add('correct');
+                        }
+                    });
+                    setTimeout(advanceGameSequence, 2500);
+                }
+            }
+        }
+
+        function advanceGameSequence() {
+            const currentLevel = activeQuestionSuite[currentIndex].level;
+            const nextIndex = currentIndex + 1;
+            
+            if (nextIndex < activeQuestionSuite.length && activeQuestionSuite[nextIndex].level > currentLevel) {
+                const slide = document.getElementById('progression-slide');
+                const slideText = document.getElementById('slide-level-text');
+                
+                slideText.innerText = `Entering Level ${activeQuestionSuite[nextIndex].level}! 🚀`;
+                slide.classList.add('active');
+                
+                let end = Date.now() + 1500;
+                (function frame() {
+                    confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0 } });
+                    confetti({ particleCount: 2, angle: 120, spread: 55, origin: { x: 1 } });
+                    if (Date.now() < end) { requestAnimationFrame(frame); }
+                }());
+
+                setTimeout(() => {
+                    slide.classList.remove('active');
                     currentIndex++;
                     loadIslandLevel();
-                }
-            }, 2000);
-        }
-
-        function renderAdventureSummary() {
-            document.getElementById('level-lbl').style.display = "none";
-            document.getElementById('game-title').innerText = "🏆 Expedition Concluded!";
-            document.getElementById('instruction-txt').innerText = "Incredible job! You completely mastered Repeated Addition, Tables, and Story Sums!";
-            
-            const targetSpace = document.getElementById('interactive-space');
-            const choicesZone = document.getElementById('options-zone');
-            
-            confetti({ particleCount: 150, spread: 90, origin: { y: 0.5 } });
-
-            targetSpace.innerHTML = `
-                <div style="font-size: 80px; margin-bottom: 15px;">🏆</div>
-                <div style="font-size: 26px; font-weight: 800; color: var(--primary);">Final Score: ${runningScore} / ${puzzleBank.length}</div>
-                <p style="color: var(--text-muted); font-size: 15px; margin-top: 8px;">Multiplication Proficiency Achieved successfully!</p>
-            `;
-
-            choicesZone.innerHTML = `
-                <button class="btn" style="grid-column: span 2; background: var(--primary); border-color: #4834d4;" id="btn-replay">Replay Mission 🔄</button>
-            `;
-
-            document.getElementById('btn-replay').addEventListener('pointerdown', () => {
-                currentIndex = 0;
-                runningScore = 0;
-                document.getElementById('level-lbl').style.display = "inline-block";
+                }, 2200);
+            } else {
+                currentIndex++;
                 loadIslandLevel();
-            });
+            }
         }
+
+        function renderAppreciationSummary() {
+            document.getElementById('main-game').style.display = 'none';
+            const screen = document.getElementById('appreciation-screen');
+            const heading = document.getElementById('appreciation-heading');
+            const emoji = document.getElementById('appreciation-emoji');
+            const scoreText = document.getElementById('final-score-txt');
+            const description = document.getElementById('appreciation-desc');
+
+            const maxPossibleScore = activeQuestionSuite.length * 2;
+            scoreText.innerText = `Final Score Points: ${runningScore} / ${maxPossibleScore}`;
+            screen.classList.add('active');
+
+            if (runningScore >= maxPossibleScore * 0.85) {
+                emoji.innerText = "👑";
+                heading.innerText = "Flawless Victory!";
+                description.innerText = "Incredible performance! You answered with precision and fully mastered all the learning outcomes for Chapter 9!";
+                confetti({ particleCount: 180, spread: 100, origin: { y: 0.4 } });
+            } else if (runningScore >= maxPossibleScore * 0.6) {
+                emoji.innerText = "🏆";
+                heading.innerText = "Spectacular Job!";
+                description.innerText = "Great job! You showed awesome mathematical proficiency converting repeated items to multiplication blocks.";
+                confetti({ particleCount: 100, spread: 60, origin: { y: 0.5 } });
+            } else {
+                emoji.innerText = "🏅";
+                heading.innerText = "Keep It Up!";
+                description.innerText = "Good effort, Explorer! Try another journey round to maximize your multiplication knowledge loop speeds.";
+            }
+        }
+
+        document.getElementById('btn-restart-game').addEventListener('pointerdown', () => {
+            currentIndex = 0;
+            runningScore = 0;
+            document.getElementById('appreciation-screen').classList.remove('active');
+            document.getElementById('main-game').style.display = 'block';
+            assembleRandomizedWorkflow();
+            loadIslandLevel();
+        });
     </script>
 </body>
 </html>
