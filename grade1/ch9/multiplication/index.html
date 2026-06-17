@@ -66,15 +66,10 @@
             animation: floatLogo 3s ease-in-out infinite alternate;
         }
 
-        .brand-logo-text {
-            font-size: 42px;
-            font-weight: 900;
-            letter-spacing: -1px;
-            color: #1e293b;
-        }
-
-        .brand-logo-text span {
-            color: var(--secondary);
+        .brand-logo-img {
+            max-width: 220px;
+            max-height: 80px;
+            object-fit: contain;
         }
 
         @keyframes floatLogo {
@@ -367,7 +362,7 @@
     <!-- Splash Screen Panel -->
     <div id="splash-screen">
         <div class="innovine-logo-container">
-            <div class="brand-logo-text">inno<span>vine</span></div>
+            <img src="logo.png" alt="Innovine Logo" class="brand-logo-img">
         </div>
         <div class="splash-subtitle">Chapter 9: Multiplication Explorer</div>
         <div class="bar-loader">
@@ -428,7 +423,6 @@
     </div>
 
     <script>
-        // Production Grade Question Bank Array
         const rawPuzzleBank = [
             // --- LEVEL 1: REPEATED ADDITION (5 QUESTIONS) ---
             { level: 1, title: "➕ Repeated Addition Groups", instruction: "Look at the groupings of fresh apples! Choose the addition sentence that matches the groups.", type: "visual-math", groups: 3, itemsPerGroup: 2, emoji: "🍎", answer: "2 + 2 + 2", options: ["2 + 2 + 2", "3 + 3", "2 + 2 + 2 + 2"], hint: "Count how many items are inside one individual bubble group first!" },
@@ -445,9 +439,9 @@
             { level: 2, title: "🔢 Tropical Palm Trees", instruction: "Count the coconuts growing on these trees. What value do we get from 4 groups of 5?", type: "visual-math", groups: 4, itemsPerGroup: 5, emoji: "🥥", answer: "20 coconuts", options: ["15 coconuts", "20 coconuts", "25 coconuts"], hint: "Count up by fives: 5, 10, 15..." },
 
             // --- LEVEL 3: APPLICATION STORY SUMS (3 QUESTIONS) ---
-            { level: 3, title: "📖 Packaged Pencil Supplies", instruction: "An island scholar buys 6 small boxes of pencils. Each box contains exactly 2 pencils. How many pencils are there in total?", type: "story-sum", textBlock: "📝 6 boxes × 2 pencils per box =", answer: "12 pencils", options: ["10 pencils", "12 pencils", "14 pencils"], hint: "This represents 6 groups of 2. Think about 6 doubled!" },
-            { level: 3, title: "📖 Coconut Farm Harvest", instruction: "A farmer packages organic coconuts into large sacks. If there are 4 sacks and each contains 10 coconuts, what's the combined total?", type: "story-sum", textBlock: "📝 4 sacks × 10 coconuts per sack =", answer: "40 coconuts", options: ["30 coconuts", "35 coconuts", "40 coconuts"], hint: "Count up by tens four separate times: 10, 20, 30..." },
-            { level: 3, title: "📖 Box of Colorful Crayons", instruction: "A classroom helper opens 5 brand new boxes of crayons. If each box contains exactly 5 crayons, what is the total count?", type: "story-sum", textBlock: "📝 5 boxes × 5 crayons per box =", answer: "25 crayons", options: ["20 crayons", "25 crayons", "30 crayons"], hint: "Multiply 5 by 5 to find out the grand answer layout." }
+            { level: 3, title: "📖 Packaged Pencil Supplies", instruction: "An island scholar buys 6 small boxes of pencils. Each box contains exactly 2 pencils. How many pencils are there in total?", type: "story-sum", textBlock: "📝 6 boxes × 2 pencils per box", answer: "12 pencils", options: ["10 pencils", "12 pencils", "14 pencils"], hint: "This represents 6 groups of 2. Think about 6 doubled!" },
+            { level: 3, title: "📖 Coconut Farm Harvest", instruction: "A farmer packages organic coconuts into large sacks. If there are 4 sacks and each contains 10 coconuts, what's the combined total?", type: "story-sum", textBlock: "📝 4 sacks × 10 coconuts per sack", answer: "40 coconuts", options: ["30 coconuts", "35 coconuts", "40 coconuts"], hint: "Count up by tens four separate times: 10, 20, 30..." },
+            { level: 3, title: "📖 Box of Colorful Crayons", instruction: "A classroom helper opens 5 brand new boxes of crayons. If each box contains exactly 5 crayons, what is the total count?", type: "story-sum", textBlock: "📝 5 boxes × 5 crayons per box", answer: "25 crayons", options: ["20 crayons", "25 crayons", "30 crayons"], hint: "Multiply 5 by 5 to find out the grand answer layout." }
         ];
 
         let activeQuestionSuite = [];
@@ -469,16 +463,14 @@
             gain.connect(audioCtx.destination);
 
             if (type === 'correct') {
-                // Success Chime Arpeggio
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
-                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
-                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); // G5
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); 
+                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); 
                 gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.4);
-                // Simulate rhythmic cheering/clapping applause bursts
                 for(let i=0; i<3; i++) {
                     setTimeout(() => {
                         const burstOsc = audioCtx.createOscillator();
@@ -493,9 +485,8 @@
                     }, 100 + (i * 120));
                 }
             } else if (type === 'wrong') {
-                // Low Hum Error Buzzer
                 osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(130.81, audioCtx.currentTime); // C3
+                osc.frequency.setValueAtTime(130.81, audioCtx.currentTime); 
                 osc.frequency.linearRampToValueAtTime(110.00, audioCtx.currentTime + 0.3);
                 gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
@@ -504,7 +495,6 @@
             }
         }
 
-        // --- SHUFFLE UTILITY ENGINE ---
         function assembleRandomizedWorkflow() {
             const lvl1 = rawPuzzleBank.filter(p => p.level === 1).sort(() => Math.random() - 0.5);
             const lvl2 = rawPuzzleBank.filter(p => p.level === 2).sort(() => Math.random() - 0.5);
@@ -512,7 +502,6 @@
             activeQuestionSuite = [...lvl1, ...lvl2, ...lvl3];
         }
 
-        // Force exactly 5 seconds for the Innovine logo gate screen
         setTimeout(() => {
             const splashElement = document.getElementById('splash-screen');
             if (splashElement) {
@@ -525,7 +514,6 @@
         }, 5000);
 
         document.getElementById('btn-start-game').addEventListener('pointerdown', () => {
-            // Warm up audio context context via user gesture
             if (audioCtx.state === 'suspended') audioCtx.resume();
             document.getElementById('intro-screen').classList.remove('active');
             document.getElementById('main-game').style.display = 'block';
@@ -601,7 +589,7 @@
             if (isUserCorrect) {
                 interactionLock = true;
                 pressedButton.classList.add('correct');
-                runningScore += (questionAttempts === 0) ? 2 : 1; // Bonus points for clean first attempt
+                runningScore += (questionAttempts === 0) ? 2 : 1; 
                 document.getElementById('score-lbl').innerText = `Score: ${runningScore}`;
                 
                 playSoundEffect('correct');
@@ -614,12 +602,10 @@
                 pressedButton.classList.add('wrong');
 
                 if (questionAttempts === 1) {
-                    // First failure reveals target hints dynamically
                     const hintDisplay = document.getElementById('hint-display');
                     hintDisplay.innerText = `💡 Hint: ${activeNode.hint}`;
                     hintDisplay.style.display = 'block';
                 } else if (questionAttempts >= 2) {
-                    // Second failure locks interactive buttons and reveals answers
                     interactionLock = true;
                     const interfaceButtons = document.querySelectorAll('#options-zone .btn');
                     interfaceButtons.forEach(btn => {
