@@ -4,648 +4,789 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Measurement Island Adventure</title>
-    <!-- Canvas Confetti Library for leveling up and game completion -->
+    <!-- Premium Confetti Engine for Success Feedback Loops -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
+        :root {
+            --primary: #008080;
+            --primary-light: #e0f2f1;
+            --secondary: #ff7043;
+            --secondary-dark: #d84315;
+            --bg-island: #f7f9fa;
+            --text-dark: #2c3e50;
+            --text-muted: #5a738e;
+            --accent-yellow: #ffd54f;
+        }
+
         * {
             box-sizing: border-box;
-            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
-            touch-action: none;
+            font-family: 'Capriola', 'Comic Sans MS', 'Chalkboard SE', sans-serif;
             -webkit-user-select: none;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
+
         body {
-            background-color: #e0f7fa;
+            background: linear-gradient(180deg, #b3e5fc 0%, #81d4fa 40%, #fff9c4 100%);
             margin: 0;
-            padding: 10px;
+            padding: 15px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             overflow: hidden;
         }
-        /* Splash Screen Style with 5-Second Logo Display */
+
+        /* --- SPLASH SCREEN PANEL --- */
         #splash-screen {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #00acc1, #007c91);
+            background: linear-gradient(135deg, #00838f, #006064);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
             color: white;
             text-align: center;
             padding: 20px;
         }
+
         .splash-logo-container {
-            width: 140px;
-            height: 140px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 4px solid #fff59d;
-            border-radius: 50%;
+            width: 150px;
+            height: 150px;
+            background: radial-gradient(circle, #fff9c4 20%, transparent 70%);
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 65px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
-            animation: pulse-logo 2s infinite alternate;
-            overflow: hidden;
+            font-size: 80px;
+            margin-bottom: 25px;
+            animation: floatLogo 3s ease-in-out infinite alternate;
         }
-        .splash-logo-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+
+        @keyframes floatLogo {
+            0% { transform: translateY(0px) rotate(0deg); }
+            100% { transform: translateY(-12px) rotate(5deg); }
         }
-        @keyframes pulse-logo {
-            from { transform: scale(0.95); box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
-            to { transform: scale(1.05); box-shadow: 0 12px 24px rgba(0,0,0,0.3); }
-        }
+
         .splash-title {
-            font-size: 32px;
-            margin-bottom: 5px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
         }
+
         .splash-subtitle {
             font-size: 18px;
-            margin-bottom: 25px;
-            opacity: 0.9;
+            margin-bottom: 35px;
+            color: #b2dfdb;
+            font-weight: bold;
         }
-        .loader {
-            border: 6px solid rgba(255,255,255,0.3);
-            border-top: 6px solid #fff59d;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
+
+        .bar-loader {
+            width: 160px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
         }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+
+        .bar-loader-progress {
+            width: 100%;
+            height: 100%;
+            background: var(--accent-yellow);
+            transform: translateX(-100%);
+            animation: fillLoadingBar 4.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
         }
-        /* Game Framework Layout */
+
+        @keyframes fillLoadingBar {
+            to { transform: translateX(0%); }
+        }
+
+        /* --- MAIN GAME CONTAINER --- */
         .game-container {
-            background: white;
-            border: 5px solid #00acc1;
-            border-radius: 24px;
-            padding: 15px;
+            background: var(--bg-island);
+            border: 6px solid #fff;
+            border-radius: 32px;
+            padding: 20px;
             width: 100%;
             max-width: 480px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15), inset 0 -8px 0 rgba(0,0,0,0.05);
             text-align: center;
             display: none;
             position: relative;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+
+        @keyframes popIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
         .level-badge {
-            background: #00acc1;
+            background: var(--primary);
             color: white;
-            padding: 3px 15px;
-            border-radius: 20px;
-            font-size: 13px;
+            padding: 6px 18px;
+            border-radius: 50px;
+            font-size: 14px;
             display: inline-block;
-            margin-bottom: 6px;
+            margin-bottom: 10px;
             font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0,80,80,0.2);
         }
+
         h1 {
-            color: #006064;
-            margin: 0 0 6px 0;
-            font-size: 22px;
+            color: var(--text-dark);
+            margin: 0 0 10px 0;
+            font-size: 24px;
         }
+
         .volume-box {
-            background: #e0f2f1;
-            padding: 5px;
-            border-radius: 10px;
-            margin-bottom: 12px;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 14px;
+            margin-bottom: 15px;
             font-size: 13px;
-            color: #004d40;
+            color: var(--text-muted);
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-        }
-        .progress-bar {
-            background: #f5f5f5;
-            border-radius: 10px;
-            height: 14px;
-            margin-bottom: 15px;
-            overflow: hidden;
-            border: 1px solid #e0e0e0;
-        }
-        .progress {
-            background: linear-gradient(90deg, #4dd0e1, #00acc1);
-            height: 100%;
-            width: 0%;
-            transition: width 0.4s ease;
-        }
-        .instruction-card {
-            font-size: 16px;
-            color: #37474f;
-            margin-bottom: 15px;
-            font-weight: bold;
-            line-height: 1.4;
-            background: #f9f9f9;
-            padding: 10px;
-            border-radius: 12px;
-            border-left: 5px solid #00acc1;
+            gap: 10px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
 
-        /* WORKSPACE INTERACTIVE BOX */
+        .volume-box input[type="range"] {
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .progress-bar {
+            background: #e6eedf;
+            border-radius: 50px;
+            height: 16px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .progress {
+            background: linear-gradient(90deg, #4db6ac, var(--primary));
+            height: 100%;
+            width: 0%;
+            border-radius: 50px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .instruction-card {
+            font-size: 16px;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+            font-weight: bold;
+            line-height: 1.5;
+            background: white;
+            padding: 15px;
+            border-radius: 18px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+            border-left: 6px solid var(--primary);
+        }
+
+        /* --- DYNAMIC WORKSPACE --- */
         .workspace {
-            background: #fafafa;
-            border: 3px dashed #b2dfdb;
-            border-radius: 16px;
-            min-height: 180px;
-            margin-bottom: 15px;
+            background: #ffffff;
+            border: 3px dashed #cbd5e1;
+            border-radius: 24px;
+            min-height: 200px;
+            margin-bottom: 20px;
             position: relative;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 10px;
-            overflow: hidden;
+            padding: 15px;
+            box-shadow: inset 0 4px 12px rgba(0,0,0,0.02);
         }
 
-        /* LEVEL 1 SPECIFIC GRAPHICS */
+        /* --- ENGINE: LEVEL 1 (LENGTH) --- */
         .length-row {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 12px;
             width: 100%;
-            align-items: flex-start;
-            padding: 10px;
         }
+
         .length-item-wrapper {
             display: flex;
             align-items: center;
             width: 100%;
-            gap: 10px;
+            background: #f8fafc;
+            padding: 8px;
+            border-radius: 14px;
+            border: 2px solid #e2e8f0;
             cursor: pointer;
-            background: white;
-            padding: 6px;
-            border-radius: 8px;
-            border: 2px solid transparent;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
         }
-        .length-item-wrapper:active {
-            transform: scale(0.98);
+
+        .length-item-wrapper:hover {
+            border-color: var(--primary);
+            background: #f0fdfa;
+            transform: scale(1.01);
         }
+
         .length-bar {
-            height: 24px;
-            border-radius: 6px;
+            height: 32px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
-            padding-left: 8px;
+            padding-left: 12px;
             color: white;
             font-weight: bold;
             font-size: 14px;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+            transition: transform 0.2s ease;
         }
 
-        /* LEVEL 2 SPECIFIC GRAPHICS (BALANCE BEAM) */
+        /* --- ENGINE: LEVEL 2 (WEIGHT) --- */
         .scale-container {
             width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
-            position: relative;
-            margin-top: 10px;
+            padding-top: 10px;
         }
+
         .scale-beam {
-            width: 260px;
-            height: 10px;
-            background: #78909c;
-            border-radius: 4px;
+            width: 280px;
+            height: 12px;
+            background: #94a3b8;
+            border-radius: 6px;
             position: relative;
             transform-origin: center center;
-            transition: transform 0.5s ease;
+            transition: transform 0.7s cubic-bezier(0.25, 1, 0.5, 1);
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            padding: 0 10px;
+            padding: 0 5px;
         }
+
+        .scale-beam::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: -10px;
+            transform: translateX(-50%);
+            width: 4px;
+            height: 10px;
+            background: #64748b;
+        }
+
         .scale-base {
-            width: 40px;
-            height: 60px;
-            background: #546e7a;
-            clip-path: polygon(30% 0%, 70% 0%, 100% 100%, 0% 100%);
+            width: 46px;
+            height: 65px;
+            background: #475569;
+            clip-path: polygon(35% 0%, 65% 0%, 100% 100%, 0% 100%);
             margin-top: -2px;
+            z-index: 1;
         }
+
         .scale-plate {
-            width: 80px;
-            height: 45px;
-            background: #b0bec5;
-            border-bottom: 6px solid #90a4ae;
-            border-radius: 0 0 40px 40px;
+            width: 85px;
+            height: 50px;
+            background: #cbd5e1;
+            border-bottom: 6px solid #475569;
+            border-radius: 0 0 50px 50px;
             display: flex;
             justify-content: center;
             align-items: center;
-            font-size: 28px;
-            position: relative;
+            font-size: 32px;
             transform-origin: center top;
-            transition: transform 0.5s ease;
+            transition: transform 0.7s cubic-bezier(0.25, 1, 0.5, 1);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
 
-        /* LEVEL 3 SPECIFIC GRAPHICS (CAPACITY POUR) */
+        /* --- ENGINE: LEVEL 3 (CAPACITY) --- */
         .capacity-layout {
             display: flex;
             justify-content: space-around;
             align-items: flex-end;
             width: 100%;
             gap: 15px;
-            padding-top: 10px;
+            min-height: 130px;
         }
+
         .glass-container {
-            border: 4px solid #78909c;
+            border: 5px solid #64748b;
             border-top: none;
-            border-radius: 0 0 16px 16px;
-            background: rgba(255,255,255,0.5);
+            border-radius: 0 0 20px 20px;
+            background: rgba(241, 245, 249, 0.6);
             position: relative;
             overflow: hidden;
             display: flex;
             align-items: flex-end;
             cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-        }
-        .fluid-fill {
-            background: linear-gradient(0deg, #29b6f6, #4fc3f7);
-            width: 100%;
-            height: 0%;
-            transition: height 0.5s ease;
-        }
-        .container-label {
-            position: absolute;
-            top: 35%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 24px;
-            z-index: 2;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+            transition: transform 0.2s ease, border-color 0.2s ease;
         }
 
-        /* INTERACTIVE OPTIONS CONTROL ZONE */
+        .glass-container:hover {
+            border-color: var(--primary);
+            transform: scale(1.03);
+        }
+
+        .fluid-fill {
+            background: linear-gradient(0deg, #0288d1, #29b6f6);
+            width: 100%;
+            height: 0%;
+            transition: height 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .fluid-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 6px;
+            background: rgba(255,255,255,0.4);
+        }
+
+        .container-label {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 34px;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* --- ACTION/OPTIONS SYSTEM --- */
         .options-box {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 15px;
+            gap: 14px;
+            margin-top: 5px;
         }
+
+        @media (max-width: 380px) {
+            .options-box {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .btn {
-            background: #ff7043;
+            background: var(--secondary);
             border: none;
-            border-bottom: 4px solid #d84315;
-            border-radius: 14px;
+            border-bottom: 5px solid var(--secondary-dark);
+            border-radius: 16px;
             color: white;
-            font-size: 18px;
-            padding: 12px 10px;
-            cursor: pointer;
+            font-size: 16px;
             font-weight: bold;
+            padding: 14px 10px;
+            cursor: pointer;
             transition: all 0.1s ease;
         }
+
+        .btn:after {
+            content: '';
+            display: block;
+        }
+
         .btn:active {
-            transform: translateY(2px);
+            transform: translateY(3px);
             border-bottom-width: 2px;
         }
+
         .btn.correct {
-            background: #4caf50 !important;
-            border-color: #2e7d32 !important;
+            background: #2e7d32 !important;
+            border-color: #1b5e20 !important;
+            animation: pulseSuccess 0.4s ease;
         }
+
         .btn.wrong {
-            background: #f44336 !important;
-            border-color: #c62828 !important;
+            background: #c62828 !important;
+            border-color: #5a1212 !important;
+            animation: shakeError 0.4s ease;
+        }
+
+        @keyframes pulseSuccess {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes shakeError {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
         }
     </style>
 </head>
 <body>
 
-    <!-- Splash Screen Panel with Verified 5-Second Timer and Logo Display -->
+    <!-- Splash Screen Panel -->
     <div id="splash-screen">
-        <div class="splash-logo-container">
-            <!-- Tries loading a local logo image file, gracefully falls back to emoji art if absent -->
-            <img class="splash-logo-img" src="assets/innovine-logo.png" alt="🌴" onerror="this.style.display='none';">
-        </div>
+        <div class="splash-logo-container" id="logo-shell">🌴</div>
         <div class="splash-title">Measurement Island</div>
-        <div class="splash-subtitle">Length, Weight & Capacity Quest</div>
-        <div class="loader"></div>
-        <p style="margin-top: 15px; font-weight: bold; font-size: 13px; letter-spacing: 1px;">PREPARING ADVENTURE...</p>
+        <div class="splash-subtitle">An Interactive Math Adventure</div>
+        <div class="bar-loader">
+            <div class="bar-loader-progress"></div>
+        </div>
+        <p style="margin-top: 20px; font-weight: bold; font-size: 12px; letter-spacing: 2px; color: #b2dfdb;">ANCHORING BOAT...</p>
     </div>
 
-    <!-- Audio Placeholders -->
-    <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
-    <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+    <!-- Audio Placeholders (Safe Fail Engine Protected) -->
+    <audio id="audio-correct" preload="auto"></audio>
+    <audio id="audio-wrong" preload="auto"></audio>
 
-    <!-- Core Game UI Main Container -->
+    <!-- Main App Container -->
     <div class="game-container" id="main-game">
-        <div class="level-badge" id="level-lbl">Level 1: Length Quest</div>
-        <h1 id="game-title">Measure and Compare!</h1>
+        <div class="level-badge" id="level-lbl">Loading...</div>
+        <h1 id="game-title">Island Quest</h1>
         
         <div class="volume-box">
-            <label for="volume">🔊 Game Volume: </label>
-            <input type="range" id="volume" min="0" max="1" step="0.2" value="0.6">
+            <label for="volume">🔊 Volume: </label>
+            <input type="range" id="volume" min="0" max="1" step="0.1" value="0.5">
         </div>
 
         <div class="progress-bar">
             <div class="progress" id="progress-bar-fill"></div>
         </div>
 
-        <div class="instruction-card" id="instruction-txt">
-            Loading mission criteria...
-        </div>
+        <div class="instruction-card" id="instruction-txt">...</div>
 
-        <div class="workspace" id="interactive-space">
-            <!-- Dynamic components inject here based on current active level -->
-        </div>
+        <div class="workspace" id="interactive-space"></div>
 
-        <div class="options-box" id="options-zone">
-            <!-- Dynamic button nodes inject here -->
-        </div>
+        <div class="options-box" id="options-zone"></div>
     </div>
 
     <script>
         const volumeSlider = document.getElementById('volume');
 
-        function triggerSound(isCorrectSound) {
+        // Safe Audio Core Engine
+        function runAudioFeedback(isCorrectAsset) {
             try {
-                const targetId = isCorrectSound ? 'audio-correct' : 'audio-wrong';
-                const soundNode = document.getElementById(targetId);
-                if (soundNode) {
-                    soundNode.volume = volumeSlider.value;
-                    soundNode.currentTime = 0;
-                    soundNode.play().catch(() => {});
+                const targetNode = document.getElementById(isCorrectAsset ? 'audio-correct' : 'audio-wrong');
+                if (targetNode && targetNode.src && targetNode.src !== window.location.href) {
+                    targetNode.volume = parseFloat(volumeSlider.value) || 0.5;
+                    targetNode.currentTime = 0;
+                    targetNode.play().catch(() => {});
                 }
-            } catch (e) {}
+            } catch (err) {}
         }
 
-        // Questions mapping to objectives within image_5e38bc.png
+        // Expanded, Curated Educational Database
         const puzzleBank = [
-            // LEVEL 1: LENGTH
             {
                 level: 1,
-                title: "📏 Length Comparison Quest",
-                instruction: "Look at the colorful bars. Choose the item that is the LONGEST!",
+                title: "📏 Longest Object Quest",
+                instruction: "Compare the lengths of the items. Click the bar or the answer below that is the LONGEST!",
                 type: "length-comparison",
                 items: [
-                    { name: "Crayon 🖍️", width: "40%", color: "#e91e63", id: 0 },
-                    { name: "Pencil ✏️", width: "85%", color: "#ffeb3b", labelColor: "#5d4037", id: 1 },
-                    { name: "Ruler 📐", width: "60%", color: "#4caf50", id: 2 }
+                    { name: "Saber Crayon 🖍️", width: "45%", color: "#ec407a", id: 0 },
+                    { name: "Island Pencil ✏️", width: "90%", color: "#ffa726", id: 1 },
+                    { name: "Bamboo Ruler 📐", width: "65%", color: "#26a69a", id: 2 }
                 ],
                 correctId: 1, 
-                options: ["Crayon 🖍️", "Pencil ✏️", "Ruler 📐"]
+                options: ["Saber Crayon 🖍️", "Island Pencil ✏️", "Bamboo Ruler 📐"]
             },
             {
                 level: 1,
-                title: "📏 Length Unit Counting",
-                instruction: "This magical key 🔑 is exactly as long as 4 paperclips lined up end-to-end. How many paperclips long is it?",
+                title: "📏 Shortest Object Quest",
+                instruction: "Look closely at the paths. Which item is the SHORTEST?",
+                type: "length-comparison",
+                items: [
+                    { name: "Log Plank 🪵", width: "80%", color: "#8d6e63", id: 0 },
+                    { name: "Fern Leaf 🌿", width: "35%", color: "#66bb6a", id: 1 },
+                    { name: "Island Vine 🪢", width: "70%", color: "#78909c", id: 2 }
+                ],
+                correctId: 1,
+                options: ["Log Plank 🪵", "Fern Leaf 🌿", "Island Vine 🪢"]
+            },
+            {
+                level: 1,
+                title: "📏 Non-Standard Length Units",
+                instruction: "This structural gold key 🔑 measures exactly identical to a row of paperclips. Count and find its length!",
                 type: "length-unit",
                 graphicHTML: `
-                    <div style="font-size:45px; margin-bottom:10px;">🔑</div>
-                    <div style="display:flex; gap:4px; font-size:24px;">📎📎📎📎</div>
+                    <div style="font-size:55px; margin-bottom:12px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">🔑</div>
+                    <div style="display:flex; gap:6px; font-size:28px; background: #f1f5f9; padding: 6px 16px; border-radius: 12px;">📎📎📎📎📎</div>
                 `,
-                answer: "4 paperclips",
-                options: ["2 paperclips", "4 paperclips", "6 paperclips", "8 paperclips"]
+                answer: "5 paperclips",
+                options: ["3 paperclips", "5 paperclips", "7 paperclips"]
             },
-
-            // LEVEL 2: WEIGHT
             {
                 level: 2,
-                title: "⚖️ Weight Balance Quest",
-                instruction: "Look at how the balance scale tips! Complete the true math sentence below.",
+                title: "⚖️ Weight & Gravity Balance",
+                instruction: "The balance scale alters based on object mass. Complete the correct comparison equation statement below.",
                 type: "weight-comparison",
                 weightState: "left-heavy",
-                leftItem: "⛰️",
-                rightItem: "🪶",
-                sentenceContext: "The heavy Boulder ⛰️ is ________ than the light Feather 🪶.",
+                leftItem: "💎",
+                rightItem: "🥥",
+                sentenceContext: "The heavy Diamond 💎 is ________ the Coconut 🥥.",
                 answer: "heavier than",
-                options: ["heavier than", "lighter than", "as heavy as"]
+                options: ["heavier than", "lighter than", "equal weight to"]
             },
             {
                 level: 2,
                 title: "⚖️ Non-Standard Weight Units",
-                instruction: "An apple 🍎 perfectly balances on the scale when exactly 5 wooden blocks 🧱 are placed on the other side. What is the weight of the apple?",
+                instruction: "This safe cargo chest 🧳 is completely balanced by the weight blocks on the right. How much does it weigh?",
                 type: "weight-unit",
                 weightState: "balanced",
-                leftItem: "🍎",
-                rightItem: "🧱<span style='font-size:14px; position:absolute; bottom:2px; right:2px;'>x5</span>",
-                answer: "5 blocks",
-                options: ["3 blocks", "5 blocks", "8 blocks"]
+                leftItem: "🧳",
+                rightItem: "🧱<span style='font-size:16px; font-weight:bold; color:var(--primary); margin-left:4px;'>x8</span>",
+                answer: "8 structural blocks",
+                options: ["4 structural blocks", "6 structural blocks", "8 structural blocks"]
             },
-
-            // LEVEL 3: CAPACITY
             {
                 level: 3,
-                title: "🥤 Capacity Container Quest",
-                instruction: "Capacity is the maximum amount an object can contain. Which of these containers can hold the MOST amount of water?",
+                title: "🥤 Capacity Evaluation Quest",
+                instruction: "Capacity determines liquid holding thresholds. Tap the individual glass container that holds the MOST water!",
                 type: "capacity-comparison",
                 containers: [
-                    { icon: "☕", size: "45px", height: "50px", width: "55px", name: "Teacup" },
-                    { icon: "🪣", size: "65px", height: "85px", width: "80px", name: "Large Bucket", isCorrect: true },
-                    { icon: "🥛", size: "50px", height: "65px", width: "50px", name: "Glass" }
+                    { icon: "🥥", height: "60px", width: "65px", name: "Coconut Shell" },
+                    { icon: "🪣", height: "95px", width: "85px", name: "Water Bucket", isCorrect: true },
+                    { icon: "🧪", height: "75px", width: "45px", name: "Vial" }
                 ],
-                answer: "Large Bucket",
-                options: ["Teacup", "Glass", "Large Bucket"]
+                answer: "Water Bucket",
+                options: ["Coconut Shell", "Vial", "Water Bucket"]
             },
             {
                 level: 3,
                 title: "🥤 Non-Standard Capacity Units",
-                instruction: "It takes exactly 6 small cups 🥛 of juice to fill up this entire giant pitcher 🏺 to its maximum line. What is the capacity of the pitcher?",
+                instruction: "How many full matching cups 🥛 of sweet spring nectar are required to completely fill up this magic clay urn 🏺?",
                 type: "capacity-unit",
                 graphicHTML: `
-                    <div style="display:flex; align-items:center; gap:20px;">
-                        <div style="font-size:65px;">🏺</div>
-                        <div style="font-size:24px;">=</div>
-                        <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:5px; font-size:24px;">🥛🥛🥛🥛🥛🥛</div>
+                    <div style="display:flex; align-items:center; gap:24px; background: white; padding: 15px; border-radius: 20px; box-shadow:0 4px 6px rgba(0,0,0,0.02);">
+                        <div style="font-size:75px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));">🏺</div>
+                        <div style="font-size:32px; color: var(--text-muted);">=</div>
+                        <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:6px; font-size:28px;">🥛🥛🥛🥛🥛🥛🥛🥛</div>
                     </div>
                 `,
-                answer: "6 cups",
-                options: ["3 cups", "6 cups", "9 cups"]
+                answer: "8 cups",
+                options: ["4 cups", "6 cups", "8 cups"]
             }
         ];
 
         let currentIndex = 0;
-        let finalScore = 0;
-        let isInputAllowed = true;
+        let runningScore = 0;
+        let interactionLock = false;
 
-        // Auto-hide the splash screen after exactly 5000 milliseconds (5 seconds)
+        // Perfect 5-Second Splash Hold Execution Pipeline
         setTimeout(() => {
-            const splash = document.getElementById('splash-screen');
-            const gameWindow = document.getElementById('main-game');
-            if (splash && gameWindow) {
-                splash.style.opacity = 0;
+            const splashElement = document.getElementById('splash-screen');
+            const coreAppContainer = document.getElementById('main-game');
+            if (splashElement && coreAppContainer) {
+                splashElement.style.opacity = '0';
                 setTimeout(() => {
-                    splash.style.display = 'none';
-                    gameWindow.style.display = 'block';
-                    loadNextQuestion();
-                }, 500);
+                    splashElement.style.display = 'none';
+                    coreAppContainer.style.display = 'block';
+                    loadIslandLevel();
+                }, 600);
             }
         }, 5000);
 
-        function loadNextQuestion() {
-            isInputAllowed = true;
-            const space = document.getElementById('interactive-space');
-            const optionsZone = document.getElementById('options-zone');
-            const progressFill = document.getElementById('progress-bar-fill');
+        function loadIslandLevel() {
+            interactionLock = false;
+            const targetSpace = document.getElementById('interactive-space');
+            const choicesZone = document.getElementById('options-zone');
+            const fillProgress = document.getElementById('progress-bar-fill');
             
-            progressFill.style.width = `${(currentIndex / puzzleBank.length) * 100}%`;
+            fillProgress.style.width = `${(currentIndex / puzzleBank.length) * 100}%`;
 
             if (currentIndex >= puzzleBank.length) {
-                renderEndScreen();
+                renderAdventureSummary();
                 return;
             }
 
-            const currentPuzzle = puzzleBank[currentIndex];
+            const activeNode = puzzleBank[currentIndex];
             
-            document.getElementById('level-lbl').innerText = `Level ${currentPuzzle.level}: Master ${currentPuzzle.level === 1 ? 'Length' : currentPuzzle.level === 2 ? 'Weight' : 'Capacity'}`;
-            document.getElementById('game-title').innerText = currentPuzzle.title;
-            document.getElementById('instruction-txt').innerText = currentPuzzle.instruction;
+            // Set Titles & Navigation Meta Text
+            document.getElementById('level-lbl').innerText = `Level ${activeNode.level} • Quest Challenge`;
+            document.getElementById('game-title').innerText = activeNode.title;
+            document.getElementById('instruction-txt').innerText = activeNode.instruction;
 
-            space.innerHTML = "";
-            optionsZone.innerHTML = "";
+            // Purge UI Windows
+            targetSpace.innerHTML = "";
+            choicesZone.innerHTML = "";
 
-            if (currentPuzzle.type === "length-comparison") {
-                let lengthHTML = `<div class="length-row">`;
-                currentPuzzle.items.forEach(item => {
-                    lengthHTML += `
-                        <div class="length-item-wrapper" onclick="selectLengthItem(${item.id})">
-                            <div class="length-bar" style="width: ${item.width}; background-color: ${item.color}; color: ${item.labelColor || 'white'};">
-                                ${item.name}
+            // RENDERING MODULE: LENGTH
+            if (activeNode.type === "length-comparison") {
+                let lengthDomWrapper = `<div class="length-row">`;
+                activeNode.items.forEach(el => {
+                    lengthDomWrapper += `
+                        <div class="length-item-wrapper" data-item-id="${el.id}">
+                            <div class="length-bar" style="width: ${el.width}; background-color: ${el.color};">
+                                ${el.name}
                             </div>
                         </div>
                     `;
                 });
-                lengthHTML += `</div>`;
-                space.innerHTML = lengthHTML;
-            } 
-            else if (currentPuzzle.type === "length-unit" || currentPuzzle.type === "capacity-unit") {
-                space.innerHTML = currentPuzzle.graphicHTML;
-            } 
-            else if (currentPuzzle.type === "weight-comparison" || currentPuzzle.type === "weight-unit") {
-                let tiltDeg = "0deg";
-                if (currentPuzzle.weightState === "left-heavy") tiltDeg = "-12deg";
-                if (currentPuzzle.weightState === "right-heavy") tiltDeg = "12deg";
+                lengthDomWrapper += `</div>`;
+                targetSpace.innerHTML = lengthDomWrapper;
 
-                space.innerHTML = `
+                // Bind high-performance pointer events
+                targetSpace.querySelectorAll('.length-item-wrapper').forEach(node => {
+                    node.addEventListener('pointerdown', (e) => {
+                        const targetId = parseInt(node.getAttribute('data-item-id'));
+                        evaluateTargetAnswer(activeNode.options[targetId]);
+                    });
+                });
+            } 
+            // RENDERING MODULE: NON-STANDARD UNITS
+            else if (activeNode.type === "length-unit" || activeNode.type === "capacity-unit") {
+                targetSpace.innerHTML = activeNode.graphicHTML;
+            } 
+            // RENDERING MODULE: WEIGHT BEAM PHYSICS
+            else if (activeNode.type === "weight-comparison" || activeNode.type === "weight-unit") {
+                let currentRotationAngle = "0deg";
+                let reverseCounterAngle = "0deg";
+                
+                if (activeNode.weightState === "left-heavy") {
+                    currentRotationAngle = "-12deg";
+                    reverseCounterAngle = "12deg";
+                } else if (activeNode.weightState === "right-heavy") {
+                    currentRotationAngle = "12deg";
+                    reverseCounterAngle = "-12deg";
+                }
+
+                targetSpace.innerHTML = `
                     <div class="scale-container">
-                        <div class="scale-beam" style="transform: rotate(${tiltDeg});">
-                            <div class="scale-plate" style="transform: rotate(${-parseFloat(tiltDeg)}deg);">${currentPuzzle.leftItem}</div>
-                            <div class="scale-plate" style="transform: rotate(${-parseFloat(tiltDeg)}deg);">${currentPuzzle.rightItem}</div>
+                        <div class="scale-beam" id="hardware-beam" style="transform: rotate(0deg);">
+                            <div class="scale-plate" style="transform: rotate(0deg);">${activeNode.leftItem}</div>
+                            <div class="scale-plate" style="transform: rotate(0deg);">${activeNode.rightItem}</div>
                         </div>
                         <div class="scale-base"></div>
-                        ${currentPuzzle.sentenceContext ? `<div style="font-size:14px; margin-top:12px; font-weight:bold; color:#37474f; padding:0 5px;">${currentPuzzle.sentenceContext}</div>` : ''}
+                        ${activeNode.sentenceContext ? `<div style="font-size:15px; margin-top:16px; font-weight:bold; color:var(--text-dark); background: #f1f5f9; padding: 6px 14px; border-radius: 10px;">${activeNode.sentenceContext}</div>` : ''}
                     </div>
                 `;
+
+                // Smoothly trigger physics balancing after element injection completes
+                setTimeout(() => {
+                    const beam = document.getElementById('hardware-beam');
+                    if(beam) {
+                        beam.style.transform = `rotate(${currentRotationAngle})`;
+                        beam.querySelectorAll('.scale-plate').forEach(plate => {
+                            plate.style.transform = `rotate(${reverseCounterAngle})`;
+                        });
+                    }
+                }, 100);
             }
-            else if (currentPuzzle.type === "capacity-comparison") {
-                let capacityHTML = `<div class="capacity-layout">`;
-                currentPuzzle.containers.forEach(box => {
-                    capacityHTML += `
-                        <div class="glass-container" style="height:${box.height}; width:${box.width};" onclick="selectCapacityItem('${box.name}')">
-                            <div class="container-label">${box.icon}</div>
-                            <div class="fluid-fill" id="fill-${box.name}"></div>
+            // RENDERING MODULE: CAPACITY FILL LIQUIDS
+            else if (activeNode.type === "capacity-comparison") {
+                let liquidDomWrapper = `<div class="capacity-layout">`;
+                activeNode.containers.forEach(item => {
+                    liquidDomWrapper += `
+                        <div class="glass-container" style="height:${item.height}; width:${item.width};" data-container-name="${item.name}">
+                            <div class="container-label">${item.icon}</div>
+                            <div class="fluid-fill" id="pour-${item.name.replace(/\s+/g, '')}"></div>
                         </div>
                     `;
                 });
-                capacityHTML += `</div>`;
-                space.innerHTML = capacityHTML;
-            }
+                liquidDomWrapper += `</div>`;
+                targetSpace.innerHTML = liquidDomWrapper;
 
-            currentPuzzle.options.forEach(optionText => {
-                const btnNode = document.createElement('button');
-                btnNode.className = "btn";
-                btnNode.innerText = optionText;
-                btnNode.onclick = () => verifyChoiceAnswer(btnNode, optionText);
-                optionsZone.appendChild(btnNode);
-            });
-        }
-
-        function selectLengthItem(id) {
-            if (!isInputAllowed) return;
-            const currentPuzzle = puzzleBank[currentIndex];
-            const buttons = document.querySelectorAll('#options-zone .btn');
-            buttons.forEach(btn => {
-                if (btn.innerText === currentPuzzle.options[id]) btn.click();
-            });
-        }
-
-        function selectCapacityItem(name) {
-            if (!isInputAllowed) return;
-            const fillLine = document.getElementById(`fill-${name}`);
-            if (fillLine) fillLine.style.height = "85%";
-
-            const currentPuzzle = puzzleBank[currentIndex];
-            const buttons = document.querySelectorAll('#options-zone .btn');
-            
-            setTimeout(() => {
-                buttons.forEach(btn => {
-                    if (btn.innerText === name) btn.click();
-                });
-            }, 600);
-        }
-
-        function verifyChoiceAnswer(clickedBtn, userText) {
-            if (!isInputAllowed) return;
-            isInputAllowed = false;
-
-            const q = puzzleBank[currentIndex];
-            let checkCondition = false;
-
-            if (q.type === "length-comparison") {
-                checkCondition = (userText === q.options[q.correctId]);
-            } else {
-                checkCondition = (userText === q.answer);
-            }
-
-            if (checkCondition) {
-                finalScore++;
-                clickedBtn.classList.add('correct');
-                triggerSound(true);
-                confetti({ particleCount: 35, spread: 50, origin: { y: 0.8 } });
-            } else {
-                clickedBtn.classList.add('wrong');
-                triggerSound(false);
-                
-                document.querySelectorAll('#options-zone .btn').forEach(btn => {
-                    let targetGoalText = (q.type === "length-comparison") ? q.options[q.correctId] : q.answer;
-                    if (btn.innerText === targetGoalText) btn.classList.add('correct');
+                targetSpace.querySelectorAll('.glass-container').forEach(cup => {
+                    cup.addEventListener('pointerdown', () => {
+                        if (interactionLock) return;
+                        const cName = cup.getAttribute('data-container-name');
+                        const targetLiquidFill = cup.querySelector('.fluid-fill');
+                        if (targetLiquidFill) targetLiquidFill.style.height = "90%";
+                        
+                        setTimeout(() => { evaluateTargetAnswer(cName); }, 600);
+                    });
                 });
             }
 
+            // Generate Functional Interactive Control Option Buttons
+            activeNode.options.forEach(choiceText => {
+                const choiceBtn = document.createElement('button');
+                choiceBtn.className = "btn";
+                choiceBtn.innerText = choiceText;
+                choiceBtn.addEventListener('pointerdown', (e) => {
+                    e.preventDefault(); 
+                    evaluateTargetAnswer(choiceText);
+                });
+                choicesZone.appendChild(choiceBtn);
+            });
+        }
+
+        function evaluateTargetAnswer(selectedString) {
+            if (interactionLock) return;
+            interactionLock = true;
+
+            const activeNode = puzzleBank[currentIndex];
+            let isUserCorrect = false;
+
+            if (activeNode.type === "length-comparison") {
+                isUserCorrect = (selectedString === activeNode.options[activeNode.correctId]);
+            } else {
+                isUserCorrect = (selectedString === activeNode.answer);
+            }
+
+            // Process Options Accent Stylings UI Loops
+            const interfaceButtons = document.querySelectorAll('#options-zone .btn');
+            let systemTargetText = (activeNode.type === "length-comparison") ? activeNode.options[activeNode.correctId] : activeNode.answer;
+
+            interfaceButtons.forEach(btn => {
+                if (btn.innerText === selectedString) {
+                    btn.classList.add(isUserCorrect ? 'correct' : 'wrong');
+                }
+                // Reveal the correct option if the player made a mistake
+                if (!isUserCorrect && btn.innerText === systemTargetText) {
+                    setTimeout(() => { btn.classList.add('correct'); }, 200);
+                }
+            });
+
+            if (isUserCorrect) {
+                runningScore++;
+                runAudioFeedback(true);
+                confetti({ particleCount: 40, spread: 60, origin: { y: 0.85 } });
+            } else {
+                runAudioFeedback(false);
+            }
+
+            // Stage Transition Timeout Loop
             setTimeout(() => {
                 currentIndex++;
-                loadNextQuestion();
+                loadIslandLevel();
             }, 2500);
         }
 
-        function renderEndScreen() {
+        function renderAdventureSummary() {
             document.getElementById('level-lbl').style.display = "none";
             document.getElementById('game-title').innerText = "🌴 Exploration Complete!";
-            document.getElementById('instruction-txt').innerText = "Splendid job! You mastered all the length, weight, and capacity comparison islands successfully.";
+            document.getElementById('instruction-txt').innerText = "Fantastic! You navigated the computational hazards of Length, Weight, and Capacity Island.";
             
-            const space = document.getElementById('interactive-space');
-            const optionsZone = document.getElementById('options-zone');
+            const targetSpace = document.getElementById('interactive-space');
+            const choicesZone = document.getElementById('options-zone');
             
-            if (finalScore >= (puzzleBank.length * 0.7)) {
-                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            if (runningScore >= (puzzleBank.length * 0.7)) {
+                confetti({ particleCount: 120, spread: 80, origin: { y: 0.5 } });
             }
 
-            space.innerHTML = `
-                <div style="font-size: 70px; margin-bottom: 10px;">🏆</div>
-                <div style="font-size: 22px; font-weight: bold; color: #007c91;">Total Badges: ${finalScore} / ${puzzleBank.length}</div>
+            targetSpace.innerHTML = `
+                <div style="font-size: 80px; margin-bottom: 15px; animation: floatLogo 2s ease-in-out infinite alternate;">🏆</div>
+                <div style="font-size: 24px; font-weight: 800; color: var(--primary);">Score: ${runningScore} / ${puzzleBank.length}</div>
+                <p style="color: var(--text-muted); font-size: 14px; margin-top: 8px;">You are an officially certified Measurement Explorer!</p>
             `;
 
-            optionsZone.innerHTML = `
-                <button class="btn" style="grid-column: span 2; background-color:#00acc1; border-color:#007c91;" onclick="restartAdventure()">Play Again 🔄</button>
+            choicesZone.innerHTML = `
+                <button class="btn" style="grid-column: span 2; background: var(--primary); border-color: #004d40;" id="btn-replay">Restart Journey 🔄</button>
             `;
-        }
 
-        function restartAdventure() {
-            currentIndex = 0;
-            finalScore = 0;
-            document.getElementById('level-lbl').style.display = "inline-block";
-            loadNextQuestion();
+            document.getElementById('btn-replay').addEventListener('pointerdown', () => {
+                currentIndex = 0;
+                runningScore = 0;
+                document.getElementById('level-lbl').style.display = "inline-block";
+                loadIslandLevel();
+            });
         }
     </script>
 </body>
