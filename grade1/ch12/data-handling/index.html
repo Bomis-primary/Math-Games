@@ -199,7 +199,7 @@ h1 {
 .count-input:disabled { background: #e8f5e9; border-color: #4caf50; color: #2e7d32; }
 .status-indicator { font-size: 22px; width: 28px; text-align: center; }
 
-/* --- L2 QUEST CARD STYLING --- */
+/* --- L2 QUEST CARD STYLING (2x2 Grid) --- */
 .quest-wrapper {
     background: #fff3e0; border: 3px solid #ffb74d; border-radius: 16px;
     padding: 20px; margin-top: 10px; text-align: left;
@@ -207,12 +207,17 @@ h1 {
 .quest-title { font-size: 18px; font-weight: bold; color: #e65100; margin-bottom: 12px; }
 
 .options-grid {
-    display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 15px;
+    display: grid; 
+    grid-template-columns: repeat(2, 1fr); 
+    grid-template-rows: repeat(2, auto);
+    gap: 15px; 
+    margin-top: 15px;
 }
 .option-btn {
-    padding: 12px; font-size: 16px; font-weight: bold; background: white;
+    padding: 14px; font-size: 16px; font-weight: bold; background: white;
     border: 2px solid #ffe0b2; border-radius: 12px; cursor: pointer; color: #5d4037;
     transition: background-color 0.2s, transform 0.1s, border-color 0.2s;
+    text-align: center;
 }
 .option-btn:hover { background: #fff8e1; border-color: #ffb74d; }
 .option-btn:active { transform: scale(0.98); }
@@ -254,7 +259,6 @@ h1 {
 
 <div id="gameMatrix">
     
-    <!-- LEVEL PANEL 1: INSTRUCTION SLIDE -->
     <div class="layer-panel active" id="layer-intro">
         <div class="level-badge">DATA HANDLING HOTS</div>
         <h1>Sam's Grand Pictograph Quest</h1>
@@ -266,7 +270,6 @@ h1 {
         <button class="btn btn-blue" onclick="switchInterfacePanel('layer-gameplay')">Start Challenge! 🚀</button>
     </div>
 
-    <!-- LEVEL PANEL 2: LEVEL 1 GAMEPLAY (SORTING & COUNTING) -->
     <div class="layer-panel" id="layer-gameplay">
         <div class="level-badge">LEVEL 1: SORT & COUNT</div>
         <h1 style="font-size: 24px;">Sam's Drag & Drop Alignment Board</h1>
@@ -314,7 +317,6 @@ h1 {
         <button id="verifyBtn" class="btn" onclick="verifyCalculationsL1()" disabled>Verify Answers Check 🎯</button>
     </div>
 
-    <!-- LEVEL PANEL 3: MID-GAME SEPARATOR SLIDE -->
     <div class="layer-panel" id="layer-separator">
         <div style="font-size: 4rem; margin-bottom: 10px;">YAY! 🎉</div>
         <h1 style="color: var(--accent-blue);">Level 1 Complete!</h1>
@@ -325,7 +327,6 @@ h1 {
         <button class="btn btn-blue" onclick="switchInterfacePanel('layer-pictograph-cbq')">Go to Level 2! 🚀</button>
     </div>
 
-    <!-- LEVEL PANEL 4: LEVEL 2 GAMEPLAY (PICTOGRAPH INTERPRETATION CBQ) -->
     <div class="layer-panel" id="layer-pictograph-cbq">
         <div class="level-badge">LEVEL 2: CHART ANALYSIS</div>
         <h1 style="font-size: 24px;">Sam's Sweet Treat Analysis Board</h1>
@@ -339,7 +340,6 @@ h1 {
             </div>
         </div>
 
-        <!-- The Filled Static Pictograph View -->
         <div class="chart-container">
             <div class="chart-row" id="row-candy">
                 <div class="category-lead-cell"><img src="assets/candy.png" alt="Candy" onerror="this.parentNode.innerText='🍬'"></div>
@@ -359,14 +359,12 @@ h1 {
             </div>
         </div>
 
-        <!-- Dynamic Question Box -->
         <div class="quest-wrapper" id="questionBox">
             <div class="quest-title" id="questString">Loading Question...</div>
             <div class="options-grid" id="optionsContainer"></div>
         </div>
     </div>
 
-    <!-- LEVEL PANEL 5: GRAND COMPLETION OVERLAY -->
     <div class="layer-panel" id="layer-end">
         <div style="font-size: 4.5rem; margin-bottom: 15px; animation: pulseLogo 1.5s infinite alternate;">🏆</div>
         <h1 style="color: var(--success-green); font-size: 2.2rem;">Grand Champion!</h1>
@@ -379,7 +377,6 @@ h1 {
 
 <canvas id="fireworks"></canvas>
 
-<!-- System Audio Resource Engine -->
 <audio id="clickSound" preload="auto" src="assets/click.mp3"></audio>
 <audio id="correctSound" preload="auto" src="assets/correct.mp3"></audio>
 <audio id="wrongSound" preload="auto" src="assets/wrong.mp3"></audio>
@@ -554,7 +551,7 @@ function verifyCalculationsL1() {
 
     document.getElementById("status-ball").innerText = rowBallCorrect ? "✅" : "❌";
     document.getElementById("status-bear").innerText = rowBearCorrect ? "✅" : "❌";
-    document.getElementById("status-car").innerText = rowCarCorrect ? "❌" : "❌";
+    document.getElementById("status-car").innerText = rowCarCorrect ? "✅" : "❌";
 
     if (rowBallCorrect && rowBearCorrect && rowCarCorrect) {
         playSoundEffect("correctSound");
@@ -717,81 +714,4 @@ function verifyL2Answer(chosen, correct) {
             document.getElementById("dialogueTextL2").innerHTML = "Splendid reasoning! Here comes the next data challenge... 🧠";
             setTimeout(() => { loadLevel2Question(); }, 2000);
         } else {
-            playSoundEffect("clappedSound");
-            document.getElementById("dialogueTextL2").innerHTML = "Incredible Job! Let's pull up your grand dashboard!";
-            setTimeout(() => { switchInterfacePanel('layer-end'); }, 2500);
-        }
-    } else {
-        playSoundEffect("wrongSound");
-        l2WrongAttempts++;
-        
-        const wrapper = document.getElementById("questionBox");
-        wrapper.classList.add("error-shake");
-        setTimeout(() => wrapper.classList.remove("error-shake"), 400);
-        
-        if (l2WrongAttempts >= 2) {
-            alert(`💡 Hint: ${l2QuestionsPool[currentL2QuestIdx].hint}`);
-        }
-    }
-}
-
-/* ================= SYSTEM HOUSEKEEPING UTILITIES ================= */
-function playSoundEffect(domId) {
-    const audioNode = document.getElementById(domId);
-    if(audioNode) {
-        audioNode.currentTime = 0;
-        audioNode.play().catch(() => {});
-    }
-}
-
-function reinitializeSimulationEngine() {
-    setupLevel2DataStructures();
-    generateScrambledDeck();
-    switchInterfacePanel('layer-intro');
-}
-
-/* Confetti System Framework */
-const canvas = document.getElementById("fireworks");
-const ctx = canvas.getContext("2d");
-let particles = [];
-function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
-resize();
-window.addEventListener("resize", resize);
-
-function triggerWinCelebration() {
-    let duration = 2000;
-    let end = Date.now() + duration;
-    (function frame() {
-        burstParticles(Math.random() * canvas.width, Math.random() * canvas.height * 0.4, 5);
-        if (Date.now() < end) requestAnimationFrame(frame);
-    }());
-}
-
-function burstParticles(x, y, count) {
-    for(let i = 0; i < count; i++){
-        let angle = Math.random() * 2 * Math.PI;
-        let speed = Math.random() * 4 + 2;
-        particles.push({ 
-            x: x, y: y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, 
-            radius: Math.random() * 3 + 2, alpha: 1, gravity: 0.05,
-            color: `hsla(${Math.random() * 360}, 100%, 60%, `
-        });
-    }
-}
-
-function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    particles.forEach(p => { p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.alpha -= 0.015; });
-    particles = particles.filter(p => p.alpha > 0);
-    particles.forEach(p => {
-        ctx.fillStyle = `${p.color}${p.alpha})`;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2); ctx.fill();
-    });
-    requestAnimationFrame(animate);
-}
-animate();
-
-window.onload = initGameLifecycle;
-</script>
-</body>
-</html>
+            playSoundEffect("clappedSound
