@@ -53,7 +53,7 @@
         }
 
         @keyframes pulse {
-            0 { transform: scale(1); }
+            0% { transform: scale(1); }
             50% { transform: scale(1.05); }
             100% { transform: scale(1); }
         }
@@ -364,10 +364,10 @@
     <div class="game-container" id="game-card">
         <!-- Header HUD -->
         <div class="header-controls">
-            <div class="level-badge" id="level-indicator">Level 1: Set Time</div>
+            <div class="level-badge" id="level-indicator">Welcome</div>
             <div class="volume-container">
                 <span>🔊</span>
-                <input type="range" class="volume-slider" id="volume-control" min="0" max="1" step="0.1" value="0.8">
+                <input range" class="volume-slider" id="volume-control" min="0" max="1" step="0.1" value="0.8">
             </div>
         </div>
 
@@ -376,7 +376,7 @@
         </div>
 
         <!-- MAIN GAMEPLAY INTERFACE -->
-        <div id="game-playground">
+        <div id="game-playground" style="display: none;">
             <div class="prompt-box" id="question-prompt">Loading puzzle prompt...</div>
 
             <!-- LEVEL 1: INTERACTIVE CLOCK VIEW -->
@@ -403,11 +403,11 @@
         </div>
 
         <!-- CONNECTING STORY SLIDES INTERFACE -->
-        <div id="story-playground" style="display: none;" class="story-view">
-            <div class="story-emoji" id="story-icon">🚀</div>
-            <h2 class="story-title" id="story-headline">Level Cleared!</h2>
-            <div class="story-text" id="story-narration">Story description loading...</div>
-            <button class="action-btn" onclick="dismissStorySlide()">Continue Adventure ➔</button>
+        <div id="story-playground" class="story-view">
+            <div class="story-emoji" id="story-icon">🎮</div>
+            <h2 class="story-title" id="story-headline">Welcome, Time Hero!</h2>
+            <div class="story-text" id="story-narration">Are you ready to learn about time? In this fun game, you will help Riya fix her day! You will move clock hands, sort days of the week, and line up morning routines. Let's start playing!</div>
+            <button class="action-btn" onclick="dismissStorySlide()">Let's Play! 🎉</button>
         </div>
 
         <!-- END OF GAME CONTROL VIEW -->
@@ -440,17 +440,31 @@
             { text: "Sequence your evening routine activities step-by-step!", items: ["Go to Bed", "Play Outside", "Eat Dinner", "Do Homework"], correctOrder: ["Play Outside", "Do Homework", "Eat Dinner", "Go to Bed"], hint: "Going to Bed is always the very last thing we do at night!" }
         ];
 
-        // Narrative Configuration Mapping Data
+        // Narrative Configuration Mapping Data for Level Entrances
         const storySlides = {
-            afterLevel1: {
-                emoji: "😴💤",
-                title: "Into the Calendar Land!",
-                text: "Fantastic job! Riya went to sleep right on time. But oh look... as she falls asleep, she drifts into a magical Dream World! To get back home, she must now learn how to organize the Days and Months. Let's help her navigate the Calendar land!"
+            gameIntro: {
+                emoji: "🎮⚡",
+                badge: "Game Intro",
+                title: "Welcome, Time Hero!",
+                text: "Are you ready to learn all about time? In this game, you will help Riya fix her busy days! You will change clock faces, sort calendar pages, and line up fun daily routines. Let's click below to start!"
             },
-            afterLevel2: {
+            level1: {
+                emoji: "☀️🎒",
+                badge: "Level 1 Intro",
+                title: "Riya's Day Begins!",
+                text: "Riya needs to stay on time today! Help her track her hours from morning until bedtime by setting the clock hands correctly. Let's go!"
+            },
+            level2: {
+                emoji: "😴💤",
+                badge: "Level 2 Intro",
+                title: "The Calendar Land!",
+                text: "Fantastic job! Riya went to sleep right on time. But oh look... she is dreaming about a magical world made of calendars! Let's help her sort out the Days and Months to find her way through!"
+            },
+            level3: {
                 emoji: "🌀⏰",
+                badge: "Level 3 Intro",
                 title: "The Golden Time Gate!",
-                text: "Wow, you sorted all the days and months perfectly! A glowing Time Gate has appeared in Riya's dream. To step back into reality and become a Time Champion, she needs to fix one last thing—her mixed-up daily routines. Let's finish the final challenge!"
+                text: "Wow, you sorted the calendar paths perfectly! A glowing Time Gate has opened. To fly back home and win the game, help Riya arrange her daily routines in order from morning to night!"
             }
         };
 
@@ -461,6 +475,7 @@
         let volumeLevel = 0.8;
         let runningMission = null;
         let wrongAttemptsCount = 0;
+        let storyProgressState = "gameIntro"; 
 
         function audioBeep(freq, type, duration) {
             try {
@@ -566,13 +581,13 @@
             currentLevel = 1;
             internalStep = 0;
             wrongAttemptsCount = 0;
-            updateGlobalProgressBar();
-            loadCurrentMission();
+            showStorySlide('gameIntro');
         }
 
         function updateGlobalProgressBar() {
             let rawProgress = 0;
-            if (currentLevel === 1) rawProgress = internalStep;
+            if (storyProgressState === "gameIntro") rawProgress = 0;
+            else if (currentLevel === 1) rawProgress = internalStep;
             else if (currentLevel === 2) rawProgress = 5 + internalStep;
             else if (currentLevel === 3) rawProgress = 9 + internalStep;
             
@@ -682,15 +697,14 @@
         function advanceGamePipeline() {
             internalStep++;
             
-            // Level Switch Controller Injecting Connecting Story Panels
             if (currentLevel === 1 && internalStep >= level1Missions.length) {
-                showStorySlide('afterLevel1');
                 currentLevel = 2;
                 internalStep = 0;
+                showStorySlide('level2');
             } else if (currentLevel === 2 && internalStep >= level2Missions.length) {
-                showStorySlide('afterLevel2');
                 currentLevel = 3;
                 internalStep = 0;
+                showStorySlide('level3');
             } else if (currentLevel === 3 && internalStep >= level3Missions.length) {
                 document.getElementById('progress-indicator').style.width = '100%';
                 document.getElementById('game-playground').style.display = 'none';
@@ -704,24 +718,31 @@
 
         // Story Mode Layout Drivers
         function showStorySlide(slideKey) {
+            storyProgressState = slideKey;
             const data = storySlides[slideKey];
+            
             document.getElementById('game-playground').style.display = 'none';
+            document.getElementById('level-indicator').innerText = data.badge;
             
             document.getElementById('story-icon').innerText = data.emoji;
             document.getElementById('story-headline').innerText = data.title;
             document.getElementById('story-narration').innerText = data.text;
             
             document.getElementById('story-playground').style.display = 'block';
+            updateGlobalProgressBar();
         }
 
         function dismissStorySlide() {
-            loadCurrentMission();
+            if (storyProgressState === "gameIntro") {
+                showStorySlide('level1'); // Chains the general overview straight into Level 1's setup scene
+            } else {
+                loadCurrentMission();
+            }
         }
 
         function restartEntireGame() {
-            document.getElementById('game-playground').style.display = 'block';
+            document.getElementById('game-playground').style.display = 'none';
             document.getElementById('end-view').style.display = 'none';
-            document.getElementById('story-playground').style.display = 'none';
             launchCoreGameEngine();
         }
     </script>
