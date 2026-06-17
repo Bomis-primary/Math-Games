@@ -6,7 +6,7 @@
 <title>Math Mystery Box Surprise - Grade 1</title>
 <style>
     :root {
-        --room-bg: #fef08a; /* Warm sunny yellow room wallpaper */
+        --room-bg: #fef08a; 
         --accent-pink: #f472b6;
     }
     * { 
@@ -30,7 +30,7 @@
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: #ffffff !important; z-index: 99999;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        opacity: 1; transition: opacity 0.5s ease;
+        opacity: 1; transition: opacity 0.5s ease, visibility 0.5s ease;
     }
     .logo-container {
         display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -296,27 +296,30 @@
     let rightAnswerBoxIndex = 0;
     let userInteractionMutexLocked = false;
     
-    // Performance metrics trackers
     let totalAttemptsThisRound = 0;
     let totalMistakesInLevel1 = 0;
 
     const level1PrizesPool = ['🧸', '🚀', '🦄', '🚂', '🦖', '🚗', '✈️', '🎨'];
     const level2PrizesPool = ['👾', '🛸', '💎', '👑', '🎸', '🔮', '🤖', '⚡'];
 
-    // Absolute 5-Second Splash Exit Setup
-    window.addEventListener('DOMContentLoaded', function() {
-        setTimeout(function() {
-            const splash = document.getElementById('screen-splash');
-            const appWrapper = document.getElementById('app-viewport-wrapper');
-            if (splash) {
-                splash.style.opacity = '0';
-                setTimeout(() => {
-                    splash.style.display = 'none';
-                    if (appWrapper) appWrapper.style.display = 'flex';
-                }, 500);
-            }
-        }, 5000);
-    });
+    // FORCE LOAD FAILSAFE TIMER: Automatically removes splash screen at 5 seconds no matter what
+    function dismissSplashScreen() {
+        const splash = document.getElementById('screen-splash');
+        const appWrapper = document.getElementById('app-viewport-wrapper');
+        if (splash && splash.style.display !== 'none') {
+            splash.style.opacity = '0';
+            setTimeout(() => {
+                splash.style.display = 'none';
+                if (appWrapper) appWrapper.style.display = 'flex';
+            }, 500);
+        }
+    }
+
+    // Trigger dismiss instantly when asset tree finishes loading...
+    window.addEventListener('load', dismissSplashScreen);
+
+    // ...and have the safety net trigger anyway at 5 seconds max
+    setTimeout(dismissSplashScreen, 5000);
 
     function goToScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -331,7 +334,6 @@
         totalMistakesInLevel1 = 0;
         userInteractionMutexLocked = false;
         
-        // Restore Level 1 Typography & Textures
         document.body.style.fontFamily = "'Chalkboard SE', 'Comic Sans MS', 'Segoe UI', Arial, sans-serif";
         
         const wrapper = document.getElementById('app-viewport-wrapper');
@@ -341,3 +343,41 @@
         if(decor) {
             decor.style.backgroundImage = "radial-gradient(#f472b6 2px, transparent 2px)";
             decor.style.opacity = "0.3";
+        }
+
+        const table = document.getElementById('table-base-node');
+        if(table) {
+            table.style.background = "linear-gradient(135deg, #b45309 0%, #78350f 100%)";
+            table.style.borderColor = "#f59e0b";
+        }
+
+        const hud = document.querySelector('.hud-header');
+        if(hud) {
+            hud.style.background = "white";
+            hud.style.borderColor = "#f472b6";
+            hud.style.color = "#db2777";
+        }
+        
+        document.getElementById('hud-level-tag').innerText = "Room Status: Level 1 🎈";
+        document.getElementById('hud-score-tag').innerText = "Prizes Won: 🧸 0";
+        
+        const board = document.getElementById('problem-board-display');
+        if(board) {
+            board.style.borderColor = "#475569";
+            board.style.color = "#38bdf8";
+            board.style.background = "#1e293b";
+            board.style.animation = "none";
+        }
+
+        for(let i=0; i<3; i++) {
+            const label = document.getElementById(`tag-text-${i}`);
+            if(label) {
+                label.style.fontFamily = "inherit";
+                label.style.background = "white";
+                label.style.color = "#1e293b";
+                label.style.borderColor = "#475569";
+            }
+        }
+    }
+
+    function startMysteryGame() {
