@@ -44,57 +44,61 @@
             position: relative;
         }
 
-        /* 5-Second Locked Logo Splash Screen Overlay */
+        /* 5-Second Locked Innovine Splash Window - Pure White Background */
         #hard-splash {
             position: fixed;
             top: 0; 
             left: 0; 
             width: 100vw; 
             height: 100vh;
-            background: #111827;
+            background: #ffffff;
             z-index: 99999;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            gap: 20px;
+            gap: 24px;
             transition: opacity 0.5s ease;
         }
-        .splash-logo {
-            width: 140px;
-            height: 140px;
-            object-fit: contain;
-            border-radius: 24px;
-            border: 3px solid #38bdf8;
-            box-shadow: 0 0 25px rgba(56, 189, 248, 0.25);
-            background: #1f2937;
-            padding: 10px;
+        
+        /* Innovine Branding Typography Logo Element */
+        .innovine-logo-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
         }
-        .splash-text {
-            font-size: 1.6rem;
-            font-weight: 800;
-            color: #ffffff;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(255,255,255,0.1);
+        .innovine-main-text {
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: #111827;
+            letter-spacing: -1px;
+            line-height: 1;
         }
-        .splash-subtext {
-            font-size: 0.9rem;
-            color: #38bdf8;
-            font-weight: 600;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-top: -12px;
-        }
-        .splash-timer {
-            font-size: 0.95rem;
+        .innovine-sub-text {
+            font-size: 0.75rem;
             font-weight: 700;
-            color: #94a3b8;
-            background: #1f2937;
-            padding: 8px 20px;
-            border-radius: 20px;
-            border: 1px solid #374151;
-            margin-top: 10px;
+            color: #0284c7;
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            padding-left: 5px;
+        }
+
+        /* Minimalist Linear Loading Strip Container */
+        .loading-bar-wrapper {
+            width: 180px;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .loading-bar-progress {
+            width: 0%;
+            height: 100%;
+            background: #0284c7;
+            border-radius: 10px;
+            transition: width 0.1s linear;
         }
 
         /* Game Rules Modal Window */
@@ -287,13 +291,13 @@
 <body>
 
     <div id="hard-splash">
-        <svg class="splash-logo" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M19 3H5C3.89543 3 3 3.89543 3 4V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V4C21 3.89543 20.1046 3 19 3Z" stroke="#38bdf8" stroke-width="2" stroke-linecap="round"/>
-            <path d="M7 7H17M7 12H13M7 17H15" stroke="#10b981" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        <div class="splash-text">Metric Highway</div>
-        <div class="splash-subtext">Measurement Edition</div>
-        <div class="splash-timer" id="splash-timer-label">Ready in 5s...</div>
+        <div class="innovine-logo-container">
+            <div class="innovine-main-text">innovine</div>
+            <div class="innovine-subtext"></div>
+        </div>
+        <div class="loading-bar-wrapper">
+            <div class="loading-bar-progress" id="splash-progress-fill"></div>
+        </div>
     </div>
 
     <div id="viewport-root">
@@ -362,16 +366,21 @@
             color: '#f43f5e'
         };
 
-        // Complete 5-Second Timer Tick Sequence
-        let secondsLeft = 5;
-        const splashTimerLabel = document.getElementById('splash-timer-label');
+        // Complete 5-Second Linear Loading Sync Sequence
+        let durationMs = 5000;
+        let elapsedMs = 0;
+        let stepMs = 50;
+        const progressFill = document.getElementById('splash-progress-fill');
         
-        const countdownTicker = setInterval(() => {
-            secondsLeft--;
-            if (secondsLeft > 0) {
-                splashTimerLabel.innerText = `Ready in ${secondsLeft}s...`;
-            } else {
-                clearInterval(countdownTicker);
+        const loadingTicker = setInterval(() => {
+            elapsedMs += stepMs;
+            let percent = Math.min((elapsedMs / durationMs) * 100, 100);
+            if (progressFill) {
+                progressFill.style.width = percent + '%';
+            }
+            
+            if (elapsedMs >= durationMs) {
+                clearInterval(loadingTicker);
                 const splash = document.getElementById('hard-splash');
                 const mainApp = document.getElementById('viewport-root');
                 
@@ -385,7 +394,7 @@
                     }
                 }, 500);
             }
-        }, 1000);
+        }, stepMs);
 
         function closeRulesAndStart() {
             const modal = document.getElementById('rules-modal');
@@ -441,9 +450,8 @@
             document.getElementById('lbl-feedback').style.color = "#64748b";
             document.getElementById('btn-dispatch').disabled = false;
 
-            // Target metrics explicitly gathered from curriculum textbook rules
             const basePool = [
-                // Length conversions (metre, kilometre, centimetre, millimetre)
+                // Length conversions
                 { directive: "Convert 5 km to metres (km × 1000)", cVal: "5000 m", w1: "500 m", w2: "50 m" },
                 { directive: "Convert 3.2 m to centimetres (m × 100)", cVal: "320 cm", w1: "32 cm", w2: "3200 cm" },
                 { directive: "Convert 52 cm to millimetres (cm × 10)", cVal: "520 mm", w1: "52 mm", w2: "5.2 mm" },
@@ -451,14 +459,14 @@
                 { directive: "Convert 150 cm to metres", cVal: "1.5 m", w1: "15 m", w2: "0.15 m" },
                 { directive: "Convert 60 mm to centimetres", cVal: "6 cm", w1: "60 cm", w2: "0.6 cm" },
 
-                // Weight conversions (gram, kilogram, milligram)
+                // Weight conversions
                 { directive: "Convert 2500 g to kilograms (g ÷ 1000)", cVal: "2.5 kg", w1: "25 kg", w2: "0.25 kg" },
                 { directive: "Convert 560 mg to grams (mg ÷ 1000)", cVal: "0.56 g", w1: "5.6 g", w2: "56 g" },
                 { directive: "Convert 750 mg to grams (mg ÷ 1000)", cVal: "0.75 g", w1: "7.5 g", w2: "75 g" },
                 { directive: "Convert 2.5 kg to grams", cVal: "2500 g", w1: "250 g", w2: "25 g" },
                 { directive: "Convert 800 g to kilograms", cVal: "0.8 kg", w1: "8 kg", w2: "80 kg" },
 
-                // Capacity conversions (litre, millilitre)
+                // Capacity conversions
                 { directive: "Convert 7.2 l to millilitres (l × 1000)", cVal: "7200 ml", w1: "720 ml", w2: "72 ml" },
                 { directive: "Convert 12000 ml to litres (ml ÷ 1000)", cVal: "12 l", w1: "120 l", w2: "1.2 l" },
                 { directive: "Convert 350 ml to litres", cVal: "0.35 l", w1: "3.5 l", w2: "35 l" },
