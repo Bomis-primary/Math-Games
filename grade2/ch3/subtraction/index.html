@@ -47,17 +47,15 @@
       top: 0; left: 0; width: 100%; height: 100%;
       background: #ffffff;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
       z-index: 100;
       transition: opacity 0.5s ease;
     }
-    
-    @keyframes pulseScale {
-      0% { transform: scale(0.96); opacity: 0.9; }
-      50% { transform: scale(1.03); opacity: 1; }
-      100% { transform: scale(0.96); opacity: 0.9; }
+    #screen-splash img {
+      max-width: 55%;
+      max-height: 55%;
+      object-fit: contain;
     }
 
     /* HUD Header Area */
@@ -100,7 +98,7 @@
       text-align: left;
     }
 
-    /* Classroom Chalkboard Canvas */
+    /* Classroom Chalkboard Canvas containing the Vertical Columns */
     .chalkboard-canvas {
       min-height: 250px;
       background-color: var(--chalkboard-green); 
@@ -149,6 +147,7 @@
       position: relative;
     }
     
+    /* Place Value Headers (H, T, O) matching textbook format */
     .math-grid-table .header-row td {
       font-family: 'Trebuchet MS', sans-serif;
       font-size: 1.6rem;
@@ -168,9 +167,24 @@
       border-bottom: 5px solid white;
     }
     
+    /* Interactive Rounded Box Answer Cells */
     .math-grid-table .result-cell {
       color: #ffeb3b;
+      cursor: pointer;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.05);
+      width: 54px;
+      height: 54px;
+      line-height: 48px;
+      margin: 0 auto;
       transition: all 0.2s ease;
+    }
+    .math-grid-table .result-cell.typing-active {
+      color: #ff9800;
+      border-color: #ff9800;
+      background: rgba(255, 152, 0, 0.15);
+      box-shadow: 0 0 8px #ff9800;
     }
 
     /* Input Pad Area */
@@ -236,14 +250,12 @@
   </style>
 </head>
 <body>
-
+ 
   <div class="game-container">
-    
     <div id="screen-splash">
-      <img src="assets/innovine-logo.png" alt="Innovine Logo" style="max-width: 260px; height: auto; object-fit: contain; animation: pulseScale 2s infinite ease-in-out;" />
-      <div style="margin-top: 25px; font-size: 1.1rem; color: var(--library-blue); font-weight: bold; letter-spacing: 1px;">LOADING MISSION...</div>
+      <img src="./assets/logo.png" alt="Innovine Logo" />
     </div>
-
+ 
     <div class="game-header">
       <span class="hud-title" id="stage-label">Library Mission: 1 / 11</span>
       <div class="hud-stats">
@@ -251,7 +263,7 @@
       </div>
     </div>
     <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
-
+ 
     <div id="screen-intro" class="screen active">
       <div class="story-bubble">
         <p><strong>Reena's Big Day at the School Library 📚👧</strong></p>
@@ -259,12 +271,12 @@
       </div>
       <button class="action-btn" onclick="startGame()">Help Reena Sort! 🚀</button>
     </div>
-
+ 
     <div id="screen-play" class="screen">
       <div class="story-bubble">
         <p id="story-text">Loading classroom tasks...</p>
       </div>
-
+ 
       <div class="chalkboard-canvas">
         <div id="helper-character" class="helper-avatar">👧</div>
         
@@ -286,13 +298,13 @@
           </tr>
           <tr>
             <td></td>
-            <td><div id="cell-ans-h" class="result-cell" style="cursor:pointer; border:2px dashed rgba(255,255,255,0.3); border-radius:8px;" onclick="setTargetSlot(0)">?</div></td>
-            <td><div id="cell-ans-t" class="result-cell" style="cursor:pointer; border:2px dashed rgba(255,255,255,0.3); border-radius:8px;" onclick="setTargetSlot(1)">?</div></td>
-            <td><div id="cell-ans-o" class="result-cell" style="cursor:pointer; border:2px dashed rgba(255,255,255,0.3); border-radius:8px;" onclick="setTargetSlot(2)">?</div></td>
+            <td><div id="cell-ans-h" class="result-cell" onclick="selectSlot(0)">?</div></td>
+            <td><div id="cell-ans-t" class="result-cell" onclick="selectSlot(1)">?</div></td>
+            <td><div id="cell-ans-o" class="result-cell" onclick="selectSlot(2)">?</div></td>
           </tr>
         </table>
       </div>
-
+ 
       <div class="keypad-box">
         <button class="key-btn" onclick="pressKey('1')">1</button>
         <button class="key-btn" onclick="pressKey('2')">2</button>
@@ -307,10 +319,10 @@
         <button class="key-btn action-key" onclick="pressKey('CLEAR')">Clear</button>
         <button class="key-btn go-key" onclick="submitLibraryAnswer()">Check</button>
       </div>
-
+ 
       <div class="feedback-banner" id="feedback-box"></div>
     </div>
-
+ 
     <div id="screen-end" class="screen">
       <div class="story-bubble">
         <p><strong>🎉 Phenomenal Library Assistant!</strong></p>
@@ -320,15 +332,16 @@
       <button class="action-btn" style="background: var(--text-dark); box-shadow: 0 5px 0 #111;" onclick="resetWholeGame()">Play Again 🔄</button>
     </div>
   </div>
-
+ 
   <script>
     let turnIndex = 0;
     let runningScore = 0;
     let currentLevelData = null;
     
+    // Array storing answers for [Hundreds, Tens, Ones]
     let currentAnswerArray = ["?", "?", "?"];
-    let activeSlotIndex = 2; // Default focus starts on Ones column (Index 2)
-    
+    let activeSlotIndex = 2; // Default focus starts on the Ones column (Index 2)
+ 
     const gameQuestions = [
       { total: 480, minus: 232, remain: 248, tag: "Mission 1: Fiction and Non-fiction", story: "The school library has 480 books. Out of these, 232 books are fiction books. How many books are non-fiction books?" },
       { total: 232, minus: 102, remain: 130, tag: "Mission 2: Stories and Novels", story: "Out of the 232 fiction books, 102 are story books. The rest are novels. How many novels are there?" },
@@ -342,7 +355,7 @@
       { total: 480, minus: 156, remain: 324, tag: "Mission 10: End-of-Day Shelf Check", story: "The library started the day with 480 books. By closing time, 156 books were borrowed. How many books are still on the shelves?" },
       { total: 500, minus: 278, remain: 222, tag: "👑 BONUS BOSS LEVEL", story: "The library had 500 bookmarks. During Reading Week, students used 278 bookmarks. How many bookmarks are left?" }
     ];
-
+ 
     function triggerAudioTone(freq, wave, duration) {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -358,84 +371,79 @@
         osc.stop(audioCtx.currentTime + duration);
       } catch (e) {}
     }
-
+ 
     function startGame() {
       document.getElementById('screen-intro').classList.remove('active');
       document.getElementById('screen-play').classList.add('active');
       renderActiveTurn();
     }
-
+ 
     function renderActiveTurn() {
       if (turnIndex >= gameQuestions.length) {
         showEndGameSummary();
         return;
       }
-
+ 
       currentAnswerArray = ["?", "?", "?"];
-      activeSlotIndex = 2; 
+      activeSlotIndex = 2; // Default focus back to Ones column
       
       document.getElementById('feedback-box').style.color = "var(--text-dark)";
-      document.getElementById('feedback-box').innerText = "👉 Click on any column blank to highlight it, then tap your answers!";
-      
+      document.getElementById('feedback-box').innerText = "👉 Select a place value column (H, T, or O) and use the keyboard to type its digit!";
+       
       currentLevelData = gameQuestions[turnIndex];
-
+ 
       document.getElementById('stage-label').innerText = `${currentLevelData.tag}`;
       document.getElementById('progress-fill').style.width = `${(turnIndex / gameQuestions.length) * 100}%`;
       document.getElementById('score-val').innerText = runningScore;
       document.getElementById('story-text').innerHTML = `<strong>Challenge:</strong> ${currentLevelData.story}`;
-
+ 
       let topStr = String(currentLevelData.total).padStart(3, '0');
       document.getElementById('cell-top-h').innerText = topStr[0] === '0' ? ' ' : topStr[0];
       document.getElementById('cell-top-t').innerText = (topStr[0] === '0' && topStr[1] === '0') ? ' ' : topStr[1];
       document.getElementById('cell-top-o').innerText = topStr[2];
-
+ 
       let botStr = String(currentLevelData.minus).padStart(3, '0');
       document.getElementById('cell-bot-h').innerText = botStr[0] === '0' ? ' ' : botStr[0];
       document.getElementById('cell-bot-t').innerText = (botStr[0] === '0' && botStr[1] === '0') ? ' ' : botStr[1];
       document.getElementById('cell-bot-o').innerText = botStr[2];
-
+ 
       updateAnswerGridDisplay();
     }
-
-    function setTargetSlot(idx) {
+ 
+    function selectSlot(index) {
       triggerAudioTone(700, 'sine', 0.04);
-      activeSlotIndex = idx;
+      activeSlotIndex = index;
       updateAnswerGridDisplay();
     }
-
+ 
     function updateAnswerGridDisplay() {
-      const cells = [
+      const slots = [
         document.getElementById('cell-ans-h'),
         document.getElementById('cell-ans-t'),
         document.getElementById('cell-ans-o')
       ];
-
-      cells.forEach((cell, i) => {
-        cell.innerText = currentAnswerArray[i];
-        
-        if (i === activeSlotIndex) {
-          cell.style.color = "#ff9800";
-          cell.style.backgroundColor = "rgba(255,255,255,0.15)";
-          cell.style.borderColor = "#ff9800";
+ 
+      slots.forEach((cell, idx) => {
+        cell.innerText = currentAnswerArray[idx];
+        if (idx === activeSlotIndex) {
+          cell.classList.add('typing-active');
         } else {
-          cell.style.color = "#ffeb3b";
-          cell.style.backgroundColor = "transparent";
-          cell.style.borderColor = "rgba(255,255,255,0.3)";
+          cell.classList.remove('typing-active');
         }
       });
     }
-
+ 
     function pressKey(val) {
       triggerAudioTone(600, 'sine', 0.05);
       if (val === 'CLEAR') {
         currentAnswerArray = ["?", "?", "?"];
-        activeSlotIndex = 2;
+        activeSlotIndex = 2; // Reset focus to the Ones position
         updateAnswerGridDisplay();
       } else {
         if (activeSlotIndex !== null && activeSlotIndex >= 0 && activeSlotIndex <= 2) {
           currentAnswerArray[activeSlotIndex] = val;
           
-          // Step backward systematically (Ones -> Tens -> Hundreds)
+          // Auto-advance backward systematically (Ones -> Tens -> Hundreds) for smooth workflow
           if (activeSlotIndex === 2) activeSlotIndex = 1;
           else if (activeSlotIndex === 1) activeSlotIndex = 0;
           
@@ -443,7 +451,7 @@
         }
       }
     }
-
+ 
     function submitLibraryAnswer() {
       const helper = document.getElementById('helper-character');
       
@@ -452,21 +460,21 @@
       let strO = currentAnswerArray[2] === "?" ? "0" : currentAnswerArray[2];
       
       const numericSubmission = parseInt(strH + strT + strO, 10);
-
+ 
       if (numericSubmission === currentLevelData.remain) {
         runningScore += 10;
         document.getElementById('score-val').innerText = runningScore;
-        
+         
         document.getElementById('feedback-box').style.color = 'var(--forest-green)';
         document.getElementById('feedback-box').innerText = "Excellent calculation! That is completely correct! 🎉";
-        
+         
         activeSlotIndex = null;
         updateAnswerGridDisplay();
-        
+         
         helper.classList.add('happy');
         triggerAudioTone(587.33, 'sine', 0.15);
         setTimeout(() => triggerAudioTone(880, 'sine', 0.4), 120);
-        
+         
         turnIndex++;
         setTimeout(() => {
           helper.classList.remove('happy');
@@ -477,27 +485,27 @@
         triggerAudioTone(150, 'sawtooth', 0.4);
         document.getElementById('feedback-box').style.color = '#c62828';
         document.getElementById('feedback-box').innerText = "Try working it out column by column from right to left!";
-        
+         
         currentAnswerArray = ["?", "?", "?"];
         activeSlotIndex = 2;
         updateAnswerGridDisplay();
         setTimeout(() => helper.classList.remove('sad'), 500);
       }
     }
-
+ 
     function showEndGameSummary() {
       document.getElementById('progress-fill').style.width = "100%";
       document.getElementById('screen-play').classList.remove('active');
       document.getElementById('screen-end').classList.add('active');
     }
-
+ 
     function resetWholeGame() {
       turnIndex = 0;
       runningScore = 0;
       document.getElementById('screen-end').classList.remove('active');
       document.getElementById('screen-intro').classList.add('active');
     }
-
+ 
     window.onload = function() {
       setTimeout(() => {
         const splash = document.getElementById('screen-splash');
