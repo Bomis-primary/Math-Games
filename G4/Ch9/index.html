@@ -170,7 +170,7 @@
             line-height: 1.3;
         }
 
-        /* Locks down interactive features once permanently opened from strikes */
+        /* State for cards locked open from a failed 2nd attempt */
         .crate-card.locked-open {
             pointer-events: none !important;
         }
@@ -222,7 +222,7 @@
     <div id="viewport-root">
         <div class="hud-row">
             <div>SCORE: <span id="lbl-score" class="hud-value">0</span></div>
-            <div>ATTEMPTS: <span id="lbl-attempts" class="hud-value">0/2</span></div>
+            <div>CHANCE: <span id="lbl-attempts" class="hud-value">1/2</span></div>
         </div>
 
         <div class="arena-container" id="arena"></div>
@@ -238,8 +238,8 @@
         let engineLock = false;
         let cardPoolData = [];
         
-        // Dynamic game tracking state variables
-        let currentPairStrikes = 0; 
+        // Tracks attempts inside the current pairing turn context
+        let turnAttemptCount = 1; 
 
         // Comprehensive Question Bank Mapped to image_ff6284.png Blueprints
         const globalQuestionBank = [
@@ -290,8 +290,8 @@
                         <p style="color:#7c2d12; font-size:0.9rem; line-height:1.5; margin-bottom:12px;">
                             Flip grove crates to pair equivalent fractional values! 
                         </p>
-                        <p style="color:#f97316; font-size:0.85rem; font-weight:bold; margin-bottom:20px;">
-                            ⚠️ Missing a guess twice leaves those two specific cards locked open permanently without revealing their real partners.
+                        <p style="color:#22c55e; font-size:0.85rem; font-weight:bold; margin-bottom:20px;">
+                            ⭐ You have 2 attempts per turn. Correct answers on attempt 2 still score points!
                         </p>
                         <button class="btn-action" style="margin:0;" onclick="buildHarvestGrid()">REVEAL ORCHARD</button>
                     </div>
@@ -303,10 +303,10 @@
             currentScore = 0;
             selectedCards = [];
             engineLock = false;
-            currentPairStrikes = 0;
+            turnAttemptCount = 1;
             
             document.getElementById('lbl-score').innerText = currentScore;
-            document.getElementById('lbl-attempts').innerText = "0/2";
+            document.getElementById('lbl-attempts').innerText = "1/2";
 
             // Group database elements by matchId to keep pairs safely cohesive
             const groupedMap = {};
@@ -366,53 +366,53 @@
             const cardTwoEl = document.getElementById(`card-${second.index}`);
 
             if (first.data.matchId === second.data.matchId) {
-                // Correct Match Event Trigger
+                // Correct Match Condition met (on either Attempt 1 or Attempt 2!)
                 setTimeout(() => {
                     playAudioAsset('s-correct');
                     cardOneEl.classList.add('matched');
                     cardTwoEl.classList.add('matched');
                     
+                    // Match found! Reward player points
                     currentScore += 10;
                     document.getElementById('lbl-score').innerText = currentScore;
                     
                     selectedCards = [];
-                    currentPairStrikes = 0; // Reset strike run counter for next dynamic pick
-                    document.getElementById('lbl-attempts').innerText = "0/2";
+                    turnAttemptCount = 1; // Reset turn attempts state
+                    document.getElementById('lbl-attempts').innerText = "1/2";
                     engineLock = false;
 
                     checkWinCondition();
                 }, 400);
             } else {
-                // Incorrect Match Event Trigger
-                currentPairStrikes++;
-                document.getElementById('lbl-attempts').innerText = `${currentPairStrikes}/2`;
-
+                // Mismatch identified
                 setTimeout(() => {
                     playAudioAsset('s-wrong');
 
-                    if (currentPairStrikes >= 2) {
-                        // Keep these exact two cards flipped open permanently, do not reveal anything else
+                    if (turnAttemptCount === 1) {
+                        // Failed Attempt 1: Keep cards flipped visible so they can make a corrected choice
+                        turnAttemptCount = 2;
+                        document.getElementById('lbl-attempts').innerText = "2/2";
+                        
+                        // We do NOT clear selectedCards here so that the user sees their choices,
+                        // but we release engine lock so they can fix their choice or try another card
+                        engineLock = false;
+                    } else {
+                        // Failed Attempt 2: Both choices are wrong on second try. Lock them open permanently without revealing real answers.
                         cardOneEl.classList.add('locked-open');
                         cardTwoEl.classList.add('locked-open');
                         
-                        currentPairStrikes = 0; // Reset counter for next card turn selection
-                        document.getElementById('lbl-attempts').innerText = "0/2";
-                    } else {
-                        // Flip them back down to give them their second chance
-                        cardOneEl.classList.remove('flipped');
-                        cardTwoEl.classList.remove('flipped');
-                    }
+                        selectedCards = [];
+                        turnAttemptCount = 1; // Reset turn attempts state
+                        document.getElementById('lbl-attempts').innerText = "1/2";
+                        engineLock = false;
 
-                    selectedCards = [];
-                    engineLock = false;
-                    
-                    checkWinCondition();
+                        checkWinCondition();
+                    }
                 }, 1000);
             }
         }
 
         function checkWinCondition() {
-            // A level finishes if all 12 elements are either gone (matched) OR frozen locked-open
             const processedCount = document.querySelectorAll('.crate-card.matched, .crate-card.locked-open').length;
             if (processedCount === 12) {
                 renderVictoryPanel();
