@@ -47,15 +47,17 @@
       top: 0; left: 0; width: 100%; height: 100%;
       background: #ffffff;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       z-index: 100;
       transition: opacity 0.5s ease;
     }
-    #screen-splash img {
-      max-width: 55%;
-      max-height: 55%;
-      object-fit: contain;
+    
+    @keyframes pulseScale {
+      0% { transform: scale(0.96); opacity: 0.9; }
+      50% { transform: scale(1.03); opacity: 1; }
+      100% { transform: scale(0.96); opacity: 0.9; }
     }
 
     /* HUD Header Area */
@@ -167,82 +169,20 @@
       border-bottom: 5px solid white;
     }
     
-    /* Answer row typography */
+    /* Answer row typography and selection boxes */
     .math-grid-table .result-cell {
       color: #ffeb3b;
+      transition: all 0.2s ease;
     }
-    .math-grid-table .result-cell.typing-active {
-      color: #ff9800;
-      text-decoration: underline;
-    }
-
-    /* Input Pad Area */
-    .keypad-box {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      margin: 5px auto;
-      max-width: 520px;
-      flex-wrap: wrap;
-    }
-    .key-btn {
-      width: 52px;
-      height: 52px;
-      font-size: 1.4rem;
-      font-weight: bold;
-      background: #ffffff;
-      border: 3px solid #b0bec5;
-      border-radius: 12px;
-      cursor: pointer;
-      box-shadow: 0 4px 0 #b0bec5;
-      color: var(--text-dark);
-    }
-    .key-btn:active {
-      transform: translateY(3px);
-      box-shadow: 0 1px 0 #b0bec5;
-    }
-    .key-btn.action-key {
-      width: 75px;
-      background: #ffb300;
-      border-color: #ff8f00;
-      box-shadow: 0 4px 0 #ff8f00;
-      color: white;
-    }
-    .key-btn.go-key {
-      width: 95px;
-      background: var(--forest-green);
-      border-color: #1b5e20;
-      box-shadow: 0 4px 0 #1b5e20;
-      color: white;
-    }
-
-    .feedback-banner {
-      height: 30px;
-      font-size: 1.15rem;
-      font-weight: bold;
-      margin-top: 5px;
-    }
-
-    .action-btn {
-      background: var(--library-blue);
-      color: white;
-      border: none;
-      padding: 15px 45px;
-      font-size: 1.4rem;
-      font-weight: bold;
-      border-radius: 50px;
-      cursor: pointer;
-      box-shadow: 0 5px 0 #01579b;
-      margin-top: 10px;
-    }
-    .action-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #01579b; }
   </style>
 </head>
 <body>
 
   <div class="game-container">
+    
     <div id="screen-splash">
-      <img src="./assets/logo.png" alt="Innovine Logo" />
+      <img src="assets/innovine-logo.png" alt="Innovine Logo" style="max-width: 260px; height: auto; object-fit: contain; animation: pulseScale 2s infinite ease-in-out;" />
+      <div style="margin-top: 25px; font-size: 1.1rem; color: var(--library-blue); font-weight: bold; letter-spacing: 1px;">LOADING MISSION...</div>
     </div>
 
     <div class="game-header">
@@ -271,9 +211,7 @@
         
         <table class="math-grid-table">
           <tr class="header-row">
-            <td></td> <td>H</td>
-            <td>T</td>
-            <td>O</td>
+            <td></td> <td>H</td> <td>T</td> <td>O</td>
           </tr>
           <tr>
             <td></td>
@@ -289,9 +227,9 @@
           </tr>
           <tr>
             <td></td>
-            <td id="cell-ans-h" class="result-cell">?</td>
-            <td id="cell-ans-t" class="result-cell">?</td>
-            <td id="cell-ans-o" class="result-cell">?</td>
+            <td><div id="cell-ans-h" class="result-cell" style="cursor:pointer; border:2px dashed rgba(255,255,255,0.3); border-radius:8px;" onclick="setTargetSlot(0)">?</div></td>
+            <td><div id="cell-ans-t" class="result-cell" style="cursor:pointer; border:2px dashed rgba(255,255,255,0.3); border-radius:8px;" onclick="setTargetSlot(1)">?</div></td>
+            <td><div id="cell-ans-o" class="result-cell" style="cursor:pointer; border:2px dashed rgba(255,255,255,0.3); border-radius:8px;" onclick="setTargetSlot(2)">?</div></td>
           </tr>
         </table>
       </div>
@@ -328,9 +266,10 @@
     let turnIndex = 0;
     let runningScore = 0;
     let currentLevelData = null;
-    let currentTypedAnswer = "";
     
-    // Exact story questions matching textbook metrics
+    let currentAnswerArray = ["?", "?", "?"];
+    let activeSlotIndex = 2; // Default focus starts on Ones column (Index 2)
+    
     const gameQuestions = [
       { total: 480, minus: 232, remain: 248, tag: "Mission 1: Fiction and Non-fiction", story: "The school library has 480 books. Out of these, 232 books are fiction books. How many books are non-fiction books?" },
       { total: 232, minus: 102, remain: 130, tag: "Mission 2: Stories and Novels", story: "Out of the 232 fiction books, 102 are story books. The rest are novels. How many novels are there?" },
@@ -373,9 +312,11 @@
         return;
       }
 
-      currentTypedAnswer = "";
+      currentAnswerArray = ["?", "?", "?"];
+      activeSlotIndex = 2; 
+      
       document.getElementById('feedback-box').style.color = "var(--text-dark)";
-      document.getElementById('feedback-box').innerText = "👉 Subtract column by column, enter your answer, and click Check!";
+      document.getElementById('feedback-box').innerText = "👉 Click on any column blank to highlight it, then tap your answers!";
       
       currentLevelData = gameQuestions[turnIndex];
 
@@ -384,61 +325,74 @@
       document.getElementById('score-val').innerText = runningScore;
       document.getElementById('story-text').innerHTML = `<strong>Challenge:</strong> ${currentLevelData.story}`;
 
-      // Distribute top digits neatly into vertical containers
       let topStr = String(currentLevelData.total).padStart(3, '0');
       document.getElementById('cell-top-h').innerText = topStr[0] === '0' ? ' ' : topStr[0];
       document.getElementById('cell-top-t').innerText = (topStr[0] === '0' && topStr[1] === '0') ? ' ' : topStr[1];
       document.getElementById('cell-top-o').innerText = topStr[2];
 
-      // Distribute bottom digits neatly into vertical containers
       let botStr = String(currentLevelData.minus).padStart(3, '0');
       document.getElementById('cell-bot-h').innerText = botStr[0] === '0' ? ' ' : botStr[0];
       document.getElementById('cell-bot-t').innerText = (botStr[0] === '0' && botStr[1] === '0') ? ' ' : botStr[1];
       document.getElementById('cell-bot-o').innerText = botStr[2];
 
-      // Clear the answer cells back to question marks
-      updateAnswerGridDisplay("???");
+      updateAnswerGridDisplay();
     }
 
-    // Handles Right-to-Left alignment layout for responsive kid typing
-    function updateAnswerGridDisplay(strValue) {
-      const hCell = document.getElementById('cell-ans-h');
-      const tCell = document.getElementById('cell-ans-t');
-      const oCell = document.getElementById('cell-ans-o');
+    function setTargetSlot(idx) {
+      triggerAudioTone(700, 'sine', 0.04);
+      activeSlotIndex = idx;
+      updateAnswerGridDisplay();
+    }
 
-      if (!strValue || strValue === "???") {
-        hCell.innerText = "?"; tCell.innerText = "?"; oCell.innerText = "?";
-        hCell.classList.remove('typing-active'); tCell.classList.remove('typing-active'); oCell.classList.remove('typing-active');
-        return;
-      }
+    function updateAnswerGridDisplay() {
+      const cells = [
+        document.getElementById('cell-ans-h'),
+        document.getElementById('cell-ans-t'),
+        document.getElementById('cell-ans-o')
+      ];
 
-      let padded = strValue.padStart(3, ' ');
-      
-      hCell.innerText = padded[0] === ' ' ? ' ' : padded[0];
-      tCell.innerText = padded[1] === ' ' ? ' ' : padded[1];
-      oCell.innerText = padded[2];
-
-      hCell.classList.add('typing-active');
-      tCell.classList.add('typing-active');
-      oCell.classList.add('typing-active');
+      cells.forEach((cell, i) => {
+        cell.innerText = currentAnswerArray[i];
+        
+        if (i === activeSlotIndex) {
+          cell.style.color = "#ff9800";
+          cell.style.backgroundColor = "rgba(255,255,255,0.15)";
+          cell.style.borderColor = "#ff9800";
+        } else {
+          cell.style.color = "#ffeb3b";
+          cell.style.backgroundColor = "transparent";
+          cell.style.borderColor = "rgba(255,255,255,0.3)";
+        }
+      });
     }
 
     function pressKey(val) {
       triggerAudioTone(600, 'sine', 0.05);
       if (val === 'CLEAR') {
-        currentTypedAnswer = "";
-        updateAnswerGridDisplay("???");
+        currentAnswerArray = ["?", "?", "?"];
+        activeSlotIndex = 2;
+        updateAnswerGridDisplay();
       } else {
-        if (currentTypedAnswer.length < 3) {
-          currentTypedAnswer += val;
-          updateAnswerGridDisplay(currentTypedAnswer);
+        if (activeSlotIndex !== null && activeSlotIndex >= 0 && activeSlotIndex <= 2) {
+          currentAnswerArray[activeSlotIndex] = val;
+          
+          // Step backward systematically (Ones -> Tens -> Hundreds)
+          if (activeSlotIndex === 2) activeSlotIndex = 1;
+          else if (activeSlotIndex === 1) activeSlotIndex = 0;
+          
+          updateAnswerGridDisplay();
         }
       }
     }
 
     function submitLibraryAnswer() {
       const helper = document.getElementById('helper-character');
-      const numericSubmission = parseInt(currentTypedAnswer, 10);
+      
+      let strH = currentAnswerArray[0] === "?" ? "0" : currentAnswerArray[0];
+      let strT = currentAnswerArray[1] === "?" ? "0" : currentAnswerArray[1];
+      let strO = currentAnswerArray[2] === "?" ? "0" : currentAnswerArray[2];
+      
+      const numericSubmission = parseInt(strH + strT + strO, 10);
 
       if (numericSubmission === currentLevelData.remain) {
         runningScore += 10;
@@ -447,10 +401,8 @@
         document.getElementById('feedback-box').style.color = 'var(--forest-green)';
         document.getElementById('feedback-box').innerText = "Excellent calculation! That is completely correct! 🎉";
         
-        updateAnswerGridDisplay(String(currentLevelData.remain));
-        document.getElementById('cell-ans-h').classList.remove('typing-active');
-        document.getElementById('cell-ans-t').classList.remove('typing-active');
-        document.getElementById('cell-ans-o').classList.remove('typing-active');
+        activeSlotIndex = null;
+        updateAnswerGridDisplay();
         
         helper.classList.add('happy');
         triggerAudioTone(587.33, 'sine', 0.15);
@@ -467,8 +419,9 @@
         document.getElementById('feedback-box').style.color = '#c62828';
         document.getElementById('feedback-box').innerText = "Try working it out column by column from right to left!";
         
-        currentTypedAnswer = "";
-        updateAnswerGridDisplay("???");
+        currentAnswerArray = ["?", "?", "?"];
+        activeSlotIndex = 2;
+        updateAnswerGridDisplay();
         setTimeout(() => helper.classList.remove('sad'), 500);
       }
     }
