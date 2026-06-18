@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alice in Wonderland: The Great Measurement Adventure</title>
+    <!-- Canvas Confetti Library for Celebrations -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
             --wonderland-purple: #6a1b9a;
@@ -20,6 +22,7 @@
             margin: 0;
             padding: 0;
             font-family: 'Georgia', 'Trebuchet MS', serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -61,7 +64,7 @@
         /* --- MAIN MATRIX CONTAINER --- */
         .game-container {
             width: 100%;
-            max-width: 850px;
+            max-width: 700px;
             background: #ffffff;
             border-radius: 28px;
             box-shadow: 0 16px 40px rgba(74, 0, 114, 0.18);
@@ -69,7 +72,6 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            min-height: 600px;
             position: relative;
             z-index: 10;
         }
@@ -78,18 +80,17 @@
         .screen-layer {
             display: none;
             flex-direction: column;
-            flex: 1;
-            padding: 35px;
+            padding: 30px;
             opacity: 0;
-            transition: opacity 0.4s ease-in-out;
+            transition: opacity 0.3s ease-in-out;
         }
         .screen-layer.active { display: flex; opacity: 1; }
 
         /* --- INTRO SCREEN --- */
         #screen-intro { justify-content: center; align-items: center; text-align: center; }
         .hero-banner { 
-            font-size: 5.5rem; 
-            margin-bottom: 20px; 
+            font-size: 4.5rem; 
+            margin-bottom: 15px; 
             text-align: center;
             width: 100%;
             display: flex;
@@ -97,101 +98,105 @@
             align-items: center;
             animation: floatAnim 3s infinite alternate ease-in-out; 
         }
-        @keyframes floatAnim { 0% { transform: translateY(0); } 100% { transform: translateY(-15px); } }
+        @keyframes floatAnim { 0% { transform: translateY(0); } 100% { transform: translateY(-12px); } }
 
         .story-bubble {
-            background: #fff3e0; padding: 25px; border-radius: 20px;
-            border: 3px dashed var(--gold-amber); max-width: 720px; margin-bottom: 30px;
-            font-size: 1.15rem; line-height: 1.6; text-align: left; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+            background: #fff3e0; padding: 22px; border-radius: 20px;
+            border: 3px dashed var(--gold-amber); max-width: 100%; margin-bottom: 25px;
+            font-size: 1.1rem; line-height: 1.5; text-align: left; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
         }
-        .story-bubble h2 { text-align: center; margin-bottom: 12px; color: var(--wonderland-dark); }
+        .story-bubble h2 { text-align: center; margin-bottom: 10px; color: var(--wonderland-dark); }
 
         .cta-btn {
             background: linear-gradient(135deg, var(--accent-pink), var(--wonderland-purple));
-            border: none; color: white; font-size: 1.3rem; font-weight: bold;
+            border: none; color: white; font-size: 1.25rem; font-weight: bold;
             padding: 14px 40px; border-radius: 50px; cursor: pointer;
             box-shadow: 0 6px 15px rgba(106, 27, 154, 0.3); transition: all 0.2s;
         }
         .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(106, 27, 154, 0.4); }
-        .cta-btn:active { transform: translateY(2px); box-shadow: 0 3px 8px rgba(106, 27, 154, 0.4); }
 
         /* --- HUD TRACKER BAR --- */
         .hud-row {
             display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 15px; font-size: 1.2rem; font-weight: bold; color: var(--wonderland-dark);
-            border-bottom: 2px solid #f3e5f5; padding-bottom: 10px;
+            margin-bottom: 15px; font-size: 1.15rem; font-weight: bold; color: var(--wonderland-dark);
+            border-bottom: 2px solid #f3e5f5; padding-bottom: 10px; gap: 10px;
         }
         .level-badge {
-            color: white; padding: 6px 20px; border-radius: 30px; font-size: 1.05rem; 
+            color: white; padding: 6px 16px; border-radius: 30px; font-size: 0.95rem; 
             font-weight: bold; box-shadow: 0 3px 6px rgba(0,0,0,0.1); text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+            text-align: center;
         }
         .progress-track { width: 100%; height: 12px; background: #e0e0e0; border-radius: 10px; overflow: hidden; margin-bottom: 25px; }
         .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, var(--mint-green), #4db6ac); transition: width 0.4s ease; }
 
         /* --- QUESTION INTERFACE GRID --- */
-        .workspace-layout { display: flex; flex-direction: column; flex: 1; justify-content: space-between; }
+        .workspace-layout { display: flex; flex-direction: column; width: 100%; }
         
         .interactive-stage {
             background: #fafafa; border: 2px solid #e1bee7; border-radius: 20px;
-            padding: 25px; min-height: 220px; display: flex; flex-direction: column; 
+            padding: 20px; min-height: 180px; display: flex; flex-direction: column; 
             justify-content: center; align-items: center; margin-bottom: 25px; position: relative;
             box-shadow: inset 0 2px 8px rgba(0,0,0,0.02);
         }
-        .stage-avatar { font-size: 4rem; margin-bottom: 5px; text-align: center; width: 100%; display: flex; justify-content: center; }
-        .stage-prompt { font-size: 1.35rem; font-weight: bold; text-align: center; color: var(--wonderland-dark); line-height: 1.5; margin-bottom: 15px; width: 100%; }
+        .stage-avatar { font-size: 3.5rem; margin-bottom: 8px; text-align: center; width: 100%; display: flex; justify-content: center; }
+        .stage-prompt { font-size: 1.25rem; font-weight: bold; text-align: center; color: var(--wonderland-dark); line-height: 1.5; margin-bottom: 12px; width: 100%; }
 
-        /* --- BALANCED OPTIONS GRID --- */
+        /* --- HINT BUBBLE SYSTEM --- */
+        .hint-bubble {
+            background: #e8f5e9; border-left: 5px solid var(--mint-green);
+            padding: 10px 15px; border-radius: 8px; font-size: 0.95rem; font-style: italic;
+            margin-bottom: 15px; display: none; width: 100%; color: #1b5e20;
+        }
+
+        /* --- BALANCED OPTIONS MATRIX --- */
         .options-matrix { 
             display: flex; 
-            flex-wrap: wrap; 
-            gap: 15px; 
+            flex-direction: column;
+            gap: 12px; 
             width: 100%; 
-            justify-content: center; 
-            align-items: center;
         }
         
         .option-card-btn {
             background: #ffffff; 
-            border: 3px solid #d1c4e9; 
+            border: 2px solid #d1c4e9; 
             border-radius: 16px;
-            padding: 16px 25px; 
-            font-size: 1.25rem; 
+            padding: 14px 20px; 
+            font-size: 1.15rem; 
             font-weight: bold; 
             color: var(--text-main);
             cursor: pointer; 
-            box-shadow: 0 4px 8px rgba(0,0,0,0.05); 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02); 
             text-align: left;
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            transition: all 0.2s ease; 
             display: flex; 
             align-items: center;
-            flex: 1 1 calc(33.333% - 15px);
-            min-width: 200px;
+            width: 100%;
         }
-        .option-card-btn:hover { border-color: var(--wonderland-purple); background: #f3e5f5; transform: translateY(-2px); }
-        .option-card-btn .prefix { background: var(--bg-canvas); color: var(--wonderland-purple); width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; margin-right: 15px; font-size: 1rem; flex-shrink: 0; }
+        .option-card-btn:hover:not(:disabled) { border-color: var(--wonderland-purple); background: #f3e5f5; transform: scale(1.01); }
+        .option-card-btn .prefix { background: var(--bg-canvas); color: var(--wonderland-purple); width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; margin-right: 15px; font-size: 1rem; flex-shrink: 0; }
         
-        @media (max-width: 700px) {
-            .option-card-btn {
-                flex: 1 1 100%;
-            }
-            .option-card-btn:hover { transform: translateX(4px); }
+        /* Input Field Architecture */
+        .input-group-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            gap: 15px;
         }
-
-        /* Input Submission Engine */
         .text-input-field {
-            width: 100%; max-width: 280px; padding: 12px 20px; font-size: 1.4rem; font-weight: bold;
+            width: 100%; max-width: 260px; padding: 12px 20px; font-size: 1.35rem; font-weight: bold;
             border: 3px solid #d1c4e9; border-radius: 14px; text-align: center; color: var(--wonderland-dark);
-            outline: none; transition: border-color 0.2s; margin-bottom: 15px;
+            outline: none; transition: border-color 0.2s;
         }
         .text-input-field:focus { border-color: var(--wonderland-purple); box-shadow: 0 0 10px rgba(106, 27, 154, 0.15); }
 
-        /* Feedback States */
+        /* Feedback Modifiers */
         .option-card-btn.correct { background: #e8f5e9 !important; border-color: #2e7d32 !important; color: #1b5e20 !important; }
-        .option-card-btn.wrong { background: #ffebee !important; border-color: #c62828 !important; color: #b71c1c !important; }
+        .option-card-btn.wrong { background: #ffebee !important; border-color: #c62828 !important; color: #b71c1c !important; pointer-events: none; }
 
-        .banner-feedback { text-align: center; height: 30px; font-size: 1.3rem; font-weight: bold; margin-top: 15px; }
+        .banner-feedback { text-align: center; height: 30px; font-size: 1.2rem; font-weight: bold; margin-top: 20px; }
 
-        /* --- VISUAL ENGINE ATTACHMENTS --- */
+        /* --- VISUAL INTERACTIVE ELEMENTS --- */
         #element-stage-visualizer {
             width: 100%;
             display: flex;
@@ -200,10 +205,9 @@
             margin-top: 5px;
         }
 
-        /* HORIZONTAL MEASURING TAPE VISUALIZER */
         .ruler-container {
             width: 100%;
-            max-width: 500px;
+            max-width: 400px;
             background: #fff59d;
             border: 2px solid #fbc02d;
             border-radius: 8px;
@@ -212,7 +216,7 @@
         }
         .ruler-ticks {
             height: 24px;
-            background: repeating-linear-gradient(90deg, #5d4037, #5d4037 2px, transparent 2px, transparent 40px);
+            background: repeating-linear-gradient(90deg, #5d4037, #5d4037 2px, transparent 2px, transparent 35px);
             border-bottom: 3px solid #5d4037;
             width: 100%;
             position: relative;
@@ -220,9 +224,9 @@
         .ruler-ticks::after {
             content: '';
             position: absolute;
-            left: 162px;
+            left: 135px;
             top: 0;
-            width: 40px;
+            width: 45px;
             height: 100%;
             background: rgba(236, 64, 122, 0.25);
             border-left: 2px dashed var(--accent-pink);
@@ -236,12 +240,11 @@
             font-size: 14px;
             color: #5d4037;
             margin-top: 6px;
-            padding: 0 2px;
         }
 
         .balance-scale-container {
-            width: 200px;
-            height: 100px;
+            width: 180px;
+            height: 90px;
             position: relative;
             display: flex;
             flex-direction: column;
@@ -252,7 +255,7 @@
             width: 100%;
             height: 40px;
             position: relative;
-            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: transform 0.5s ease;
         }
         .scale-bar {
             width: 100%;
@@ -263,22 +266,22 @@
             border-radius: 3px;
         }
         .scale-left-pan {
-            position: absolute; left: 0; top: 15px; width: 45px; height: 12px;
-            background: #b0bec5; border-radius: 0 0 15px 15px; border-top: 2px solid #546e7a;
+            position: absolute; left: 0; top: 15px; width: 40px; height: 12px;
+            background: #b0bec5; border-radius: 0 0 12px 12px; border-top: 2px solid #546e7a;
         }
         .scale-right-pan {
-            position: absolute; right: 0; top: 15px; width: 45px; height: 12px;
-            background: #b0bec5; border-radius: 0 0 15px 15px; border-top: 2px solid #546e7a;
+            position: absolute; right: 0; top: 15px; width: 40px; height: 12px;
+            background: #b0bec5; border-radius: 0 0 12px 12px; border-top: 2px solid #546e7a;
         }
         .scale-pillar {
-            width: 16px; height: 60px; background: #cfd8dc; border: 2px solid #78909c;
+            width: 14px; height: 50px; background: #cfd8dc; border: 2px solid #78909c;
             border-bottom: none; border-radius: 4px 4px 0 0; z-index: 1;
         }
         .scale-base-plate {
-            width: 70px; height: 10px; background: #78909c; border-radius: 4px; z-index: 2;
+            width: 65px; height: 10px; background: #78909c; border-radius: 4px; z-index: 2;
         }
 
-        /* --- REWARD SHOWER TIMING --- */
+        /* --- MAGIC TOKEN ANIMATION SHOWER --- */
         .falling-key-token {
             position: fixed; font-size: 2.2rem; z-index: 9999; pointer-events: none;
             top: -50px; animation: fallAnimAction var(--dur) linear forwards;
@@ -309,13 +312,13 @@
         <!-- LAYER 1: INTRO SCREEN -->
         <div class="screen-layer active" id="screen-intro">
             <div class="hero-banner">⏰🕳️🐇</div>
-            <h1 style="margin-bottom: 12px; font-size: 2.4rem; color: var(--wonderland-dark); text-align: center;">Alice in Wonderland</h1>
+            <h1 style="margin-bottom: 12px; font-size: 2.2rem; color: var(--wonderland-dark); text-align: center;">Alice in Wonderland</h1>
             <h3 style="margin-bottom: 20px; color: var(--accent-pink); font-style: italic; text-align: center;">The Great Measurement Adventure</h3>
             <div class="story-bubble">
                 <h2>Story Introduction</h2>
-                <p>Alice has fallen down the Rabbit Hole once again! But this time, Wonderland is in chaos. The White Rabbit's magical <strong>Measuring Clock</strong> has broken into three pieces.</p>
+                <p>Alice has fallen down the Rabbit Hole once again! But Wonderland is in total chaos. The White Rabbit's magical <strong>Measuring Clock</strong> has broken into pieces.</p>
                 <br>
-                <p>To restore it, Alice must travel through Wonderland and solve measurement challenges. Every correct answer earns a <strong>Magic Key 🔑</strong>.</p>
+                <p>To restore it, Alice must travel through Wonderland and solve measurement challenges. Every challenge requires a correct answer to earn a <strong>Magic Key 🔑</strong>. If you get stuck, a friendly hint will appear to guide you!</p>
                 <br>
                 <p style="font-weight: bold; color: var(--wonderland-purple);">Collect all the keys to unlock the Measuring Clock and save Wonderland!</p>
             </div>
@@ -325,7 +328,7 @@
         <!-- LAYER 2: PLAY CONTROLLER MODULE -->
         <div class="screen-layer" id="screen-play">
             <div class="hud-row">
-                <div>🔑 Keys: <span id="label-score-val">0</span></div>
+                <div>Keys: <span id="label-score-val">0</span> 🔑</div>
                 <div class="level-badge" id="label-level-badge">Level 1: Length</div>
                 <div>Progress: <span id="label-turn-val">1 / 15</span></div>
             </div>
@@ -338,6 +341,9 @@
                     <div id="element-stage-visualizer"></div>
                 </div>
 
+                <!-- HINT BUBBLE COMPONENT -->
+                <div class="hint-bubble" id="element-hint-bubble"></div>
+
                 <!-- DYNAMIC ANSWER MOUNT PANELS -->
                 <div id="wrapper-input-mechanisms"></div>
 
@@ -347,14 +353,13 @@
 
         <!-- LAYER 3: END CELEBRATION GAME ENGINE -->
         <div class="screen-layer" id="screen-end">
-            <!-- Centered icons layout corresponding to image_48a043.png -->
             <div class="hero-banner">👑✨🔮</div>
-            <h1 style="color: var(--wonderland-dark); font-size: 2.5rem; margin-bottom: 15px; text-align: center; width: 100%;">Wonderland Restored!</h1>
-            <div class="story-bubble" style="text-align: center; margin-left: auto; margin-right: auto;">
+            <h1 style="color: var(--wonderland-dark); font-size: 2.4rem; margin-bottom: 15px; text-align: center; width: 100%;">Wonderland Restored!</h1>
+            <div class="story-bubble" style="text-align: center;">
                 <h2>🏆 Ending</h2>
-                <p>The final key glows brightly! Alice places all three clock pieces back together seamlessly. The magical <strong>Measuring Clock</strong> begins ticking beautifully again, and Wonderland instantly returns to absolute normal.</p>
+                <p>The final key glows brightly! Alice places all the clock pieces back together seamlessly. The magical <strong>Measuring Clock</strong> begins ticking beautifully again, and Wonderland instantly returns to absolute normal.</p>
             </div>
-            <h2 id="final-score-report" style="color: var(--accent-pink); text-align: center; margin-bottom: 30px; font-size: 1.8rem; width: 100%;">Keys Collected: 15 / 15</h2>
+            <h2 id="final-score-report" style="color: var(--accent-pink); text-align: center; margin-bottom: 25px; font-size: 1.8rem; width: 100%;">Keys Collected: 15 / 15</h2>
             <button class="cta-btn" style="margin: 0 auto; display: block;" onclick="reinitializeSimulation()">Play Again 🔄</button>
         </div>
 
@@ -363,28 +368,29 @@
     <script>
         let currentScore = 0;
         let activeTurnIndex = 0;
+        let inputLock = false;
         
         const masterSimulationPool = [
             // LEVEL 1: LENGTH
-            { type: "choice", level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🔑", question: "Alice finds a tiny golden key. Which unit is best to measure its length?", options: ["m", "cm"], answer: "cm", visual: "none" },
-            { type: "choice", level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🐰🔍", question: "Alice finds a note left by the White Rabbit: \"My tunnel is longer than 4 metres but shorter than 5 metres.\" Which of these lengths could be the length of the tunnel?", options: ["3 m", "4.5 m", "5 m"], answer: "4.5 m", visual: "ruler" },
-            { type: "input",  level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🍄", question: "Alice estimates a mushroom to be 20 cm tall. When measured, it is actually 18 cm tall. How many centimetres was Alice's estimate off by?", answer: "2", suffix: "cm" },
-            { type: "choice", level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🐱", question: "Two garden paths lead to the Cheshire Cat. Path A = 3 m, Path B = 250 cm. Which path is longer?", options: ["Path A", "Path B"], answer: "Path A", visual: "none" },
-            { type: "input",  level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🌹", question: "Alice walks 2 m to a mushroom and then 3 m more to a flower garden. How far did she walk altogether?", answer: "5", suffix: "m" },
+            { type: "choice", level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🔑", question: "Alice finds a tiny golden key. Which unit is best to measure its length?", options: ["metres (m)", "centimetres (cm)", "kilometres (km)"], answer: "centimetres (cm)", hint: "Think about how small a key is! It's much smaller than a door or a long road.", visual: "none" },
+            { type: "choice", level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🐰🔍", question: "Alice finds a note left by the White Rabbit: \"My tunnel is longer than 4 metres but shorter than 5 metres.\" Which of these lengths could be the length of the tunnel?", options: ["3.5 m", "4.5 m", "5.5 m"], answer: "4.5 m", hint: "Find the value that lies right between 4 and 5 on a measuring scale.", visual: "ruler" },
+            { type: "input",  level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🍄", question: "Alice estimates a mushroom to be 20 cm tall. When measured, it is actually 18 cm tall. How many centimetres was Alice's estimate off by?", answer: "2", suffix: "cm", hint: "Subtract the real size (18) from her guess (20) to find the difference!" },
+            { type: "choice", level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🐱", question: "Two garden paths lead to the Cheshire Cat. Path A = 3 m, Path B = 250 cm, Path C = 1 m. Which path is the longest?", options: ["Path A", "Path B", "Path C"], answer: "Path A", hint: "Remember that 1 metre is equal to 100 centimetres, so 3 m is 300 cm!", visual: "none" },
+            { type: "input",  level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🌹", question: "Alice walks 2 m to a mushroom and then 3 m more to a flower garden. How far did she walk altogether?", answer: "5", suffix: "m", hint: "Combine both distances together. What is 2 plus 3?" },
             
             // LEVEL 2: WEIGHT
-            { type: "choice", level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "☕", question: "Which unit is best for measuring the weight of a teacup?", options: ["g", "kg"], answer: "g", visual: "none" },
-            { type: "choice", level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🐇", question: "The Dormouse weighs 800 g. The White Rabbit weighs 1 kg. Who is heavier?", options: ["Dormouse", "White Rabbit"], answer: "White Rabbit", visual: "scale-right" },
-            { type: "input",  level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🫖", question: "The Mad Hatter carries a box weighing 3 kg and a teapot weighing 2 kg. What is the total weight?", answer: "5", suffix: "kg" },
-            { type: "choice", level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🎃", question: "Alice guesses that a giant pumpkin weighs 10 kg. When weighed, it is 12 kg. Was Alice's estimate:", options: ["Too heavy", "Too light"], answer: "Too light", visual: "none" },
-            { type: "choice", level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🍰", question: "The Queen's cake weighs 2 kg. A tart weighs 500 g. Which is lighter?", options: ["Cake", "Tart"], answer: "Tart", visual: "scale-left" },
+            { type: "choice", level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "☕", question: "Which unit is best for measuring the weight of a tiny tea biscuit?", options: ["grams (g)", "kilograms (kg)", "metres (m)"], answer: "grams (g)", hint: "Grams are perfect for light things, while kilograms are used for very heavy items like bicycles.", visual: "none" },
+            { type: "choice", level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🐇", question: "The Dormouse weighs 800 g. The White Rabbit weighs 1 kg. A teapot weighs 400 g. Who or what is the heaviest?", options: ["Dormouse", "White Rabbit", "Teapot"], answer: "White Rabbit", hint: "1 kilogram (kg) is exactly equal to 1,000 grams (g), which beats 800g and 400g!", visual: "scale-right" },
+            { type: "input",  level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🫖", question: "The Mad Hatter carries a box weighing 3 kg and a teapot weighing 2 kg. What is the total weight?", answer: "5", suffix: "kg", hint: "Add the two weights together. Calculate 3 + 2." },
+            { type: "choice", level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🎃", question: "Alice guesses that a giant pumpkin weighs 10 kg. When weighed, it turns out to be 15 kg. Was Alice's estimate:", options: ["Too heavy", "Too light", "Exactly correct"], answer: "Too light", hint: "Alice guessed 10, but the pumpkin is actually much heavier at 15!", visual: "none" },
+            { type: "choice", level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🍰", question: "The Queen's cake weighs 2 kg. A tart weighs 500 g. A sugar cube weighs 5 g. Which dessert item is the absolute lightest?", options: ["The Cake", "The Tart", "The Sugar Cube"], answer: "The Sugar Cube", hint: "Grams are lighter than kilograms, and 5 grams is much less than 500 grams!", visual: "scale-left" },
             
             // LEVEL 3: CAPACITY
-            { type: "choice", level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🍵", question: "Which unit is best for measuring the amount of tea in a teacup?", options: ["mL", "L"], answer: "mL", visual: "none" },
-            { type: "input",  level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🏺", question: "The Mad Hatter fills a jug with 2 L of tea. He pours out 1 L. How much tea remains?", answer: "1", suffix: "L" },
-            { type: "choice", level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🍾", question: "Alice has two bottles. Bottle A = 500 mL, Bottle B = 1 L. Which bottle holds more?", options: ["Bottle A", "Bottle B"], answer: "Bottle B", visual: "none" },
-            { type: "input",  level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🥣", question: "The Queen's punch bowl holds 5 L of juice. Three litres are served to guests. How much juice remains?", answer: "2", suffix: "L" },
-            { type: "choice", level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "⭐", question: "To fix the Measuring Clock, Alice must gather: a ribbon, a cake, and a juice jug. Which measurement belongs to the jug?", options: ["3 m", "2 kg", "4 L"], answer: "4 L", visual: "none" }
+            { type: "choice", level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🍵", question: "Which unit is best for measuring a small sip of tea inside a teacup?", options: ["millilitres (mL)", "litres (L)", "grams (g)"], answer: "millilitres (mL)", hint: "Litres are for large buckets or bottles. Small amounts of liquid use millilitres.", visual: "none" },
+            { type: "input",  level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🏺", question: "The Mad Hatter fills a jug with 3 L of tea. He pours out 1 L into cups. How many litres remain?", answer: "2", suffix: "L", hint: "Take away the tea poured out. What is 3 minus 1?" },
+            { type: "choice", level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🍾", question: "Alice has three bottles. Bottle A = 200 mL, Bottle B = 500 mL, Bottle C = 1 L. Which bottle holds the most liquid?", options: ["Bottle A", "Bottle B", "Bottle C"], answer: "Bottle C", hint: "1 Litre (L) is equal to 1,000 millilitres (mL), making it the largest volume here.", visual: "none" },
+            { type: "input",  level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🥣", question: "The Queen's punch bowl holds 5 L of juice. Three litres are served to card soldiers. How much juice remains?", answer: "2", suffix: "L", hint: "Subtract the volume served from the original total: 5 - 3." },
+            { type: "choice", level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "⭐", question: "To fix the Measuring Clock, Alice must sort objects by measurements: a ribbon, a cake, and a juice jug. Which measurement belongs to the liquid jug?", options: ["3 metres", "2 kilograms", "4 litres"], answer: "4 litres", hint: "Liquids and volume capacities are always measured in Litres or Millilitres!", visual: "none" }
         ];
 
         const TOTAL_TURNS_MAX = masterSimulationPool.length;
@@ -398,18 +404,18 @@
         }
 
         function triggerMagicKeyShowerEffect() {
-            let spawnDuration = 1200; 
-            let intervalTime = 80; 
+            let spawnDuration = 1000; 
+            let intervalTime = 100; 
             
             let timerId = setInterval(() => {
                 let keyToken = document.createElement('div');
                 keyToken.className = 'falling-key-token';
                 keyToken.innerText = '🔑';
                 keyToken.style.left = Math.random() * 90 + 'vw';
-                keyToken.style.setProperty('--deviation', (Math.random() - 0.5) * 150 + 'px');
-                keyToken.style.setProperty('--dur', (Math.random() * 0.8 + 1.2) + 's');
+                keyToken.style.setProperty('--deviation', (Math.random() - 0.5) * 120 + 'px');
+                keyToken.style.setProperty('--dur', (Math.random() * 0.6 + 1.0) + 's');
                 document.body.appendChild(keyToken);
-                setTimeout(() => keyToken.remove(), 2000);
+                setTimeout(() => keyToken.remove(), 1600);
             }, intervalTime);
 
             setTimeout(() => clearInterval(timerId), spawnDuration);
@@ -429,7 +435,10 @@
                 return;
             }
 
+            inputLock = false;
             document.getElementById('element-status-feedback').innerText = "";
+            document.getElementById('element-hint-bubble').style.display = "none";
+            
             let data = masterSimulationPool[activeTurnIndex];
 
             document.getElementById('label-turn-val').innerText = `${activeTurnIndex + 1} / ${TOTAL_TURNS_MAX}`;
@@ -482,9 +491,9 @@
                 beamAssembly.appendChild(rightPan);
                 
                 if (data.visual === "scale-left") {
-                    beamAssembly.style.transform = "rotate(10deg)";
+                    beamAssembly.style.transform = "rotate(8deg)";
                 } else if (data.visual === "scale-right") {
-                    beamAssembly.style.transform = "rotate(-10deg)";
+                    beamAssembly.style.transform = "rotate(-8deg)";
                 }
                 
                 let pillar = document.createElement('div');
@@ -511,71 +520,82 @@
                     let btn = document.createElement('button');
                     btn.className = "option-card-btn";
                     btn.innerHTML = `<span class="prefix">${prefixes[idx]}</span> <span class="txt-lbl">${opt}</span>`;
-                    btn.onclick = function() { evaluateChoiceResponse(btn, opt, data.answer); };
+                    btn.onclick = function() { evaluateChoiceResponse(btn, opt, data.answer, data.hint); };
                     matrix.appendChild(btn);
                 });
                 mechanistZone.appendChild(matrix);
 
             } else if (data.type === "input") {
                 let wrap = document.createElement('div');
-                wrap.style.textAlign = "center";
+                wrap.className = "input-group-container";
                 
                 let input = document.createElement('input');
                 input.type = "text";
+                input.inputMode = "numeric";
+                input.pattern = "[0-9]*";
                 input.className = "text-input-field";
                 input.placeholder = "Type number...";
                 
                 let submitBtn = document.createElement('button');
                 submitBtn.className = "cta-btn";
-                submitBtn.style.padding = "10px 30px";
-                submitBtn.style.fontSize = "1.1rem";
+                submitBtn.style.padding = "12px 35px";
+                submitBtn.style.fontSize = "1.15rem";
                 submitBtn.innerText = `Submit Answer (${data.suffix})`;
                 
-                submitBtn.onclick = function() { evaluateInputResponse(input, data.answer); };
+                submitBtn.onclick = function() { evaluateInputResponse(input, data.answer, data.hint); };
                 input.addEventListener('keydown', function(ev) { if (ev.key === 'Enter') submitBtn.click(); });
 
                 wrap.appendChild(input);
-                wrap.appendChild(document.createElement('br'));
                 wrap.appendChild(submitBtn);
                 mechanistZone.appendChild(wrap);
                 input.focus();
             }
         }
 
-        function evaluateChoiceResponse(selectedButton, chosenVal, exactAnswer) {
-            document.querySelectorAll('.option-card-btn').forEach(b => b.disabled = true);
+        function evaluateChoiceResponse(selectedButton, chosenVal, exactAnswer, hintText) {
+            if (inputLock) return;
+
             let feedbackNode = document.getElementById('element-status-feedback');
+            let hintNode = document.getElementById('element-hint-bubble');
 
             if (chosenVal === exactAnswer) {
+                inputLock = true;
                 selectedButton.classList.add('correct');
                 feedbackNode.style.color = "#2e7d32";
                 feedbackNode.innerText = "Splendid! A Magic Key was earned! 🔑✨";
                 currentScore++;
                 playSound('success');
                 triggerMagicKeyShowerEffect();
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 30, spread: 40, origin: { y: 0.8 } });
+                }
+                
+                document.getElementById('label-score-val').innerText = currentScore;
+                activeTurnIndex++;
+                setTimeout(buildActiveAssessmentItem, 2000);
             } else {
                 selectedButton.classList.add('wrong');
+                selectedButton.disabled = true;
                 feedbackNode.style.color = "#c62828";
-                feedbackNode.innerText = "Oh dear! That wasn't quite right.";
+                feedbackNode.innerText = "Not quite! Try another option.";
                 playSound('wrong');
-                document.querySelectorAll('.option-card-btn').forEach(b => {
-                    if (b.querySelector('.txt-lbl').innerText === exactAnswer) b.classList.add('correct');
-                });
+                
+                // Show hint text container
+                hintNode.innerText = "💡 Hint: " + hintText;
+                hintNode.style.display = "block";
             }
-
-            document.getElementById('label-score-val').innerText = currentScore;
-            activeTurnIndex++;
-            setTimeout(buildActiveAssessmentItem, 2000);
         }
 
-        function evaluateInputResponse(inputFieldElement, exactAnswer) {
+        function evaluateInputResponse(inputFieldElement, exactAnswer, hintText) {
             let processedString = inputFieldElement.value.trim();
             if (processedString === "") return;
 
-            inputFieldElement.disabled = true;
             let feedbackNode = document.getElementById('element-status-feedback');
+            let hintNode = document.getElementById('element-hint-bubble');
 
             if (processedString === exactAnswer) {
+                inputLock = true;
+                inputFieldElement.disabled = true;
                 inputFieldElement.style.borderColor = "#2e7d32";
                 inputFieldElement.style.background = "#e8f5e9";
                 feedbackNode.style.color = "#2e7d32";
@@ -583,17 +603,26 @@
                 currentScore++;
                 playSound('success');
                 triggerMagicKeyShowerEffect();
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 30, spread: 40, origin: { y: 0.8 } });
+                }
+                
+                document.getElementById('label-score-val').innerText = currentScore;
+                activeTurnIndex++;
+                setTimeout(buildActiveAssessmentItem, 2200);
             } else {
                 inputFieldElement.style.borderColor = "#c62828";
-                inputFieldElement.style.background = "#ffebee";
                 feedbackNode.style.color = "#c62828";
-                feedbackNode.innerText = `Curiouser and curiouser! Correct answer was: ${exactAnswer}`;
+                feedbackNode.innerText = "Hmm, let's recalculate and try again!";
                 playSound('wrong');
+                
+                // Show hint text container
+                hintNode.innerText = "💡 Hint: " + hintText;
+                hintNode.style.display = "block";
+                
+                inputFieldElement.value = "";
+                inputFieldElement.focus();
             }
-
-            document.getElementById('label-score-val').innerText = currentScore;
-            activeTurnIndex++;
-            setTimeout(buildActiveAssessmentItem, 2500);
         }
 
         function concludeSimulationWorkflow() {
@@ -615,7 +644,7 @@
                 setTimeout(() => {
                     splash.style.opacity = '0';
                     setTimeout(() => splash.remove(), 500);
-                }, 1600);
+                }, 1500);
             }
         });
     </script>
