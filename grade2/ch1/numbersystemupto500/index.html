@@ -71,7 +71,7 @@
         }
 
         .story-box {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(25, 25, 255, 0.1);
             border: 2px dashed #a855f7;
             border-radius: 16px;
             padding: 15px;
@@ -312,14 +312,13 @@
                 { question: "Write 472 in expanded form.", choices: ["400 + 70 + 2", "400 + 7 + 2", "40 + 70 + 2", "400 + 20 + 7"], answer: "400 + 70 + 2" }
             ],
             3: [
-                { question: "Which number is greater?", choices: ["323", "332"], answer: "332" },
+                { question: "Which number is the greatest?", choices: ["323", "332", "312", "302"], answer: "332" },
                 { question: "Arrange in ascending order: 412, 134, 241", choices: ["412, 241, 134", "241, 412, 134", "134, 241, 412", "134, 412, 241"], answer: "134, 241, 412" },
                 { question: "Which number is even?", choices: ["237", "428", "155", "301"], answer: "428" },
                 { question: "Which number is odd?", choices: ["400", "248", "317", "250"], answer: "317" }
             ]
         };
 
-        // State Tracking Engine
         let currentLevel = 1;
         let currentQuestionIdx = 0;
         let score = 0;
@@ -327,14 +326,12 @@
         let globalVolume = 0.8;
         let audioUnlocked = false;
         let completedQuestionsCount = 0;
-        
-        // NEW FEATURE Tracking Variable
         let wrongAttemptsThisQuestion = 0;
 
         const totalQuestionsInGame = Object.values(levelQuestionsDatabase).flat().length;
 
         document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(showStoryBriefing, 2000);
+            setTimeout(showStoryBriefing, 5000);
 
             document.getElementById('begin-stage-btn').addEventListener('click', () => {
                 unlockAudio();
@@ -369,7 +366,7 @@
 
         function loadQuestion() {
             canAnswer = true;
-            wrongAttemptsThisQuestion = 0; // Reset attempts for the new question
+            wrongAttemptsThisQuestion = 0; 
             
             const currentQuestionsPool = levelQuestionsDatabase[currentLevel];
             
@@ -412,9 +409,8 @@
 
             const allButtons = document.getElementById('options-box').querySelectorAll('.btn');
 
-            // Handle CORRECT guess
             if (chosenValue === correctAnswer) {
-                canAnswer = false;
+                canAnswer = false; 
                 completedQuestionsCount++;
                 selectedButton.classList.add('correct');
                 score++;
@@ -427,27 +423,25 @@
                 return;
             }
 
-            // Handle INCORRECT guess
             wrongAttemptsThisQuestion++;
             selectedButton.classList.add('wrong');
-            selectedButton.classList.add('disabled'); // Soft lock this chosen wrong button
+            selectedButton.classList.add('disabled'); 
             playSound('audio-wrong');
 
-            // Determine if the player has structural options remaining or has reached 2 wrong answers maximum
-            const selectableCount = Array.from(allButtons).filter(btn => !btn.classList.contains('disabled')).length;
-
-            if (wrongAttemptsThisQuestion >= 2 || selectableCount === 0) {
-                // Out of chances! Force lock everything and reveal the correct answer.
-                canAnswer = false;
+            if (wrongAttemptsThisQuestion >= 2) {
+                canAnswer = false; 
                 completedQuestionsCount++;
+                
                 allButtons.forEach(btn => {
                     btn.classList.add('disabled');
-                    if (btn.innerText === correctAnswer) btn.classList.add('correct');
+                    if (btn.innerText === correctAnswer) {
+                        btn.classList.add('correct'); 
+                    }
                 });
                 advanceNextQuestionWithDelay();
+            } else {
+                canAnswer = true;
             }
-            // If they haven't reached 2 wrong answers yet, code flows cleanly out. 
-            // canAnswer stays true, allowing them to click a different active button!
         }
 
         function advanceNextQuestionWithDelay() {
@@ -477,7 +471,7 @@
             document.getElementById('score-label').innerText = `Gems: 0`;
             document.getElementById('progress-bar').style.width = `0%`;
             changeActiveScreen('splash-screen');
-            setTimeout(showStoryBriefing, 2000);
+            setTimeout(showStoryBriefing, 5000);
         }
 
         function updateVolume() {
