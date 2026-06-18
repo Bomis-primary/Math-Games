@@ -72,6 +72,69 @@
             100% { width: 100%; }
         }
 
+        /* New Intro Screen Panel Configuration */
+        #intro-screen {
+            display: none;
+            width: 95%;
+            max-width: 500px;
+            background: rgba(22, 11, 42, 0.98);
+            border: 4px solid #00e5ff;
+            border-radius: 16px;
+            margin: 40px auto;
+            padding: 30px 20px;
+            box-shadow: 0 0 40px rgba(0, 229, 255, 0.3);
+            text-align: center;
+            animation: introFade 0.4s ease-out forwards;
+        }
+        @keyframes introFade {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .intro-title {
+            font-size: 2.2rem;
+            color: #00e5ff;
+            text-shadow: 2px 2px #000;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+        .intro-box {
+            background: #0f051c;
+            border: 2px dashed #6e3cbc;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            line-height: 1.6;
+            font-size: 1.15rem;
+            text-align: left;
+        }
+        .intro-box strong {
+            color: #ffcd2b;
+        }
+        .intro-gem-line {
+            font-size: 2.5rem;
+            margin: 15px 0;
+            text-align: center;
+            letter-spacing: 5px;
+        }
+        .btn-start-mission {
+            background: linear-gradient(180deg, #4caf50, #2e7d32);
+            border: 3px solid #1b5e20;
+            border-bottom: 7px solid #0d3c11;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 14px 35px;
+            border-radius: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            text-shadow: 1px 1px #000;
+            transition: transform 0.1s;
+        }
+        .btn-start-mission:active {
+            transform: scale(0.97);
+            border-bottom-width: 3px;
+        }
+
         /* Main Workspace Container */
         #game-container {
             display: none; 
@@ -357,6 +420,7 @@
 </head>
 <body>
 
+    <!-- 5-Second Splash Screen Panel -->
     <div id="splash-screen">
         <img class="splash-logo-img" src="assets/innovine-logo.png" alt="Innovine Logo">
         <div class="splash-subtitle">Gems Explorer: Numbers up to 999</div>
@@ -365,26 +429,41 @@
         </div>
     </div>
 
+    <!-- New Mission Intro Screen Panel -->
+    <div id="intro-screen">
+        <div class="intro-title">🗺️ Mission Briefing</div>
+        <div class="intro-gem-line">💎✨🔮</div>
+        <div class="intro-box">
+            Welcome, Brave Explorer! Your mission is to head into the number caves and <strong>collect 15 rare gems</strong>. <br><br>
+            Tap on any crystal block to mine it, then solve the math challenge inside. Answer correctly to secure your gem. If you answer incorrectly twice, the block will turn to <strong>stone (🪨)</strong> instead!
+        </div>
+        <button class="btn-start-mission" id="btn-start-mission">Start Mission</button>
+    </div>
+
+    <!-- Main Game Interface -->
     <div id="game-container">
         <canvas id="confetti-canvas"></canvas>
         
         <h1>Gems Explorer</h1>
         
         <div class="controls-row">
-            <div class="status-item" id="progress-text">Gems Collected: 0/15</div>
+            <div class="status-item" id="progress-text">Gems/Stones Total: 0/15</div>
             <div class="volume-container">
                 <label for="volume">🔊 Vol</label>
                 <input type="range" id="volume" class="volume-slider" min="0" max="1" step="0.1" value="0.8">
             </div>
         </div>
 
+        <!-- Upper Gem Gathering Display Tray -->
         <div id="gem-tray"></div>
 
+        <!-- STAGE 1: Mining Tile Grid Field -->
         <div id="mine-grid-screen">
             <div class="grid-instruction" id="grid-instruction-text">Tap a purple crystal block to mine it!</div>
             <div class="tiles-grid" id="tiles-grid-container"></div>
         </div>
 
+        <!-- STAGE 2: Learning Question Prompt Space -->
         <div id="quiz-workspace" style="display: none;">
             <div id="question-box">
                 <div class="instructions" id="instructions-text">Solve to unlock the gem!</div>
@@ -393,19 +472,20 @@
             <div id="options-container"></div>
         </div>
 
+        <!-- Final Finish Summary Interface -->
         <div id="end-screen">
             <div class="victory-title">💎 Grand Master Explorer!</div>
-            <div class="final-score" id="score-text">Sensational work! You successfully mined and uncovered all 15 rare crystals!</div>
+            <div class="final-score" id="score-text">Sensational work! Exploration field cleared successfully!</div>
             <button id="btn-restart">Explore Again</button>
         </div>
     </div>
 
+    <!-- Standard Repository Audio Hooks -->
     <audio id="audio-correct" src="assets/correct.mp3"></audio>
     <audio id="audio-wrong" src="assets/wrong.mp3"></audio>
 
     <script>
         // Formulate 15 unique Chapter 4 challenges across standard Grade 2 syllabus benchmarks
-        // Updated formatting syntax: replace [x] with underline tags directly or pass clean data variables
         const QUESTION_POOL = [
             { query: 'What number comes BEFORE 400?', display: '___ , 400', isUnderlinedTask: false, options: ['399', '300', '401', '390'], answer: '399', hint: 'Think: What is 400 minus 1?' },
             { query: 'What number comes AFTER 299?', display: '299 , ___', isUnderlinedTask: false, options: ['300', '298', '200', '301'], answer: '300', hint: 'What comes next immediately when counting past 299?' },
@@ -427,7 +507,8 @@
         const GEM_EMOJIS = ['💎', '✨', '🔮', '⭐', '💎', '🌟', '🔷', '🟢', '🔶', '🔮', '💎', '🔥', '✨', '⚡', '🏆'];
 
         let activeQuestions = [];
-        let totalGemsCollected = 0;
+        let totalTilesResolved = 0; 
+        let totalGemsCollected = 0; 
         let selectedQuestionIdx = null;
         let selectedTileElement = null;
         let currentQuestionAttempts = 0;
@@ -439,6 +520,8 @@
         let confettiAnimationId = null;
 
         const splashScreen = document.getElementById('splash-screen');
+        const introScreen = document.getElementById('intro-screen');
+        const btnStartMission = document.getElementById('btn-start-mission');
         const gameContainer = document.getElementById('game-container');
         const progressText = document.getElementById('progress-text');
         const gemTray = document.getElementById('gem-tray');
@@ -459,13 +542,19 @@
                 splashScreen.style.opacity = '0';
                 setTimeout(() => {
                     splashScreen.style.display = 'none';
-                    gameContainer.style.display = 'block';
-                    initGame();
+                    introScreen.style.display = 'block'; // Display intro briefing first
                 }, 500);
             }, 5000); 
         });
 
+        btnStartMission.addEventListener('click', () => {
+            introScreen.style.display = 'none';
+            gameContainer.style.display = 'block';
+            initGame();
+        });
+
         function initGame() {
+            totalTilesResolved = 0;
             totalGemsCollected = 0;
             acceptsInput = true;
             activeQuestions = [...QUESTION_POOL].sort(() => Math.random() - 0.5);
@@ -475,7 +564,7 @@
             quizWorkspace.style.display = 'none';
             endScreen.style.display = 'none';
             
-            progressText.innerText = `Gems Collected: 0/15`;
+            progressText.innerText = `Gems/Stones Total: 0/15`;
             stopConfetti();
             buildTileGrid();
         }
@@ -512,14 +601,12 @@
             const q = activeQuestions[selectedQuestionIdx];
             instructionsText.innerText = q.query;
             
-            // Fixed container rendering method: use innerHTML to parse styled underline rules smoothly
             if (q.textToShow) {
                 mathQuestionRender.innerHTML = q.textToShow;
             } else {
                 mathQuestionRender.innerHTML = q.display;
             }
             
-            // Randomize options array dynamically each time it displays
             const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
             
             optionsContainer.innerHTML = '';
@@ -558,7 +645,6 @@
                 if (currentQuestionAttempts === 1) {
                     clickedBtn.className = 'btn-option wrong-flash disabled-option';
                     
-                    // Update hint display message safely without injecting broken bracket code layouts
                     if (q.isUnderlinedTask) {
                         instructionsText.innerText = `💡 Try again! The ${q.rawHintText} is underlined, which means it represents ${q.answer === '60' ? 'Tens' : 'Hundreds'}!`;
                     } else {
@@ -569,7 +655,6 @@
                     acceptsInput = false;
                     clickedBtn.className = 'btn-option wrong-flash';
                     
-                    // Show correct option to student
                     Array.from(optionsContainer.children).forEach(btn => {
                         if (btn.innerText === q.answer) {
                             btn.className = 'btn-option correct-flash';
@@ -577,7 +662,7 @@
                     });
 
                     setTimeout(() => {
-                        returnToGridWithoutGem();
+                        turnTileToStone();
                     }, 2000);
                 }
             }
@@ -585,7 +670,8 @@
 
         function collectGemReward() {
             totalGemsCollected++;
-            progressText.innerText = `Gems Collected: ${totalGemsCollected}/15`;
+            totalTilesResolved++;
+            progressText.innerText = `Gems/Stones Total: ${totalTilesResolved}/15`;
             
             const chosenGem = GEM_EMOJIS[selectedQuestionIdx % GEM_EMOJIS.length];
             
@@ -600,9 +686,17 @@
             verifyGameProgress();
         }
 
-        function returnToGridWithoutGem() {
-            selectedTileElement.className = 'tile';
-            selectedTileElement.innerText = '💎';
+        function turnTileToStone() {
+            totalTilesResolved++;
+            progressText.innerText = `Gems/Stones Total: ${totalTilesResolved}/15`;
+            
+            const stoneSlot = document.createElement('span');
+            stoneSlot.className = 'tray-slot';
+            stoneSlot.innerText = '🪨';
+            gemTray.appendChild(stoneSlot);
+            
+            selectedTileElement.className = 'tile broken';
+            selectedTileElement.innerText = '🪨';
             
             verifyGameProgress();
         }
@@ -610,9 +704,10 @@
         function verifyGameProgress() {
             quizWorkspace.style.display = 'none';
             
-            if (totalGemsCollected >= 15) {
+            if (totalTilesResolved >= 15) {
                 mineGridScreen.style.display = 'none';
                 endScreen.style.display = 'block';
+                document.getElementById('score-text').innerText = `Sensational work! You managed to gather ${totalGemsCollected} precious crystals out of 15 blocks!`;
                 startConfetti();
             } else {
                 mineGridScreen.style.display = 'block';
