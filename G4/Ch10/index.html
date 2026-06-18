@@ -29,7 +29,7 @@
             max-width: 440px;
             height: 100%;
             max-height: 720px;
-            display: none; /* Strict hidden state during splash screen execution */
+            display: none; /* Hidden until splash screen timer clears */
             flex-direction: column;
             padding: 16px;
             gap: 12px;
@@ -37,7 +37,7 @@
             transition: opacity 0.5s ease;
         }
 
-        /* Clean White Screen with Plain Logo Only for 5 seconds */
+        /* 5-Second White Splash Screen Layer */
         #hard-splash {
             position: fixed;
             top: 0; 
@@ -114,7 +114,7 @@
             border-radius: 16px;
             position: relative;
             overflow: hidden;
-            min-height: 300px;
+            min-height: 280px;
         }
         canvas {
             display: block;
@@ -185,21 +185,21 @@
 
     <div id="hard-splash">
         <div class="splash-img-container">
-            <img src="assets/logo.png" class="splash-img" alt="Innovine Solutions Logo" onerror="this.style.opacity='0'">
+            <img src="assets/logo.png" class="splash-img" alt="Logo" onerror="this.style.opacity='0'">
         </div>
     </div>
 
     <div id="viewport-root">
         <div class="control-panel">
             <div class="hud-logo-container">
-                <img src="assets/logo.png" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:contain;">
+                <img src="assets/logo.png" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:contain;" onerror="this.style.opacity='0'">
             </div>
             <div class="signpost">
-                <div class="signpost-title">TRAFFIC WEIGHT & TRACK ROUTING</div>
-                <div class="signpost-value" id="lbl-highway-directive">Configuring Junctions...</div>
+                <div class="signpost-title">METRIC CONVERSION CONTROLLER</div>
+                <div class="signpost-value" id="lbl-highway-directive">Awaiting Signal...</div>
             </div>
             <p style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">
-                Select Lane 1, 2, or 3 to realign the asphalt route junctions below.
+                Match the target formula block to Lane 1, 2, or 3.
             </p>
         </div>
 
@@ -207,7 +207,7 @@
             <canvas id="highway-canvas"></canvas>
         </div>
 
-        <div class="toast-banner" id="lbl-feedback" style="color: #64748b;">Awaiting route alignment...</div>
+        <div class="toast-banner" id="lbl-feedback" style="color: #64748b;">Ready to establish connection...</div>
 
         <div class="switch-deck">
             <button class="btn-switch" id="sw-0" onclick="alignRouteLane(0)">Lane 1</button>
@@ -240,7 +240,7 @@
             color: '#f43f5e'
         };
 
-        // Regulated 5-Second Run Timer Clock
+        // Standard 5000ms Splash Countdown Window Loop
         let timeElapsed = 0;
         const totalDuration = 5000; 
         const tickInterval = 100;
@@ -258,7 +258,7 @@
                 setTimeout(() => {
                     if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
                     if (mainApp) {
-                        mainApp.style.display = 'flex'; // Turn display on safely
+                        mainApp.style.display = 'flex';
                         setTimeout(() => mainApp.style.opacity = '1', 50);
                     }
                     initGameEngine();
@@ -268,6 +268,7 @@
 
         function initGameEngine() {
             canvasElement = document.getElementById('highway-canvas');
+            if(!canvasElement) return;
             canvasContext = canvasElement.getContext('2d');
             
             setupCanvasSize();
@@ -288,7 +289,7 @@
             document.getElementById('lbl-feedback').style.color = "#64748b";
             document.getElementById('btn-dispatch').disabled = false;
 
-            // Pure Metric Question Database (image_fd6fda.png Blueprint)
+            // Pure Metric Question Database Only
             const basePool = [
                 { val: '1/2', unit: 'm', cVal: '50 cm', w1: '5 cm', w2: '500 cm' },
                 { val: '1/4', unit: 'km', cVal: '250 m', w1: '25 m', w2: '2500 m' },
@@ -297,19 +298,14 @@
                 { val: '2/5', unit: 'm', cVal: '40 cm', w1: '400 cm', w2: '4 cm' },
                 { val: '1/10', unit: 'km', cVal: '100 m', w1: '10 m', w2: '1000 m' },
                 { val: '3/10', unit: 'kg', cVal: '300 g', w1: '30 g', w2: '3000 g' },
-                { val: '7/10', unit: 'L', cVal: '700 ml', w1: '70 ml', w2: '7000 ml' },
-                { val: '1/8', unit: 'kg', cVal: '125 g', w1: '12.5 g', w2: '1250 g' },
-                { val: '5/8', unit: 'm', cVal: '62.5 cm', w1: '6.25 cm', w2: '625 cm' }
+                { val: '7/10', unit: 'L', cVal: '700 ml', w1: '70 ml', w2: '7000 ml' }
             ];
 
             let chosen = basePool[Math.floor(Math.random() * basePool.length)];
-            
-            let typeLabel = "WEIGHT";
-            if(chosen.unit === 'm' || chosen.unit === 'km') typeLabel = "LENGTH";
-            if(chosen.unit === 'L') typeLabel = "CAPACITY";
+            let typeLabel = (chosen.unit === 'm' || chosen.unit === 'km') ? "LENGTH" : (chosen.unit === 'L' ? "CAPACITY" : "WEIGHT");
 
             currentTargetQuery = {
-                directive: `Route ${typeLabel}: ${chosen.val} ${chosen.unit}`,
+                directive: `Find: ${chosen.val} ${chosen.unit}`,
                 correct: chosen.cVal,
                 wrong: [chosen.w1, chosen.w2]
             };
@@ -357,9 +353,10 @@
             let cy = 3 * (p1.y - p0.y);
             let by = 3 * (p2.y - p1.y) - cy;
             let ay = p3.y - p0.y - cy - by;
-            let x = (ax * t * t * t) + (bx * t * t) + (cx * t) + p0.x;
-            let y = (ay * t * t * t) + (by * t * t) + (cy * t) + p0.y;
-            return { x: x, y: y };
+            return {
+                x: (ax * t * t * t) + (bx * t * t) + (cx * t) + p0.x,
+                y: (ay * t * t * t) + (by * t * t) + (cy * t) + p0.y
+            };
         }
 
         function startGameLoop() {
@@ -400,6 +397,7 @@
             const h = canvasElement.height;
             const laneYPositions = [h * 0.23, h * 0.5, h * 0.77];
 
+            // Core Junction Backgrounds
             canvasContext.fillStyle = '#1e293b';
             canvasContext.fillRect(0, h/2 - 25, 60, 50);
 
@@ -407,13 +405,12 @@
                 canvasContext.fillRect(w - 120, laneYPositions[i] - 20, 120, 40);
             }
 
+            // Connection Paths Drawing
             canvasContext.lineWidth = 8;
             canvasContext.lineCap = 'round';
 
             for (let i = 0; i < 3; i++) {
-                const isActive = (i === selectedLaneIndex);
-                canvasContext.strokeStyle = isActive ? '#38bdf8' : '#273549';
-                
+                canvasContext.strokeStyle = (i === selectedLaneIndex) ? '#38bdf8' : '#273549';
                 canvasContext.beginPath();
                 canvasContext.moveTo(10, h / 2);
                 canvasContext.lineTo(60, h / 2);
@@ -422,6 +419,7 @@
                 canvasContext.stroke();
             }
 
+            // Draw Vehicle Entity
             let p0 = { x: 30, y: h / 2 };
             let p1 = { x: w * 0.4, y: h / 2 };
             let p2 = { x: w * 0.4, y: laneYPositions[selectedLaneIndex] };
@@ -447,21 +445,16 @@
             }
             canvasContext.restore();
 
-            if (currentVehicle.isTumbling) {
-                canvasContext.fillStyle = 'rgba(244, 63, 94, 0.4)';
-                canvasContext.beginPath();
-                canvasContext.arc(vehPos.x + currentVehicle.offsetX - 10, vehPos.y + currentVehicle.offsetY, 15, 0, Math.PI*2);
-                canvasContext.fill();
-            }
-
+            // Render safe rectangular lane options tags (Replacing old roundRect method completely)
             for (let i = 0; i < 3; i++) {
                 const option = laneOptionsData[i];
 
                 canvasContext.fillStyle = '#0f172a';
                 canvasContext.strokeStyle = (i === selectedLaneIndex) ? '#38bdf8' : '#475569';
                 canvasContext.lineWidth = 2;
+                
                 canvasContext.beginPath();
-                canvasContext.roundRect(w - 110, laneYPositions[i] - 16, 95, 32, 6);
+                canvasContext.rect(w - 110, laneYPositions[i] - 16, 95, 32); 
                 canvasContext.fill();
                 canvasContext.stroke();
 
@@ -529,9 +522,6 @@
         function playAudioFile(htmlId, fallbackType) {
             try {
                 const sound = document.getElementById(htmlId);
-                if (sound && sound.duration > 0 && !sound.paused) {
-                    sound.currentTime = 0;
-                }
                 if (sound) {
                     sound.play().catch(() => { triggerSynthesizerFallback(fallbackType); });
                 } else {
@@ -544,31 +534,31 @@
 
         function triggerSynthesizerFallback(type) {
             if (!audioCtx) return;
-            
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
 
-            const now = audioCtx.currentTime;
-
-            if (type === 'correct') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(587.33, now); 
-                osc.frequency.setValueAtTime(880.00, now + 0.1); 
-                gain.gain.setValueAtTime(0.15, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
-                osc.start(now);
-                osc.stop(now + 0.35);
-            } else if (type === 'wrong') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(120, now);
-                osc.frequency.linearRampToValueAtTime(40, now + 0.4);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
-                osc.start(now);
-                osc.stop(now + 0.45);
-            }
+                if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(587.33, now); 
+                    osc.frequency.setValueAtTime(880.00, now + 0.1); 
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+                    osc.start(now);
+                    osc.stop(now + 0.35);
+                } else {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(120, now);
+                    osc.frequency.linearRampToValueAtTime(40, now + 0.4);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+                    osc.start(now);
+                    osc.stop(now + 0.45);
+                }
+            } catch(e) {}
         }
     </script>
 </body>
