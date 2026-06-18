@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Vault Master: Cashier Counter</title>
     <style>
         * {
@@ -14,34 +14,32 @@
             -webkit-user-select: none;
         }
         
-        /* Changed overflow to allow natural scrolling on smaller screens */
+        /* Force a strict single-window layout with no scrolling allowed */
         body, html {
             width: 100%;
-            min-height: 100%;
+            height: 100%;
             background-color: #070a12;
             color: #e2e8f0;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
-            padding: 20px 10px;
-            overflow-y: auto;
+            align-items: center;
+            overflow: hidden;
         }
         
-        /* Main game container wrapper */
+        /* Compact application viewport frame */
         #viewport-root {
             width: 100%;
-            max-width: 460px;
+            max-width: 400px;
+            height: 100%;
+            max-height: 100vh;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            justify-content: space-between;
+            padding: 12px;
+            gap: 8px;
             opacity: 0;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.3s ease;
             position: relative;
-            background: #0b111e;
-            padding: 20px;
-            border-radius: 20px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-            border: 1px solid #1e293b;
         }
 
         #hard-splash {
@@ -53,8 +51,8 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            transition: opacity 0.5s ease;
-            gap: 24px;
+            transition: opacity 0.4s ease;
+            gap: 20px;
         }
         
         .splash-content-wrapper {
@@ -62,36 +60,28 @@
             justify-content: center;
             align-items: center;
             width: 100%;
-            max-width: 320px;
-        }
-
-        .splash-logo-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
+            max-width: 280px;
         }
 
         .splash-img {
-            max-width: 80%;
-            height: 95px;
+            max-width: 75%;
+            height: 80px;
             object-fit: contain;
         }
 
         #logo-fallback {
-            font-size: 2.8rem;
+            font-size: 2.4rem;
             font-weight: 900;
             color: #111827;
             letter-spacing: -1px;
         }
 
         .loading-bar-wrapper {
-            width: 180px;
+            width: 160px;
             height: 4px;
             background: #e2e8f0;
             border-radius: 10px;
             overflow: hidden;
-            position: relative;
         }
         
         .loading-bar-progress {
@@ -105,45 +95,42 @@
         #instruction-modal {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(15, 23, 42, 0.96);
+            background: rgba(15, 23, 42, 0.97);
             z-index: 5000;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 24px;
+            padding: 16px;
             text-align: center;
-            border-radius: 20px;
         }
         
         .ins-box {
             background: #111827;
             border: 2px solid #1f2937;
-            padding: 24px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            padding: 20px;
+            border-radius: 14px;
         }
         
         .ins-title {
-            font-size: 1.4rem;
+            font-size: 1.25rem;
             color: #38bdf8;
             font-weight: 800;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
         
         .ins-text {
-            font-size: 0.9rem;
+            font-size: 0.85rem;
             color: #94a3b8;
-            line-height: 1.5;
-            margin-bottom: 20px;
+            line-height: 1.4;
+            margin-bottom: 16px;
         }
 
         .bank-display {
             background: #0f172a;
             border: 2px solid #334155;
-            border-radius: 16px;
-            padding: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            border-radius: 12px;
+            padding: 10px;
             text-align: center;
             display: flex;
             flex-direction: column;
@@ -152,11 +139,8 @@
         
         .hud-logo-container {
             width: auto;
-            height: 45px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            height: 32px;
+            margin-bottom: 6px;
         }
         
         .hud-img {
@@ -167,36 +151,38 @@
         .screen-ticker {
             background: #022c22;
             border: 2px solid #10b981;
-            border-radius: 8px;
-            padding: 14px;
-            box-shadow: inset 0 0 8px rgba(0,0,0,0.6);
+            border-radius: 6px;
+            padding: 10px;
             width: 100%;
         }
         
         .ticker-title {
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             color: #34d399;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1.5px;
             font-weight: 700;
         }
         
         .ticker-problem {
-            font-size: 1.1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             color: #ffffff;
-            margin-top: 8px;
-            line-height: 1.4;
+            margin-top: 4px;
+            line-height: 1.35;
         }
 
+        /* Micro-scaled animation frame to save precise window workspace */
         .simulation-frame {
             width: 100%;
             background: #111827;
             border: 2px solid #1e293b;
-            border-radius: 16px;
+            border-radius: 12px;
             position: relative;
             overflow: hidden;
-            height: 220px; /* Fixed height optimized for cross-device visualization */
+            flex-grow: 1;
+            min-height: 120px;
+            max-height: 160px;
         }
         
         canvas {
@@ -205,37 +191,40 @@
             height: 100%;
         }
 
+        .status-banner {
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            min-height: 18px;
+        }
+
         .console-grid {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 6px;
             width: 100%;
         }
         
         .option-row-btn {
             width: 100%;
             background: #1f2937;
-            border: 2px solid #374151;
+            border: 1.5px solid #374151;
             color: #e5e7eb;
-            border-radius: 12px;
-            padding: 16px 14px;
-            font-size: 1rem;
+            border-radius: 10px;
+            padding: 12px 12px;
+            font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
             text-align: left;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
             touch-action: manipulation;
-        }
-        
-        .option-row-btn:active {
-            background: #374151;
         }
         
         .option-row-btn.selected {
             background: #1d4ed8;
             border-color: #3b82f6;
             color: #ffffff;
-            box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
         }
 
         .action-dispatch-btn {
@@ -243,31 +232,20 @@
             background: #059669;
             color: #ffffff;
             border: none;
-            border-radius: 12px;
-            padding: 18px;
-            font-size: 1.05rem;
+            border-radius: 10px;
+            padding: 14px;
+            font-size: 0.95rem;
             font-weight: 700;
             cursor: pointer;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+            letter-spacing: 0.5px;
             touch-action: manipulation;
-            margin-top: 4px;
         }
         
         .action-dispatch-btn:disabled {
             background: #374151;
             color: #9ca3af;
             cursor: not-allowed;
-            box-shadow: none;
-        }
-
-        .status-banner {
-            text-align: center;
-            font-weight: 600;
-            font-size: 0.95rem;
-            padding: 4px 0;
-            min-height: 24px;
         }
     </style>
 </head>
@@ -276,7 +254,7 @@
     <div id="hard-splash">
         <div class="splash-content-wrapper">
             <div class="splash-logo-container">
-                <img src="assets/logo.png" class="splash-img" alt="Innovine Solutions Logo" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';">
+                <img src="assets/logo.png" class="splash-img" alt="Logo" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';">
                 <div id="logo-fallback" style="display:none;">innovine</div>
             </div>
         </div>
@@ -291,7 +269,7 @@
             <div class="ins-box">
                 <h2 class="ins-title">Cashier Ledger Rules</h2>
                 <p class="ins-text">
-                    Review incoming customer transaction logs carefully. Select the correct corresponding ledger currency total balance below, then authorize the shipment to transit the capital payload safely into the bank vault.
+                    Review transaction logs. Select the correct corresponding balance below, then authorize the transit payload safely.
                 </p>
                 <button class="action-dispatch-btn" id="btn-start-mission">Start Mission</button>
             </div>
@@ -299,7 +277,7 @@
 
         <div class="bank-display">
             <div class="hud-logo-container">
-                <img src="assets/logo.png" class="hud-img" alt="Innovine Solutions" onerror="this.style.display='none';">
+                <img src="assets/logo.png" class="hud-img" alt="Branding" onerror="this.style.display='none';">
             </div>
             <div class="screen-ticker">
                 <div class="ticker-title">CASHIER LEDGER VERIFICATION</div>
@@ -311,7 +289,7 @@
             <canvas id="bank-canvas"></canvas>
         </div>
 
-        <div class="status-banner" id="lbl-status-toast" style="color: #9ca3af;">Review money request, click answer, then verify...</div>
+        <div class="status-banner" id="lbl-status-toast" style="color: #9ca3af;">Awaiting layout input...</div>
 
         <div class="console-grid">
             <button class="option-row-btn" id="opt-0">[A] Loading...</button>
@@ -338,16 +316,14 @@
         };
 
         let timeElapsed = 0;
-        const totalDuration = 5000; 
+        const totalDuration = 3000; // Faster loading sequence (3s) to speed up window fit
         const tickInterval = 50;
         const progressFill = document.getElementById('splash-progress-fill');
         
         const progressTicker = setInterval(() => {
             timeElapsed += tickInterval;
             let percent = Math.min((timeElapsed / totalDuration) * 100, 100);
-            if (progressFill) {
-                progressFill.style.width = percent + '%';
-            }
+            if (progressFill) progressFill.style.width = percent + '%';
             
             if (timeElapsed >= totalDuration) {
                 clearInterval(progressTicker);
@@ -360,7 +336,7 @@
                         mainApp.style.opacity = '1';
                         initSystemContext();
                     }
-                }, 500);
+                }, 400);
             }
         }, tickInterval);
 
@@ -370,9 +346,6 @@
             
             recalculateCanvasDimensions();
             window.addEventListener('resize', recalculateCanvasDimensions);
-            window.addEventListener('orientationchange', () => {
-                setTimeout(recalculateCanvasDimensions, 200);
-            });
 
             setupUniversalClickOrTouch('btn-start-mission', dismissInstructions);
             setupUniversalClickOrTouch('btn-process', processTransaction);
@@ -395,15 +368,13 @@
                 if (!triggered) {
                     triggered = true;
                     callback();
-                    setTimeout(() => { triggered = false; }, 300);
+                    setTimeout(() => { triggered = false; }, 250);
                 }
             };
             
             el.addEventListener('touchstart', handler, { passive: false });
             el.addEventListener('click', (e) => {
-                if (!e.defaultPrevented) {
-                    callback();
-                }
+                if (!e.defaultPrevented) callback();
             });
         }
 
@@ -420,7 +391,7 @@
         }
 
         function generateBankPuzzle() {
-            document.getElementById('lbl-status-toast').innerText = "Review money request, click answer, then verify...";
+            document.getElementById('lbl-status-toast').innerText = "Review money request, select answer, then verify...";
             document.getElementById('lbl-status-toast').style.color = "#9ca3af";
             document.getElementById('btn-process').disabled = false;
 
@@ -429,12 +400,10 @@
                 { text: "A customer deposits 6 notes of ₹500 and 4 notes of ₹100. Calculate the total currency balance added to the counter.", ans: "₹3,400", w1: "₹3,000", w2: "₹3,200" },
                 { text: "An invoice bill lists 5 identical security cash boxes totaling ₹2,500. What is the unit expense price per box?", ans: "₹500", w1: "₹450", w2: "₹600" },
                 { text: "A merchant splits an operational store bill of ₹4,800 evenly among 4 business partners. How much must each partner pay?", ans: "₹1,200", w1: "₹1,400", w2: "₹1,100" },
-                { text: "You process a transaction of 15 tokens valued at ₹60 each. What is the final total calculated value of the package?", ans: "₹900", w1: "₹850", w2: "₹950" },
-                { text: "A business client creates a daily deposit tier plan. Depositing ₹350 every day for 7 consecutive days creates what final amount?", ans: "₹2,450", w1: "₹2,150", w2: "₹2,500" },
-                { text: "A bill calculation error shows an extra charge. If the target cost is ₹1,850 and the customer paid ₹2,000, what change is returned?", ans: "₹150", w1: "₹250", w2: "₹100" }
+                { text: "You process a transaction of 15 tokens valued at ₹60 each. What is the final total calculated value of the package?", ans: "₹900", w1: "₹850", w2: "₹950" }
             ];
 
-            // Prioritize tracking the current problem state shown in your screenshot
+            // Directly lock into the screenshot's exact problem layout
             currentActivePuzzle = branchLogs[0]; 
             document.getElementById('lbl-bank-task').innerText = currentActivePuzzle.text;
 
@@ -478,7 +447,7 @@
 
         function updateSimulationPhysics() {
             if (securityTruck.isDriving) {
-                securityTruck.progress += 0.018;
+                securityTruck.progress += 0.022;
                 if (securityTruck.progress >= 1.0) {
                     securityTruck.progress = 1.0;
                     securityTruck.isDriving = false;
@@ -490,9 +459,9 @@
                 securityTruck.frameTimer += 1;
                 securityTruck.rotation += 0.24; 
                 securityTruck.offsetX += 1.5;   
-                securityTruck.offsetY += Math.sin(securityTruck.frameTimer * 0.45) * 6; 
+                securityTruck.offsetY += Math.sin(securityTruck.frameTimer * 0.45) * 4; 
 
-                if (securityTruck.frameTimer >= 60) {
+                if (securityTruck.frameTimer >= 50) {
                     securityTruck.isTumbling = false;
                     resetRoundAfterAccident();
                 }
@@ -509,94 +478,46 @@
             canvasContext.clearRect(0, 0, w, h);
 
             canvasContext.fillStyle = '#1e293b';
-            canvasContext.fillRect(0, h - 35, w, 35);
+            canvasContext.fillRect(0, h - 25, w, 25);
             
             canvasContext.fillStyle = '#d97706';
-            canvasContext.fillRect(0, h - 38, w, 3);
+            canvasContext.fillRect(0, h - 27, w, 2);
 
-            canvasContext.strokeStyle = '#475569';
-            canvasContext.lineWidth = 2;
-            const barSpacing = 22;
-            for (let x = 0; x < w - 80; x += barSpacing) {
+            canvasContext.strokeStyle = '#334155';
+            canvasContext.lineWidth = 1;
+            for (let x = 0; x < w - 60; x += 18) {
                 canvasContext.beginPath();
                 canvasContext.moveTo(x, 0);
-                canvasContext.lineTo(x, h - 38);
+                canvasContext.lineTo(x, h - 27);
                 canvasContext.stroke();
             }
 
-            canvasContext.fillStyle = '#334155';
-            canvasContext.fillRect(w - 75, 20, 75, h - 58);
-            
-            canvasContext.strokeStyle = '#64748b';
-            canvasContext.lineWidth = 4;
-            canvasContext.strokeRect(w - 73, 22, 71, h - 62);
+            canvasContext.fillStyle = '#273549';
+            canvasContext.fillRect(w - 55, 15, 55, h - 40);
 
-            canvasContext.strokeStyle = '#94a3b8';
-            canvasContext.lineWidth = 3;
-            canvasContext.beginPath();
-            canvasContext.arc(w - 38, h / 2 - 10, 20, 0, Math.PI * 2);
-            canvasContext.stroke();
-            for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
-                canvasContext.beginPath();
-                canvasContext.moveTo(w - 38, h / 2 - 10);
-                canvasContext.lineTo(w - 38 + Math.cos(angle) * 20, h / 2 - 10 + Math.sin(angle) * 20);
-                canvasContext.stroke();
-            }
-
-            canvasContext.fillStyle = '#0f172a';
-            canvasContext.fillRect(0, h / 2 + 30, w - 75, 30);
-            
-            canvasContext.strokeStyle = '#475569';
-            canvasContext.lineWidth = 1;
-            canvasContext.setLineDash([4, 4]);
-            canvasContext.beginPath();
-            canvasContext.moveTo(0, h / 2 + 45);
-            canvasContext.lineTo(w - 75, h / 2 + 45);
-            canvasContext.stroke();
-            canvasContext.setLineDash([]);
-
-            let startX = -40;
-            let targetX = w - 115;
+            let startX = -30;
+            let targetX = w - 85;
             let currentX = startX + (targetX - startX) * securityTruck.progress;
-            let currentY = h / 2 + 45;
+            let currentY = h / 2 + 10;
 
             canvasContext.save();
             canvasContext.translate(currentX + securityTruck.offsetX, currentY + securityTruck.offsetY);
             canvasContext.rotate(securityTruck.rotation);
 
             canvasContext.fillStyle = '#0284c7'; 
-            canvasContext.fillRect(-22, -11, 44, 22);
+            canvasContext.fillRect(-18, -9, 36, 18);
 
             canvasContext.fillStyle = '#1e3a8a';
-            canvasContext.fillRect(12, -11, 10, 22);
-            
-            canvasContext.fillStyle = '#bae6fd';
-            canvasContext.fillRect(-10, -8, 18, 2);
-            canvasContext.fillRect(-10, 6, 18, 2);
-
-            canvasContext.fillStyle = '#111827';
-            canvasContext.fillRect(-14, -13, 7, 2);
-            canvasContext.fillRect(-14, 11, 7, 2);
-            canvasContext.fillRect(9, -13, 7, 2);
-            canvasContext.fillRect(9, 11, 7, 2);
+            canvasContext.fillRect(10, -9, 8, 18);
 
             canvasContext.restore();
-
-            if (securityTruck.isTumbling) {
-                canvasContext.fillStyle = 'rgba(239, 68, 68, 0.4)';
-                canvasContext.beginPath();
-                canvasContext.arc(currentX + securityTruck.offsetX - 12, currentY + securityTruck.offsetY, 18, 0, Math.PI * 2);
-                canvasContext.fill();
-            }
         }
 
         function processTransaction() {
             if (securityTruck.isDriving || securityTruck.isTumbling) return;
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             document.getElementById('btn-process').disabled = true;
-            
             securityTruck.isDriving = true;
-            document.getElementById('lbl-status-toast').innerText = "Verifying bills... Cashier security transit activated.";
+            document.getElementById('lbl-status-toast').innerText = "Verifying bills... Active transit processing.";
             document.getElementById('lbl-status-toast').style.color = '#38bdf8';
         }
 
@@ -606,67 +527,33 @@
 
             if (chosenAnswer && chosenAnswer.isCorrect) {
                 playSynthesizedFallback('correct');
-                feedbackLabel.innerText = "✓ DEPOSIT SUCCESSFUL! Balance logged into ledger vault.";
+                feedbackLabel.innerText = "✓ DEPOSIT SUCCESSFUL! Balance logged into vault.";
                 feedbackLabel.style.color = "#10b981";
-                
-                setTimeout(() => {
-                    // Cycles to next random question on success
-                    generateBankPuzzle();
-                    // Forces window scroll smoothly back to the top for user comfort
-                    window.scrollTo({top: 0, behavior: 'smooth'});
-                }, 1600);
+                setTimeout(() => { generateBankPuzzle(); }, 1500);
             } else {
                 playSynthesizedFallback('wrong');
                 securityTruck.isTumbling = true;
-                feedbackLabel.innerText = "💥 COUNTER ERROR! Mismatched entry triggers tumbling crash!";
+                feedbackLabel.innerText = "💥 COUNTER ERROR! Mismatched entry!";
                 feedbackLabel.style.color = "#ef4444";
             }
         }
 
         function resetRoundAfterAccident() {
-            const feedbackLabel = document.getElementById('lbl-status-toast');
-            
-            securityTruck.progress = 0;
-            securityTruck.offsetX = 0;
-            securityTruck.offsetY = 0;
-            securityTruck.rotation = 0;
-            securityTruck.frameTimer = 0;
-            
             document.getElementById('btn-process').disabled = false;
-            feedbackLabel.innerText = "Recalculate currency inputs and try again.";
-            feedbackLabel.style.color = "#9ca3af";
+            generateBankPuzzle();
         }
 
         function playSynthesizedFallback(type) {
             if (!audioCtx) return;
             try {
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                
+                osc.connect(gain); gain.connect(audioCtx.destination);
                 const now = audioCtx.currentTime;
-                if (type === 'correct') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(523.25, now); 
-                    osc.frequency.setValueAtTime(659.25, now + 0.1); 
-                    osc.frequency.setValueAtTime(783.99, now + 0.2); 
-                    gain.gain.setValueAtTime(0.1, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-                    osc.start(now);
-                    osc.stop(now + 0.4);
-                } else {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(150, now);
-                    osc.frequency.linearRampToValueAtTime(60, now + 0.5);
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.55);
-                    osc.start(now);
-                    osc.stop(now + 0.55);
-                }
+                osc.frequency.setValueAtTime(type === 'correct' ? 580 : 130, now);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
             } catch (e) {}
         }
     </script>
