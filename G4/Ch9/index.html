@@ -174,6 +174,10 @@
         .crate-card.locked-open {
             pointer-events: none !important;
         }
+        .crate-card.locked-open .crate-back {
+            border-color: #f97316 !important;
+            background-color: #fff7ed !important;
+        }
 
         .crate-card.matched {
             pointer-events: none;
@@ -233,9 +237,9 @@
         let selectedCards = [];
         let engineLock = false;
         let cardPoolData = [];
-
-        // Tracks remaining chances *per card layout position index*
-        let cardStrikeTracker = {}; 
+        
+        // Dynamic game tracking state variables
+        let currentPairStrikes = 0; 
 
         // Comprehensive Question Bank Mapped to image_ff6284.png Blueprints
         const globalQuestionBank = [
@@ -287,7 +291,7 @@
                             Flip grove crates to pair equivalent fractional values! 
                         </p>
                         <p style="color:#f97316; font-size:0.85rem; font-weight:bold; margin-bottom:20px;">
-                            ⚠️ Missing a specific card twice leaves it permanently locked open on the board without revealing its partner!
+                            ⚠️ Missing a guess twice leaves those two specific cards locked open permanently without revealing their real partners.
                         </p>
                         <button class="btn-action" style="margin:0;" onclick="buildHarvestGrid()">REVEAL ORCHARD</button>
                     </div>
@@ -299,7 +303,7 @@
             currentScore = 0;
             selectedCards = [];
             engineLock = false;
-            cardStrikeTracker = {};
+            currentPairStrikes = 0;
             
             document.getElementById('lbl-score').innerText = currentScore;
             document.getElementById('lbl-attempts').innerText = "0/2";
@@ -328,7 +332,6 @@
             arena.innerHTML = '';
 
             cardPoolData.forEach((card, index) => {
-                cardStrikeTracker[index] = 0; // Initialize strike trackers per slot position
                 arena.innerHTML += `
                     <div class="crate-card" id="card-${index}" onclick="handleCardFlip(${index})">
                         <div class="crate-inner">
@@ -373,47 +376,37 @@
                     document.getElementById('lbl-score').innerText = currentScore;
                     
                     selectedCards = [];
-                    engineLock = false;
+                    currentPairStrikes = 0; // Reset strike run counter for next dynamic pick
                     document.getElementById('lbl-attempts').innerText = "0/2";
+                    engineLock = false;
 
                     checkWinCondition();
                 }, 400);
             } else {
                 // Incorrect Match Event Trigger
-                // Add a permanent strike to both chosen layout indexes
-                cardStrikeTracker[first.index]++;
-                cardStrikeTracker[second.index]++;
-
-                // Calculate the HUD tracking display based on the highest individual strike count
-                const maxStrikesMet = Math.max(cardStrikeTracker[first.index], cardStrikeTracker[second.index]);
-                document.getElementById('lbl-attempts').innerText = `${Math.min(maxStrikesMet, 2)}/2`;
+                currentPairStrikes++;
+                document.getElementById('lbl-attempts').innerText = `${currentPairStrikes}/2`;
 
                 setTimeout(() => {
                     playAudioAsset('s-wrong');
 
-                    // Process First Card Option
-                    if (cardStrikeTracker[first.index] >= 2) {
-                        cardOneEl.classList.add('locked-open'); // Lock it open permanently
+                    if (currentPairStrikes >= 2) {
+                        // Keep these exact two cards flipped open permanently, do not reveal anything else
+                        cardOneEl.classList.add('locked-open');
+                        cardTwoEl.classList.add('locked-open');
+                        
+                        currentPairStrikes = 0; // Reset counter for next card turn selection
+                        document.getElementById('lbl-attempts').innerText = "0/2";
                     } else {
-                        cardOneEl.classList.remove('flipped');  // Flip back down
-                    }
-
-                    // Process Second Card Option
-                    if (cardStrikeTracker[second.index] >= 2) {
-                        cardTwoEl.classList.add('locked-open'); // Lock it open permanently
-                    } else {
-                        cardTwoEl.classList.remove('flipped');  // Flip back down
+                        // Flip them back down to give them their second chance
+                        cardOneEl.classList.remove('flipped');
+                        cardTwoEl.classList.remove('flipped');
                     }
 
                     selectedCards = [];
                     engineLock = false;
-
-                    // Brief fallback update step to sync layout details
-                    setTimeout(() => {
-                        document.getElementById('lbl-attempts').innerText = "0/2";
-                        checkWinCondition();
-                    }, 200);
-
+                    
+                    checkWinCondition();
                 }, 1000);
             }
         }
