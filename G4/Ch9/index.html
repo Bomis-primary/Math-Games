@@ -33,11 +33,11 @@
             flex-direction: column;
             padding: 16px;
             gap: 12px;
-            opacity: 0; /* Revealed after the loader finishes */
+            opacity: 0;
             transition: opacity 0.5s ease;
         }
 
-        /* Regulated 5-Second Splash Screen - Perfect layout match to blueprints */
+        /* Regulated 5-Second Splash Screen */
         #hard-splash {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -146,6 +146,7 @@
             padding: 4px;
             font-weight: 800;
             box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            transition: border-color 0.2s, background-color 0.2s;
         }
 
         /* Card Face Closed State */
@@ -164,16 +165,21 @@
             background: #ffffff;
             border: 3px solid #ea580c;
             color: #431407;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             transform: rotateY(180deg);
             line-height: 1.3;
+        }
+
+        /* Locks down interactive features once permanently opened from strikes */
+        .crate-card.locked-open {
+            pointer-events: none !important;
         }
 
         .crate-card.matched {
             pointer-events: none;
             visibility: hidden;
             opacity: 0;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            transition: opacity 0.4s ease, visibility 0.4s ease;
         }
 
         /* Bottom Control Button Container */
@@ -200,9 +206,10 @@
 
     <audio id="s-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+    <audio id="s-win" src="assets/freesound_community.mp3" preload="auto"></audio>
 
     <div id="hard-splash">
-        <img src="assets/logo.png" class="splash-img" alt="Innovine Solutions">
+        <img src="assets/logo.png" class="splash-img" alt="Innovine Solutions" onerror="this.style.display='none';">
         <div style="width: 200px; height: 8px; background-color: #e2e8f0; border-radius: 20px; overflow: hidden;">
             <div id="loader-progress-fill" style="width: 0%; height: 100%; background-color: #22c55e; border-radius: 20px; transition: width 0.05s linear;"></div>
         </div>
@@ -211,7 +218,7 @@
     <div id="viewport-root">
         <div class="hud-row">
             <div>SCORE: <span id="lbl-score" class="hud-value">0</span></div>
-            <div>ATTEMPTS: <span id="lbl-attempts" class="hud-value">0</span></div>
+            <div>ATTEMPTS: <span id="lbl-attempts" class="hud-value">0/2</span></div>
         </div>
 
         <div class="arena-container" id="arena"></div>
@@ -223,12 +230,28 @@
 
     <script>
         let currentScore = 0;
-        let attemptsCount = 0;
-        let cardPoolData = [];
         let selectedCards = [];
         let engineLock = false;
+        let cardPoolData = [];
 
-        // Regulated 5-Second (5000ms) Progress Bar Mechanics Ticker
+        // Tracks remaining chances *per card layout position index*
+        let cardStrikeTracker = {}; 
+
+        // Comprehensive Question Bank Mapped to image_ff6284.png Blueprints
+        const globalQuestionBank = [
+            { text: "Reduce<br>6/8", matchId: 1 }, { text: "3/4", matchId: 1 },
+            { text: "Equivalent<br>of 1/3", matchId: 2 }, { text: "3/9", matchId: 2 },
+            { text: "1/5 of 25", matchId: 3 }, { text: "5", matchId: 3 },
+            { text: "3/4 of 16", matchId: 4 }, { text: "12", matchId: 4 },
+            { text: "Reduce<br>10/15", matchId: 5 }, { text: "2/3", matchId: 5 },
+            { text: "Equivalent<br>of 2/4", matchId: 6 }, { text: "4/8", matchId: 6 },
+            { text: "Simplify<br>8/12", matchId: 7 }, { text: "2/3", matchId: 7 },
+            { text: "1/4 of 40", matchId: 8 }, { text: "10", matchId: 8 },
+            { text: "Improper fraction of 1 & 1/2", matchId: 9 }, { text: "3/2", matchId: 9 },
+            { text: "Mixed number of 7/4", matchId: 10 }, { text: "1 & 3/4", matchId: 10 }
+        ];
+
+        // Regulated 5-Second (5000ms) Progress Bar Ticker
         let progressVal = 0;
         const loaderIntervalMs = 50; 
         const totalDurationMs = 5000;
@@ -260,8 +283,11 @@
                     <div class="orchard-panel" style="background:#ffffff; display: flex; flex-direction: column; align-items: center;">
                         <img src="assets/logo.png" style="width:140px; height:auto; margin-bottom:16px;" onerror="this.style.display='none';">
                         <h2 style="color:#ea580c; font-size:1.6rem; font-weight:900; margin-bottom:8px;">Harvest Match</h2>
-                        <p style="color:#7c2d12; font-size:0.9rem; line-height:1.5; margin-bottom:20px;">
-                            The grove crates are sealed! Flip them open to pair matching mathematical fractional values together.
+                        <p style="color:#7c2d12; font-size:0.9rem; line-height:1.5; margin-bottom:12px;">
+                            Flip grove crates to pair equivalent fractional values! 
+                        </p>
+                        <p style="color:#f97316; font-size:0.85rem; font-weight:bold; margin-bottom:20px;">
+                            ⚠️ Missing a specific card twice leaves it permanently locked open on the board without revealing its partner!
                         </p>
                         <button class="btn-action" style="margin:0;" onclick="buildHarvestGrid()">REVEAL ORCHARD</button>
                     </div>
@@ -271,38 +297,38 @@
 
         function buildHarvestGrid() {
             currentScore = 0;
-            attemptsCount = 0;
             selectedCards = [];
             engineLock = false;
+            cardStrikeTracker = {};
+            
             document.getElementById('lbl-score').innerText = currentScore;
-            document.getElementById('lbl-attempts').innerText = attemptsCount;
+            document.getElementById('lbl-attempts').innerText = "0/2";
 
-            const masterPairs = [
-                { text: "Reduce<br>6/8", matchId: 1 },
-                { text: "3/4", matchId: 1 },
-                
-                { text: "Equivalent<br>of 1/3", matchId: 2 },
-                { text: "3/9", matchId: 2 },
-                
-                { text: "1/5 of 25", matchId: 3 },
-                { text: "5", matchId: 3 },
-                
-                { text: "3/4 of 16", matchId: 4 },
-                { text: "12", matchId: 4 },
+            // Group database elements by matchId to keep pairs safely cohesive
+            const groupedMap = {};
+            globalQuestionBank.forEach(item => {
+                if (!groupedMap[item.matchId]) groupedMap[item.matchId] = [];
+                groupedMap[item.matchId].push(item);
+            });
 
-                { text: "Reduce<br>10/15", matchId: 5 },
-                { text: "2/3", matchId: 5 },
+            // Randomize and pick exactly 6 cohesive fractional pairs
+            const uniqueMatchIds = Object.keys(groupedMap).sort(() => Math.random() - 0.5);
+            const selectedPairsIds = uniqueMatchIds.slice(0, 6);
 
-                { text: "Equivalent<br>of 2/4", matchId: 6 },
-                { text: "4/8", matchId: 6 }
-            ];
+            let activeRoundSet = [];
+            selectedPairsIds.forEach(id => {
+                activeRoundSet.push({...groupedMap[id][0]});
+                activeRoundSet.push({...groupedMap[id][1]});
+            });
 
-            cardPoolData = masterPairs.sort(() => Math.random() - 0.5);
+            // Scramble layout grid positions completely
+            cardPoolData = activeRoundSet.sort(() => Math.random() - 0.5);
 
             const arena = document.getElementById('arena');
             arena.innerHTML = '';
 
             cardPoolData.forEach((card, index) => {
+                cardStrikeTracker[index] = 0; // Initialize strike trackers per slot position
                 arena.innerHTML += `
                     <div class="crate-card" id="card-${index}" onclick="handleCardFlip(${index})">
                         <div class="crate-inner">
@@ -318,15 +344,13 @@
             if (engineLock) return;
             
             const targetedCard = document.getElementById(`card-${index}`);
-            if (targetedCard.classList.contains('flipped') || targetedCard.classList.contains('matched')) return;
+            if (targetedCard.classList.contains('flipped') || targetedCard.classList.contains('matched') || targetedCard.classList.contains('locked-open')) return;
 
             targetedCard.classList.add('flipped');
             selectedCards.push({ index: index, data: cardPoolData[index] });
 
             if (selectedCards.length === 2) {
                 engineLock = true;
-                attemptsCount++;
-                document.getElementById('lbl-attempts').innerText = attemptsCount;
                 checkMatchCondition();
             }
         }
@@ -335,41 +359,81 @@
             const first = selectedCards[0];
             const second = selectedCards[1];
 
+            const cardOneEl = document.getElementById(`card-${first.index}`);
+            const cardTwoEl = document.getElementById(`card-${second.index}`);
+
             if (first.data.matchId === second.data.matchId) {
+                // Correct Match Event Trigger
                 setTimeout(() => {
                     playAudioAsset('s-correct');
-                    document.getElementById(`card-${first.index}`).classList.add('matched');
-                    document.getElementById(`card-${second.index}`).classList.add('matched');
+                    cardOneEl.classList.add('matched');
+                    cardTwoEl.classList.add('matched');
                     
                     currentScore += 10;
                     document.getElementById('lbl-score').innerText = currentScore;
                     
                     selectedCards = [];
                     engineLock = false;
+                    document.getElementById('lbl-attempts').innerText = "0/2";
 
-                    if (document.querySelectorAll('.crate-card.matched').length === 12) {
-                        renderVictoryPanel();
-                    }
+                    checkWinCondition();
                 }, 400);
             } else {
+                // Incorrect Match Event Trigger
+                // Add a permanent strike to both chosen layout indexes
+                cardStrikeTracker[first.index]++;
+                cardStrikeTracker[second.index]++;
+
+                // Calculate the HUD tracking display based on the highest individual strike count
+                const maxStrikesMet = Math.max(cardStrikeTracker[first.index], cardStrikeTracker[second.index]);
+                document.getElementById('lbl-attempts').innerText = `${Math.min(maxStrikesMet, 2)}/2`;
+
                 setTimeout(() => {
                     playAudioAsset('s-wrong');
-                    document.getElementById(`card-${first.index}`).classList.remove('flipped');
-                    document.getElementById(`card-${second.index}`).classList.remove('flipped');
-                    
+
+                    // Process First Card Option
+                    if (cardStrikeTracker[first.index] >= 2) {
+                        cardOneEl.classList.add('locked-open'); // Lock it open permanently
+                    } else {
+                        cardOneEl.classList.remove('flipped');  // Flip back down
+                    }
+
+                    // Process Second Card Option
+                    if (cardStrikeTracker[second.index] >= 2) {
+                        cardTwoEl.classList.add('locked-open'); // Lock it open permanently
+                    } else {
+                        cardTwoEl.classList.remove('flipped');  // Flip back down
+                    }
+
                     selectedCards = [];
                     engineLock = false;
+
+                    // Brief fallback update step to sync layout details
+                    setTimeout(() => {
+                        document.getElementById('lbl-attempts').innerText = "0/2";
+                        checkWinCondition();
+                    }, 200);
+
                 }, 1000);
             }
         }
 
+        function checkWinCondition() {
+            // A level finishes if all 12 elements are either gone (matched) OR frozen locked-open
+            const processedCount = document.querySelectorAll('.crate-card.matched, .crate-card.locked-open').length;
+            if (processedCount === 12) {
+                renderVictoryPanel();
+            }
+        }
+
         function renderVictoryPanel() {
+            playAudioAsset('s-win');
             document.getElementById('arena').innerHTML = `
                 <div style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.02); backdrop-filter:blur(8px); display:flex; justify-content:center; align-items:center; z-index:100; padding:12px;">
                     <div class="orchard-panel" style="border-color:#22c55e; background:#ffffff;">
-                        <h2 style="color:#22c55e; font-size:1.6rem; font-weight:900; margin-bottom:8px;">Orchard Cleaned!</h2>
+                        <h2 style="color:#22c55e; font-size:1.6rem; font-weight:900; margin-bottom:8px;">Harvest Finished!</h2>
                         <p style="color:#7c2d12; font-size:1.05rem; margin-bottom:20px;">
-                            Completed in <span style="font-weight:900; color:#ea580c;">${attemptsCount} attempts</span>!
+                            Final Score: <span style="font-weight:900; color:#ea580c;">${currentScore} Points</span>
                         </p>
                         <button class="btn-action" style="background:#22c55e; margin:0;" onclick="renderMenuOverlay()">PLAY AGAIN</button>
                     </div>
