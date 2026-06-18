@@ -492,8 +492,12 @@
             const diceNode = document.getElementById('dice-graphic');
             if(diceNode) diceNode.className = 'dice-cube rolling';
 
-            // WAITS 1400ms while dice spins BEFORE executing pawn movement changes
+            // --- SEQUENCE STEP: Dice spins for exactly 2 seconds first ---
             setTimeout(() => {
+                // Die stops spinning
+                if(diceNode) diceNode.className = 'dice-cube';
+
+                // --- SEQUENCE STEP: Pawn moves AFTER die finishes spinning ---
                 const movementSteps = Math.floor(Math.random() * 3) + 1;
                 playerCurrentTileSpace += movementSteps;
                 
@@ -511,9 +515,10 @@
                     return;
                 }
 
-                // Pawn updates position here (after dice stops rolling animation loop completes)
+                // Move pawn now
                 positionTokenOnGridSpace(playerCurrentTileSpace);
 
+                // Handle ladders/snakes after pawn reaches the space
                 setTimeout(() => {
                     if (specialTilesLayout[playerCurrentTileSpace]) {
                         const gridEvent = specialTilesLayout[playerCurrentTileSpace];
@@ -535,7 +540,7 @@
                     }
                 }, 1100);
 
-            }, 1400);
+            }, 2000); // 2000ms fixed roll duration
 
         } else {
             currentQuestionAttempts++;
