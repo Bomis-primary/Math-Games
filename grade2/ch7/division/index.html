@@ -457,6 +457,7 @@
         let points = 0;
         let acceptInput = true;
         let piecesLeft = 0;
+        let attemptCount = 0; // Tracks response attempts per item index
 
         // Transitions from Splash Screen to Intro Screen
         setTimeout(() => {
@@ -493,6 +494,7 @@
 
         function showPart1Question() {
             acceptInput = true;
+            attemptCount = 0; // Reset attempts for new question
             const container = document.getElementById('game-content');
             const prog = document.getElementById('progress');
             const mainTitle = document.getElementById('game-title');
@@ -642,26 +644,51 @@
 
         function submitPart1Answer(element, choice) {
             if (!acceptInput) return;
-            acceptInput = false;
-
             const q = activeQuestions[index];
+            attemptCount++;
+
             if (choice === q.answer) {
+                acceptInput = false;
                 points++;
                 element.classList.add('correct');
                 playSound(true);
                 confetti({ particleCount: 30, spread: 40, origin: { y: 0.75 } });
+                
+                setTimeout(() => {
+                    index++;
+                    showPart1Question();
+                }, 2000);
             } else {
-                element.classList.add('wrong');
-                playSound(false);
-                document.querySelectorAll('.options-grid .btn').forEach(b => {
-                    if (parseInt(b.innerText) === q.answer) b.classList.add('correct');
-                });
-            }
+                if (attemptCount === 1) {
+                    // First incorrect answer - give second chance
+                    element.classList.add('wrong');
+                    playSound(false);
+                    const status = document.getElementById('status-msg');
+                    if (status) {
+                        status.innerText = "❌ Oops! Try one more time.";
+                        status.style.background = "#fff3e0";
+                        status.style.color = "#e65100";
+                    }
+                    // Briefly keep wrong highlight, then allow clicking others
+                    setTimeout(() => {
+                        element.classList.remove('wrong');
+                    }, 1000);
+                } else {
+                    // Second incorrect answer - reveal correct answer and move on
+                    acceptInput = false;
+                    element.classList.add('wrong');
+                    playSound(false);
+                    
+                    document.querySelectorAll('.options-grid .btn').forEach(b => {
+                        if (parseInt(b.innerText) === q.answer) b.classList.add('correct');
+                    });
 
-            setTimeout(() => {
-                index++;
-                showPart1Question();
-            }, 2000);
+                    setTimeout(() => {
+                        index++;
+                        showPart1Question();
+                    }, 2200);
+                }
+            }
         }
 
         /* LEVEL 2 - SWEET BAKERY ORDERS THEMED IMPLEMENTATION */
@@ -676,6 +703,7 @@
 
         function showPart2Question() {
             acceptInput = true;
+            attemptCount = 0; // Reset attempts for new question
             const container = document.getElementById('game-content');
             const prog = document.getElementById('progress');
             
@@ -707,7 +735,7 @@
                     <div class="story-text" style="color: #d84315; font-size: 14px; text-transform: uppercase;">
                         🧁 Ticket: ${q.typeText}
                     </div>
-                    <div class="story-text" style="margin-bottom: 20px;">
+                    <div class="story-text" style="margin-bottom: 10px;" id="l2-status">
                         Drag the main order card into the box with the correct matching answer!
                     </div>
                     
@@ -772,32 +800,58 @@
                     if (selectedStation) {
                         const chosenValue = parseInt(selectedStation.getAttribute('data-value'));
                         const q = activeQuestions[index];
-                        
-                        acceptInput = false;
+                        attemptCount++;
 
                         if (chosenValue === q.answer) {
+                            acceptInput = false;
                             points++;
                             selectedStation.style.background = "#c8e6c9";
                             selectedStation.style.borderColor = "#2e7d32";
                             playSound(true);
                             confetti({ particleCount: 30, spread: 40, origin: { y: 0.75 } });
-                        } else {
-                            selectedStation.style.background = "#ffcdd2";
-                            selectedStation.style.borderColor = "#c62828";
-                            playSound(false);
                             
-                            document.querySelectorAll('.station-target').forEach(b => {
-                                if (parseInt(b.getAttribute('data-value')) === q.answer) {
-                                    b.style.background = "#c8e6c9";
-                                    b.style.borderColor = "#2e7d32";
+                            setTimeout(() => {
+                                index++;
+                                showPart2Question();
+                            }, 2200);
+                        } else {
+                            if (attemptCount === 1) {
+                                // First wrong attempt - return card and let them try again
+                                selectedStation.style.background = "#ffcdd2";
+                                selectedStation.style.borderColor = "#c62828";
+                                playSound(false);
+                                
+                                const l2Status = document.getElementById('l2-status');
+                                if (l2Status) {
+                                    l2Status.innerText = "❌ Not quite right! Try one more time.";
+                                    l2Status.style.color = "#d84315";
                                 }
-                            });
-                        }
 
-                        setTimeout(() => {
-                            index++;
-                            showPart2Question();
-                        }, 2200);
+                                setTimeout(() => {
+                                    selectedStation.style.background = "#fff8e1";
+                                    selectedStation.style.borderColor = "#ffb300";
+                                    card.style.position = 'static';
+                                }, 1200);
+                            } else {
+                                // Second wrong attempt - reveal correct answer and move on
+                                acceptInput = false;
+                                selectedStation.style.background = "#ffcdd2";
+                                selectedStation.style.borderColor = "#c62828";
+                                playSound(false);
+                                
+                                document.querySelectorAll('.station-target').forEach(b => {
+                                    if (parseInt(b.getAttribute('data-value')) === q.answer) {
+                                        b.style.background = "#c8e6c9";
+                                        b.style.borderColor = "#2e7d32";
+                                    }
+                                });
+
+                                setTimeout(() => {
+                                    index++;
+                                    showPart2Question();
+                                }, 2500);
+                            }
+                        }
 
                     } else {
                         card.style.position = 'static';
