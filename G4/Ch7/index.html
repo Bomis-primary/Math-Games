@@ -155,10 +155,10 @@
             justify-content: center;
             align-items: center;
             text-align: center;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: bold;
             color: #ffffff;
-            line-height: 1.3;
+            line-height: 1.4;
         }
 
         #hard-splash {
@@ -204,30 +204,29 @@
         let elementStartX = 0;
         let elementStartY = 0;
 
-        // Structured Dataset perfectly mapping to image_0a2e03.png requirements
+        // Custom Dataset centered on lines, simple 3D properties, and visual grid counting 
         const masterPuzzleDatabase = [
-            // --- Circles & Curves Matrix ---
+            // --- Circles, Lines, Curves ---
             { displayType: "CANVAS", renderKey: "concentric", labelLeft: "CONCENTRIC\nCIRCLES", labelRight: "INTERSECTING\nCIRCLES", correctSide: "LEFT" },
             { displayType: "CANVAS", renderKey: "intersect_circles", labelLeft: "CONCENTRIC\nCIRCLES", labelRight: "INTERSECTING\nCIRCLES", correctSide: "RIGHT" },
-            { displayType: "CANVAS", renderKey: "diameter", labelLeft: "CIRCLE\nRADIUS", labelRight: "CIRCLE\nDIAMETER", correctSide: "RIGHT" },
-            { displayType: "CANVAS", renderKey: "semicircle", labelLeft: "SEMICIRCLE", labelRight: "FULL CIRCLE", correctSide: "LEFT" },
+            { displayType: "CANVAS", renderKey: "diameter", labelLeft: "RADIUS", labelRight: "DIAMETER", correctSide: "RIGHT" },
+            { displayType: "CANVAS", renderKey: "semicircle", labelLeft: "SEMICIRCLE", labelRight: "CIRCLE", correctSide: "LEFT" },
             { displayType: "CANVAS", renderKey: "open_curve", labelLeft: "OPEN\nCURVE", labelRight: "CLOSED\nCURVE", correctSide: "LEFT" },
             { displayType: "CANVAS", renderKey: "closed_curve", labelLeft: "OPEN\nCURVE", labelRight: "CLOSED\nCURVE", correctSide: "RIGHT" },
             { displayType: "CANVAS", renderKey: "line_segment", labelLeft: "STRAIGHT\nLINE", labelRight: "LINE\nSEGMENT", correctSide: "RIGHT" },
             
-            // --- 3D Solids Properties & Nets ---
-            { displayType: "TEXT", text: "Has 6 square faces, 12 edges, and 8 vertices", labelLeft: "CUBE", labelRight: "CYLINDER", correctSide: "LEFT" },
-            { displayType: "TEXT", text: "Has 5 faces, 8 edges, and 5 vertices", labelLeft: "TRIANGULAR\nPRISM", labelRight: "SQUARE\nPYRAMID", correctSide: "RIGHT" },
+            // --- Basic 3D Shape Properties & Nets ---
+            { displayType: "TEXT", text: "A solid shape with\n6 square faces", labelLeft: "CUBE", labelRight: "CYLINDER", correctSide: "LEFT" },
+            { displayType: "TEXT", text: "A solid shape with\n5 faces and\n1 square base", labelLeft: "PRISM", labelRight: "SQUARE\nPYRAMID", correctSide: "RIGHT" },
             { displayType: "CANVAS", renderKey: "cube_net", labelLeft: "CUBE NET", labelRight: "CONE NET", correctSide: "LEFT" },
             
-            // --- Perimeter & Area Calculations ---
-            { displayType: "TEXT", text: "Find Perimeter:\nSquare with\nside = 5 cm", labelLeft: "20 cm", labelRight: "25 sq cm", correctSide: "LEFT" },
-            { displayType: "TEXT", text: "Find Area:\nRectangle of\n6 cm × 4 cm", labelLeft: "20 cm", labelRight: "24 sq cm", correctSide: "RIGHT" },
-            { displayType: "TEXT", text: "Find Area:\nSquare with\nside = 3 cm", labelLeft: "9 sq cm", labelRight: "12 cm", correctSide: "LEFT" },
-            { displayType: "TEXT", text: "Find Perimeter:\nRectangle of\n7 cm × 2 cm", labelLeft: "14 sq cm", labelRight: "18 cm", correctSide: "RIGHT" }
+            // --- Visual Grid Area & Perimeter Questions ---
+            { displayType: "CANVAS", renderKey: "grid_area_9", labelLeft: "9 SQUARE\nUNITS", labelRight: "12 SQUARE\nUNITS", correctSide: "LEFT" },
+            { displayType: "CANVAS", renderKey: "grid_area_8", labelLeft: "6 SQUARE\nUNITS", labelRight: "8 SQUARE\nUNITS", correctSide: "RIGHT" },
+            { displayType: "CANVAS", renderKey: "grid_perimeter_12", labelLeft: "12 UNITS\n(OUTSIDE)", labelRight: "16 UNITS\n(OUTSIDE)", correctSide: "LEFT" },
+            { displayType: "CANVAS", renderKey: "grid_perimeter_10", labelLeft: "8 UNITS\n(OUTSIDE)", labelRight: "10 UNITS\n(OUTSIDE)", correctSide: "RIGHT" }
         ];
 
-        // Safe logo error fallback trigger
         document.getElementById('splash-logo').onerror = function() {
             this.style.display = 'none';
             document.getElementById('fb-text').style.display = 'block';
@@ -256,11 +255,11 @@
         function renderMenuScreen() {
             document.getElementById('viewport-root').innerHTML = `
                 <div class="dashboard-card">
-                    <h1 style="color:#00f5d4; font-size:1.8rem; margin-bottom:12px;">Spatial Vortex: G4</h1>
+                    <h1 style="color:#00f5d4; font-size:1.8rem; margin-bottom:12px;">Spatial Vortex</h1>
                     <p style="color:#b2b2cc; font-size:0.95rem; line-height:1.6; text-align:left; margin-bottom:25px;">
-                        Evaluate 2D attributes, 3D shape properties, nets, areas, and circle architectures inside the token space. Drag into the correct vortex lane to sort!
+                        Look at the item inside the center card. Count the grid units or identify the shapes, then drag left or right to sort!
                     </p>
-                    <button class="btn-launch" onclick="initiateGameEngine()">START CURRICULUM LAB</button>
+                    <button class="btn-launch" onclick="initiateGameEngine()">START GAME</button>
                 </div>
             `;
         }
@@ -279,7 +278,7 @@
                 <div class="arena-grid">
                     <div class="hud-header">
                         <div>Score Tracker: <span id="label-score">0</span> / ${scoreLimit}</div>
-                        <div>Geometry & Measurement Matrix</div>
+                        <div>Geometry and Spatial Shapes</div>
                     </div>
                     
                     <div class="vortex-container">
@@ -321,12 +320,21 @@
             document.getElementById('text-left-basket').innerText = activePuzzle.labelLeft;
             document.getElementById('text-right-basket').innerText = activePuzzle.labelRight;
 
-            // Render branches depending on content-type layout
             if (activePuzzle.displayType === "CANVAS") {
                 token.innerHTML = `<canvas id="vector-canvas" width="115" height="115"></canvas>`;
                 drawGeometricTokenGraphics(activePuzzle.renderKey);
             } else {
                 token.innerHTML = `<div class="text-question-wrapper">${activePuzzle.text.replace(/\n/g, '<br>')}</div>`;
+            }
+        }
+
+        // Helper function to render background grid meshes inside the canvas token
+        function drawBackgroundGridMesh(ctx, size) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 115; i += size) {
+                ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, 115); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(115, i); ctx.stroke();
             }
         }
 
@@ -342,21 +350,25 @@
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
 
+            // Catch Grid types first to overlay grid mesh lines underneath
+            if (renderKey.startsWith("grid_")) {
+                drawBackgroundGridMesh(ctx, 23); // 5x5 grid environment layout
+            }
+
             switch (renderKey) {
-                case "concentric": // Shared same central node point
+                case "concentric":
                     ctx.beginPath(); ctx.arc(57, 57, 18, 0, Math.PI * 2); ctx.stroke();
                     ctx.beginPath(); ctx.arc(57, 57, 38, 0, Math.PI * 2); ctx.stroke();
-                    // Mark center
                     ctx.fillStyle = '#00f5d4';
                     ctx.beginPath(); ctx.arc(57, 57, 4, 0, Math.PI * 2); ctx.fill();
                     break;
                     
-                case "intersect_circles": // Overlapping rings 
+                case "intersect_circles":
                     ctx.beginPath(); ctx.arc(40, 57, 24, 0, Math.PI * 2); ctx.stroke();
                     ctx.beginPath(); ctx.arc(75, 57, 24, 0, Math.PI * 2); ctx.stroke();
                     break;
                     
-                case "diameter": // Straight boundary-to-boundary line through center
+                case "diameter":
                     ctx.strokeStyle = 'rgba(255,255,255,0.3)';
                     ctx.beginPath(); ctx.arc(57, 57, 40, 0, Math.PI * 2); ctx.stroke();
                     ctx.strokeStyle = '#00f5d4';
@@ -365,46 +377,84 @@
                     ctx.beginPath(); ctx.arc(57, 57, 4, 0, Math.PI * 2); ctx.fill();
                     break;
                     
-                case "semicircle": // Half ring silhouette
+                case "semicircle":
                     ctx.beginPath();
                     ctx.arc(57, 57, 35, 0, Math.PI, true);
                     ctx.closePath();
                     ctx.stroke();
                     break;
                     
-                case "open_curve": // Loose unfinished curve parameters
+                case "open_curve":
                     ctx.beginPath();
                     ctx.arc(57, 57, 32, 0.3, Math.PI * 1.65);
                     ctx.stroke();
                     break;
                     
-                case "closed_curve": // Completely joined irregular shape loops
+                case "closed_curve":
                     ctx.beginPath();
                     ctx.ellipse(57, 57, 40, 25, Math.PI / 6, 0, Math.PI * 2);
                     ctx.stroke();
                     break;
                     
-                case "line_segment": // Line with clear endpoints
+                case "line_segment":
                     ctx.beginPath(); ctx.moveTo(25, 57); ctx.lineTo(90, 57); ctx.stroke();
                     ctx.beginPath(); ctx.arc(25, 57, 5, 0, Math.PI * 2); ctx.fill();
                     ctx.beginPath(); ctx.arc(90, 57, 5, 0, Math.PI * 2); ctx.fill();
                     break;
                     
-                case "cube_net": // Standard Cross layout diagram for flat cube nets
+                case "cube_net":
                     const w = 18;
                     ctx.lineWidth = 2;
-                    ctx.strokeRect(57 - w/2, 57 - w*2, w, w); // Row 1
-                    ctx.strokeRect(57 - w/2, 57 - w, w, w);   // Row 2
-                    ctx.strokeRect(57 - w/2, 57, w, w);       // Row 3
-                    ctx.strokeRect(57 - w/2, 57 + w, w, w);   // Row 4
-                    ctx.strokeRect(57 - w*1.5, 57 - w, w, w); // Left arm
-                    ctx.strokeRect(57 + w/2, 57 - w, w, w);   // Right arm
+                    ctx.strokeRect(57 - w/2, 57 - w*2, w, w);
+                    ctx.strokeRect(57 - w/2, 57 - w, w, w);
+                    ctx.strokeRect(57 - w/2, 57, w, w);
+                    ctx.strokeRect(57 - w/2, 57 + w, w, w);
+                    ctx.strokeRect(57 - w*1.5, 57 - w, w, w);
+                    ctx.strokeRect(57 + w/2, 57 - w, w, w);
+                    break;
+
+                // --- Grid Configurations (Visual Counting Blocks) ---
+                case "grid_area_9": // Count the filled boxes inside (3x3 Square block)
+                    ctx.fillStyle = "rgba(0, 245, 212, 0.4)";
+                    ctx.fillRect(23, 23, 23*3, 23*3);
+                    ctx.strokeStyle = "#00f5d4";
+                    ctx.strokeRect(23, 23, 23*3, 23*3);
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "11px Arial";
+                    ctx.fillText("Count Area", 28, 16);
+                    break;
+
+                case "grid_area_8": // Count the filled boxes inside (4x2 Rectangle block)
+                    ctx.fillStyle = "rgba(0, 245, 212, 0.4)";
+                    ctx.fillRect(23, 34, 23*4, 23*2);
+                    ctx.strokeStyle = "#00f5d4";
+                    ctx.strokeRect(23, 34, 23*4, 23*2);
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "11px Arial";
+                    ctx.fillText("Count Area", 28, 22);
+                    break;
+
+                case "grid_perimeter_12": // Count outer line segments (3x3 Square block outline)
+                    ctx.strokeStyle = "#ff007f";
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(23, 23, 23*3, 23*3);
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "11px Arial";
+                    ctx.fillText("Count Outside Edge", 10, 16);
+                    break;
+
+                case "grid_perimeter_10": // Count outer line segments (3x2 Rectangle block outline)
+                    ctx.strokeStyle = "#ff007f";
+                    ctx.lineWidth = 4;
+                    ctx.strokeRect(23, 34, 23*3, 23*2);
+                    ctx.fillStyle = "#ffffff";
+                    ctx.font = "11px Arial";
+                    ctx.fillText("Count Outside Edge", 10, 22);
                     break;
             }
         }
 
         function setupDragAndDropListeners() {
-            // Bind interaction handlers directly to parent container via event delegation
             const parentDeck = document.getElementById('spawn-deck');
             if (!parentDeck) return;
 
@@ -510,11 +560,11 @@
             document.getElementById('viewport-root').innerHTML = `
                 <div class="dashboard-card" style="border-color: rgba(0, 255, 127, 0.3);">
                     <div style="font-size:3.5rem; margin-bottom:10px;">🏆</div>
-                    <h1 style="color:#00f5d4; font-size:1.8rem; margin-bottom:10px;">Geometry Expert!</h1>
+                    <h1 style="color:#00f5d4; font-size:1.8rem; margin-bottom:10px;">Great Job!</h1>
                     <p style="color:#cfdec9; font-size:0.95rem; margin-bottom:25px; line-height:1.5;">
-                        Sensational mastery. You have proven accurate comprehension of circle parts, open/closed vectors, shapes calculation matrices, and solid properties!
+                        You have successfully sorted the matching lines, curves, 3D shape properties, and grid spaces!
                     </p>
-                    <button class="btn-launch" style="background:linear-gradient(135deg, #00f5d4, #7f00ff);" onclick="renderMenuScreen()">Restart Module</button>
+                    <button class="btn-launch" style="background:linear-gradient(135deg, #00f5d4, #7f00ff);" onclick="renderMenuScreen()">Play Again</button>
                 </div>
             `;
         }
