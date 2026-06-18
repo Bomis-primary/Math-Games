@@ -67,32 +67,36 @@
         .hud-row {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 1.1rem;
             color: #00f5d4;
-            padding: 5px 0;
+            padding: 8px 4px;
         }
 
         .mission-panel {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(24, 17, 60, 0.85);
+            border: 2px solid #9d4edd;
             border-radius: 14px;
-            padding: 12px;
+            padding: 16px 12px;
             text-align: center;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 15px rgba(157, 78, 221, 0.2);
         }
         .mission-tag {
-            font-size: 0.75rem;
-            color: #9d4edd;
+            font-size: 0.8rem;
+            color: #c77dff;
             text-transform: uppercase;
             letter-spacing: 2px;
             font-weight: bold;
-            margin-bottom: 3px;
+            margin-bottom: 5px;
         }
         .mission-text {
-            font-size: 1.15rem;
-            font-weight: bold;
+            font-size: 1.25rem;
+            font-weight: 800;
             color: #ffffff;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            line-height: 1.4;
         }
 
         /* Cave Mining Grid Frame */
@@ -118,6 +122,7 @@
             width: 100%;
             margin-top: 10px;
             height: 55px;
+            gap: 8px;
         }
         .deck-btn {
             background: rgba(255, 255, 255, 0.05);
@@ -130,23 +135,30 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
+            user-select: none;
         }
         .move-btn { width: 25%; }
-        .fire-btn { width: 45%; background: rgba(0, 245, 212, 0.15); border-color: #00f5d4; color: #00f5d4; }
+        .fire-btn { width: 50%; background: rgba(0, 245, 212, 0.15); border-color: #00f5d4; color: #00f5d4; font-size: 1rem; text-transform: uppercase; }
         .deck-btn:active { background: #00f5d4; color: #060410; }
 
-        /* Managed Launch Cover Panel - Updated to Pure White Background */
+        /* Managed Launch Cover Panel */
         #hard-splash {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background-color: #ffffff;
-            color: #0c081c;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 99999;
             transition: opacity 0.5s ease;
+        }
+        .splash-logo {
+            width: 240px;
+            max-width: 60%;
+            height: auto;
+            margin-bottom: 28px;
+            object-fit: contain;
         }
     </style>
 </head>
@@ -157,10 +169,9 @@
     <audio id="s-win" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
 
     <div id="hard-splash">
-        <img src="assets/logo.png" style="max-width:240px; margin-bottom:24px; object-fit:contain;" onerror="this.style.display='none'; document.getElementById('fb-text').style.display='block';">
-        <h1 id="fb-text" style="display:none; font-size:2.2rem; margin-bottom:15px; letter-spacing:1px; font-weight:bold; color:#ea580c;">INNOVINE</h1>
-        <div style="width:160px; height:6px; background-color:#e2e8f0; border-radius:10px; overflow:hidden;">
-            <div id="loader-progress-fill" style="width:0%; height:100%; background-color:#22c55e;"></div>
+        <img src="assets/logo.png" class="splash-logo" alt="Innovine Solutions" onerror="this.style.display='none'">
+        <div style="width: 200px; height: 8px; background-color: #e2e8f0; border-radius: 20px; overflow: hidden;">
+            <div id="loader-progress-fill" style="width: 0%; height: 100%; background-color: #22c55e; border-radius: 20px; transition: width 0.05s linear;"></div>
         </div>
     </div>
 
@@ -176,21 +187,46 @@
 
         // Harpoon Miner Coordinates
         let minerShipX = 200;
-        const minerShipWidth = 50;
-        const minerShipHeight = 20;
-        let horizontalMovementMode = 0; // -1 = Left, 1 = Right
+        const minerShipWidth = 60;
+        const minerShipHeight = 24;
+        let horizontalMovementMode = 0; 
 
-        // Diamond Crystals and Harpoon Lasers Arrays
+        // Diamond Crystals and Hooks Arrays
         let activeHarpoonsList = [];
         let crystalDiamondsList = [];
         
         let targetQuestionText = "";
         let expectedCorrectAnswer = "";
         let isEngineRunning = false;
+        let inputKeysState = {};
 
-        // Regulated 5-Second (5000ms) Progress Timeline Engine Loading Sequence
+        // Balanced Grade 4 Calendar & Clock Dataset
+        let runtimeActivePool = [];
+        let poolQuestionPointer = 0;
+
+        const masterQuestionDatabase = [
+            // --- Grade 4 Calendar Focus Questions ---
+            { tag: "Calendar: Conversions", q: "How many days are in 4 weeks?", a: "28 days", w: ["24 days", "30 days", "14 days"] },
+            { tag: "Calendar: Conversions", q: "How many weeks are in 1 year?", a: "52 weeks", w: ["48 weeks", "50 weeks", "12 weeks"] },
+            { tag: "Calendar: Month Identification", q: "Which month has exactly 28 days (non-leap year)?", a: "February", w: ["April", "June", "September"] },
+            { tag: "Calendar: Month Identification", q: "How many months have exactly 31 days?", a: "7 months", w: ["4 months", "6 months", "5 months"] },
+            { tag: "Calendar: Leap Years", q: "How many days are in a Leap Year?", a: "366 days", w: ["365 days", "360 days", "350 days"] },
+            { tag: "Calendar: Elapsed Days", q: "Days from Oct 12 to Oct 19?", a: "7 days", w: ["6 days", "8 days", "9 days"] },
+            { tag: "Calendar: Elapsed Days", q: "If July 1st is a Monday, what day is July 8th?", a: "Monday", w: ["Tuesday", "Sunday", "Friday"] },
+            { tag: "Calendar: Conversions", q: "Convert 3 years into months", a: "36 mos", w: ["24 mos", "30 mos", "40 mos"] },
+            
+            // --- Clock & Time Focus Questions ---
+            { tag: "24-Hour Clock Conversion", q: "Convert 05:00 PM to 24h", a: "17:00", w: ["05:00", "23:00", "15:00"] },
+            { tag: "24-Hour Clock Conversion", q: "Convert 10:30 PM to 24h", a: "22:30", w: ["10:30", "20:30", "12:30"] },
+            { tag: "Unit Conversion Mapping", q: "Minutes inside 2h 15m", a: "135m", w: ["120m", "155m", "95m"] },
+            { tag: "Unit Conversion Mapping", q: "Seconds inside 3 Minutes", a: "180s", w: ["120s", "240s", "300s"] },
+            { tag: "Elapsed Interval Space", q: "Minutes from 04:15 to 05:00", a: "45m", w: ["15m", "60m", "30m"] },
+            { tag: "Elapsed Interval Space", q: "Hours from 08:00 AM to 01:00 PM", a: "5h", w: ["4h", "6h", "7h"] }
+        ];
+
+        // Regulated 5-Second Progress Bar
         let progressVal = 0;
-        const loaderIntervalMs = 50; // Triggers loop updates
+        const loaderIntervalMs = 50; 
         const totalDurationMs = 5000;
         const stepsCount = totalDurationMs / loaderIntervalMs;
         const percentagePerStep = 100 / stepsCount;
@@ -226,8 +262,8 @@
             document.getElementById('viewport-root').innerHTML = `
                 <div class="rush-panel">
                     <h1 style="color:#00f5d4; font-size:1.8rem; margin-bottom:12px;">CHRONOS DIAMOND RUSH</h1>
-                    <p style="color:#a29dbd; font-size:0.9rem; line-height:1.6; text-align:left; margin-bottom:20px;">
-                        Welcome to the time caves! Read the calendar or clock objective prompt at the top, position your mining wagon below the matching diamond value, and shoot your grappling hook to harvest it!
+                    <p style="color:#a29dbd; font-size:0.95rem; line-height:1.6; text-align:left; margin-bottom:20px;">
+                        Master the calendar timelines! Read the Grade 4 calendar or clock prompt at the top, navigate your wagon under the correct matching diamond, and fire your grapple hook!
                     </p>
                     <div style="color:#9d4edd; font-size:0.85rem; margin-bottom:20px; font-weight:bold;">
                         ⌨️ Key Controls: Arrow Keys to slide | Spacebar to Fire Hook
@@ -237,13 +273,27 @@
             `;
         }
 
+        function triggerSoundEffect(elementId) {
+            try {
+                const aud = document.getElementById(elementId);
+                if (aud) {
+                    aud.currentTime = 0;
+                    aud.play().catch(() => {});
+                }
+            } catch(e) {}
+        }
+
         function initiateGameEngine() {
             currentScore = 0;
             livesLeft = 3;
             crystalDiamondsList = [];
             activeHarpoonsList = [];
+            
+            // Randomize whole dataset index order at launch to stop repetition patterns
+            runtimeActivePool = [...masterQuestionDatabase].sort(() => Math.random() - 0.5);
+            poolQuestionPointer = 0;
+            
             isEngineRunning = true;
-
             buildGameLayoutDOM();
             generateNextChronosQuestion();
             runCanvasGameLoop();
@@ -254,7 +304,7 @@
             document.getElementById('viewport-root').innerHTML = `
                 <div class="game-layout">
                     <div class="hud-row">
-                        <div>SCORE: <span id="lbl-score">00</span></div>
+                        <div>SCORE: <span id="lbl-score" style="color:#ffffff;">0</span></div>
                         <div>LIVES: <span id="lbl-lives">❤️❤️❤️</span></div>
                     </div>
 
@@ -281,16 +331,14 @@
         }
 
         function generateNextChronosQuestion() {
-            const curriculumPool = [
-                { tag: "24-Hour Clock conversion", q: "Convert 05:00 PM to 24h", a: "17:00", w: ["05:00", "23:00", "15:00"] },
-                { tag: "24-Hour Clock conversion", q: "Convert 10:30 PM to 24h", a: "22:30", w: ["10:30", "20:30", "12:30"] },
-                { tag: "Unit Conversion Mapping", q: "Minutes in 2 Hours 15 Mins", a: "135m", w: ["120m", "155m", "95m"] },
-                { tag: "Unit Conversion Mapping", q: "Seconds inside 3 Minutes", a: "180s", w: ["120s", "240s", "300s"] },
-                { tag: "Elapsed Interval Space", q: "Minutes elapsed from 04:15 to 05:00", a: "45m", w: ["15m", "60m", "30m"] },
-                { tag: "Elapsed Interval Space", q: "Hours elapsed from 08:00 AM to 01:00 PM", a: "5h", w: ["4h", "6h", "7h"] }
-            ];
+            if (poolQuestionPointer >= runtimeActivePool.length) {
+                runtimeActivePool = [...masterQuestionDatabase].sort(() => Math.random() - 0.5);
+                poolQuestionPointer = 0;
+            }
 
-            const activeChoice = curriculumPool[Math.floor(Math.random() * curriculumPool.length)];
+            const activeChoice = runtimeActivePool[poolQuestionPointer];
+            poolQuestionPointer++;
+
             targetQuestionText = activeChoice.q;
             expectedCorrectAnswer = activeChoice.a;
 
@@ -316,205 +364,218 @@
                     answerText = expectedCorrectAnswer;
                     correctFlag = true;
                 } else {
-                    answerText = incorrectAnswers.pop() || "60m";
+                    answerText = incorrectAnswers.pop() || "12 days";
                 }
 
                 crystalDiamondsList.push({
                     x: (i * segmentWidth) + (segmentWidth / 2),
-                    y: 60 + Math.random() * 40,
-                    label: answerText,
+                    y: 75 + Math.random() * 25, 
+                    text: answerText,
                     isCorrect: correctFlag,
-                    radius: 26,
-                    bobbingOffset: Math.random() * 100
+                    radius: 36 // Clean bounding box sizes for longer multi-letter text entries
                 });
             }
+        }
+
+        function triggerHarpoonDeployment() {
+            if (!isEngineRunning || activeHarpoonsList.length > 0) return;
+            
+            activeHarpoonsList.push({
+                x: minerShipX + (minerShipWidth / 2),
+                y: canvasElement.height - minerShipHeight - 5,
+                speedY: -8
+            });
         }
 
         function runCanvasGameLoop() {
             if (!isEngineRunning) return;
 
-            updateFramePhysics();
-            renderFrameGraphics();
+            // Compute Input Vector Velocities
+            if (inputKeysState['ArrowLeft']) minerShipX -= 6;
+            if (inputKeysState['ArrowRight']) minerShipX += 6;
+            if (horizontalMovementMode === -1) minerShipX -= 5;
+            if (horizontalMovementMode === 1) minerShipX += 5;
 
-            animationFrameHandle = requestAnimationFrame(runCanvasGameLoop);
-        }
-
-        function updateFramePhysics() {
-            if (horizontalMovementMode === -1 && minerShipX > 5) minerShipX -= 5;
-            if (horizontalMovementMode === 1 && minerShipX < (canvasElement.width - minerShipWidth - 5)) minerShipX += 5;
-
-            for (let i = activeHarpoonsList.length - 1; i >= 0; i--) {
-                let hook = activeHarpoonsList[i];
-                hook.y -= 9;
-                
-                if (hook.y < 0) {
-                    activeHarpoonsList.splice(i, 1);
-                    continue;
-                }
-
-                for (let j = crystalDiamondsList.length - 1; j >= 0; j--) {
-                    let gem = crystalDiamondsList[j];
-                    
-                    let dx = hook.x - gem.x;
-                    let dy = hook.y - gem.y;
-                    let distanceSq = Math.sqrt(dx*dx + dy*dy);
-
-                    if (distanceSq <= gem.radius) {
-                        activeHarpoonsList.splice(i, 1);
-                        
-                        if (gem.isCorrect) {
-                            playAudioFile('s-correct');
-                            currentScore += 10;
-                            document.getElementById('lbl-score').innerText = currentScore;
-                            
-                            playAudioFile('s-win');
-                            generateNextChronosQuestion();
-                        } else {
-                            playAudioFile('s-wrong');
-                            deductLifeToken();
-                        }
-                        return;
-                    }
-                }
+            // Boundary Stops
+            if (minerShipX < 0) minerShipX = 0;
+            if (minerShipX > canvasElement.width - minerShipWidth) {
+                minerShipX = canvasElement.width - minerShipWidth;
             }
-        }
 
-        function deductLifeToken() {
-            livesLeft--;
-            let hearts = "";
-            for (let i = 0; i < livesLeft; i++) hearts += "❤️";
-            if (hearts === "") hearts = "NONE";
-            document.getElementById('lbl-lives').innerText = hearts;
-
-            if (livesLeft <= 0) {
-                isEngineRunning = false;
-                renderGameOverScreen();
-            } else {
-                generateNextChronosQuestion();
-            }
-        }
-
-        function triggerHarpoonGrappleSequence() {
-            if (!isEngineRunning || activeHarpoonsList.length > 0) return;
-            activeHarpoonsList.push({
-                x: minerShipX + (minerShipWidth / 2),
-                y: canvasElement.height - 32
-            });
-        }
-
-        function renderFrameGraphics() {
             canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
-            // Draw Grappling cables
-            canvasContext.strokeStyle = '#9d4edd';
-            canvasContext.lineWidth = 2;
-            for (let i = 0; i < activeHarpoonsList.length; i++) {
-                let hook = activeHarpoonsList[i];
+            // Draw Tether Mechanical Cable Wire
+            if (activeHarpoonsList.length > 0) {
                 canvasContext.beginPath();
-                canvasContext.moveTo(minerShipX + (minerShipWidth / 2), canvasElement.height - 25);
-                canvasContext.lineTo(hook.x, hook.y);
+                canvasContext.strokeStyle = "#00f5d4";
+                canvasContext.lineWidth = 3;
+                canvasContext.moveTo(minerShipX + (minerShipWidth / 2), canvasElement.height - minerShipHeight);
+                canvasContext.lineTo(activeHarpoonsList[0].x, activeHarpoonsList[0].y);
                 canvasContext.stroke();
-
-                canvasContext.fillStyle = '#00f5d4';
-                canvasContext.fillRect(hook.x - 3, hook.y - 4, 6, 8);
             }
 
-            // Draw Mining Wagon
-            canvasContext.fillStyle = '#3a2d7d';
-            canvasContext.fillRect(minerShipX, canvasElement.height - 25, minerShipWidth, minerShipHeight);
-            canvasContext.fillStyle = '#00f5d4';
-            canvasContext.fillRect(minerShipX + (minerShipWidth / 2) - 4, canvasElement.height - 32, 8, 8);
-
-            // Draw floating Diamond Crystals
-            let timeTicker = Date.now() * 0.003;
-            for (let i = 0; i < crystalDiamondsList.length; i++) {
-                let gem = crystalDiamondsList[i];
-                let bobY = gem.y + Math.sin(timeTicker + gem.bobbingOffset) * 6;
-
-                canvasContext.save();
-                canvasContext.translate(gem.x, bobY);
-
-                canvasContext.fillStyle = '#241a49';
-                canvasContext.strokeStyle = '#00f5d4';
-                canvasContext.lineWidth = 3;
-                
+            // Draw High-Contrast Targeted Crystals
+            crystalDiamondsList.forEach((gem) => {
                 canvasContext.beginPath();
-                canvasContext.moveTo(0, -gem.radius); 
-                canvasContext.lineTo(gem.radius - 4, 0); 
-                canvasContext.lineTo(0, gem.radius); 
-                canvasContext.lineTo(-gem.radius + 4, 0); 
+                canvasContext.fillStyle = "#110935";
+                canvasContext.strokeStyle = gem.isCorrect ? "#00f5d4" : "#9d4edd";
+                canvasContext.lineWidth = 4;
+                
+                // Construct Diamond Geometry Paths
+                canvasContext.moveTo(gem.x, gem.y - gem.radius);
+                canvasContext.lineTo(gem.x + (gem.radius + 6), gem.y); // Horizontal stretch for calendar texts
+                canvasContext.lineTo(gem.x, gem.y + gem.radius);
+                canvasContext.lineTo(gem.x - (gem.radius + 6), gem.y);
                 canvasContext.closePath();
                 canvasContext.fill();
                 canvasContext.stroke();
 
-                canvasContext.fillStyle = '#ffffff';
-                canvasContext.font = 'bold 12px sans-serif';
-                canvasContext.textAlign = 'center';
-                canvasContext.textBaseline = 'middle';
-                canvasContext.fillText(gem.label, 0, 1);
-
-                canvasContext.restore();
-            }
-        }
-
-        function attachSteeringControls() {
-            window.addEventListener('keydown', (e) => {
-                if (e.key === 'ArrowLeft') horizontalMovementMode = -1;
-                if (e.key === 'ArrowRight') horizontalMovementMode = 1;
-                if (e.key === ' ' || e.key === 'Spacebar') {
-                    e.preventDefault();
-                    triggerHarpoonGrappleSequence();
-                }
-            });
-            window.addEventListener('keyup', (e) => {
-                if (e.key === 'ArrowLeft' && horizontalMovementMode === -1) horizontalMovementMode = 0;
-                if (e.key === 'ArrowRight' && horizontalMovementMode === 1) horizontalMovementMode = 0;
-            });
-
-            const leftBtn = document.getElementById('btn-left-press');
-            const rightBtn = document.getElementById('btn-right-press');
-            const fireBtn = document.getElementById('btn-fire-press');
-
-            if (leftBtn && rightBtn && fireBtn) {
-                leftBtn.addEventListener('touchstart', (e) => { e.preventDefault(); horizontalMovementMode = -1; });
-                leftBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(horizontalMovementMode === -1) horizontalMovementMode = 0; });
+                // Typography Configuration
+                canvasContext.fillStyle = "#ffffff";
+                canvasContext.font = "bold 13px sans-serif";
+                canvasContext.textAlign = "center";
+                canvasContext.textBaseline = "middle";
                 
-                rightBtn.addEventListener('touchstart', (e) => { e.preventDefault(); horizontalMovementMode = 1; });
-                rightBtn.addEventListener('touchend', (e) => { e.preventDefault(); if(horizontalMovementMode === 1) horizontalMovementMode = 0; });
+                // Dynamic shadow rendering logic
+                canvasContext.shadowColor = "black";
+                canvasContext.shadowBlur = 4;
+                canvasContext.shadowOffsetX = 1;
+                canvasContext.shadowOffsetY = 2;
+                
+                canvasContext.fillText(gem.text, gem.x, gem.y);
+                
+                // Clear state down to default zero limits
+                canvasContext.shadowBlur = 0;
+                canvasContext.shadowOffsetX = 0;
+                canvasContext.shadowOffsetY = 0;
+            });
 
-                fireBtn.addEventListener('touchstart', (e) => { e.preventDefault(); triggerHarpoonGrappleSequence(); });
+            // Update Hook Movements
+            for (let h = activeHarpoonsList.length - 1; h >= 0; h--) {
+                let hook = activeHarpoonsList[h];
+                hook.y += hook.speedY;
 
-                leftBtn.addEventListener('mousedown', () => horizontalMovementMode = -1);
-                leftBtn.addEventListener('mouseup', () => { if(horizontalMovementMode === -1) horizontalMovementMode = 0; });
-                rightBtn.addEventListener('mousedown', () => horizontalMovementMode = 1);
-                rightBtn.addEventListener('mouseup', () => { if(horizontalMovementMode === 1) horizontalMovementMode = 0; });
-                fireBtn.addEventListener('mousedown', () => triggerHarpoonGrappleSequence());
+                canvasContext.beginPath();
+                canvasContext.fillStyle = "#ff9e00";
+                canvasContext.arc(hook.x, hook.y, 7, 0, Math.PI * 2);
+                canvasContext.fill();
+
+                if (hook.y < 0) {
+                    activeHarpoonsList.splice(h, 1);
+                    continue;
+                }
+
+                // Intersection Math Loop
+                for (let d = 0; d < crystalDiamondsList.length; d++) {
+                    let crystal = crystalDiamondsList[d];
+                    let distanceVector = Math.hypot(hook.x - crystal.x, hook.y - crystal.y);
+
+                    if (distanceVector < crystal.radius + 6) {
+                        activeHarpoonsList.splice(h, 1);
+                        evaluateUserSelection(crystal.isCorrect);
+                        break;
+                    }
+                }
+            }
+
+            // Render Mining Wagon Core Shell
+            canvasContext.fillStyle = "#00f5d4";
+            canvasContext.fillRect(minerShipX, canvasElement.height - minerShipHeight - 6, minerShipWidth, minerShipHeight);
+            
+            canvasContext.fillStyle = "#060410";
+            canvasContext.fillRect(minerShipX + 12, canvasElement.height - minerShipHeight, minerShipWidth - 24, minerShipHeight - 6);
+
+            animationFrameHandle = requestAnimationFrame(runCanvasGameLoop);
+        }
+
+        function evaluateUserSelection(isCorrect) {
+            if (isCorrect) {
+                currentScore += 10;
+                document.getElementById('lbl-score').innerText = currentScore;
+                triggerSoundEffect('s-correct');
+                
+                if (currentScore >= 60) {
+                    executeVictoryScreen();
+                } else {
+                    generateNextChronosQuestion();
+                }
+            } else {
+                livesLeft--;
+                let liveHearts = "";
+                for(let i=0; i<3; i++) {
+                    liveHearts += (i < livesLeft) ? "❤️" : "🖤";
+                }
+                document.getElementById('lbl-lives').innerText = liveHearts;
+                triggerSoundEffect('s-wrong');
+
+                if (livesLeft <= 0) {
+                    executeGameOverScreen();
+                } else {
+                    generateNextChronosQuestion();
+                }
             }
         }
 
-        function renderGameOverScreen() {
+        function executeVictoryScreen() {
+            isEngineRunning = false;
+            triggerSoundEffect('s-win');
             document.getElementById('viewport-root').innerHTML = `
-                <div class="rush-panel" style="border-color: #ff0055;">
-                    <h1 style="color:#ff0055; font-size:1.6rem; margin-bottom:10px;">CAVE DEPLETED</h1>
-                    <p style="color:#ffffff; font-size:1rem; margin-bottom:15px;">
-                        Final Mining Score: <span style="color:#00f5d4; font-weight:bold;">${currentScore} Points</span>
-                    </p>
-                    <p style="color:#a29dbd; font-size:0.85rem; line-height:1.4; margin-bottom:25px;">
-                        Fantastic job applying your time conversion skills and clock metrics calculations dynamically!
-                    </p>
-                    <button class="btn-mine" onclick="renderMenuScreen()">PLAY AGAIN</button>
+                <div class="rush-panel" style="border-color: #22c55e; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3);">
+                    <h1 style="color:#22c55e; font-size: 2rem; margin-bottom: 12px;">🏆 CAVE CLEARED!</h1>
+                    <p style="color:#ffffff; margin-bottom: 20px; font-size:1.05rem;">Grade 4 calendar matrices fully mapped and aligned!</p>
+                    <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 25px; color: #00f5d4;">FINAL SCORE: ${currentScore} PTS</div>
+                    <button class="btn-mine" style="background:#22c55e;" onclick="renderMenuScreen()">Return To Menu</button>
                 </div>
             `;
         }
 
-        function playAudioFile(id) {
-            try {
-                const sound = document.getElementById(id);
-                if (sound) {
-                    sound.currentTime = 0;
-                    sound.play().catch(() => {});
+        function executeGameOverScreen() {
+            isEngineRunning = false;
+            document.getElementById('viewport-root').innerHTML = `
+                <div class="rush-panel" style="border-color: #ef4444; box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);">
+                    <h1 style="color:#ef4444; font-size: 2rem; margin-bottom: 12px;">⚡ TIME CRISIS</h1>
+                    <p style="color:#ffffff; margin-bottom: 20px; font-size:1.05rem;">Wagon timeline integrity depleted.</p>
+                    <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 25px; color: #ef4444;">SCORE SECURED: ${currentScore} PTS</div>
+                    <button class="btn-mine" style="background:#ef4444; color:#fff;" onclick="renderMenuScreen()">Try Again</button>
+                </div>
+            `;
+        }
+
+        function attachSteeringControls() {
+            window.addEventListener('keydown', (e) => {
+                if(['ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+                    e.preventDefault();
                 }
-            } catch (err) {}
+                inputKeysState[e.key] = true;
+                if (e.key === ' ') {
+                    triggerHarpoonDeployment();
+                }
+            });
+
+            window.addEventListener('keyup', (e) => {
+                inputKeysState[e.key] = false;
+            });
+
+            const lBtn = document.getElementById('btn-left-press');
+            const rBtn = document.getElementById('btn-right-press');
+            const fBtn = document.getElementById('btn-fire-press');
+
+            if (lBtn && rBtn && fBtn) {
+                lBtn.addEventListener('touchstart', (e) => { e.preventDefault(); horizontalMovementMode = -1; });
+                lBtn.addEventListener('touchend', (e) => { e.preventDefault(); horizontalMovementMode = 0; });
+                lBtn.addEventListener('mousedown', () => { horizontalMovementMode = -1; });
+                lBtn.addEventListener('mouseup', () => { horizontalMovementMode = 0; });
+                lBtn.addEventListener('mouseleave', () => { horizontalMovementMode = 0; });
+
+                rBtn.addEventListener('touchstart', (e) => { e.preventDefault(); horizontalMovementMode = 1; });
+                rBtn.addEventListener('touchend', (e) => { e.preventDefault(); horizontalMovementMode = 0; });
+                rBtn.addEventListener('mousedown', () => { horizontalMovementMode = 1; });
+                rBtn.addEventListener('mouseup', () => { horizontalMovementMode = 0; });
+                rBtn.addEventListener('mouseleave', () => { horizontalMovementMode = 0; });
+
+                fBtn.addEventListener('touchstart', (e) => { e.preventDefault(); triggerHarpoonDeployment(); });
+                fBtn.addEventListener('mousedown', () => { triggerHarpoonDeployment(); });
+            }
         }
     </script>
 </body>
