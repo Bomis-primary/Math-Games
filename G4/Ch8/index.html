@@ -200,29 +200,27 @@
         let isEngineRunning = false;
         let inputKeysState = {};
 
+        // Two-chance state variables
+        let currentQuestionAttempts = 0;
+        let blockInputsTemporarily = false;
+        let forceHighlightCorrect = false;
+
         // Calendar and Time Database Matching image_002dd7.png Outcomes
         let runtimeActivePool = [];
         let poolQuestionPointer = 0;
 
         const masterQuestionDatabase = [
-            // --- 24-Hour Conversions ---
             { tag: "24-Hour Format", q: "Convert 4:15 PM into 24-hour clock time:", a: "16:15", w: ["04:15", "14:15", "18:15"] },
             { tag: "24-Hour Format", q: "Convert 11:30 PM into 24-hour clock time:", a: "23:30", w: ["11:30", "13:30", "21:30"] },
             { tag: "12-Hour Format", q: "Convert 08:20 into standard 12-hour AM/PM format:", a: "8:20 AM", w: ["8:20 PM", "6:20 AM", "6:20 PM"] },
             { tag: "12-Hour Format", q: "Convert 17:45 into standard 12-hour AM/PM format:", a: "5:45 PM", w: ["7:45 PM", "5:45 AM", "17:45 PM"] },
             { tag: "24-Hour Format", q: "What 24-hour time represents midnight (12:00 AM)?", a: "00:00", w: ["12:00", "24:00", "06:00"] },
-
-            // --- Conversions (Hours, Minutes, Seconds) ---
             { tag: "Unit Conversion", q: "How many minutes are there in exactly 2.5 hours?", a: "150 min", w: ["120 min", "180 min", "250 min"] },
             { tag: "Unit Conversion", q: "Convert 4 minutes directly into seconds:", a: "240 sec", w: ["180 sec", "400 sec", "300 sec"] },
             { tag: "Unit Conversion", q: "How many total hours are equal to 180 minutes?", a: "3 hours", w: ["2 hours", "4 hours", "1.8 hours"] },
-
-            // --- Elapsed Time ---
             { tag: "Elapsed Time", q: "A film starts at 14:15 and ends at 16:30. How long was it?", a: "2h 15m", w: ["2h 30m", "1h 45m", "3h 15m"] },
             { tag: "Elapsed Time", q: "If a train departs at 09:10 and arrives at 11:45, find travel time:", a: "2h 35m", w: ["2h 45m", "3h 35m", "1h 55m"] },
             { tag: "Elapsed Time", q: "An event finishes at 1:15 PM. It ran for 45 minutes. When did it start?", a: "12:30 PM", w: ["12:45 PM", "1:00 PM", "12:15 PM"] },
-
-            // --- Calendar & Multi-step Story Problems ---
             { tag: "Calendar Math", q: "If May 3rd is a Tuesday, what day of the week is May 10th?", a: "Tuesday", w: ["Wednesday", "Monday", "Thursday"] },
             { tag: "Story Problem", q: "A project takes 3 weeks and 4 days. How many total days is this?", a: "25 days", w: ["21 days", "24 days", "34 days"] },
             { tag: "Calendar Math", q: "How many days are in a regular calendar year (not a leap year)?", a: "365 days", w: ["366 days", "360 days", "355 days"] }
@@ -266,8 +264,11 @@
             document.getElementById('viewport-root').innerHTML = `
                 <div class="rush-panel">
                     <h1 style="color:#00f5d4; font-size:1.6rem; margin-bottom:12px;">CHRONOS TIME RUSH</h1>
-                    <p style="color:#a29dbd; font-size:0.95rem; line-height:1.6; text-align:left; margin-bottom:20px;">
-                        Master your time and calendar objectives! Read the prompt at the top, position your wagon under the correct target diamond, and fire your harpoon hook to secure the correct value!
+                    <p style="color:#a29dbd; font-size:0.95rem; line-height:1.6; text-align:left; margin-bottom:15px;">
+                        Master your time and calendar objectives! Move your wagon under the correct target diamond and fire your hook.
+                    </p>
+                    <p style="color:#ff9e00; font-size:0.95rem; font-weight:bold; margin-bottom:20px;">
+                        ⚠️ You have 2 chances per question! Missing twice reveals the right answer before moving on.
                     </p>
                     <div style="color:#9d4edd; font-size:0.85rem; margin-bottom:20px; font-weight:bold;">
                         ⌨️ Key Controls: Arrow Keys to slide | Spacebar to Fire Hook
@@ -292,6 +293,8 @@
             livesLeft = 3;
             crystalDiamondsList = [];
             activeHarpoonsList = [];
+            blockInputsTemporarily = false;
+            forceHighlightCorrect = false;
             
             runtimeActivePool = [...masterQuestionDatabase].sort(() => Math.random() - 0.5);
             poolQuestionPointer = 0;
@@ -334,6 +337,10 @@
         }
 
         function generateNextChronosQuestion() {
+            currentQuestionAttempts = 0;
+            blockInputsTemporarily = false;
+            forceHighlightCorrect = false;
+
             if (poolQuestionPointer >= runtimeActivePool.length) {
                 runtimeActivePool = [...masterQuestionDatabase].sort(() => Math.random() - 0.5);
                 poolQuestionPointer = 0;
@@ -375,13 +382,14 @@
                     y: 75 + Math.random() * 25, 
                     text: answerText,
                     isCorrect: correctFlag,
-                    radius: 36
+                    radius: 36,
+                    isEliminated: false
                 });
             }
         }
 
         function triggerHarpoonDeployment() {
-            if (!isEngineRunning || activeHarpoonsList.length > 0) return;
+            if (!isEngineRunning || activeHarpoonsList.length > 0 || blockInputsTemporarily) return;
             
             activeHarpoonsList.push({
                 x: minerShipX + (minerShipWidth / 2),
@@ -394,10 +402,12 @@
             if (!isEngineRunning) return;
 
             // Compute Input Velocities
-            if (inputKeysState['ArrowLeft']) minerShipX -= 6;
-            if (inputKeysState['ArrowRight']) minerShipX += 6;
-            if (horizontalMovementMode === -1) minerShipX -= 5;
-            if (horizontalMovementMode === 1) minerShipX += 5;
+            if (!blockInputsTemporarily) {
+                if (inputKeysState['ArrowLeft']) minerShipX -= 6;
+                if (inputKeysState['ArrowRight']) minerShipX += 6;
+                if (horizontalMovementMode === -1) minerShipX -= 5;
+                if (horizontalMovementMode === 1) minerShipX += 5;
+            }
 
             // Boundary Stops
             if (minerShipX < 0) minerShipX = 0;
@@ -419,10 +429,19 @@
 
             // Draw Target Crystals
             crystalDiamondsList.forEach((gem) => {
+                if (gem.isEliminated && !forceHighlightCorrect) return;
+
                 canvasContext.beginPath();
                 canvasContext.fillStyle = "#110935";
-                canvasContext.strokeStyle = gem.isCorrect ? "#00f5d4" : "#9d4edd";
-                canvasContext.lineWidth = 4;
+                
+                // Determine border highlights dynamically based on current answer state
+                if (forceHighlightCorrect) {
+                    canvasContext.strokeStyle = gem.isCorrect ? "#22c55e" : "#ef4444";
+                    canvasContext.lineWidth = gem.isCorrect ? 6 : 2;
+                } else {
+                    canvasContext.strokeStyle = gem.isCorrect ? "#00f5d4" : "#9d4edd";
+                    canvasContext.lineWidth = 4;
+                }
                 
                 // Construct Diamond Geometry Paths
                 canvasContext.moveTo(gem.x, gem.y - gem.radius);
@@ -434,7 +453,7 @@
                 canvasContext.stroke();
 
                 // Text Formatting
-                canvasContext.fillStyle = "#ffffff";
+                canvasContext.fillStyle = (forceHighlightCorrect && !gem.isCorrect) ? "#64748b" : "#ffffff";
                 canvasContext.font = "bold 13px sans-serif";
                 canvasContext.textAlign = "center";
                 canvasContext.textBaseline = "middle";
@@ -469,18 +488,20 @@
                 // Intersection Loop
                 for (let d = 0; d < crystalDiamondsList.length; d++) {
                     let crystal = crystalDiamondsList[d];
+                    if (crystal.isEliminated) continue;
+
                     let distanceVector = Math.hypot(hook.x - crystal.x, hook.y - crystal.y);
 
                     if (distanceVector < crystal.radius + 6) {
                         activeHarpoonsList.splice(h, 1);
-                        evaluateUserSelection(crystal.isCorrect);
+                        evaluateUserSelection(crystal);
                         break;
                     }
                 }
             }
 
             // Render Mining Wagon Shell
-            canvasContext.fillStyle = "#00f5d4";
+            canvasContext.fillStyle = blockInputsTemporarily ? "#64748b" : "#00f5d4";
             canvasContext.fillRect(minerShipX, canvasElement.height - minerShipHeight - 6, minerShipWidth, minerShipHeight);
             
             canvasContext.fillStyle = "#060410";
@@ -489,30 +510,54 @@
             animationFrameHandle = requestAnimationFrame(runCanvasGameLoop);
         }
 
-        function evaluateUserSelection(isCorrect) {
-            if (isCorrect) {
+        function evaluateUserSelection(selectedCrystal) {
+            currentQuestionAttempts++;
+
+            if (selectedCrystal.isCorrect) {
+                // Correct Choice
                 currentScore += 10;
                 document.getElementById('lbl-score').innerText = currentScore;
                 triggerSoundEffect('s-correct');
                 
-                if (currentScore >= 60) {
-                    executeVictoryScreen();
-                } else {
-                    generateNextChronosQuestion();
-                }
+                blockInputsTemporarily = true;
+                forceHighlightCorrect = true;
+
+                setTimeout(() => {
+                    if (currentScore >= 60) {
+                        executeVictoryScreen();
+                    } else {
+                        generateNextChronosQuestion();
+                    }
+                }, 1200);
+
             } else {
-                livesLeft--;
-                let liveHearts = "";
-                for(let i=0; i<3; i++) {
-                    liveHearts += (i < livesLeft) ? "❤️" : "🖤";
-                }
-                document.getElementById('lbl-lives').innerText = liveHearts;
+                // Incorrect Choice
+                selectedCrystal.isEliminated = true;
                 triggerSoundEffect('s-wrong');
 
-                if (livesLeft <= 0) {
-                    executeGameOverScreen();
+                if (currentQuestionAttempts === 1) {
+                    // First failure: user gets another chance at the remaining items
+                    document.getElementById('lbl-task-text').innerText = "❌ Try Again! " + targetQuestionText;
                 } else {
-                    generateNextChronosQuestion();
+                    // Second failure: out of chances for this question
+                    livesLeft--;
+                    let liveHearts = "";
+                    for(let i=0; i<3; i++) {
+                        liveHearts += (i < livesLeft) ? "❤️" : "🖤";
+                    }
+                    document.getElementById('lbl-lives').innerText = liveHearts;
+
+                    blockInputsTemporarily = true;
+                    forceHighlightCorrect = true; // Highlight the correct answer green on screen
+                    document.getElementById('lbl-task-text').innerText = "The correct answer was: " + expectedCorrectAnswer;
+
+                    setTimeout(() => {
+                        if (livesLeft <= 0) {
+                            executeGameOverScreen();
+                        } else {
+                            generateNextChronosQuestion();
+                        }
+                    }, 2500); // 2.5 seconds window so player can read the right answer
                 }
             }
         }
@@ -548,7 +593,7 @@
                     e.preventDefault();
                 }
                 inputKeysState[e.key] = true;
-                if (e.key === ' ') {
+                if (e.key === ' ' && !blockInputsTemporarily) {
                     triggerHarpoonDeployment();
                 }
             });
@@ -562,15 +607,15 @@
             const fBtn = document.getElementById('btn-fire-press');
 
             if (lBtn && rBtn && fBtn) {
-                lBtn.addEventListener('touchstart', (e) => { e.preventDefault(); horizontalMovementMode = -1; });
+                lBtn.addEventListener('touchstart', (e) => { e.preventDefault(); if(!blockInputsTemporarily) horizontalMovementMode = -1; });
                 lBtn.addEventListener('touchend', (e) => { e.preventDefault(); horizontalMovementMode = 0; });
-                lBtn.addEventListener('mousedown', () => { horizontalMovementMode = -1; });
+                lBtn.addEventListener('mousedown', () => { if(!blockInputsTemporarily) horizontalMovementMode = -1; });
                 lBtn.addEventListener('mouseup', () => { horizontalMovementMode = 0; });
                 lBtn.addEventListener('mouseleave', () => { horizontalMovementMode = 0; });
 
-                rBtn.addEventListener('touchstart', (e) => { e.preventDefault(); horizontalMovementMode = 1; });
+                rBtn.addEventListener('touchstart', (e) => { e.preventDefault(); if(!blockInputsTemporarily) horizontalMovementMode = 1; });
                 rBtn.addEventListener('touchend', (e) => { e.preventDefault(); horizontalMovementMode = 0; });
-                rBtn.addEventListener('mousedown', () => { horizontalMovementMode = 1; });
+                rBtn.addEventListener('mousedown', () => { if(!blockInputsTemporarily) horizontalMovementMode = 1; });
                 rBtn.addEventListener('mouseup', () => { horizontalMovementMode = 0; });
                 rBtn.addEventListener('mouseleave', () => { horizontalMovementMode = 0; });
 
