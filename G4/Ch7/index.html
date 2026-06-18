@@ -52,6 +52,7 @@
             cursor: pointer;
             font-weight: bold;
             box-shadow: 0 5px 15px rgba(0, 187, 249, 0.3);
+            text-transform: uppercase;
         }
 
         .arena-grid {
@@ -83,8 +84,8 @@
             position: relative;
         }
         .vortex-basket {
-            width: 45%;
-            height: 80%;
+            width: 46%;
+            height: 85%;
             border: 2px dashed rgba(255,255,255,0.2);
             border-radius: 20px;
             display: flex;
@@ -92,11 +93,12 @@
             justify-content: center;
             align-items: center;
             font-weight: bold;
-            font-size: 1.25rem;
+            font-size: 1.15rem;
             padding: 15px;
             text-align: center;
             background: rgba(255, 255, 255, 0.02);
             transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
+            line-height: 1.4;
         }
         .basket-left {
             border-color: #00f5d4;
@@ -120,17 +122,17 @@
 
         .spawn-deck {
             position: absolute;
-            top: 45%;
+            top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: 50;
         }
         .draggable-token {
-            width: 110px;
-            height: 110px;
+            width: 120px;
+            height: 120px;
             background: #141226;
             border: 3px solid #00bbf9;
-            border-radius: 16px;
+            border-radius: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -143,7 +145,7 @@
         }
         canvas {
             background: transparent;
-            pointer-events: none; /* Stops internal canvas element from messing with drag drop mouse captures */
+            pointer-events: none;
         }
 
         #hard-splash {
@@ -179,8 +181,9 @@
         let scoreCounter = 0;
         const scoreLimit = 10;
         
-        let currentPoolMode = ""; // "LINE_VS_SEGMENT", "OPEN_VS_CLOSED", "RADIUS_VS_DIAMETER"
-        let activeTargetKey = ""; // Tracks the correct side condition
+        let puzzleDeckPool = [];
+        let deckPointer = 0;
+        let activePuzzle = null;
         
         let isDragging = false;
         let touchStartX = 0;
@@ -188,7 +191,20 @@
         let elementStartX = 0;
         let elementStartY = 0;
 
-        // Clean layout bootstrap timer
+        // Upgraded Rigorous Dataset Matrix
+        const masterPuzzleDatabase = [
+            { type: "ANGLES", labelLeft: "ACUTE\nANGLE", labelRight: "OBTUSE\nANGLE", correctSide: "LEFT", renderKey: "acute" },
+            { type: "ANGLES", labelLeft: "ACUTE\nANGLE", labelRight: "OBTUSE\nANGLE", correctSide: "RIGHT", renderKey: "obtuse" },
+            { type: "LINES_REL", labelLeft: "PARALLEL\nLINES", labelRight: "PERPENDICULAR", correctSide: "LEFT", renderKey: "parallel" },
+            { type: "LINES_REL", labelLeft: "PARALLEL\nLINES", labelRight: "PERPENDICULAR", correctSide: "RIGHT", renderKey: "perpendicular" },
+            { type: "LINES_INTER", labelLeft: "INTERSECTING\nLINES", labelRight: "PARALLEL\nLINES", correctSide: "LEFT", renderKey: "intersecting" },
+            { type: "ELEMENTS", labelLeft: "LINE\nSEGMENT", labelRight: "GEOMETRIC\nRAY", correctSide: "LEFT", renderKey: "segment" },
+            { type: "ELEMENTS", labelLeft: "LINE\nSEGMENT", labelRight: "GEOMETRIC\nRAY", correctSide: "RIGHT", renderKey: "ray" },
+            { type: "ANGLES_RIGHT", labelLeft: "RIGHT\nANGLE", labelRight: "ACUTE\nANGLE", correctSide: "LEFT", renderKey: "right_angle" },
+            { type: "STRUCT_LINE", labelLeft: "STRAIGHT\nLINE", labelRight: "LINE\nSEGMENT", correctSide: "LEFT", renderKey: "straight_line" },
+            { type: "COMPLEX_VECTORS", labelLeft: "PERPENDICULAR", labelRight: "INTERSECTING", correctSide: "RIGHT", renderKey: "intersect_slant" }
+        ];
+
         let progressVal = 0;
         const progressTicker = setInterval(() => {
             progressVal += 5;
@@ -199,11 +215,11 @@
                 clearInterval(progressTicker);
                 purgeSplashAndBuildMenu();
             }
-        }, 60);
+        }, 40);
 
         function purgeSplashAndBuildMenu() {
             const splashMask = document.getElementById('hard-splash');
-            if (splashMask) {
+            if (splashMask && splashMask.parentNode) {
                 splashMask.parentNode.removeChild(splashMask);
             }
             renderMenuScreen();
@@ -212,17 +228,21 @@
         function renderMenuScreen() {
             document.getElementById('viewport-root').innerHTML = `
                 <div class="dashboard-card">
-                    <h1 style="color:#00f5d4; font-size:2rem; margin-bottom:12px;">Spatial Vortex</h1>
+                    <h1 style="color:#00f5d4; font-size:2rem; margin-bottom:12px;">Spatial Vortex Pro</h1>
                     <p style="color:#b2b2cc; font-size:0.95rem; line-height:1.6; text-align:left; margin-bottom:25px;">
-                        Analyze the geometric item rendered inside the central token. Drag the shape left or right into the matching target label vortex to sort it!
+                        Analyze the geometry graphics on the center token. Classify angles, lines relationship matrix, segments, or rays by dragging them into the correct spatial classification vortex!
                     </p>
-                    <button class="btn-launch" onclick="initiateGameEngine()">START LAB</button>
+                    <button class="btn-launch" onclick="initiateGameEngine()">START ADVANCED LAB</button>
                 </div>
             `;
         }
 
         function initiateGameEngine() {
             scoreCounter = 0;
+            // Generate non-repeating deck layout pool sequence
+            puzzleDeckPool = [...masterPuzzleDatabase].sort(() => Math.random() - 0.5);
+            deckPointer = 0;
+            
             renderGameBoard();
             generateNextPuzzleWave();
         }
@@ -232,23 +252,23 @@
                 <div class="arena-grid">
                     <div class="hud-header">
                         <div>Score Tracker: <span id="label-score">0</span> / 10</div>
-                        <div>Geometry & Spatial Sense</div>
+                        <div>Geometry & Vector Spatial Sense</div>
                     </div>
                     
                     <div class="vortex-container">
                         <div class="vortex-basket basket-left" id="v-left">
-                            <span style="font-size:0.75rem; letter-spacing:1px; opacity:0.6; margin-bottom:5px;">VORTEX A</span>
+                            <span style="font-size:0.7rem; letter-spacing:1px; opacity:0.5; margin-bottom:8px;">VORTEX A</span>
                             <div id="text-left-basket">-</div>
                         </div>
                         
                         <div class="spawn-deck" id="spawn-deck">
                             <div class="draggable-token" id="drag-token">
-                                <canvas id="vector-canvas" width="100" height="100"></canvas>
+                                <canvas id="vector-canvas" width="110" height="110"></canvas>
                             </div>
                         </div>
                         
                         <div class="vortex-basket basket-right" id="v-right">
-                            <span style="font-size:0.75rem; letter-spacing:1px; opacity:0.6; margin-bottom:5px;">VORTEX B</span>
+                            <span style="font-size:0.7rem; letter-spacing:1px; opacity:0.5; margin-bottom:8px;">VORTEX B</span>
                             <div id="text-right-basket">-</div>
                         </div>
                     </div>
@@ -264,89 +284,90 @@
                 token.style.borderColor = '#00bbf9';
             }
 
-            // Pick a randomized geometric sub-concept goal from Chapter 7
-            const modeRoll = Math.random();
-            
-            if (modeRoll < 0.34) {
-                currentPoolMode = "LINE_VS_SEGMENT";
-                document.getElementById('text-left-basket').innerText = "STRAIGHT\nLINE";
-                document.getElementById('text-right-basket').innerText = "LINE\nSEGMENT";
-                activeTargetKey = Math.random() < 0.5 ? "LEFT" : "RIGHT";
-            } else if (modeRoll < 0.67) {
-                currentPoolMode = "OPEN_VS_CLOSED";
-                document.getElementById('text-left-basket').innerText = "OPEN\nCURVE";
-                document.getElementById('text-right-basket').innerText = "CLOSED\nCURVE";
-                activeTargetKey = Math.random() < 0.5 ? "LEFT" : "RIGHT";
-            } else {
-                currentPoolMode = "RADIUS_VS_DIAMETER";
-                document.getElementById('text-left-basket').innerText = "CIRCLE\nRADIUS";
-                document.getElementById('text-right-basket').innerText = "CIRCLE\nDIAMETER";
-                activeTargetKey = Math.random() < 0.5 ? "LEFT" : "RIGHT";
+            // Reshuffle deck pool array if fully exhausted
+            if (deckPointer >= puzzleDeckPool.length) {
+                puzzleDeckPool = [...masterPuzzleDatabase].sort(() => Math.random() - 0.5);
+                deckPointer = 0;
             }
 
-            drawGeometricTokenGraphics();
+            activePuzzle = puzzleDeckPool[deckPointer];
+            deckPointer++;
+
+            document.getElementById('text-left-basket').innerText = activePuzzle.labelLeft;
+            document.getElementById('text-right-basket').innerText = activePuzzle.labelRight;
+
+            drawGeometricTokenGraphics(activePuzzle.renderKey);
         }
 
-        function drawGeometricTokenGraphics() {
+        function drawGeometricTokenGraphics(renderKey) {
             const canvas = document.getElementById('vector-canvas');
             if (!canvas) return;
             const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, 100, 100);
+            ctx.clearRect(0, 0, 110, 110);
             
             ctx.strokeStyle = '#ffffff';
             ctx.lineWidth = 4;
             ctx.fillStyle = '#ff007f';
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
 
-            if (currentPoolMode === "LINE_VS_SEGMENT") {
-                if (activeTargetKey === "LEFT") {
-                    // Draw a straight line with arrows on both ends
+            switch (renderKey) {
+                case "acute": // Less than 90 deg vector paths
                     ctx.beginPath();
-                    ctx.moveTo(15, 50); ctx.lineTo(85, 50);
+                    ctx.moveTo(80, 75); ctx.lineTo(30, 75); ctx.lineTo(65, 30);
                     ctx.stroke();
-                    // Left Arrowhead
-                    ctx.beginPath(); ctx.moveTo(25, 40); ctx.lineTo(15, 50); ctx.lineTo(25, 60); ctx.stroke();
-                    // Right Arrowhead
-                    ctx.beginPath(); ctx.moveTo(75, 40); ctx.lineTo(85, 50); ctx.lineTo(75, 60); ctx.stroke();
-                } else {
-                    // Draw a defined line segment bounded by closed dot end-points
-                    ctx.style = '#ffffff';
-                    ctx.beginPath(); ctx.moveTo(25, 50); ctx.lineTo(75, 50); ctx.stroke();
-                    // End points
-                    ctx.beginPath(); ctx.arc(25, 50, 5, 0, Math.PI * 2); ctx.fill();
-                    ctx.beginPath(); ctx.arc(75, 50, 5, 0, Math.PI * 2); ctx.fill();
-                }
-            } 
-            else if (currentPoolMode === "OPEN_VS_CLOSED") {
-                if (activeTargetKey === "LEFT") {
-                    // Open Curve shape
+                    break;
+                case "obtuse": // Greater than 90 deg vector paths
                     ctx.beginPath();
-                    ctx.arc(50, 50, 30, 0.2, Math.PI * 1.7);
+                    ctx.moveTo(85, 75); ctx.lineTo(40, 75); ctx.lineTo(20, 32);
                     ctx.stroke();
-                } else {
-                    // Closed Curve shape
+                    break;
+                case "parallel": // Two perfectly equidistant lines
                     ctx.beginPath();
-                    ctx.ellipse(50, 50, 35, 22, Math.PI / 4, 0, Math.PI * 2);
+                    ctx.moveTo(30, 25); ctx.lineTo(30, 85);
+                    ctx.moveTo(70, 25); ctx.lineTo(70, 85);
                     ctx.stroke();
-                }
-            } 
-            else if (currentPoolMode === "RADIUS_VS_DIAMETER") {
-                // Core background guide circle base silhouette
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-                ctx.beginPath(); ctx.arc(50, 50, 35, 0, Math.PI * 2); ctx.stroke();
-                
-                // Highlighted center vertex anchor node
-                ctx.beginPath(); ctx.arc(50, 50, 4, 0, Math.PI * 2); ctx.fill();
-                
-                ctx.lineWidth = 4;
-                ctx.strokeStyle = '#00f5d4';
-                if (activeTargetKey === "LEFT") {
-                    // Radius vector (Center running to edge margin)
-                    ctx.beginPath(); ctx.moveTo(50, 50); ctx.lineTo(75, 25); ctx.stroke();
-                } else {
-                    // Diameter vector running all the way through the center vertex
-                    ctx.beginPath(); ctx.moveTo(25, 75); ctx.lineTo(75, 25); ctx.stroke();
-                }
+                    break;
+                case "perpendicular": // 90 degree crossing grid intersection
+                    ctx.beginPath();
+                    ctx.moveTo(55, 20); ctx.lineTo(55, 90);
+                    ctx.moveTo(20, 55); ctx.lineTo(90, 55);
+                    ctx.stroke();
+                    // Small square anchor to indicate real perpendicular bounds
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(55, 55, 10, -10);
+                    break;
+                case "intersecting": // Non-perpendicular crossroads
+                    ctx.beginPath();
+                    ctx.moveTo(20, 30); ctx.lineTo(90, 80);
+                    ctx.moveTo(20, 80); ctx.lineTo(90, 30);
+                    ctx.stroke();
+                    break;
+                case "segment": // Defined bound parameters
+                    ctx.beginPath(); ctx.moveTo(25, 55); ctx.lineTo(85, 55); ctx.stroke();
+                    ctx.beginPath(); ctx.arc(25, 55, 5, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(85, 55, 5, 0, Math.PI * 2); ctx.fill();
+                    break;
+                case "ray": // End node running infinitely to single arrow cap
+                    ctx.beginPath(); ctx.moveTo(25, 55); ctx.lineTo(80, 55); ctx.stroke();
+                    ctx.beginPath(); ctx.arc(25, 55, 5, 0, Math.PI * 2); ctx.fill();
+                    ctx.beginPath(); ctx.moveTo(70, 45); ctx.lineTo(82, 55); ctx.lineTo(70, 65); ctx.stroke();
+                    break;
+                case "right_angle":
+                    ctx.beginPath(); ctx.moveTo(35, 25); ctx.lineTo(35, 75); ctx.lineTo(85, 75); ctx.stroke();
+                    ctx.lineWidth = 2; ctx.strokeRect(35, 75, 12, -12);
+                    break;
+                case "straight_line":
+                    ctx.beginPath(); ctx.moveTo(20, 55); ctx.lineTo(90, 55); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(30, 47); ctx.lineTo(20, 55); ctx.lineTo(30, 63); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(80, 47); ctx.lineTo(90, 55); ctx.lineTo(80, 63); ctx.stroke();
+                    break;
+                case "intersect_slant":
+                    ctx.beginPath();
+                    ctx.moveTo(15, 45); ctx.lineTo(95, 65);
+                    ctx.moveTo(40, 20); ctx.lineTo(70, 95);
+                    ctx.stroke();
+                    break;
             }
         }
 
@@ -366,8 +387,8 @@
 
         function dragStart(e) {
             isDragging = true;
-            const clientX = e.clientX || e.touches[0].clientX;
-            const clientY = e.clientY || e.touches[0].clientY;
+            const clientX = e.clientX || (e.touches && e.touches[0].clientX);
+            const clientY = e.clientY || (e.touches && e.touches[0].clientY);
             
             touchStartX = clientX;
             touchStartY = clientY;
@@ -427,7 +448,7 @@
         }
 
         function evaluatePlacementChoice(chosenSide) {
-            if (chosenSide === activeTargetKey) {
+            if (chosenSide === activePuzzle.correctSide) {
                 scoreCounter++;
                 document.getElementById('label-score').innerText = scoreCounter;
                 playAudioFile('s-correct');
@@ -453,11 +474,11 @@
             document.getElementById('viewport-root').innerHTML = `
                 <div class="dashboard-card" style="border-color: rgba(0, 255, 127, 0.3);">
                     <div style="font-size:3.5rem; margin-bottom:10px;">🏆</div>
-                    <h1 style="color:#00f5d4; font-size:1.8rem; margin-bottom:10px;">Spatial Level Clear!</h1>
+                    <h1 style="color:#00f5d4; font-size:1.8rem; margin-bottom:10px;">Geometry Matrix Cleared!</h1>
                     <p style="color:#cfdec9; font-size:0.95rem; margin-bottom:25px; line-height:1.5;">
-                        Incredible spatial recognition! You identified line metrics, curves, and circular parts flawlessly.
+                        Sensational geometric sense! You categorized parallel arrays, acute rays, and intersecting vector spaces flawlessly.
                     </p>
-                    <button class="btn-launch" style="background:linear-gradient(135deg, #00f5d4, #7f00ff);" onclick="renderMenuScreen()">Play Again</button>
+                    <button class="btn-launch" style="background:linear-gradient(135deg, #00f5d4, #7f00ff);" onclick="renderMenuScreen()">Restart Lab Module</button>
                 </div>
             `;
         }
