@@ -2,530 +2,105 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Time Machine: 3-Level Restoration Adventure</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sweet Treats Bakery Party</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif;
-            user-select: none;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            touch-action: none; /* Disables page scrolling completely while interacting */
         }
-
         body {
-            background-color: #2c3e50;
-            min-height: 100vh;
+            background-color: #fff3e0;
+            margin: 0;
+            padding: 10px;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 12px;
+            min-height: 100vh;
+            overflow: hidden;
+            -webkit-user-select: none;
+            user-select: none;
         }
-
-        /* --- BLANK WHITE SPLASH SCREEN --- */
+        /* Splash Screen Style */
         #splash-screen {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background-color: #ffffff;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            transition: opacity 0.5s ease-out;
+            transition: opacity 0.5s ease;
         }
-        #splash-screen img { max-width: 280px; height: auto; }
-
-        /* --- HARDWARE CABINET CONTAINER --- */
-        .arcade-cabinet {
-            background: linear-gradient(135deg, #1e272e, #0f171e);
-            border: 6px solid #ff9800;
-            border-radius: 24px;
-            padding: 16px;
-            width: 100%;
-            max-width: 480px;
-            box-shadow: 0 20px 45px rgba(0,0,0,0.6);
-            color: #fff;
-        }
-
-        /* --- DYNAMIC GRAPHICS STAGE --- */
-        .graphics-stage {
-            background: url('assets/time-bg.png') center/cover no-repeat, #85c1e9;
-            width: 100%;
-            height: 240px;
-            border-radius: 16px;
-            border: 4px solid #000;
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            margin-bottom: 15px;
-        }
-
-        /* Level 1 Custom Clock Visual Layout */
-        .toy-clock {
-            width: 170px;
-            height: 170px;
-            background: url('assets/clock-face.png') center/cover no-repeat, #fff8e1;
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #ff7043;
             border-radius: 50%;
-            position: relative;
-            display: none;
-            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
         }
-        .clock-center {
-            position: absolute;
-            top: 50%; left: 50%;
-            width: 12px; height: 12px;
-            background: #212121;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 10;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-        .hand {
-            position: absolute;
-            bottom: 50%; left: 50%;
-            transform-origin: bottom center;
-            border-radius: 4px;
-            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.2);
-        }
-        .hour-hand { width: 6px; height: 42px; background: #212121; transform: translate(-50%, 0) rotate(0deg); z-index: 5; }
-        .minute-hand { width: 4px; height: 62px; background: #e91e63; transform: translate(-50%, 0) rotate(0deg); z-index: 6; }
-
-        /* Level 2 & 3 Dynamic Asset Box */
-        .badge-display {
-            max-height: 150px;
-            width: auto;
-            object-fit: contain;
-            animation: floatAnimation 2.5s infinite ease-in-out;
-            display: none;
-        }
-        @keyframes floatAnimation {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        /* --- CONTROL CONSOLE (BOTTOM AREA) --- */
-        .control-board {
-            background: #f4f6f7;
-            border: 4px solid #000;
-            border-radius: 16px;
-            padding: 15px;
-            color: #333;
-        }
-        .meta-strip {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            font-weight: bold;
-            color: #7f8c8d;
-            margin-bottom: 8px;
-        }
-        .task-card {
-            background: #fff;
-            border: 3px dashed #ff9800;
-            padding: 12px;
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 12px;
-            border-radius: 10px;
-            color: #d84315;
+        
+        /* Intro Screen Style */
+        #intro-screen {
+            background: white;
+            border: 4px solid #ffb74d;
+            border-radius: 20px;
+            padding: 25px 20px;
+            width: 100%;
+            max-width: 460px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
             text-align: center;
-            min-height: 85px;
+            display: none;
+        }
+        .intro-title {
+            color: #e65100;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        .intro-chef-img {
+            max-width: 140px;
+            height: auto;
+            margin: 10px auto;
+            display: block;
+        }
+        .intro-card {
+            background: #fff8e1;
+            border: 2px dashed #ffb300;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .intro-level-row {
             display: flex;
             align-items: center;
-            justify-content: center;
+            gap: 12px;
+            margin-bottom: 12px;
         }
-
-        /* Views Switching */
-        .input-view { display: none; }
-        .crank-box { display: flex; justify-content: center; gap: 12px; margin-bottom: 12px; }
-        
-        .grid-choices {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
+        .intro-level-row:last-child {
+            margin-bottom: 0;
         }
-
-        /* Action Buttons */
-        .btn-game {
-            background: #2980b9;
-            color: #fff;
-            border: none;
-            padding: 12px;
-            font-size: 15px;
-            font-weight: bold;
-            border-radius: 12px;
-            cursor: pointer;
-            box-shadow: 0 4px 0 #1b4f72;
-            transition: transform 0.1s;
+        .intro-icon {
+            font-size: 32px;
+            min-width: 35px;
+            text-align: center;
         }
-        .btn-game:hover:not(:disabled) { background: #3498db; }
-        .btn-game:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #1b4f72; }
-        
-        .btn-game.correct { background: #2ecc71 !important; box-shadow: 0 4px 0 #27ae60 !important; color: white !important; }
-        .btn-game.wrong { background: #e74c3c !important; box-shadow: 0 4px 0 #c0392b !important; color: white !important; }
-
-        .btn-submit {
-            background: #2ecc71;
-            color: white;
-            border: none;
-            width: 100%;
-            padding: 14px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 12px;
-            cursor: pointer;
-            box-shadow: 0 5px 0 #27ae60;
-            margin-top: 5px;
+        .intro-level-text h3 {
+            margin: 0;
+            color: #d84315;
+            font-size: 16px;
         }
-        .btn-submit:active { transform: translateY(4px); box-shadow: 0 1px 0 #27ae60; }
-    </style>
-</head>
-<body>
-
-    <!-- 5-SECOND BLANK WHITE SPLASH (TEXT REMOVED) -->
-    <div id="splash-screen">
-        <img src="assets/innovine-logo.png" alt="Innovine Logo" onerror="this.src='https://placehold.co/280x150?text=Innovine+Logo'">
-    </div>
-
-    <!-- PHYSICAL DEVICE FRAMEWAY -->
-    <div class="arcade-cabinet">
-        
-        <!-- VISUAL PANEL (CANVAS STAGE) -->
-        <div class="graphics-stage">
-            <!-- Level 1 Dynamic Overlay Mesh -->
-            <div class="toy-clock" id="visual-clock">
-                <div class="clock-center"></div>
-                <div id="hr-needle" class="hand hour-hand"></div>
-                <div id="min-needle" class="hand minute-hand"></div>
-            </div>
-
-            <!-- Level 2 & 3 Image Renderer Target -->
-            <img class="badge-display" id="visual-image" src="" alt="Game Asset Reference">
-        </div>
-
-        <!-- CONTROLLER DECK -->
-        <div class="control-board">
-            <div class="meta-strip">
-                <span id="label-level">TIME MACHINE ADVENTURE</span>
-                <div>🔊 <input type="range" id="volume" min="0" max="1" step="0.1" value="0.7" style="width:50px; vertical-align:middle; cursor:pointer;"></div>
-            </div>
-
-            <!-- Context Dialogue Output Slot -->
-            <div class="task-card" id="display-prompt">Booting primary parameters...</div>
-
-            <!-- INPUT HANDLER PANELS -->
-            <div id="router-panel">
-                
-                <!-- BOOT ENTRY SPLASH PANEL -->
-                <div id="view-prologue" class="input-view" style="display: block;">
-                    <button class="btn-submit" style="background:#e67e22; box-shadow:0 5px 0 #d35400;" onclick="advanceToLevel(1)">START GAME 🚀</button>
-                </div>
-
-                <!-- TRANSITION SCREEN BETWEEN LEVELS -->
-                <div id="view-transition" class="input-view">
-                    <button class="btn-submit" id="btn-next-level" style="background:#34495e; box-shadow:0 5px 0 #2c3e50;" onclick="startLoadedLevel()">ENTER NEXT ZONE 🚪</button>
-                </div>
-
-                <!-- LEVEL 1 LAYOUT CONTROL PANEL (GEARS) -->
-                <div id="view-l1" class="input-view">
-                    <div class="crank-box">
-                        <button class="btn-game" onclick="turnGears(1, 0)">⚙️ +1 Hour</button>
-                        <button class="btn-game" onclick="turnGears(0, 30)" style="background:#8e44ad; box-shadow:0 4px 0 #5b2c6f;">⚙️ +30 Mins</button>
-                    </div>
-                    <button class="btn-submit" onclick="verifyLevel1State()">PULL VERIFICATION LEVER 🕹️</button>
-                </div>
-
-                <!-- LEVEL 2 & 3 LAYOUT CONTROL PANEL (SELECTION GRID) -->
-                <div id="view-grid" class="input-view">
-                    <div class="grid-choices" id="grid-container">
-                        <!-- Filled at runtime dynamically by script modules -->
-                    </div>
-                </div>
-
-                <!-- COMPLETED GAME CARD -->
-                <div id="view-epilogue" class="input-view">
-                    <button class="btn-submit" style="background:#9b59b6; box-shadow:0 5px 0 #8e44ad;" onclick="resetEngine()">PLAY ADVENTURE AGAIN 🔄</button>
-                </div>
-
-            </div>
-        </div>
-
-    </div>
-
-    <!-- AUDIO ENGINE TARGET HOOKS -->
-    <audio id="sound-correct" src="assets/correct.mp3" preload="auto"></audio>
-    <audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
-
-    <script>
-        // Puzzle storage mapped precisely to assets files and syllabus thresholds
-        const level1Puzzles = [
-            { text: "GEAR SHIFT: Turn the mechanical gears until the clock displays exactly 4:00 o'clock!", h: 4, m: 0 },
-            { text: "GEAR SHIFT: Spin the hands to represent half past 10 o'clock! (10:30)", h: 10, m: 30 },
-            { text: "GEAR SHIFT: Turn the clock dials to point directly to 7:00 o'clock!", h: 7, m: 0 },
-            { text: "GEAR SHIFT: Calibrate the hands to show half past 1 o'clock! (1:30)", h: 1, m: 30 }
-        ];
-
-        const level2Puzzles = [
-            { text: "CALENDAR CORE: If Today is Wednesday, what day was Yesterday?", choices: ["Tuesday", "Thursday", "Monday", "Friday"], correct: "Tuesday" },
-            { text: "CALENDAR CORE: Which day comes right after Saturday?", choices: ["Sunday", "Monday", "Friday", "Wednesday"], correct: "Sunday" },
-            { text: "CALENDAR CORE: How many days are inside February during a Leap Year?", choices: ["29 days", "28 days", "30 days", "31 days"], correct: "29 days" },
-            { text: "CALENDAR CORE: Find the month that contains exactly 30 calendar days.", choices: ["April", "January", "July", "December"], correct: "April" }
-        ];
-
-        const level3Puzzles = [
-            { text: "SEASONS DIAL: Bright hot sun, swimming pools, and ice creams!", choices: ["Summer", "Winter", "Autumn", "Spring"], correct: "Summer", img: "summer.png" },
-            { text: "SEASONS DIAL: Cold snow falling down, warm jackets, and cozy fires!", choices: ["Winter", "Summer", "Autumn", "Spring"], correct: "Winter", img: "winter.png" },
-            { text: "SEASONS DIAL: Crunchy leaves turning red and brown and falling from trees!", choices: ["Autumn", "Spring", "Summer", "Winter"], correct: "Autumn", img: "autumn.png" },
-            { text: "SEASONS DIAL: Beautiful flowers blooming and birds singing in the garden!", choices: ["Spring", "Autumn", "Winter", "Summer"], correct: "Spring", img: "spring.png" }
-        ];
-
-        let currentLevel = 0;
-        let puzzleIndex = 0;
-        let activePool = [];
-        let inputLock = false;
-        
-        // Chance Tracking variables
-        let attemptsUsed = 0;
-
-        // Visual hands calculation coordinates
-        let hValue = 12;
-        let mValue = 0;
-
-        const clipWin = document.getElementById('sound-correct');
-        const clipLose = document.getElementById('sound-wrong');
-        const sliderVol = document.getElementById('volume');
-
-        sliderVol.addEventListener('input', (e) => {
-            clipWin.volume = e.target.value;
-            clipLose.volume = e.target.value;
-        });
-
-        // Splash lifecycle hook - exactly 5 seconds
-        window.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                splash.style.opacity = '0';
-                setTimeout(() => {
-                    splash.style.display = 'none';
-                    document.getElementById('display-prompt').innerHTML = "Welcome Time Detective! Fix the three matrix channels to restore order to the timeline!";
-                }, 500);
-            }, 5000);
-        });
-
-        function clearViewPorts() {
-            document.querySelectorAll('.input-view').forEach(v => v.style.display = 'none');
-            document.getElementById('visual-clock').style.display = 'none';
-            document.getElementById('visual-image').style.display = 'none';
-        }
-
-        // Handles short introductions before transitioning to a level
-        function advanceToLevel(targetLevelId) {
-            currentLevel = targetLevelId;
-            puzzleIndex = 0;
-            clearViewPorts();
-
-            const promptBox = document.getElementById('display-prompt');
-            const visualImg = document.getElementById('visual-image');
-
-            if (currentLevel === 1) {
-                document.getElementById('label-level').textContent = "LEVEL 1 PREVIEW";
-                visualImg.src = "assets/clock-face.png";
-                visualImg.style.display = "block";
-                promptBox.innerHTML = "🏁 <strong>LEVEL 1: THE CLOCKWORK GEARS</strong><br>The master clock towers have frozen out of sync! Use the mechanical cranks to rotate the hands and match the timelines.";
-                document.getElementById('view-transition').style.display = 'block';
-            }
-            else if (currentLevel === 2) {
-                document.getElementById('label-level').textContent = "LEVEL 2 PREVIEW";
-                visualImg.src = "assets/calendar.png";
-                visualImg.style.display = "block";
-                promptBox.innerHTML = "📅 <strong>LEVEL 2: THE CALENDAR MATRIX</strong><br>Great work! Next up, the days of the week and month trackers are scrambled. Let's stabilize the calendar pages!";
-                document.getElementById('view-transition').style.display = 'block';
-            }
-            else if (currentLevel === 3) {
-                document.getElementById('label-level').textContent = "LEVEL 3 PREVIEW";
-                visualImg.src = "assets/innovine-logo.png";
-                visualImg.style.display = "block";
-                promptBox.innerHTML = "🌤️ <strong>LEVEL 3: THE ECOSYSTEM DIAL</strong><br>Final Lock! The seasons are crashing into each other. Use your climate clues to sort through the four weather patterns!";
-                document.getElementById('view-transition').style.display = 'block';
-            }
-        }
-
-        // Starts the actual gameplay view after the introduction screen
-        function startLoadedLevel() {
-            clearViewPorts();
-            attemptsUsed = 0;
-
-            if (currentLevel === 1) {
-                document.getElementById('label-level').textContent = "LEVEL 1: CLOCK GEARS";
-                document.getElementById('visual-clock').style.display = 'block';
-                document.getElementById('view-l1').style.display = 'block';
-                activePool = [...level1Puzzles].sort(() => Math.random() - 0.5);
-                
-                hValue = Math.floor(Math.random() * 11) + 1;
-                mValue = Math.random() > 0.5 ? 30 : 0;
-                calculateHandRotations();
-                executeStageLoad();
-            }
-            else if (currentLevel === 2) {
-                document.getElementById('label-level').textContent = "LEVEL 2: CALENDAR MATRIX";
-                const imgTag = document.getElementById('visual-image');
-                imgTag.src = "assets/calendar.png";
-                imgTag.style.display = 'block';
-                document.getElementById('view-grid').style.display = 'block';
-                activePool = [...level2Puzzles].sort(() => Math.random() - 0.5);
-                executeStageLoad();
-            }
-            else if (currentLevel === 3) {
-                document.getElementById('label-level').textContent = "LEVEL 3: SEASONS DIAL";
-                document.getElementById('view-grid').style.display = 'block';
-                activePool = [...level3Puzzles].sort(() => Math.random() - 0.5);
-                executeStageLoad();
-            }
-        }
-
-        function executeStageLoad() {
-            inputLock = false;
-            const puzzle = activePool[puzzleIndex];
-            document.getElementById('display-prompt').textContent = puzzle.text;
-
-            if (currentLevel === 3) {
-                const seasonImg = document.getElementById('visual-image');
-                seasonImg.src = `assets/${puzzle.img}`;
-                seasonImg.style.display = 'block';
-            }
-
-            if (currentLevel === 2 || currentLevel === 3) {
-                const container = document.getElementById('grid-container');
-                container.innerHTML = '';
-                
-                let matrixMix = [...puzzle.choices].sort(() => Math.random() - 0.5);
-                matrixMix.forEach(choiceText => {
-                    const choiceBtn = document.createElement('button');
-                    choiceBtn.className = 'btn-game';
-                    choiceBtn.textContent = choiceText;
-                    choiceBtn.onclick = () => parseGridSelection(choiceBtn, choiceText === puzzle.correct);
-                    container.appendChild(choiceBtn);
-                });
-            }
-        }
-
-        // --- CLOCK MECHANICS ---
-        function turnGears(hrDelta, minDelta) {
-            mValue += minDelta;
-            if (mValue >= 60) { mValue = 0; hValue += 1; }
-            hValue += hrDelta;
-            if (hValue > 12) hValue = 1;
-            calculateHandRotations();
-        }
-
-        function calculateHandRotations() {
-            const rotMin = mValue * 6;
-            const rotHr = (hValue * 30) + (mValue * 0.5);
-            document.getElementById('min-needle').style.transform = `translate(-50%, 0) rotate(${rotMin}deg)`;
-            document.getElementById('hr-needle').style.transform = `translate(-50%, 0) rotate(${rotHr}deg)`;
-        }
-
-        function verifyLevel1State() {
-            if (inputLock) return;
-            const challenge = activePool[puzzleIndex];
-            
-            if (hValue === challenge.h && mValue === challenge.m) {
-                processValidationSuccess();
-            } else {
-                handleIncorrectAttempt(null);
-            }
-        }
-
-        // --- SELECTION GRID MECHANICS ---
-        function parseGridSelection(clickedElement, pointsMatch) {
-            if (inputLock) return;
-
-            if (pointsMatch) {
-                inputLock = true;
-                clickedElement.classList.add('correct');
-                processValidationSuccess();
-            } else {
-                clickedElement.classList.add('wrong');
-                clickedElement.disabled = true; 
-                handleIncorrectAttempt(clickedElement);
-            }
-        }
-
-        // --- MULTI-CHANCE LOGIC COMPONENT ---
-        function handleIncorrectAttempt(clickedElement) {
-            attemptsUsed++;
-            try { clipLose.play(); } catch(err){}
-
-            if (attemptsUsed < 2) {
-                document.getElementById('display-prompt').innerHTML = "⚠️ <strong>Not quite right!</strong> Check your settings and try one more time! 🔍";
-                
-                if (currentLevel === 1) {
-                    inputLock = false; 
-                }
-            } else {
-                inputLock = true;
-                document.getElementById('display-prompt').innerHTML = "❌ <strong>Let's calibrate together!</strong> Revealing the pattern coordinates...";
-                
-                if (currentLevel === 1) {
-                    const challenge = activePool[puzzleIndex];
-                    hValue = challenge.h;
-                    mValue = challenge.m;
-                    setTimeout(() => { calculateHandRotations(); }, 500);
-                } else if (currentLevel === 2 || currentLevel === 3) {
-                    const buttons = document.querySelectorAll('.grid-choices .btn-game');
-                    buttons.forEach(btn => {
-                        if (btn.textContent === activePool[puzzleIndex].correct) {
-                            btn.classList.add('correct');
-                        }
-                        btn.disabled = true;
-                    });
-                }
-
-                puzzleIndex++;
-                setTimeout(() => { evaluateGameProgression(); }, 2500);
-            }
-        }
-
-        // --- LIFECYCLE MANAGEMENT DISPATCHERS ---
-        function processValidationSuccess() {
-            inputLock = true;
-            try { clipWin.play(); } catch(err){}
-            confetti({ particleCount: 50, spread: 60 });
-
-            puzzleIndex++;
-            setTimeout(() => { evaluateGameProgression(); }, 1800);
-        }
-
-        function evaluateGameProgression() {
-            attemptsUsed = 0; 
-            
-            if (puzzleIndex < activePool.length) {
-                executeStageLoad();
-            } else {
-                if (currentLevel === 1) advanceToLevel(2);
-                else if (currentLevel === 2) advanceToLevel(3);
-                else triggerVictoryEpilogue();
-            }
-        }
-
-        function triggerVictoryEpilogue() {
-            clearViewPorts();
-            document.getElementById('label-level').textContent = "STATUS: SAFE";
-            
-            const trophyAsset = document.getElementById('visual-image');
-            trophyAsset.src = "assets/innovine-logo.png";
-            trophyAsset.style.display = 'block';
-
-            document.getElementById('display-prompt').innerHTML = "🏆 <strong>MISSION ACCOMPLISHED!</strong><br>The Time Machine has been perfectly restored across all three dimensions!";
-            document.getElementById('view-epilogue').style.display = 'block';
-            confetti({ particleCount: 150, spread: 85 });
-        }
-
-        function resetEngine() {
-            advanceToLevel(1);
-        }
-    </script>
-</body>
-</html>
+        .intro-level-text p {
+            margin: 2px 0 0 0;
+            color: #5
