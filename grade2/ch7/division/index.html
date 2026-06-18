@@ -385,6 +385,24 @@
             border-color: #c62828 !important;
             color: #b71c1c !important;
         }
+
+        /* Appreciation Transition Slide Formatting */
+        .transition-card {
+            background: #fffde7;
+            border: 3px dashed #ffb300;
+            border-radius: 16px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .badge-icon {
+            font-size: 45px;
+            margin-bottom: 10px;
+            animation: bounce 1s infinite alternate;
+        }
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-8px); }
+        }
     </style>
 </head>
 <body>
@@ -535,12 +553,13 @@
             const mainTitle = document.getElementById('game-title');
             
             if (prog) {
-                let completePct = ((index) / (part1Questions.length + part2Questions.length)) * 100;
+                // Modified complete percentage calculation to account for the transitional layout item index
+                let completePct = ((index) / (part1Questions.length + 1 + part2Questions.length)) * 100;
                 prog.style.width = `${completePct}%`;
             }
 
             if (index >= activeQuestions.length) {
-                startPart2();
+                showAppreciationTransitionSlide();
                 return;
             }
 
@@ -723,6 +742,50 @@
             }
         }
 
+        /* DYNAMIC APPRECIATION CUM TRANSITION SLIDE */
+        function showAppreciationTransitionSlide() {
+            const container = document.getElementById('game-content');
+            document.getElementById('game-part-lbl').innerText = "Level Completed! 🎉";
+            document.getElementById('game-title').innerText = "Splendid Job, Chef!";
+            
+            const prog = document.getElementById('progress');
+            if (prog) {
+                let completePct = ((part1Questions.length + 0.5) / (part1Questions.length + 1 + part2Questions.length)) * 100;
+                prog.style.width = `${completePct}%`;
+            }
+
+            // continuous subtle celebratory confetti bursts
+            let duration = 1.5 * 1000;
+            let end = Date.now() + duration;
+            (function frame() {
+                confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0 } });
+                confetti({ particleCount: 2, angle: 120, spread: 55, origin: { x: 1 } });
+                if (Date.now() < end) { requestAnimationFrame(frame); }
+            }());
+
+            if (container) {
+                container.innerHTML = `
+                    <div class="badge-icon">🎖️</div>
+                    <div class="story-text" style="font-size: 20px; color: #2e7d32; margin-bottom: 5px;">
+                        Level 1 Complete!
+                    </div>
+                    
+                    <div class="transition-card">
+                        <p style="margin: 0 0 10px 0; color: #5d4037; font-size: 15px; line-height: 1.5;">
+                            You shared all the sweet treats perfectly and made sure every single kid got an equal share! You are an amazing bakery companion.
+                        </p>
+                        <p style="margin: 0; color: #d84315; font-weight: bold; font-size: 14px;">
+                            📦 Up Next: Let's box up orders using matching delivery box sizes!
+                        </p>
+                    </div>
+
+                    <button class="btn" style="width: 100%; font-size: 20px; margin-top: 10px;" onclick="startPart2()">
+                        Proceed to Level 2 🚀
+                    </button>
+                `;
+            }
+        }
+
         /* LEVEL 2 - TAP THE BAKERY BOX IMPLEMENTATION */
         function startPart2() {
             currentGamePart = 2;
@@ -741,7 +804,7 @@
             const prog = document.getElementById('progress');
             
             if (prog) {
-                let completePct = ((part1Questions.length + index) / (part1Questions.length + part2Questions.length)) * 100;
+                let completePct = ((part1Questions.length + 1 + index) / (part1Questions.length + 1 + part2Questions.length)) * 100;
                 prog.style.width = `${completePct}%`;
             }
 
