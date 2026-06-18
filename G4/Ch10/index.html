@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Metric Highway: Connection Control</title>
+    <title>Metric Highway</title>
     <style>
         * {
             box-sizing: border-box;
@@ -13,31 +13,38 @@
             user-select: none;
             -webkit-user-select: none;
         }
+        
         body, html {
             width: 100%;
             height: 100%;
             background-color: #0b0f17;
             color: #e2e8f0;
-            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
+            padding: 10px;
         }
         
+        /* Scalable structural container fitting both Laptop displays and Mobile viewports */
         #viewport-root {
             width: 100%;
-            max-width: 440px;
+            max-width: 460px;
             height: 100%;
-            max-height: 720px;
-            display: none; /* Hidden until splash screen timer clears */
+            max-height: 85vh;
+            display: none; /* Safely managed by 5s splash screen loader */
             flex-direction: column;
             padding: 16px;
             gap: 12px;
             opacity: 0; 
             transition: opacity 0.5s ease;
+            background: #111827;
+            border: 2px solid #1f2937;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
         }
 
-        /* 5-Second White Splash Screen Layer */
+        /* 5-Second Universal Plain Splash Screen Block */
         #hard-splash {
             position: fixed;
             top: 0; 
@@ -50,45 +57,27 @@
             justify-content: center;
             align-items: center;
             transition: opacity 0.5s ease;
-            pointer-events: all;
         }
-        .splash-img-container {
-            width: 240px;
-            height: auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .splash-img {
-            width: 100%;
-            height: auto;
-            object-fit: contain;
+        .splash-text {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: #0b0f17;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
 
         .control-panel {
-            background: #111827;
-            border: 2px solid #1f2937;
-            border-radius: 16px;
-            padding: 16px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             text-align: center;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        .hud-logo-container {
-            width: 40px;
-            height: 40px;
-            margin-bottom: 8px;
-            position: relative;
-        }
 
         .signpost {
             background: #022c22;
             border: 2px solid #059669;
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 12px;
-            margin-bottom: 6px;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
             width: 100%;
         }
@@ -100,7 +89,7 @@
             font-weight: 700;
         }
         .signpost-value {
-            font-size: 1.25rem;
+            font-size: 1.35rem;
             font-weight: 800;
             color: #ffffff;
             margin-top: 4px;
@@ -111,15 +100,17 @@
             flex-grow: 1;
             background: #0f172a;
             border: 2px solid #334155;
-            border-radius: 16px;
+            border-radius: 12px;
             position: relative;
-            overflow: hidden;
-            min-height: 280px;
+            min-height: 240px; /* Safeguards canvas layout on shorter windows */
         }
         canvas {
-            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%;
             height: 100%;
+            display: block;
         }
 
         .switch-deck {
@@ -133,20 +124,23 @@
             background: #1e293b;
             border: 1px solid #475569;
             color: #94a3b8;
-            border-radius: 12px;
-            padding: 14px 8px;
+            border-radius: 10px;
+            padding: 14px 6px;
             font-size: 0.85rem;
             font-weight: 700;
             cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            transition: all 0.2s ease;
+            transition: all 0.15s ease;
+            touch-action: manipulation;
+        }
+        .btn-switch:hover {
+            background: #273549;
+            color: #fff;
         }
         .btn-switch.active {
             background: #0284c7;
             border-color: #38bdf8;
             color: #ffffff;
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
         }
 
         .btn-submit {
@@ -154,14 +148,19 @@
             background: #10b981;
             color: #ffffff;
             border: none;
-            border-radius: 12px;
-            padding: 16px;
+            border-radius: 10px;
+            padding: 15px;
             font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
             text-transform: uppercase;
             letter-spacing: 1px;
             box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+            transition: background 0.2s;
+            touch-action: manipulation;
+        }
+        .btn-submit:hover:not(:disabled) {
+            background: #059669;
         }
         .btn-submit:disabled {
             background: #344154;
@@ -176,38 +175,33 @@
             font-size: 0.9rem;
             min-height: 20px;
         }
+        .device-tips {
+            font-size: 0.7rem;
+            color: #475569;
+            text-align: center;
+            line-height: 1.3;
+        }
     </style>
 </head>
 <body>
 
-    <audio id="s-correct" src="assets/correct.mp3" preload="auto"></audio>
-    <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
-
     <div id="hard-splash">
-        <div class="splash-img-container">
-            <img src="assets/logo.png" class="splash-img" alt="Logo" onerror="this.style.opacity='0'">
-        </div>
+        <div class="splash-text">LOADING ENGINE...</div>
     </div>
 
     <div id="viewport-root">
         <div class="control-panel">
-            <div class="hud-logo-container">
-                <img src="assets/logo.png" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:contain;" onerror="this.style.opacity='0'">
-            </div>
             <div class="signpost">
-                <div class="signpost-title">METRIC CONVERSION CONTROLLER</div>
-                <div class="signpost-value" id="lbl-highway-directive">Awaiting Signal...</div>
+                <div class="signpost-title">METRIC ROUTING CONTROLLER</div>
+                <div class="signpost-value" id="lbl-highway-directive">Booting Lanes...</div>
             </div>
-            <p style="font-size: 0.75rem; color: #64748b; margin-top: 4px;">
-                Match the target formula block to Lane 1, 2, or 3.
-            </p>
         </div>
 
         <div class="map-frame">
             <canvas id="highway-canvas"></canvas>
         </div>
 
-        <div class="toast-banner" id="lbl-feedback" style="color: #64748b;">Ready to establish connection...</div>
+        <div class="toast-banner" id="lbl-feedback">Calibrating connection...</div>
 
         <div class="switch-deck">
             <button class="btn-switch" id="sw-0" onclick="alignRouteLane(0)">Lane 1</button>
@@ -216,6 +210,7 @@
         </div>
 
         <button class="btn-submit" id="btn-dispatch" onclick="dispatchVehicles()">Launch Traffic Flow</button>
+        <div class="device-tips">Laptop: Keys [1, 2, 3] to pick lane • [Space/Enter] to launch.<br>Mobile: Tap lane buttons or route targets directly.</div>
     </div>
 
     <script>
@@ -240,14 +235,13 @@
             color: '#f43f5e'
         };
 
-        // Standard 5000ms Splash Countdown Window Loop
+        // Regulated 5-Second Transition Sequence Loop
         let timeElapsed = 0;
         const totalDuration = 5000; 
         const tickInterval = 100;
         
         const progressTicker = setInterval(() => {
             timeElapsed += tickInterval;
-
             if (timeElapsed >= totalDuration) {
                 clearInterval(progressTicker);
                 const splash = document.getElementById('hard-splash');
@@ -268,20 +262,47 @@
 
         function initGameEngine() {
             canvasElement = document.getElementById('highway-canvas');
-            if(!canvasElement) return;
             canvasContext = canvasElement.getContext('2d');
             
             setupCanvasSize();
             window.addEventListener('resize', setupCanvasSize);
+            setupInputBinds();
             generateNextHighwayLevel();
             startGameLoop();
         }
 
         function setupCanvasSize() {
             if (!canvasElement) return;
-            const rect = canvasElement.getBoundingClientRect();
-            canvasElement.width = rect.width;
-            canvasElement.height = rect.height;
+            // Native fluid width/height bounding for perfect rendering scale on both trackpads and mobile screens
+            canvasElement.width = canvasElement.offsetWidth;
+            canvasElement.height = canvasElement.offsetHeight;
+        }
+
+        function setupInputBinds() {
+            // Laptop Keyboard Mapping
+            window.addEventListener('keydown', (e) => {
+                if (currentVehicle.isMoving || currentVehicle.isTumbling) return;
+                if (e.key === '1') alignRouteLane(0);
+                if (e.key === '2') alignRouteLane(1);
+                if (e.key === '3') alignRouteLane(2);
+                if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    dispatchVehicles();
+                }
+            });
+
+            // Direct Canvas Pointer/Touch Detection
+            canvasElement.addEventListener('pointerdown', (e) => {
+                if (currentVehicle.isMoving || currentVehicle.isTumbling) return;
+                const rect = canvasElement.getBoundingClientRect();
+                const clickY = e.clientY - rect.top;
+                const h = rect.height;
+
+                // Segment path selectors cleanly by thirds
+                if (clickY < h * 0.38) alignRouteLane(0);
+                else if (clickY < h * 0.65) alignRouteLane(1);
+                else alignRouteLane(2);
+            });
         }
 
         function generateNextHighwayLevel() {
@@ -289,7 +310,7 @@
             document.getElementById('lbl-feedback').style.color = "#64748b";
             document.getElementById('btn-dispatch').disabled = false;
 
-            // Pure Metric Question Database Only
+            // Pure Metric Database Pools
             const basePool = [
                 { val: '1/2', unit: 'm', cVal: '50 cm', w1: '5 cm', w2: '500 cm' },
                 { val: '1/4', unit: 'km', cVal: '250 m', w1: '25 m', w2: '2500 m' },
@@ -302,7 +323,6 @@
             ];
 
             let chosen = basePool[Math.floor(Math.random() * basePool.length)];
-            let typeLabel = (chosen.unit === 'm' || chosen.unit === 'km') ? "LENGTH" : (chosen.unit === 'L' ? "CAPACITY" : "WEIGHT");
 
             currentTargetQuery = {
                 directive: `Find: ${chosen.val} ${chosen.unit}`,
@@ -370,7 +390,7 @@
 
         function updatePhysics() {
             if (currentVehicle.isMoving) {
-                currentVehicle.progress += 0.015;
+                currentVehicle.progress += 0.016;
                 if (currentVehicle.progress >= 0.85) { 
                     evaluateRouteMatch();
                 }
@@ -397,33 +417,30 @@
             const h = canvasElement.height;
             const laneYPositions = [h * 0.23, h * 0.5, h * 0.77];
 
-            // Core Junction Backgrounds
             canvasContext.fillStyle = '#1e293b';
-            canvasContext.fillRect(0, h/2 - 25, 60, 50);
+            canvasContext.fillRect(0, h/2 - 22, 50, 44);
 
             for (let i = 0; i < 3; i++) {
-                canvasContext.fillRect(w - 120, laneYPositions[i] - 20, 120, 40);
+                canvasContext.fillRect(w - 110, laneYPositions[i] - 18, 110, 36);
             }
 
-            // Connection Paths Drawing
-            canvasContext.lineWidth = 8;
+            canvasContext.lineWidth = 6;
             canvasContext.lineCap = 'round';
 
             for (let i = 0; i < 3; i++) {
                 canvasContext.strokeStyle = (i === selectedLaneIndex) ? '#38bdf8' : '#273549';
                 canvasContext.beginPath();
                 canvasContext.moveTo(10, h / 2);
-                canvasContext.lineTo(60, h / 2);
-                canvasContext.bezierCurveTo(w * 0.4, h / 2, w * 0.4, laneYPositions[i], w - 100, laneYPositions[i]);
+                canvasContext.lineTo(50, h / 2);
+                canvasContext.bezierCurveTo(w * 0.4, h / 2, w * 0.4, laneYPositions[i], w - 90, laneYPositions[i]);
                 canvasContext.lineTo(w, laneYPositions[i]);
                 canvasContext.stroke();
             }
 
-            // Draw Vehicle Entity
-            let p0 = { x: 30, y: h / 2 };
+            let p0 = { x: 25, y: h / 2 };
             let p1 = { x: w * 0.4, y: h / 2 };
             let p2 = { x: w * 0.4, y: laneYPositions[selectedLaneIndex] };
-            let p3 = { x: w - 50, y: laneYPositions[selectedLaneIndex] };
+            let p3 = { x: w - 45, y: laneYPositions[selectedLaneIndex] };
             
             let vehPos = getBezierXY(currentVehicle.progress, p0, p1, p2, p3);
 
@@ -433,19 +450,18 @@
             canvasContext.fillStyle = currentVehicle.color;
 
             if (currentVehicle.type === 'car') {
-                canvasContext.fillRect(-14, -7, 28, 14);
+                canvasContext.fillRect(-12, -6, 24, 12);
                 canvasContext.fillStyle = '#ffffff';
-                canvasContext.fillRect(2, -5, 6, 10);
-                canvasContext.fillRect(-8, -5, 6, 10);
+                canvasContext.fillRect(2, -4, 5, 8);
+                canvasContext.fillRect(-7, -4, 5, 8);
             } else {
-                canvasContext.fillRect(-10, -3, 20, 6);
+                canvasContext.fillRect(-9, -3, 18, 6);
                 canvasContext.fillStyle = '#000000';
-                canvasContext.beginPath(); canvasContext.arc(-7, 3, 3, 0, Math.PI*2); canvasContext.fill();
-                canvasContext.beginPath(); canvasContext.arc(7, 3, 3, 0, Math.PI*2); canvasContext.fill();
+                canvasContext.beginPath(); canvasContext.arc(-6, 3, 2.5, 0, Math.PI*2); canvasContext.fill();
+                canvasContext.beginPath(); canvasContext.arc(6, 3, 2.5, 0, Math.PI*2); canvasContext.fill();
             }
             canvasContext.restore();
 
-            // Render safe rectangular lane options tags (Replacing old roundRect method completely)
             for (let i = 0; i < 3; i++) {
                 const option = laneOptionsData[i];
 
@@ -454,19 +470,19 @@
                 canvasContext.lineWidth = 2;
                 
                 canvasContext.beginPath();
-                canvasContext.rect(w - 110, laneYPositions[i] - 16, 95, 32); 
+                canvasContext.rect(w - 100, laneYPositions[i] - 14, 90, 28);
                 canvasContext.fill();
                 canvasContext.stroke();
 
                 canvasContext.fillStyle = '#ffffff';
-                canvasContext.font = 'bold 12px sans-serif';
+                canvasContext.font = 'bold 11px sans-serif';
                 canvasContext.textAlign = 'center';
                 canvasContext.textBaseline = 'middle';
-                canvasContext.fillText(option ? option.text : '', w - 62, laneYPositions[i]);
+                canvasContext.fillText(option ? option.text : '', w - 55, laneYPositions[i]);
 
                 canvasContext.fillStyle = '#64748b';
                 canvasContext.font = '9px monospace';
-                canvasContext.fillText(`LANE ${i+1}`, w - 130, laneYPositions[i]);
+                canvasContext.fillText(`LANE ${i+1}`, w - 122, laneYPositions[i]);
             }
         }
 
@@ -479,7 +495,7 @@
             
             document.getElementById('btn-dispatch').disabled = true;
             currentVehicle.isMoving = true;
-            document.getElementById('lbl-feedback').innerText = "Traffic flow dispatched...";
+            document.getElementById('lbl-feedback').innerText = "Traffic flow active...";
             document.getElementById('lbl-feedback').style.color = '#38bdf8';
         }
 
@@ -490,8 +506,8 @@
 
             if (chosenPath && chosenPath.isTruePath) {
                 currentVehicle.progress = 1.0; 
-                playAudioFile('s-correct', 'correct');
-                feedbackText.innerText = "✓ PASSED TOLL GATE! Conversion cleared.";
+                triggerSynthesizerFallback('correct');
+                feedbackText.innerText = "✓ PASSED! Metric conversion cleared.";
                 feedbackText.style.color = "#10b981";
                 
                 setTimeout(() => {
@@ -499,15 +515,14 @@
                 }, 1500);
             } else {
                 currentVehicle.isTumbling = true;
-                playAudioFile('s-wrong', 'wrong');
-                feedbackText.innerText = "💥 ACCIDENT ROADBLOCK! Vehicle is tumbling!";
+                triggerSynthesizerFallback('wrong');
+                feedbackText.innerText = "💥 COLLISION! Roadblock alignment fault.";
                 feedbackText.style.color = "#f43f5e";
             }
         }
 
         function resetLevelAfterCrash() {
             const feedbackText = document.getElementById('lbl-feedback');
-            
             currentVehicle.progress = 0;
             currentVehicle.offsetX = 0;
             currentVehicle.offsetY = 0;
@@ -515,21 +530,8 @@
             currentVehicle.tumbleTimer = 0;
             
             document.getElementById('btn-dispatch').disabled = false;
-            feedbackText.innerText = "Realign connections to safe values and retry.";
+            feedbackText.innerText = "Realign connections and try again.";
             feedbackText.style.color = "#64748b";
-        }
-
-        function playAudioFile(htmlId, fallbackType) {
-            try {
-                const sound = document.getElementById(htmlId);
-                if (sound) {
-                    sound.play().catch(() => { triggerSynthesizerFallback(fallbackType); });
-                } else {
-                    triggerSynthesizerFallback(fallbackType);
-                }
-            } catch (err) {
-                triggerSynthesizerFallback(fallbackType);
-            }
         }
 
         function triggerSynthesizerFallback(type) {
@@ -544,19 +546,18 @@
                 if (type === 'correct') {
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(587.33, now); 
-                    osc.frequency.setValueAtTime(880.00, now + 0.1); 
-                    gain.gain.setValueAtTime(0.15, now);
+                    osc.frequency.setValueAtTime(880.00, now + 0.08); 
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(110, now);
+                    gain.gain.setValueAtTime(0.12, now);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
                     osc.start(now);
                     osc.stop(now + 0.35);
-                } else {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(120, now);
-                    osc.frequency.linearRampToValueAtTime(40, now + 0.4);
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
-                    osc.start(now);
-                    osc.stop(now + 0.45);
                 }
             } catch(e) {}
         }
