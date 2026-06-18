@@ -35,7 +35,7 @@
             justify-content: center;
             align-items: center;
             z-index: 100;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.4s ease;
         }
         .splash-logo-img {
             max-width: 240px;
@@ -57,7 +57,7 @@
             height: 100%;
             background: linear-gradient(90deg, #00e5ff, #9d4edd);
             box-shadow: 0 0 10px #00e5ff;
-            animation: fillProgress 5s linear forwards;
+            animation: fillProgress 1.5s linear forwards;
         }
         @keyframes fillProgress {
             0% { width: 0%; }
@@ -413,7 +413,7 @@
 <body>
 
     <div id="splash-screen">
-        <img class="splash-logo-img" src="assets/innovine-logo.png" alt="Innovine Logo">
+        <img class="splash-logo-img" src="assets/innovine-logo.png" alt="Innovine Logo" id="splash-img">
         <div class="splash-loading-bar">
             <div class="splash-progress"></div>
         </div>
@@ -466,3 +466,312 @@
 
     <audio id="audio-correct" src="assets/correct.mp3"></audio>
     <audio id="audio-wrong" src="assets/wrong.mp3"></audio>
+
+    <script>
+        // Formulate 15 unique Chapter 4 challenges across standard Grade 2 syllabus benchmarks
+        const QUESTION_POOL = [
+            { query: 'What number comes BEFORE 400?', display: '___ , 400', isUnderlinedTask: false, options: ['399', '300', '401', '390'], answer: '399', hint: 'Think: What is 400 minus 1?' },
+            { query: 'What number comes AFTER 299?', display: '299 , ___', isUnderlinedTask: false, options: ['300', '298', '200', '301'], answer: '300', hint: 'What comes next immediately when counting past 299?' },
+            { query: 'What number fits in BETWEEN?', display: '598 , ___ , 600', isUnderlinedTask: false, options: ['599', '589', '601', '597'], answer: '599', hint: 'Count along: 597, 598, ...' },
+            { query: 'Choose the correct comparison sign:', display: '142  &lt;  124', isUnderlinedTask: false, textToShow: '142  [ ? ]  124', options: ['>', '<', '='], answer: '>', hint: 'Look at the tens place value: 142 has 4 tens, 124 has 2 tens!' },
+            { query: 'Choose the correct comparison sign:', display: '705  &lt;  750', isUnderlinedTask: false, textToShow: '705  [ ? ]  750', options: ['<', '>', '='], answer: '<', hint: 'Look at the tens place value: 705 has 0 tens, 750 has 5 tens!' },
+            { query: 'Choose the correct comparison sign:', display: '888  =  888', isUnderlinedTask: false, textToShow: '888  [ ? ]  888', options: ['=', '>', '<'], answer: '=', hint: 'Both sides match perfectly. They are equal!' },
+            { query: 'Convert the expanded form to short form:', display: '300 + 40 + 7', isUnderlinedTask: false, options: ['347', '3047', '374', '437'], answer: '347', hint: 'Combine the hundreds, tens, and ones together.' },
+            { query: 'Convert the expanded form to short form:', display: '900 + 5', isUnderlinedTask: false, options: ['905', '950', '95', '9005'], answer: '905', hint: 'Be careful! There are 0 tens in this number.' },
+            { query: 'What is the place value of the underlined digit?', display: '2<span class="underlined-digit">6</span>3', isUnderlinedTask: true, rawHintText: '6', options: ['60', '6', '600', '63'], answer: '60', hint: 'The 6 is underlined in the middle, which means it represents Tens!' },
+            { query: 'What is the place value of the underlined digit?', display: '<span class="underlined-digit">5</span>1  2', isUnderlinedTask: true, rawHintText: '5', options: ['500', '50', '5', '502'], answer: '500', hint: 'The 5 is underlined in the hundreds column!' },
+            { query: 'What is the word form for the ordinal number 12th?', display: '12th Position', isUnderlinedTask: false, options: ['Twelfth', 'Second', 'Twelve', 'Twelth'], answer: 'Twelfth', hint: 'Watch the special spelling for 12th!' },
+            { query: 'What position comes right after 19th?', display: '19th ➔ [ ? ]', isUnderlinedTask: false, options: ['20th', '18th', '21st', '30th'], answer: '20th', hint: 'Add one step to nineteenth.' },
+            { query: 'Find the missing pattern step value:', display: '150, 200, 250, ___', isUnderlinedTask: false, options: ['300', '260', '275', '400'], answer: '300', hint: 'The pattern is growing up by adding 50 each time!' },
+            { query: 'Find the missing pattern step value:', display: '900, 800, 700, ___', isUnderlinedTask: false, options: ['600', '500', '800', '650'], answer: '600', hint: 'The pattern is shrinking down by subtracting 100 each time!' },
+            { query: 'Which of the three numbers is the LARGEST?', display: '341 , 413 , 143', isUnderlinedTask: false, options: ['413', '341', '143'], answer: '413', hint: 'Compare the hundreds digit first: 400 is larger than 300 or 100.' }
+        ];
+
+        const GEM_EMOJIS = ['💎', '✨', '🔮', '⭐', '💎', '🌟', '🔷', '🟢', '🔶', '🔮', '💎', '🔥', '✨', '⚡', '🏆'];
+
+        let activeQuestions = [];
+        let totalTilesResolved = 0; 
+        let totalGemsCollected = 0; 
+        let selectedQuestionIdx = null;
+        let selectedTileElement = null;
+        let currentQuestionAttempts = 0;
+        let acceptsInput = true;
+
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let confettiParticles = [];
+        let confettiAnimationId = null;
+
+        const splashScreen = document.getElementById('splash-screen');
+        const introScreen = document.getElementById('intro-screen');
+        const btnStartMission = document.getElementById('btn-start-mission');
+        const gameContainer = document.getElementById('game-container');
+        const progressText = document.getElementById('progress-text');
+        const gemTray = document.getElementById('gem-tray');
+        const mineGridScreen = document.getElementById('mine-grid-screen');
+        const tilesGridContainer = document.getElementById('tiles-grid-container');
+        const quizWorkspace = document.getElementById('quiz-workspace');
+        const instructionsText = document.getElementById('instructions-text');
+        const mathQuestionRender = document.getElementById('math-question-render');
+        const optionsContainer = document.getElementById('options-container');
+        const endScreen = document.getElementById('end-screen');
+        const btnRestart = document.getElementById('btn-restart');
+        const volumeSlider = document.getElementById('volume');
+        const audioCorrect = document.getElementById('audio-correct');
+        const audioWrong = document.getElementById('audio-wrong');
+
+        // Safe splash exit function
+        let splashDismissed = false;
+        function dismissSplash() {
+            if (splashDismissed) return;
+            splashDismissed = true;
+            splashScreen.style.opacity = '0';
+            setTimeout(() => {
+                splashScreen.style.display = 'none';
+                introScreen.style.display = 'block'; 
+            }, 400);
+        }
+
+        // Auto-dismiss when window finishes initial setup layout
+        window.addEventListener('load', () => {
+            setTimeout(dismissSplash, 1200); // Gives a short clean moment for the animation bar
+        });
+
+        // Fail-safe backup fallback timer just in case assets don't report back
+        setTimeout(dismissSplash, 1600);
+
+        btnStartMission.addEventListener('click', () => {
+            introScreen.style.display = 'none';
+            gameContainer.style.display = 'block';
+            initGame();
+        });
+
+        function initGame() {
+            totalTilesResolved = 0;
+            totalGemsCollected = 0;
+            acceptsInput = true;
+            activeQuestions = [...QUESTION_POOL].sort(() => Math.random() - 0.5);
+            
+            gemTray.innerHTML = '';
+            mineGridScreen.style.display = 'block';
+            quizWorkspace.style.display = 'none';
+            endScreen.style.display = 'none';
+            
+            progressText.innerText = `Gems Collected: 0/15`;
+            stopConfetti();
+            buildTileGrid();
+        }
+
+        function buildTileGrid() {
+            tilesGridContainer.innerHTML = '';
+            for (let i = 0; i < 15; i++) {
+                const tile = document.createElement('div');
+                tile.className = 'tile';
+                tile.dataset.index = i;
+                tile.innerText = '💎';
+                tile.addEventListener('click', () => handleTileClick(i, tile));
+                tilesGridContainer.appendChild(tile);
+            }
+        }
+
+        function handleTileClick(index, tileElement) {
+            if (!acceptsInput || tileElement.classList.contains('broken')) return;
+            
+            selectedQuestionIdx = index;
+            selectedTileElement = tileElement;
+            currentQuestionAttempts = 0;
+            
+            mineGridScreen.style.display = 'none';
+            quizWorkspace.style.display = 'block';
+            
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            acceptsInput = true;
+            instructionsText.classList.remove('hint-mode');
+            
+            const q = activeQuestions[selectedQuestionIdx];
+            instructionsText.innerText = q.query;
+            
+            if (q.textToShow) {
+                mathQuestionRender.innerHTML = q.textToShow;
+            } else {
+                mathQuestionRender.innerHTML = q.display;
+            }
+            
+            const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+            
+            optionsContainer.innerHTML = '';
+            shuffledOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-option';
+                btn.innerText = opt;
+                btn.addEventListener('click', () => checkAnswer(opt, btn));
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedOption, clickedBtn) {
+            if (!acceptsInput || clickedBtn.classList.contains('disabled-option')) return;
+            
+            const q = activeQuestions[selectedQuestionIdx];
+            const vol = volumeSlider.value;
+            audioCorrect.volume = vol;
+            audioWrong.volume = vol;
+
+            if (selectedOption === q.answer) {
+                acceptsInput = false;
+                clickedBtn.className = 'btn-option correct-flash';
+                audioCorrect.play().catch(e => {});
+                
+                startConfetti();
+                setTimeout(() => stopConfetti(), 1200);
+
+                setTimeout(() => {
+                    collectGemReward();
+                }, 1600);
+            } else {
+                currentQuestionAttempts++;
+                audioWrong.play().catch(e => {});
+
+                if (currentQuestionAttempts === 1) {
+                    clickedBtn.className = 'btn-option wrong-flash disabled-option';
+                    
+                    if (q.isUnderlinedTask) {
+                        instructionsText.innerText = `💡 Try again! The ${q.rawHintText} is underlined, which means it represents ${q.answer === '60' ? 'Tens' : 'Hundreds'}!`;
+                    } else {
+                        instructionsText.innerText = `💡 Try again! ${q.hint}`;
+                    }
+                    instructionsText.classList.add('hint-mode');
+                } else {
+                    acceptsInput = false;
+                    clickedBtn.className = 'btn-option wrong-flash';
+                    
+                    Array.from(optionsContainer.children).forEach(btn => {
+                        if (btn.innerText === q.answer) {
+                            btn.className = 'btn-option correct-flash';
+                        }
+                    });
+
+                    setTimeout(() => {
+                        turnTileToStone();
+                    }, 2000);
+                }
+            }
+        }
+
+        function collectGemReward() {
+            totalGemsCollected++;
+            totalTilesResolved++;
+            progressText.innerText = `Gems Collected: ${totalGemsCollected}/15`;
+            
+            const chosenGem = GEM_EMOJIS[selectedQuestionIdx % GEM_EMOJIS.length];
+            
+            const gemSlot = document.createElement('span');
+            gemSlot.className = 'tray-slot';
+            gemSlot.innerText = chosenGem;
+            gemTray.appendChild(gemSlot);
+            
+            selectedTileElement.className = 'tile broken';
+            selectedTileElement.innerText = chosenGem;
+
+            verifyGameProgress();
+        }
+
+        function turnTileToStone() {
+            totalTilesResolved++;
+            progressText.innerText = `Gems Collected: ${totalGemsCollected}/15`;
+            
+            selectedTileElement.className = 'tile broken';
+            selectedTileElement.innerText = '🪨';
+            
+            verifyGameProgress();
+        }
+
+        function verifyGameProgress() {
+            quizWorkspace.style.display = 'none';
+            
+            if (totalTilesResolved >= 15) {
+                mineGridScreen.style.display = 'none';
+                endScreen.style.display = 'block';
+                
+                const headingEl = document.getElementById('end-heading');
+                const textEl = document.getElementById('score-text');
+                
+                if (totalGemsCollected >= 13) {
+                    headingEl.innerText = "💎 Grand Master Explorer!";
+                    textEl.innerText = `Sensational work! You successfully collected ${totalGemsCollected} out of 15 gems. Your number system knowledge is exceptional!`;
+                    startConfetti();
+                } else if (totalGemsCollected >= 10) {
+                    headingEl.innerText = "🌟 Expert Miner!";
+                    textEl.innerText = `Great job! You collected ${totalGemsCollected} gems out of 15. With just a tiny bit more practice, you'll grab a perfect score!`;
+                    startConfetti();
+                } else if (totalGemsCollected >= 7) {
+                    headingEl.innerText = "⛏️ Good Effort!";
+                    textEl.innerText = `You collected ${totalGemsCollected} gems, but ${15 - totalGemsCollected} blocks turned to stone. Let's review place values and try again!`;
+                } else {
+                    headingEl.innerText = "🪨 Keep Practicing!";
+                    textEl.innerText = `You collected ${totalGemsCollected} gems this run. Don't worry—place values can be tricky. Try again to break more crystals!`;
+                }
+            } else {
+                mineGridScreen.style.display = 'block';
+                acceptsInput = true;
+            }
+        }
+
+        function resizeCanvas() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+        }
+
+        function startConfetti() {
+            resizeCanvas();
+            confettiParticles = [];
+            for (let i = 0; i < 70; i++) {
+                confettiParticles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 7 + 4,
+                    color: `hsl(${Math.random() * 360}, 100%, 65%)`,
+                    speedX: Math.random() * 2 - 1,
+                    speedY: Math.random() * 3 + 3
+                });
+            }
+            if (!confettiAnimationId) {
+                animateConfetti();
+            }
+        }
+
+        function stopConfetti() {
+            if (confettiAnimationId) {
+                cancelAnimationFrame(confettiAnimationId);
+                confettiAnimationId = null;
+            }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let livingParticles = false;
+            
+            confettiParticles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+                p.y += p.speedY;
+                p.x += p.speedX;
+                if (p.y < canvas.height) livingParticles = true;
+            });
+
+            if (livingParticles) {
+                confettiAnimationId = requestAnimationFrame(animateConfetti);
+            } else {
+                confettiAnimationId = null;
+            }
+        }
+
+        btnRestart.addEventListener('click', initGame);
+        window.addEventListener('resize', resizeCanvas);
+    </script>
+</body>
+</html>
