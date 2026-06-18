@@ -53,7 +53,6 @@
             display: flex;
         }
 
-        /* Splash Screen - Fixed dark font fallback color */
         #splash-screen {
             background: #ffffff;
             position: absolute;
@@ -176,7 +175,7 @@
 
         @media (max-width: 380px) {
             .options-container.row-layout {
-                grid-template-columns: 1fr; /* Stack options on very small screens */
+                grid-template-columns: 1fr;
             }
         }
 
@@ -320,7 +319,7 @@
             ]
         };
 
-        // Core Game Engine State
+        // State Tracking Engine
         let currentLevel = 1;
         let currentQuestionIdx = 0;
         let score = 0;
@@ -328,14 +327,15 @@
         let globalVolume = 0.8;
         let audioUnlocked = false;
         let completedQuestionsCount = 0;
+        
+        // NEW FEATURE Tracking Variable
+        let wrongAttemptsThisQuestion = 0;
 
         const totalQuestionsInGame = Object.values(levelQuestionsDatabase).flat().length;
 
-        // Lifecycle Initialization
         document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(showStoryBriefing, 2000); // Shorter splash load for better UX
+            setTimeout(showStoryBriefing, 2000);
 
-            // Setup programmatic event tracking listeners
             document.getElementById('begin-stage-btn').addEventListener('click', () => {
                 unlockAudio();
                 startLevelGameplay();
@@ -369,6 +369,8 @@
 
         function loadQuestion() {
             canAnswer = true;
+            wrongAttemptsThisQuestion = 0; // Reset attempts for the new question
+            
             const currentQuestionsPool = levelQuestionsDatabase[currentLevel];
             
             if (currentQuestionIdx >= currentQuestionsPool.length) {
@@ -388,7 +390,6 @@
             const optionsBox = document.getElementById('options-box');
             optionsBox.innerHTML = '';
 
-            // Apply specific grid structural layout adjustments if choice counts shift
             if(activeQuestion.choices.length === 2) {
                 optionsBox.classList.add('row-layout');
             } else {
@@ -407,29 +408,49 @@
         }
 
         function handleAnswerSubmission(selectedButton, chosenValue, correctAnswer) {
-            if (!canAnswer) return;
-            canAnswer = false;
+            if (!canAnswer || selectedButton.classList.contains('disabled')) return;
 
             const allButtons = document.getElementById('options-box').querySelectorAll('.btn');
-            completedQuestionsCount++;
 
+            // Handle CORRECT guess
             if (chosenValue === correctAnswer) {
+                canAnswer = false;
+                completedQuestionsCount++;
                 selectedButton.classList.add('correct');
                 score++;
                 document.getElementById('score-label').innerText = `Gems: ${score}`;
                 playSound('audio-correct');
                 if (window.confetti) confetti({ particleCount: 40, spread: 60, origin: { y: 0.8 } });
-            } else {
-                selectedButton.classList.add('wrong');
-                playSound('audio-wrong');
-                // Highlight the correct answer for pedagogical reinforcement
-                allButtons.forEach(btn => {
-                    if (btn.innerText === correctAnswer) btn.classList.add('correct');
-                });
+                
+                allButtons.forEach(btn => btn.classList.add('disabled'));
+                advanceNextQuestionWithDelay();
+                return;
             }
 
-            allButtons.forEach(btn => btn.classList.add('disabled'));
+            // Handle INCORRECT guess
+            wrongAttemptsThisQuestion++;
+            selectedButton.classList.add('wrong');
+            selectedButton.classList.add('disabled'); // Soft lock this chosen wrong button
+            playSound('audio-wrong');
 
+            // Determine if the player has structural options remaining or has reached 2 wrong answers maximum
+            const selectableCount = Array.from(allButtons).filter(btn => !btn.classList.contains('disabled')).length;
+
+            if (wrongAttemptsThisQuestion >= 2 || selectableCount === 0) {
+                // Out of chances! Force lock everything and reveal the correct answer.
+                canAnswer = false;
+                completedQuestionsCount++;
+                allButtons.forEach(btn => {
+                    btn.classList.add('disabled');
+                    if (btn.innerText === correctAnswer) btn.classList.add('correct');
+                });
+                advanceNextQuestionWithDelay();
+            }
+            // If they haven't reached 2 wrong answers yet, code flows cleanly out. 
+            // canAnswer stays true, allowing them to click a different active button!
+        }
+
+        function advanceNextQuestionWithDelay() {
             setTimeout(() => {
                 currentQuestionIdx++;
                 loadQuestion();
@@ -471,7 +492,7 @@
                     sound.play().then(() => {
                         sound.pause();
                         sound.currentTime = 0;
-                    }).catch(() => console.log("Audio contextual lock cleared."));
+                    }).catch(() => console.log("Audio pipeline loaded."));
                 }
             });
             audioUnlocked = true;
@@ -482,7 +503,7 @@
             if (sound) {
                 sound.volume = globalVolume;
                 sound.currentTime = 0;
-                sound.play().catch(() => console.log("Playback engine muted by security policies."));
+                sound.play().catch(() => console.log("Playback context managed."));
             }
         }
     </script>
