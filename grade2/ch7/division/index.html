@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Sweet Treats Bakery Party</title>
+    <!-- Canvas Confetti Library for completion celebration -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         * {
@@ -103,6 +104,8 @@
         }
         .intro-icon {
             font-size: 32px;
+            min-width: 35px;
+            text-align: center;
         }
         .intro-level-text h3 {
             margin: 0;
@@ -407,12 +410,14 @@
 </head>
 <body>
 
+    <!-- Splash Screen Panel -->
     <div id="splash-screen">
         <img src="assets/innovine-logo.png" alt="Logo" onerror="this.style.display='none';">
         <div class="loader"></div>
         <p style="color: #6d4c41; font-weight: bold; margin-top: 15px;">Setting up Treat Party...</p>
     </div>
 
+    <!-- Intro Screen Panel -->
     <div id="intro-screen">
         <h2 class="intro-title">🎂 Sweet Bakery Party!</h2>
         <img src="chef.png" alt="Chef Character" class="intro-chef-img">
@@ -438,6 +443,7 @@
         <button class="btn" style="width: 100%; font-size: 20px;" onclick="closeIntroAndStart()">Start Adventure 🌟</button>
     </div>
 
+    <!-- Background Audio Elements -->
     <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
@@ -459,7 +465,8 @@
         </div>
 
         <div id="game-content">
-            </div>
+            <!-- Dynamic Injection Slot -->
+        </div>
     </div>
 
     <script>
@@ -510,6 +517,9 @@
         let acceptInput = true;
         let piecesLeft = 0;
         let attemptCount = 0; 
+        
+        // Dynamic feedback performance variables
+        let level1FirstAttemptCorrectCount = 0;
 
         // Transitions from Splash Screen to Intro Screen
         setTimeout(() => {
@@ -537,6 +547,7 @@
 
         function startPart1() {
             currentGamePart = 1;
+            level1FirstAttemptCorrectCount = 0;
             document.getElementById('header-chef').style.display = "none";
             document.getElementById('game-part-lbl').innerText = "Level 1: Drag & Divide Objects";
             activeQuestions = [...part1Questions].sort(() => Math.random() - 0.5);
@@ -553,7 +564,6 @@
             const mainTitle = document.getElementById('game-title');
             
             if (prog) {
-                // Modified complete percentage calculation to account for the transitional layout item index
                 let completePct = ((index) / (part1Questions.length + 1 + part2Questions.length)) * 100;
                 prog.style.width = `${completePct}%`;
             }
@@ -704,6 +714,12 @@
             if (choice === q.answer) {
                 acceptInput = false;
                 points++;
+                
+                // Track if they solved it successfully on the very first try
+                if (attemptCount === 1) {
+                    level1FirstAttemptCorrectCount++;
+                }
+
                 element.classList.add('correct');
                 playSound(true);
                 confetti({ particleCount: 30, spread: 40, origin: { y: 0.75 } });
@@ -742,7 +758,7 @@
             }
         }
 
-        /* DYNAMIC APPRECIATION CUM TRANSITION SLIDE */
+        /* VARIATION IN FEEDBACK BASED ON FIRST-ATTEMPT COUNT */
         function showAppreciationTransitionSlide() {
             const container = document.getElementById('game-content');
             document.getElementById('game-part-lbl').innerText = "Level Completed! 🎉";
@@ -754,7 +770,29 @@
                 prog.style.width = `${completePct}%`;
             }
 
-            // continuous subtle celebratory confetti bursts
+            // Set up dynamic feedback variations based on level1FirstAttemptCorrectCount
+            let badgeIcon = "🎖️";
+            let rankTitle = "Amazing Bakery Companion";
+            let variationText = "";
+
+            if (level1FirstAttemptCorrectCount === 5) {
+                // Variation A: Perfect Score
+                badgeIcon = "👑";
+                rankTitle = "Grand Master Chef!";
+                variationText = "Incredible! You solved <b>all 5 sums on your very first attempt</b>! Your dividing skills are absolutely flawless. The bakery kids are thrilled!";
+            } else if (level1FirstAttemptCorrectCount >= 3) {
+                // Variation B: Great Score (3 or 4 right on 1st attempt)
+                badgeIcon = "⭐";
+                rankTitle = "Expert Baker!";
+                variationText = `Fantastic work! You nailed <b>${level1FirstAttemptCorrectCount} out of 5 sums on your very first try</b>. You shared those treats cleanly and efficiently!`;
+            } else {
+                // Variation C: Good Progress (0, 1, or 2 right on 1st attempt)
+                badgeIcon = "🧁";
+                rankTitle = "Rising Star Chef!";
+                variationText = "Way to go! You worked hard, learned from your adjustments, and beautifully finished dividing all the treats. Practice makes perfect!";
+            }
+
+            // Continuous celebratory bursts
             let duration = 1.5 * 1000;
             let end = Date.now() + duration;
             (function frame() {
@@ -765,17 +803,17 @@
 
             if (container) {
                 container.innerHTML = `
-                    <div class="badge-icon">🎖️</div>
+                    <div class="badge-icon">${badgeIcon}</div>
                     <div class="story-text" style="font-size: 20px; color: #2e7d32; margin-bottom: 5px;">
-                        Level 1 Complete!
+                        ${rankTitle}
                     </div>
                     
                     <div class="transition-card">
-                        <p style="margin: 0 0 10px 0; color: #5d4037; font-size: 15px; line-height: 1.5;">
-                            You shared all the sweet treats perfectly and made sure every single kid got an equal share! You are an amazing bakery companion.
+                        <p style="margin: 0 0 12px 0; color: #5d4037; font-size: 15px; line-height: 1.5;">
+                            ${variationText}
                         </p>
                         <p style="margin: 0; color: #d84315; font-weight: bold; font-size: 14px;">
-                            📦 Up Next: Let's box up orders using matching delivery box sizes!
+                            📦 Up Next: Let's box up dynamic orders using matching delivery box sizes!
                         </p>
                     </div>
 
@@ -884,7 +922,6 @@
                     selectedStation.classList.add('wrong-box');
                     playSound(false);
                     
-                    // Reveal correct answer box
                     const boxes = document.querySelectorAll('.station-target');
                     boxes.forEach(box => {
                         const numLabel = parseInt(box.querySelector('.station-num').innerText);
