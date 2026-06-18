@@ -34,13 +34,14 @@
             padding: 20px;
             z-index: 1;
         }
-        .active {
-            display: flex;
+        .screen.active {
+            display: flex !important;
         }
         
-        /* Branding Screen Styles */
+        /* STRICT BRANDING SCREEN REQUIREMENTS */
         #splash-screen { 
-            background-color: #10002b; 
+            background-color: #ffffff !important; /* Forces absolute white background */
+            color: #000000;
         }
         .logo-box {
             display: flex;
@@ -52,40 +53,31 @@
         .logo-placeholder { 
             max-width: 300px; 
             max-height: 150px; 
-            margin-bottom: 30px; 
+            margin-bottom: 40px; 
         }
         #logo-fallback {
             font-size: 3.5rem; 
             font-weight: 900;
-            color: #ff9e00; 
-            margin-bottom: 30px;
+            color: #240046; 
+            margin: 0 0 40px 0;
             letter-spacing: 4px;
-            text-shadow: 0 0 20px rgba(255, 158, 0, 0.6);
         }
         .loading-container {
-            width: 240px;
-            text-align: center;
+            width: 200px;
         }
         .loading-bar { 
             width: 100%; 
             height: 8px; 
-            background-color: rgba(255, 255, 255, 0.1); 
+            background-color: #e0e0e0; 
             border-radius: 10px; 
             overflow: hidden; 
-            margin-bottom: 10px;
         }
         .loading-progress { 
             width: 0%; 
             height: 100%; 
-            background: linear-gradient(90deg, #ff9e00, #ff6d00); 
+            background: #9d4edd; 
             border-radius: 10px;
             animation: load 5s linear forwards; 
-        }
-        .loading-text {
-            font-size: 0.85rem;
-            color: #9d4edd;
-            letter-spacing: 1px;
-            text-transform: uppercase;
         }
 
         /* Menu Screen */
@@ -193,7 +185,7 @@
             transform: scale(0.9);
         }
         
-        /* Floating offsets for structural natural behavior */
+        /* Floating offsets */
         .arcade-zone div:nth-child(2) { animation-delay: -1s; animation-duration: 3.5s; }
         .arcade-zone div:nth-child(3) { animation-delay: -2.2s; animation-duration: 4.5s; }
         .arcade-zone div:nth-child(4) { animation-delay: -1.5s; animation-duration: 3.8s; }
@@ -240,13 +232,12 @@
 
     <div id="splash-screen" class="screen active">
         <div class="logo-box">
-            <img class="logo-placeholder" src="assets/logo.png" alt="Innovine Logo" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';">
+            <img id="main-logo" class="logo-placeholder" src="assets/logo.png" alt="Innovine Logo" onerror="handleLogoError()">
             <h1 id="logo-fallback" style="display:none;">INNOVINE</h1>
             <div class="loading-container">
                 <div class="loading-bar">
                     <div class="loading-progress"></div>
                 </div>
-                <div class="loading-text">Loading Mainframe</div>
             </div>
         </div>
     </div>
@@ -303,7 +294,6 @@
         let currentQuestionIndex = 0;
         let questionPool = [];
 
-        // Synthesized Safe Fallback Audio System Engine
         const SoundEngine = {
             ctx: null,
             init() {
@@ -317,15 +307,12 @@
                 const gain = this.ctx.createGain();
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
-                
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(523.25, this.ctx.currentTime); // C5
-                osc.frequency.setValueAtTime(659.25, this.ctx.currentTime + 0.1); // E5
-                osc.frequency.setValueAtTime(783.99, this.ctx.currentTime + 0.2); // G5
-                
+                osc.frequency.setValueAtTime(523.25, this.ctx.currentTime);
+                osc.frequency.setValueAtTime(659.25, this.ctx.currentTime + 0.1);
+                osc.frequency.setValueAtTime(783.99, this.ctx.currentTime + 0.2);
                 gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
-                
                 osc.start();
                 osc.stop(this.ctx.currentTime + 0.4);
             },
@@ -335,20 +322,16 @@
                 const gain = this.ctx.createGain();
                 osc.connect(gain);
                 gain.connect(this.ctx.destination);
-                
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(180, this.ctx.currentTime);
                 osc.frequency.linearRampToValueAtTime(100, this.ctx.currentTime + 0.3);
-                
                 gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
-                
                 osc.start();
                 osc.stop(this.ctx.currentTime + 0.3);
             },
             playWin() {
                 this.init();
-                // Synthesize a fanfare chord cascading rapidly
                 const notes = [261.63, 329.63, 392.00, 523.25];
                 notes.forEach((freq, index) => {
                     const osc = this.ctx.createOscillator();
@@ -365,8 +348,13 @@
             }
         };
 
-        // Enforce 5-second branding delay cleanly
-        window.addEventListener('DOMContentLoaded', () => {
+        function handleLogoError() {
+            document.getElementById('main-logo').style.display = 'none';
+            document.getElementById('logo-fallback').style.display = 'block';
+        }
+
+        // Guarantees clean screen transition at precisely 5.0 seconds
+        window.addEventListener('load', () => {
             setTimeout(() => { 
                 transitionScreen('splash-screen', 'menu-screen'); 
             }, 5000); 
@@ -377,32 +365,26 @@
             document.getElementById(toId).classList.add('active');
         }
 
-        // Generate 15 pre-randomized non-repetitive structured configurations
         function buildGamePool() {
             let pools = [];
-            
-            // Types 1: Divisions by Base 10, 100
             const bases = [10, 100];
+            
             for(let i=0; i<5; i++) {
                 let divi = bases[Math.floor(Math.random() * bases.length)];
                 let quot = Math.floor(Math.random() * 80) + 11;
                 pools.push({ dividend: quot * divi, divisor: divi, quotient: quot, remainder: 0 });
             }
-            // Types 2: 3-Digit by 2-Digit exact fits
             for(let i=0; i<5; i++) {
-                let divi = Math.floor(Math.random() * 12) + 12; // 12 to 23
-                let quot = Math.floor(Math.random() * 7) + 3;  // 3 to 9
+                let divi = Math.floor(Math.random() * 12) + 12; 
+                let quot = Math.floor(Math.random() * 7) + 3;  
                 pools.push({ dividend: quot * divi, divisor: divi, quotient: quot, remainder: 0 });
             }
-            // Types 3: Division with visible remainders 
             for(let i=0; i<6; i++) {
-                let divi = Math.floor(Math.random() * 6) + 4; // 4 to 9
+                let divi = Math.floor(Math.random() * 6) + 4; 
                 let quot = Math.floor(Math.random() * 30) + 12; 
-                let rem = Math.floor(Math.random() * (divi - i === 0 ? 2 : divi - 1)) + 1;
+                let rem = Math.floor(Math.random() * (divi - 1)) + 1;
                 pools.push({ dividend: (quot * divi) + rem, divisor: divi, quotient: quot, remainder: rem });
             }
-
-            // Perform robust pool shuffling array operation
             return pools.sort(() => Math.random() - 0.5);
         }
 
@@ -419,7 +401,6 @@
             canPop = true;
             attemptsLeft = 2; 
             
-            // Clear prior design feedback states cleanly
             for(let i=0; i<4; i++) {
                 const b = document.getElementById(`bubble-${i}`);
                 b.className = "bubble-target";
@@ -474,7 +455,6 @@
                 document.getElementById('score-display').innerText = score;
                 SoundEngine.playCorrect();
                 selectedBubble.classList.add('correct-pop');
-
                 proceedToNextRound();
             } else {
                 attemptsLeft--;
@@ -482,17 +462,13 @@
                 
                 if (attemptsLeft > 0) {
                     selectedBubble.classList.add('wrong-shake');
-                    // Clean shake class off to allow re-trigger attempt animations seamlessly
                     setTimeout(() => { selectedBubble.classList.remove('wrong-shake'); }, 400);
                 } else {
-                    // Out of chances! Auto lock matrix and highlight correct answer setup
                     canPop = false; 
                     selectedBubble.classList.add('wrong-shake');
                     
-                    // Trace down correct answer bubble index reference location maps
                     let correctIndex = bubbleValues.indexOf(currentCorrectText);
                     document.getElementById(`bubble-${correctIndex}`).classList.add('reveal-correct');
-                    
                     proceedToNextRound();
                 }
             }
@@ -500,7 +476,6 @@
 
         function proceedToNextRound() {
             currentQuestionIndex++;
-            
             setTimeout(() => {
                 if (score >= targetScore || currentQuestionIndex >= questionPool.length) {
                     SoundEngine.playWin();
