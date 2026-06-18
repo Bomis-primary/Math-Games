@@ -67,6 +67,7 @@
         .hud-row {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             font-weight: bold;
             font-size: 1rem;
             color: #00f5d4;
@@ -118,6 +119,7 @@
             width: 100%;
             margin-top: 10px;
             height: 55px;
+            gap: 8px;
         }
         .deck-btn {
             background: rgba(255, 255, 255, 0.05);
@@ -130,12 +132,13 @@
             justify-content: center;
             align-items: center;
             cursor: pointer;
+            user-select: none;
         }
         .move-btn { width: 25%; }
-        .fire-btn { width: 45%; background: rgba(0, 245, 212, 0.15); border-color: #00f5d4; color: #00f5d4; }
+        .fire-btn { width: 50%; background: rgba(0, 245, 212, 0.15); border-color: #00f5d4; color: #00f5d4; font-size: 1rem; text-transform: uppercase; }
         .deck-btn:active { background: #00f5d4; color: #060410; }
 
-        /* Managed Launch Cover Panel - Updated to Match Reference Blueprint Placement */
+        /* Managed Launch Cover Panel */
         #hard-splash {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -160,10 +163,10 @@
 
     <audio id="s-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
-    <audio id="s-win" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
+    <audio id="s-win" src="assets/freesound_community-claps-44774.mp3" preload="auto"></preload>
 
     <div id="hard-splash">
-        <img src="assets/logo.png" class="splash-logo" alt="Innovine Solutions">
+        <img src="assets/logo.png" class="splash-logo" alt="Innovine Solutions" onerror="this.style.display='none'">
         <div style="width: 200px; height: 8px; background-color: #e2e8f0; border-radius: 20px; overflow: hidden;">
             <div id="loader-progress-fill" style="width: 0%; height: 100%; background-color: #22c55e; border-radius: 20px; transition: width 0.05s linear;"></div>
         </div>
@@ -181,19 +184,20 @@
 
         // Harpoon Miner Coordinates
         let minerShipX = 200;
-        const minerShipWidth = 50;
-        const minerShipHeight = 20;
-        let horizontalMovementMode = 0; // -1 = Left, 1 = Right
+        const minerShipWidth = 60;
+        const minerShipHeight = 24;
+        let horizontalMovementMode = 0; // -1 = Left, 1 = Right, 0 = Still
 
-        // Diamond Crystals and Harpoon Lasers Arrays
+        // Diamond Crystals and Harpoon Hooks Arrays
         let activeHarpoonsList = [];
         let crystalDiamondsList = [];
         
         let targetQuestionText = "";
         let expectedCorrectAnswer = "";
         let isEngineRunning = false;
+        let inputKeysState = {};
 
-        // Regulated 5-Second (5000ms) Progress Timeline Engine Loading Sequence
+        // Regulated 5-Second (5000ms) Timeline Engine Sequence
         let progressVal = 0;
         const loaderIntervalMs = 50; 
         const totalDurationMs = 5000;
@@ -242,6 +246,16 @@
             `;
         }
 
+        function triggerSoundEffect(elementId) {
+            try {
+                const aud = document.getElementById(elementId);
+                if (aud) {
+                    aud.currentTime = 0;
+                    aud.play().catch(() => {});
+                }
+            } catch(e) {}
+        }
+
         function initiateGameEngine() {
             currentScore = 0;
             livesLeft = 3;
@@ -259,7 +273,7 @@
             document.getElementById('viewport-root').innerHTML = `
                 <div class="game-layout">
                     <div class="hud-row">
-                        <div>SCORE: <span id="lbl-score">00</span></div>
+                        <div>SCORE: <span id="lbl-score">0</span></div>
                         <div>LIVES: <span id="lbl-lives">❤️❤️❤️</span></div>
                     </div>
 
@@ -326,4 +340,220 @@
 
                 crystalDiamondsList.push({
                     x: (i * segmentWidth) + (segmentWidth / 2),
-                    y: 60 + Math.random() * 40
+                    y: 60 + Math.random() * 40,
+                    text: answerText,
+                    isCorrect: correctFlag,
+                    radius: 28
+                });
+            }
+        }
+
+        function triggerHarpoonDeployment() {
+            if (!isEngineRunning || activeHarpoonsList.length > 0) return;
+            
+            activeHarpoonsList.push({
+                x: minerShipX + (minerShipWidth / 2),
+                y: canvasElement.height - minerShipHeight - 5,
+                speedY: -7
+            });
+        }
+
+        function runCanvasGameLoop() {
+            if (!isEngineRunning) return;
+
+            // Handle Input/Movement States
+            if (inputKeysState['ArrowLeft']) {
+                minerShipX -= 5;
+            }
+            if (inputKeysState['ArrowRight']) {
+                minerShipX += 5;
+            }
+            if (horizontalMovementMode === -1) {
+                minerShipX -= 4;
+            }
+            if (horizontalMovementMode === 1) {
+                minerShipX += 4;
+            }
+
+            // Wall Constraints
+            if (minerShipX < 0) minerShipX = 0;
+            if (minerShipX > canvasElement.width - minerShipWidth) {
+                minerShipX = canvasElement.width - minerShipWidth;
+            }
+
+            // Clear Screen Frame
+            canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+            // Draw Connection Cable Links if hook is in flight
+            if (activeHarpoonsList.length > 0) {
+                canvasContext.beginPath();
+                canvasContext.strokeStyle = "rgba(0, 245, 212, 0.4)";
+                canvasContext.lineWidth = 2;
+                canvasContext.moveTo(minerShipX + (minerShipWidth / 2), canvasElement.height - minerShipHeight);
+                canvasContext.lineTo(activeHarpoonsList[0].x, activeHarpoonsList[0].y);
+                canvasContext.stroke();
+            }
+
+            // Render Target Floating Crystals
+            crystalDiamondsList.forEach((gem) => {
+                canvasContext.beginPath();
+                canvasContext.fillStyle = "#18113c";
+                canvasContext.strokeStyle = "#9d4edd";
+                canvasContext.lineWidth = 3;
+                
+                // Draw Diamond Shape
+                canvasContext.moveTo(gem.x, gem.y - gem.radius);
+                canvasContext.lineTo(gem.x + gem.radius, gem.y);
+                canvasContext.lineTo(gem.x, gem.y + gem.radius);
+                canvasContext.lineTo(gem.x - gem.radius, gem.y);
+                canvasContext.closePath();
+                canvasContext.fill();
+                canvasContext.stroke();
+
+                // Typography labels inside crystals
+                canvasContext.fillStyle = "#ffffff";
+                canvasContext.font = "bold 13px sans-serif";
+                canvasContext.textAlign = "center";
+                canvasContext.textBaseline = "middle";
+                canvasContext.fillText(gem.text, gem.x, gem.y);
+            });
+
+            // Update & Draw Harpoon Projectiles
+            for (let h = activeHarpoonsList.length - 1; h >= 0; h--) {
+                let hook = activeHarpoonsList[h];
+                hook.y += hook.speedY;
+
+                // Render Sharp Laser Tip
+                canvasContext.beginPath();
+                canvasContext.fillStyle = "#00f5d4";
+                canvasContext.arc(hook.x, hook.y, 6, 0, Math.PI * 2);
+                canvasContext.fill();
+
+                // Out of Bounds Deflection
+                if (hook.y < 0) {
+                    activeHarpoonsList.splice(h, 1);
+                    continue;
+                }
+
+                // Mathematical Collision Calculations
+                for (let d = 0; d < crystalDiamondsList.length; d++) {
+                    let crystal = crystalDiamondsList[d];
+                    let dist = Math.hypot(hook.x - crystal.x, hook.y - crystal.y);
+
+                    if (dist < crystal.radius + 6) {
+                        activeHarpoonsList.splice(h, 1);
+                        evaluateUserSelection(crystal.isCorrect);
+                        break;
+                    }
+                }
+            }
+
+            // Draw Bottom Wagon Frame
+            canvasContext.fillStyle = "#00f5d4";
+            canvasContext.lineJoin = "round";
+            canvasContext.fillRect(minerShipX, canvasElement.height - minerShipHeight - 6, minerShipWidth, minerShipHeight);
+            
+            // Core Cabin Plate Accent
+            canvasContext.fillStyle = "#0c081c";
+            canvasContext.fillRect(minerShipX + 12, canvasElement.height - minerShipHeight, minerShipWidth - 24, minerShipHeight - 8);
+
+            animationFrameHandle = requestAnimationFrame(runCanvasGameLoop);
+        }
+
+        function evaluateUserSelection(isCorrect) {
+            if (isCorrect) {
+                currentScore += 10;
+                document.getElementById('lbl-score').innerText = currentScore;
+                triggerSoundEffect('s-correct');
+                
+                if (currentScore >= 50) {
+                    executeVictoryScreen();
+                } else {
+                    generateNextChronosQuestion();
+                }
+            } else {
+                livesLeft--;
+                let liveHearts = "";
+                for(let i=0; i<3; i++) {
+                    liveHearts += (i < livesLeft) ? "❤️" : "🖤";
+                }
+                document.getElementById('lbl-lives').innerText = liveHearts;
+                triggerSoundEffect('s-wrong');
+
+                if (livesLeft <= 0) {
+                    executeGameOverScreen();
+                } else {
+                    generateNextChronosQuestion();
+                }
+            }
+        }
+
+        function executeVictoryScreen() {
+            isEngineRunning = false;
+            triggerSoundEffect('s-win');
+            document.getElementById('viewport-root').innerHTML = `
+                <div class="rush-panel" style="border-color: #22c55e; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3);">
+                    <h1 style="color:#22c55e; font-size: 2rem; margin-bottom: 12px;">🏆 CAVE CLEARED!</h1>
+                    <p style="color:#ffffff; margin-bottom: 20px; font-size:1.05rem;">Chronos Mainframe Chronology Synced Successfully!</p>
+                    <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 25px; color: #00f5d4;">FINAL SCORE: ${currentScore} PTS</div>
+                    <button class="btn-mine" style="background:#22c55e;" onclick="renderMenuScreen()">Return To Menu</button>
+                </div>
+            `;
+        }
+
+        function executeGameOverScreen() {
+            isEngineRunning = false;
+            document.getElementById('viewport-root').innerHTML = `
+                <div class="rush-panel" style="border-color: #ef4444; box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);">
+                    <h1 style="color:#ef4444; font-size: 2rem; margin-bottom: 12px;">⚡ CRITICAL FAILURE</h1>
+                    <p style="color:#ffffff; margin-bottom: 20px; font-size:1.05rem;">Wagon integrity depleted in the cave timelines.</p>
+                    <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 25px; color: #ef4444;">SCORE UNLOCKED: ${currentScore} PTS</div>
+                    <button class="btn-mine" style="background:#ef4444; color:#fff;" onclick="renderMenuScreen()">Try Again</button>
+                </div>
+            `;
+        }
+
+        function attachSteeringControls() {
+            // Desktop Keyboard Mapping Hookups
+            window.addEventListener('keydown', (e) => {
+                if(['ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+                    e.preventDefault();
+                }
+                inputKeysState[e.key] = true;
+                if (e.key === ' ') {
+                    triggerHarpoonDeployment();
+                }
+            });
+
+            window.addEventListener('keyup', (e) => {
+                inputKeysState[e.key] = false;
+            });
+
+            // Mobile/Touch Control Node Registrations
+            const lBtn = document.getElementById('btn-left-press');
+            const rBtn = document.getElementById('btn-right-press');
+            const fBtn = document.getElementById('btn-fire-press');
+
+            if (lBtn && rBtn && fBtn) {
+                // Left Navigation Handlers
+                lBtn.addEventListener('touchstart', (e) => { e.preventDefault(); horizontalMovementMode = -1; });
+                lBtn.addEventListener('touchend', (e) => { e.preventDefault(); horizontalMovementMode = 0; });
+                lBtn.addEventListener('mousedown', () => { horizontalMovementMode = -1; });
+                lBtn.addEventListener('mouseup', () => { horizontalMovementMode = 0; });
+                lBtn.addEventListener('mouseleave', () => { horizontalMovementMode = 0; });
+
+                // Right Navigation Handlers
+                rBtn.addEventListener('touchstart', (e) => { e.preventDefault(); horizontalMovementMode = 1; });
+                rBtn.addEventListener('touchend', (e) => { e.preventDefault(); horizontalMovementMode = 0; });
+                rBtn.addEventListener('mousedown', () => { horizontalMovementMode = 1; });
+                rBtn.addEventListener('mouseup', () => { horizontalMovementMode = 0; });
+                rBtn.addEventListener('mouseleave', () => { horizontalMovementMode = 0; });
+
+                // Harpoon Launch Action Handlers
+                fBtn.addEventListener('touchstart', (e) => { e.preventDefault(); triggerHarpoonDeployment(); });
+                fBtn.addEventListener('mousedown', () => { triggerHarpoonDeployment(); });
+            }
+        }
+    </script>
+</body>
+</html>
