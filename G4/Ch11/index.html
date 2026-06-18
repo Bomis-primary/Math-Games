@@ -40,7 +40,7 @@
             position: relative;
         }
 
-        /* Splash Screen (Logo appears ONLY here) */
+        /* Splash Screen */
         #hard-splash {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -164,7 +164,6 @@
             text-align: left;
         }
 
-        /* Micro-height graphics container */
         .simulation-frame {
             width: 100%;
             background: #111827;
@@ -230,6 +229,16 @@
         
         .ledger-chip.selected .chip-meta {
             color: #93c5fd;
+        }
+
+        /* Class forced on chips when presenting correct answer after systemic audit failure */
+        .ledger-chip.reveal-correct {
+            background: #064e3b !important;
+            border: 2px solid #10b981 !important;
+            color: #ffffff !important;
+        }
+        .ledger-chip.reveal-correct .chip-meta {
+            color: #a7f3d0 !important;
         }
 
         .action-dispatch-btn {
@@ -326,6 +335,7 @@
         let chosenOptionIndex = 0;
         let shuffledAnswersList = [];
         let executionAttemptsLeft = 2;
+        let interactionLockoutActive = false;
 
         let canvasElement = null;
         let canvasContext = null;
@@ -413,11 +423,17 @@
         }
 
         function generateBankPuzzle() {
+            interactionLockoutActive = false;
             document.getElementById('lbl-status-toast').innerText = "Select corresponding allocation asset, then submit.";
             document.getElementById('lbl-status-toast').style.color = "#9ca3af";
             document.getElementById('btn-process').disabled = false;
             executionAttemptsLeft = 2;
             updateAttemptsHUD();
+
+            // Clear any lingering answer layout indicators
+            for (let i = 0; i < 4; i++) {
+                document.getElementById(`opt-${i}`).classList.remove('reveal-correct');
+            }
 
             const branchLogs = [
                 { text: "A vault ledger contains ₹7,250. If an authorized cash payout transaction of ₹1,450 is completed, how much balance remains?", ans: "₹5,800", w1: "₹5,900", w2: "₹5,650", w3: "₹5,700" },
@@ -458,7 +474,7 @@
         }
 
         function selectBankOption(idx) {
-            if (securityTruck.isDriving || securityTruck.isTumbling) return;
+            if (securityTruck.isDriving || securityTruck.isTumbling || interactionLockoutActive) return;
             chosenOptionIndex = idx;
 
             for (let i = 0; i < 4; i++) {
@@ -543,7 +559,7 @@
         }
 
         function processTransaction() {
-            if (securityTruck.isDriving || securityTruck.isTumbling) return;
+            if (securityTruck.isDriving || securityTruck.isTumbling || interactionLockoutActive) return;
             document.getElementById('btn-process').disabled = true;
             securityTruck.isDriving = true;
             document.getElementById('lbl-status-toast').innerText = "Processing automated ledger entry...";
@@ -580,8 +596,18 @@
                 securityTruck.rotation = 0;
                 securityTruck.frameTimer = 0;
             } else {
-                document.getElementById('lbl-status-toast').innerText = "❌ TOTAL SYSTEM LOCKOUT! Generating fresh ledger...";
-                setTimeout(() => { generateBankPuzzle(); }, 1600);
+                interactionLockoutActive = true;
+                document.getElementById('btn-process').disabled = true;
+                document.getElementById('lbl-status-toast').innerText = "❌ FAILED! Showing correct balance context...";
+                document.getElementById('lbl-status-toast').style.color = "#ef4444";
+                
+                // Identify correct slot item index and apply glowing indicator matrix filter style
+                let correctIndex = shuffledAnswersList.findIndex(item => item.isCorrect);
+                if (correctIndex !== -1) {
+                    document.getElementById(`opt-${correctIndex}`).classList.add('reveal-correct');
+                }
+
+                setTimeout(() => { generateBankPuzzle(); }, 2000);
             }
         }
 
