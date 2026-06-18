@@ -416,7 +416,7 @@
         document.getElementById('hud-status').innerText = "Your Turn";
         document.getElementById('hud-status').style.color = "#0284c7";
         
-        currentQuestionAttempts = 0; // Reset attempts for the new card round
+        currentQuestionAttempts = 0; 
 
         const diceNode = document.getElementById('dice-graphic');
         if(diceNode) diceNode.className = 'dice-cube'; 
@@ -492,6 +492,7 @@
             const diceNode = document.getElementById('dice-graphic');
             if(diceNode) diceNode.className = 'dice-cube rolling';
 
+            // WAITS 1400ms while dice spins BEFORE executing pawn movement changes
             setTimeout(() => {
                 const movementSteps = Math.floor(Math.random() * 3) + 1;
                 playerCurrentTileSpace += movementSteps;
@@ -510,6 +511,7 @@
                     return;
                 }
 
+                // Pawn updates position here (after dice stops rolling animation loop completes)
                 positionTokenOnGridSpace(playerCurrentTileSpace);
 
                 setTimeout(() => {
@@ -542,7 +544,6 @@
             if(audioW) audioW.play().catch(() => {});
 
             if (currentQuestionAttempts === 1) {
-                // Strike 1: Grey out and lock the single wrong choice button
                 if (clickedBtn) {
                     clickedBtn.style.opacity = "0.25";
                     clickedBtn.style.background = "#e2e8f0";
@@ -551,7 +552,6 @@
                     clickedBtn.onclick = null;
                 }
                 
-                // Formulate a helpful Grade 2 tip without wiping out the equation panel numbers
                 let tacticalHint = currentRoundType === 'addition' ? 
                     "Check your Ones place sum!" : 
                     "Check your Tens place subtraction!";
@@ -560,7 +560,6 @@
                 document.getElementById('hud-status').style.color = "#d97706";
 
             } else {
-                // Strike 2: Lock out options, show correct formula result, and advance to next turn
                 document.querySelectorAll('.btn-choice').forEach(b => b.onclick = null);
                 
                 document.getElementById('math-problem-display').innerText = `Answer: ${targetSolution}`;
