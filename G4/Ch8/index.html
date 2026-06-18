@@ -99,7 +99,7 @@
             line-height: 1.4;
         }
 
-        /* Cave Mining Grid Frame */
+        /* Cave Grid Frame */
         .cave-frame {
             width: 100%;
             background: #060410;
@@ -185,7 +185,7 @@
         let canvasContext = null;
         let animationFrameHandle = null;
 
-        // Harpoon Miner Coordinates
+        // Harpoon Wagon Coordinates
         let minerShipX = 200;
         const minerShipWidth = 60;
         const minerShipHeight = 24;
@@ -200,28 +200,32 @@
         let isEngineRunning = false;
         let inputKeysState = {};
 
-        // Balanced Grade 4 Calendar & Clock Dataset
+        // Calendar and Time Database Matching image_002dd7.png Outcomes
         let runtimeActivePool = [];
         let poolQuestionPointer = 0;
 
         const masterQuestionDatabase = [
-            // --- Grade 4 Calendar Focus Questions ---
-            { tag: "Calendar: Conversions", q: "How many days are in 4 weeks?", a: "28 days", w: ["24 days", "30 days", "14 days"] },
-            { tag: "Calendar: Conversions", q: "How many weeks are in 1 year?", a: "52 weeks", w: ["48 weeks", "50 weeks", "12 weeks"] },
-            { tag: "Calendar: Month Identification", q: "Which month has exactly 28 days (non-leap year)?", a: "February", w: ["April", "June", "September"] },
-            { tag: "Calendar: Month Identification", q: "How many months have exactly 31 days?", a: "7 months", w: ["4 months", "6 months", "5 months"] },
-            { tag: "Calendar: Leap Years", q: "How many days are in a Leap Year?", a: "366 days", w: ["365 days", "360 days", "350 days"] },
-            { tag: "Calendar: Elapsed Days", q: "Days from Oct 12 to Oct 19?", a: "7 days", w: ["6 days", "8 days", "9 days"] },
-            { tag: "Calendar: Elapsed Days", q: "If July 1st is a Monday, what day is July 8th?", a: "Monday", w: ["Tuesday", "Sunday", "Friday"] },
-            { tag: "Calendar: Conversions", q: "Convert 3 years into months", a: "36 mos", w: ["24 mos", "30 mos", "40 mos"] },
-            
-            // --- Clock & Time Focus Questions ---
-            { tag: "24-Hour Clock Conversion", q: "Convert 05:00 PM to 24h", a: "17:00", w: ["05:00", "23:00", "15:00"] },
-            { tag: "24-Hour Clock Conversion", q: "Convert 10:30 PM to 24h", a: "22:30", w: ["10:30", "20:30", "12:30"] },
-            { tag: "Unit Conversion Mapping", q: "Minutes inside 2h 15m", a: "135m", w: ["120m", "155m", "95m"] },
-            { tag: "Unit Conversion Mapping", q: "Seconds inside 3 Minutes", a: "180s", w: ["120s", "240s", "300s"] },
-            { tag: "Elapsed Interval Space", q: "Minutes from 04:15 to 05:00", a: "45m", w: ["15m", "60m", "30m"] },
-            { tag: "Elapsed Interval Space", q: "Hours from 08:00 AM to 01:00 PM", a: "5h", w: ["4h", "6h", "7h"] }
+            // --- 24-Hour Conversions ---
+            { tag: "24-Hour Format", q: "Convert 4:15 PM into 24-hour clock time:", a: "16:15", w: ["04:15", "14:15", "18:15"] },
+            { tag: "24-Hour Format", q: "Convert 11:30 PM into 24-hour clock time:", a: "23:30", w: ["11:30", "13:30", "21:30"] },
+            { tag: "12-Hour Format", q: "Convert 08:20 into standard 12-hour AM/PM format:", a: "8:20 AM", w: ["8:20 PM", "6:20 AM", "6:20 PM"] },
+            { tag: "12-Hour Format", q: "Convert 17:45 into standard 12-hour AM/PM format:", a: "5:45 PM", w: ["7:45 PM", "5:45 AM", "17:45 PM"] },
+            { tag: "24-Hour Format", q: "What 24-hour time represents midnight (12:00 AM)?", a: "00:00", w: ["12:00", "24:00", "06:00"] },
+
+            // --- Conversions (Hours, Minutes, Seconds) ---
+            { tag: "Unit Conversion", q: "How many minutes are there in exactly 2.5 hours?", a: "150 min", w: ["120 min", "180 min", "250 min"] },
+            { tag: "Unit Conversion", q: "Convert 4 minutes directly into seconds:", a: "240 sec", w: ["180 sec", "400 sec", "300 sec"] },
+            { tag: "Unit Conversion", q: "How many total hours are equal to 180 minutes?", a: "3 hours", w: ["2 hours", "4 hours", "1.8 hours"] },
+
+            // --- Elapsed Time ---
+            { tag: "Elapsed Time", q: "A film starts at 14:15 and ends at 16:30. How long was it?", a: "2h 15m", w: ["2h 30m", "1h 45m", "3h 15m"] },
+            { tag: "Elapsed Time", q: "If a train departs at 09:10 and arrives at 11:45, find travel time:", a: "2h 35m", w: ["2h 45m", "3h 35m", "1h 55m"] },
+            { tag: "Elapsed Time", q: "An event finishes at 1:15 PM. It ran for 45 minutes. When did it start?", a: "12:30 PM", w: ["12:45 PM", "1:00 PM", "12:15 PM"] },
+
+            // --- Calendar & Multi-step Story Problems ---
+            { tag: "Calendar Math", q: "If May 3rd is a Tuesday, what day of the week is May 10th?", a: "Tuesday", w: ["Wednesday", "Monday", "Thursday"] },
+            { tag: "Story Problem", q: "A project takes 3 weeks and 4 days. How many total days is this?", a: "25 days", w: ["21 days", "24 days", "34 days"] },
+            { tag: "Calendar Math", q: "How many days are in a regular calendar year (not a leap year)?", a: "365 days", w: ["366 days", "360 days", "355 days"] }
         ];
 
         // Regulated 5-Second Progress Bar
@@ -261,9 +265,9 @@
             
             document.getElementById('viewport-root').innerHTML = `
                 <div class="rush-panel">
-                    <h1 style="color:#00f5d4; font-size:1.8rem; margin-bottom:12px;">CHRONOS DIAMOND RUSH</h1>
+                    <h1 style="color:#00f5d4; font-size:1.6rem; margin-bottom:12px;">CHRONOS TIME RUSH</h1>
                     <p style="color:#a29dbd; font-size:0.95rem; line-height:1.6; text-align:left; margin-bottom:20px;">
-                        Master the calendar timelines! Read the Grade 4 calendar or clock prompt at the top, navigate your wagon under the correct matching diamond, and fire your grapple hook!
+                        Master your time and calendar objectives! Read the prompt at the top, position your wagon under the correct target diamond, and fire your harpoon hook to secure the correct value!
                     </p>
                     <div style="color:#9d4edd; font-size:0.85rem; margin-bottom:20px; font-weight:bold;">
                         ⌨️ Key Controls: Arrow Keys to slide | Spacebar to Fire Hook
@@ -289,7 +293,6 @@
             crystalDiamondsList = [];
             activeHarpoonsList = [];
             
-            // Randomize whole dataset index order at launch to stop repetition patterns
             runtimeActivePool = [...masterQuestionDatabase].sort(() => Math.random() - 0.5);
             poolQuestionPointer = 0;
             
@@ -309,7 +312,7 @@
                     </div>
 
                     <div class="mission-panel">
-                        <div class="mission-tag" id="lbl-task-tag">TIME TARGET LOCK</div>
+                        <div class="mission-tag" id="lbl-task-tag">CHRONO UNIT TARGET</div>
                         <div class="mission-text" id="lbl-task-text">LOADING...</div>
                     </div>
 
@@ -364,7 +367,7 @@
                     answerText = expectedCorrectAnswer;
                     correctFlag = true;
                 } else {
-                    answerText = incorrectAnswers.pop() || "12 days";
+                    answerText = incorrectAnswers.pop() || "00:00";
                 }
 
                 crystalDiamondsList.push({
@@ -372,7 +375,7 @@
                     y: 75 + Math.random() * 25, 
                     text: answerText,
                     isCorrect: correctFlag,
-                    radius: 36 // Clean bounding box sizes for longer multi-letter text entries
+                    radius: 36
                 });
             }
         }
@@ -390,7 +393,7 @@
         function runCanvasGameLoop() {
             if (!isEngineRunning) return;
 
-            // Compute Input Vector Velocities
+            // Compute Input Velocities
             if (inputKeysState['ArrowLeft']) minerShipX -= 6;
             if (inputKeysState['ArrowRight']) minerShipX += 6;
             if (horizontalMovementMode === -1) minerShipX -= 5;
@@ -404,7 +407,7 @@
 
             canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
-            // Draw Tether Mechanical Cable Wire
+            // Draw Tether Mechanical Wire
             if (activeHarpoonsList.length > 0) {
                 canvasContext.beginPath();
                 canvasContext.strokeStyle = "#00f5d4";
@@ -414,7 +417,7 @@
                 canvasContext.stroke();
             }
 
-            // Draw High-Contrast Targeted Crystals
+            // Draw Target Crystals
             crystalDiamondsList.forEach((gem) => {
                 canvasContext.beginPath();
                 canvasContext.fillStyle = "#110935";
@@ -423,20 +426,19 @@
                 
                 // Construct Diamond Geometry Paths
                 canvasContext.moveTo(gem.x, gem.y - gem.radius);
-                canvasContext.lineTo(gem.x + (gem.radius + 6), gem.y); // Horizontal stretch for calendar texts
+                canvasContext.lineTo(gem.x + (gem.radius + 6), gem.y); 
                 canvasContext.lineTo(gem.x, gem.y + gem.radius);
                 canvasContext.lineTo(gem.x - (gem.radius + 6), gem.y);
                 canvasContext.closePath();
                 canvasContext.fill();
                 canvasContext.stroke();
 
-                // Typography Configuration
+                // Text Formatting
                 canvasContext.fillStyle = "#ffffff";
                 canvasContext.font = "bold 13px sans-serif";
                 canvasContext.textAlign = "center";
                 canvasContext.textBaseline = "middle";
                 
-                // Dynamic shadow rendering logic
                 canvasContext.shadowColor = "black";
                 canvasContext.shadowBlur = 4;
                 canvasContext.shadowOffsetX = 1;
@@ -444,7 +446,6 @@
                 
                 canvasContext.fillText(gem.text, gem.x, gem.y);
                 
-                // Clear state down to default zero limits
                 canvasContext.shadowBlur = 0;
                 canvasContext.shadowOffsetX = 0;
                 canvasContext.shadowOffsetY = 0;
@@ -465,7 +466,7 @@
                     continue;
                 }
 
-                // Intersection Math Loop
+                // Intersection Loop
                 for (let d = 0; d < crystalDiamondsList.length; d++) {
                     let crystal = crystalDiamondsList[d];
                     let distanceVector = Math.hypot(hook.x - crystal.x, hook.y - crystal.y);
@@ -478,7 +479,7 @@
                 }
             }
 
-            // Render Mining Wagon Core Shell
+            // Render Mining Wagon Shell
             canvasContext.fillStyle = "#00f5d4";
             canvasContext.fillRect(minerShipX, canvasElement.height - minerShipHeight - 6, minerShipWidth, minerShipHeight);
             
@@ -521,8 +522,8 @@
             triggerSoundEffect('s-win');
             document.getElementById('viewport-root').innerHTML = `
                 <div class="rush-panel" style="border-color: #22c55e; box-shadow: 0 10px 30px rgba(34, 197, 94, 0.3);">
-                    <h1 style="color:#22c55e; font-size: 2rem; margin-bottom: 12px;">🏆 CAVE CLEARED!</h1>
-                    <p style="color:#ffffff; margin-bottom: 20px; font-size:1.05rem;">Grade 4 calendar matrices fully mapped and aligned!</p>
+                    <h1 style="color:#22c55e; font-size: 2rem; margin-bottom: 12px;">🏆 MISSION COMPLETE</h1>
+                    <p style="color:#ffffff; margin-bottom: 20px; font-size:1.05rem;">All chronological metrics mapped perfectly!</p>
                     <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 25px; color: #00f5d4;">FINAL SCORE: ${currentScore} PTS</div>
                     <button class="btn-mine" style="background:#22c55e;" onclick="renderMenuScreen()">Return To Menu</button>
                 </div>
@@ -533,8 +534,8 @@
             isEngineRunning = false;
             document.getElementById('viewport-root').innerHTML = `
                 <div class="rush-panel" style="border-color: #ef4444; box-shadow: 0 10px 30px rgba(239, 68, 68, 0.3);">
-                    <h1 style="color:#ef4444; font-size: 2rem; margin-bottom: 12px;">⚡ TIME CRISIS</h1>
-                    <p style="color:#ffffff; margin-bottom: 20px; font-size:1.05rem;">Wagon timeline integrity depleted.</p>
+                    <h1 style="color:#ef4444; font-size: 2rem; margin-bottom: 12px;">⚡ TIME UP!</h1>
+                    <p style="color:#ffffff; margin-bottom: 20px; font-size:1.05rem;">Wagon timeline integrity fully depleted.</p>
                     <div style="font-size: 1.3rem; font-weight: bold; margin-bottom: 25px; color: #ef4444;">SCORE SECURED: ${currentScore} PTS</div>
                     <button class="btn-mine" style="background:#ef4444; color:#fff;" onclick="renderMenuScreen()">Try Again</button>
                 </div>
