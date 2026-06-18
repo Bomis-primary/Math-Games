@@ -259,8 +259,8 @@
 
     <div id="screen-end" class="screen">
         <div class="card">
-            <div style="font-size: 65px; margin-bottom: 10px;">🏆👑</div>
-            <h1>Tower Conquered!</h1>
+            <div id="end-emoji-display" style="font-size: 65px; margin-bottom: 10px;">🏆👑</div>
+            <h1 id="end-title-text">Tower Conquered!</h1>
             <p id="end-summary-text">Fantastic counting! You mastered double and triple digit sums.</p>
             <button class="btn" onclick="goToScreen('screen-welcome'); resetBoardState();">Climb Again</button>
         </div>
@@ -332,7 +332,7 @@
 
     function pickCharacter(index) {
         activeCharacterIdx = index;
-        document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
+        document.querySelectorAll('.char-card').forEach(c => r.classList.remove('selected'));
         const targetCard = document.getElementById(`c-${index}`);
         if(targetCard) targetCard.classList.add('selected');
     }
@@ -494,28 +494,52 @@
 
             // --- SEQUENCE STEP: Dice spins for exactly 2 seconds first ---
             setTimeout(() => {
-                // Die stops spinning
                 if(diceNode) diceNode.className = 'dice-cube';
 
                 // --- SEQUENCE STEP: Pawn moves AFTER die finishes spinning ---
                 const movementSteps = Math.floor(Math.random() * 3) + 1;
-                playerCurrentTileSpace += movementSteps;
+                let prospectiveSpace = playerCurrentTileSpace + movementSteps;
                 
-                if (playerCurrentTileSpace > 16 && correctAnswersCount < 10) {
-                    playerCurrentTileSpace = (playerCurrentTileSpace % 16) || 1;
+                // CRITICAL SAFETY SHIELD: Do not let pawn touch space 16 if total solved questions < 10
+                if (correctAnswersCount < 10 && prospectiveSpace >= 16) {
+                    playerCurrentTileSpace = (prospectiveSpace % 15) || 1;
+                } else {
+                    playerCurrentTileSpace = prospectiveSpace;
                 }
 
                 if (correctAnswersCount >= 10 && playerCurrentTileSpace >= finalWinningTileSpace) {
                     playerCurrentTileSpace = finalWinningTileSpace;
                     positionTokenOnGridSpace(playerCurrentTileSpace);
+                    
+                    // Trigger custom end screen reporting evaluation performance
                     setTimeout(() => {
+                        let title = "Tower Conquered! 🏆";
+                        let description = "";
+                        let emoji = "🏆👑";
+
+                        if (correctAnswersCount >= 15) {
+                            title = "Ultimate Math Grandmaster! 🌟";
+                            emoji = "👑💎⚡";
+                            description = `Sensational math skills! You cleared the entire arena and answered an unbelievable ${correctAnswersCount} questions correctly! You are a master of place values.`;
+                        } else if (correctAnswersCount >= 12) {
+                            title = "Elite Math Climber! 🚀";
+                            emoji = "🎯🥇🔥";
+                            description = `Outstanding work! You answered ${correctAnswersCount} addition and subtraction problems successfully while navigating all the board hazards. Highly precise calculations!`;
+                        } else {
+                            title = "Tower Conqueror! 🪜";
+                            emoji = "🎉🧗🎲";
+                            description = `Magnificent work! You met the core challenge perfectly, solved exactly ${correctAnswersCount} math problems accurately, and guided your companion to victory!`;
+                        }
+
+                        document.getElementById('end-emoji-display').innerText = emoji;
+                        document.getElementById('end-title-text').innerText = title;
+                        document.getElementById('end-summary-text').innerText = description;
+
                         goToScreen('screen-end');
-                        document.getElementById('end-summary-text').innerText = `Magnificent work Tower Conqueror! You handled all the falls, solved ${correctAnswersCount} equations perfectly, reached Space 16, and won!`;
                     }, 1200);
                     return;
                 }
 
-                // Move pawn now
                 positionTokenOnGridSpace(playerCurrentTileSpace);
 
                 // Handle ladders/snakes after pawn reaches the space
@@ -540,7 +564,7 @@
                     }
                 }, 1100);
 
-            }, 2000); // 2000ms fixed roll duration
+            }, 2000); 
 
         } else {
             currentQuestionAttempts++;
