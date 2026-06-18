@@ -46,14 +46,13 @@
             max-width: 240px;
             max-height: 120px;
             object-fit: contain;
-            margin-bottom: 10px;
             display: block;
             margin-left: auto;
             margin-right: auto;
         }
         .splash-loader { 
             width: 160px; height: 10px; background: #e0e0e0; 
-            border-radius: 6px; margin: 15px auto 0 auto; overflow: hidden; 
+            border-radius: 6px; margin: 25px auto 0 auto; overflow: hidden; 
         }
         .splash-bar { 
             width: 100%; height: 100%; background: var(--accent-purple); 
@@ -185,7 +184,6 @@
         }
         .money-tool-item:active:not(.restricted-locked) { cursor: grabbing; }
         
-        /* NEW FIXED STYLING: Instead of hiding, items look disabled and locked */
         .money-tool-item.restricted-locked { 
             opacity: 0.25; 
             cursor: not-allowed; 
@@ -199,7 +197,6 @@
         .currency-asset-img { width: 50px; height: 50px; object-fit: contain; pointer-events: none; mix-blend-mode: multiply; }
         .note-asset-img { width: 80px; height: 44px; object-fit: contain; pointer-events: none; mix-blend-mode: multiply; }
         
-        /* Fallbacks if assets fail to load */
         .currency-fallback-circle {
             width: 46px; height: 46px; border-radius: 50%; background: #ffcc80; border: 2px solid #ef6c00;
             display: flex; align-items: center; justify-content: center; font-size: 0.95rem; color: #e65100; font-weight: bold;
@@ -232,7 +229,6 @@
     <div id="screen-splash">
         <div class="splash-inner">
             <img src="assets/innovine-logo.png" class="splash-logo-img" alt="Innovine Logo" onerror="this.src='https://placehold.co/240x120?text=Innovine+Logo'">
-            <h3 style="color: var(--accent-purple); margin-top: 10px; font-weight: bold;">Preparing Math Lab Challenges...</h3>
             <div class="splash-loader"><div class="splash-bar"></div></div>
         </div>
     </div>
@@ -340,8 +336,353 @@
         let runningBasketTotal = 0;
         let currentTargetPrice = 0;
         let customRuleCheck = null;
-        let turnWrongAttempts = 0; // State machine tracking faults per question node
+        let turnWrongAttempts = 0;
 
         const masterSimulationPool = [
             // LEVEL 1: Denomination Exchange Counter Concepts
-            { mode: 1, label: "Level 1: Exchange Counter (1/4)", color: "#ba68c8", prompt: "Exchange this high-value ₹10 Note using ONLY ₹
+            { mode: 1, label: "Level 1: Exchange Counter (1/4)", color: "#ba68c8", prompt: "Exchange this high-value ₹10 Note using ONLY ₹2 Coins!", restriction: [2], target: 10, hint: "Try skip counting by twos: 2, 4, 6, 8, 10! Count how many coins you dropped." },
+            { mode: 1, label: "Level 1: Exchange Counter (2/4)", color: "#ba68c8", prompt: "Exchange this crisp ₹20 Note using ONLY ₹5 Coins!", restriction: [5], target: 20, hint: "Think of your 5 times tables! 5, 10, 15, 20... that's exactly 4 coins." },
+            { mode: 1, label: "Level 1: Exchange Counter (3/4)", color: "#ba68c8", prompt: "Break down a single ₹50 Note using ONLY ₹10 Notes!", restriction: [10], target: 50, hint: "Count by tens up to 50! It takes 5 groups of ten to match fifty." },
+            { mode: 1, label: "Level 1: Exchange Counter (4/4)", color: "#ba68c8", prompt: "Change a whole ₹5 Note using ONLY small ₹1 Coins!", restriction: [1], target: 5, hint: "Since each coin is worth ₹1, you need exactly 5 items." },
+
+            // LEVEL 2: The Candy Shop Bakery
+            { mode: 2, label: "Level 2: Making Change (1/4)", color: "#ff8a65", prompt: "The candy costs ₹7. You hand over a ₹10 Note. Drag out the correct CHANGE balance owed to you!", target: 3, hint: "Subtract the price from your cash: 10 minus 7 leaves exactly how much?" },
+            { mode: 2, label: "Level 2: Making Change (2/4)", color: "#ff8a65", prompt: "A chocolate bar costs ₹15. You pay with a ₹20 Note. Drag out the exact CHANGE balance required!", target: 5, hint: "Count up from 15 to 20, or compute 20 - 15. A single brown coin will solve it!" },
+            { mode: 2, label: "Level 2: Making Change (3/4)", color: "#ff8a65", prompt: "A school notebook costs ₹30. You pay with a ₹50 Note. Give back the right CHANGE!", target: 20, hint: "5 tens minus 3 tens leaves 2 tens. Look for a green note worth twenty!" },
+            { mode: 2, label: "Level 2: Making Change (4/4)", color: "#ff8a65", prompt: "A balloon decoration costs ₹18. You pay with a ₹20 Note. Calculate and drop the CHANGE balance!", target: 2, hint: "What is 20 minus 18? You just need a single coin worth two rupees!" },
+
+            // LEVEL 3: Story Problems
+            { mode: 3, label: "Level 3: Story Problems (1/4)", color: "#4db6ac", prompt: "Aarav has a ₹50 note. He buys an ice cream cone for ₹35. How much money does he have left?", options: ["₹10 left", "₹15 left", "₹25 left"], correct: "₹15 left", hint: "Borrow to subtract cleanly: 50 - 35 leaves 1 ten and 5 ones." },
+            { mode: 3, label: "Level 3: Story Problems (2/4)", color: "#4db6ac", prompt: "Sia wants to buy a coloring kit for ₹45. She has one ₹20 note and two ₹10 notes. How much more does she need?", options: ["₹5 more", "₹15 more", "₹10 more"], correct: "₹5 more", hint: "Sia currently has 20 + 10 + 10 = ₹40. Compare 40 against 45 to find what's missing!" },
+            { mode: 3, label: "Level 3: Story Problems (3/4)", color: "#4db6ac", prompt: "Vivaan saves three ₹10 notes inside his home piggy bank. What is the total maximum value he has?", options: ["₹20 total", "₹30 total", "₹40 total"], correct: "₹30 total", hint: "Add 10 together three times, or calculate 3 times 10!" },
+            { mode: 3, label: "Level 3: Story Problems (4/4)", color: "#4db6ac", prompt: "An item costs exactly ₹25. Which option shows a perfect combination to buy it without change?", options: ["Two ₹10 notes + One ₹5 coin", "One ₹20 note + Two ₹2 coins", "Three ₹5 coins"], correct: "Two ₹10 notes + One ₹5 coin", hint: "Break 25 into tens and ones: 20 (two tens) + 5 (one five)." }
+        ];
+
+        const TOTAL_TURNS_MAX = masterSimulationPool.length;
+
+        function playSound(soundId) {
+            const sound = document.getElementById(soundId);
+            if (sound) {
+                sound.currentTime = 0;
+                sound.play().catch(e => console.log("Audio deferred."));
+            }
+        }
+
+        function replaceWithFallback(imgElement, classMetaString, fallbackText) {
+            let containerDiv = document.createElement('div');
+            containerDiv.className = `currency-fallback-rect ${classMetaString}`;
+            containerDiv.innerText = fallbackText || "Note";
+            imgElement.parentNode.replaceChild(containerDiv, imgElement);
+        }
+
+        function triggerRewardShower() {
+            playSound('sound-correct');
+            let timerId = setInterval(() => {
+                let star = document.createElement('div');
+                star.className = 'falling-star';
+                star.innerText = Math.random() > 0.5 ? '⭐' : '🪙';
+                star.style.left = Math.random() * 90 + 'vw';
+                star.style.setProperty('--deviation', (Math.random() - 0.5) * 200 + 'px');
+                star.style.setProperty('--dur', (Math.random() * 0.8 + 1.2) + 's');
+                document.body.appendChild(star);
+                setTimeout(() => star.remove(), 2000);
+            }, 60);
+            setTimeout(() => clearInterval(timerId), 1500);
+        }
+
+        function switchActiveLayer(screenId) {
+            document.querySelectorAll('.screen-layer').forEach(l => l.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            if (screenId === 'screen-play') {
+                bindDragAndDropEngine();
+                buildActiveGameLevel();
+            }
+        }
+
+        function buildActiveGameLevel() {
+            if (activeTurnIndex >= TOTAL_TURNS_MAX) {
+                concludeSimulationWorkflow();
+                return;
+            }
+
+            turnWrongAttempts = 0; 
+            document.getElementById('game-hint-banner').style.display = "none";
+            document.getElementById('counter-status-feedback').innerText = "";
+            let currentConfig = masterSimulationPool[activeTurnIndex];
+
+            document.getElementById('label-turn-val').innerText = `${activeTurnIndex + 1} / ${TOTAL_TURNS_MAX}`;
+            document.getElementById('progress-fill').style.width = `${(activeTurnIndex / TOTAL_TURNS_MAX) * 100}%`;
+            document.getElementById('label-score-val').innerText = currentScore;
+            
+            let badge = document.getElementById('label-level-badge');
+            badge.innerText = currentConfig.label;
+            badge.style.background = currentConfig.color;
+            document.documentElement.style.setProperty('--level-color', currentConfig.color);
+
+            document.getElementById('main-target-card').style.display = "flex";
+            document.getElementById('checkout-mat-target').style.display = "flex";
+            document.getElementById('l3-quiz-row').style.display = "none";
+            document.getElementById('core-action-footer').style.display = "flex";
+            document.getElementById('source-wallet-rack').style.display = "flex";
+            
+            document.querySelectorAll('.money-tool-item').forEach(el => {
+                el.classList.remove('restricted-locked');
+            });
+            clearCheckoutMat();
+
+            if (currentConfig.mode === 1) {
+                currentTargetPrice = currentConfig.target;
+                customRuleCheck = currentConfig.restriction;
+                
+                document.getElementById('shelf-main-prompt').innerText = currentConfig.prompt;
+                document.getElementById('shelf-price-badge').style.display = "inline-block";
+                document.getElementById('shelf-price-badge').innerText = `Exchange Value: ₹${currentTargetPrice}`;
+                
+                document.querySelectorAll('.money-tool-item').forEach(el => {
+                    let val = parseInt(el.getAttribute('data-value'));
+                    if(!currentConfig.restriction.includes(val)) {
+                        el.classList.add('restricted-locked');
+                    }
+                });
+
+            } else if (currentConfig.mode === 2) {
+                currentTargetPrice = currentConfig.target;
+                customRuleCheck = null;
+                document.getElementById('shelf-main-prompt').innerText = currentConfig.prompt;
+                document.getElementById('shelf-price-badge').style.display = "none";
+
+            } else if (currentConfig.mode === 3) {
+                document.getElementById('shelf-price-badge').style.display = "none";
+                document.getElementById('checkout-mat-target').style.display = "none";
+                document.getElementById('core-action-footer').style.display = "none";
+                document.getElementById('source-wallet-rack').style.display = "none";
+                document.getElementById('shelf-main-prompt').innerText = currentConfig.prompt;
+
+                let quizBox = document.getElementById('l3-quiz-row');
+                quizBox.innerHTML = "";
+                quizBox.style.display = "grid";
+
+                currentConfig.options.forEach(opt => {
+                    let btn = document.createElement('button');
+                    btn.className = "quiz-card-btn";
+                    btn.innerText = opt;
+                    btn.onclick = function() { evaluateQuizSelection(btn, opt, currentConfig.correct, currentConfig.hint); };
+                    quizBox.appendChild(btn);
+                });
+            }
+        }
+
+        function bindDragAndDropEngine() {
+            const toolkits = document.querySelectorAll('.money-tool-item');
+            toolkits.forEach(tool => {
+                tool.removeAttribute('data-bound');
+                tool.addEventListener('mousedown', initiateDragSequence, { passive: false });
+                tool.addEventListener('touchstart', initiateDragSequence, { passive: false });
+                tool.setAttribute('data-bound', 'true');
+            });
+
+            function initiateDragSequence(event) {
+                if (this.classList.contains('restricted-locked')) return;
+                event.preventDefault();
+                const originElement = this;
+                const incrementalValue = parseInt(originElement.getAttribute('data-value'));
+
+                const childAsset = originElement.firstElementChild.cloneNode(true);
+                const visualFloater = document.createElement('div');
+                visualFloater.className = 'dropped-currency-token';
+                visualFloater.style.position = 'absolute';
+                visualFloater.style.zIndex = '9999';
+                visualFloater.appendChild(childAsset);
+                document.body.appendChild(visualFloater);
+
+                let startX = event.type === 'touchstart' ? event.touches[0].clientX : event.clientX;
+                let startY = event.type === 'touchstart' ? event.touches[0].clientY : event.clientY;
+                let elemRect = originElement.getBoundingClientRect();
+
+                let pointerOffsetX = startX - elemRect.left;
+                let pointerOffsetY = startY - elemRect.top;
+
+                positionNode(startX, startY);
+
+                function positionNode(cx, cy) {
+                    visualFloater.style.left = (cx - pointerOffsetX) + 'px';
+                    visualFloater.style.top = (cy - pointerOffsetY) + 'px';
+                }
+
+                function trackMovement(moveEvent) {
+                    let curX = moveEvent.type === 'touchmove' ? moveEvent.touches[0].clientX : moveEvent.clientX;
+                    let curY = moveEvent.type === 'touchmove' ? moveEvent.touches[0].clientY : moveEvent.clientY;
+                    positionNode(curX, curY);
+                }
+
+                document.addEventListener('mousemove', trackMovement, { passive: false });
+                document.addEventListener('touchmove', trackMovement, { passive: false });
+
+                document.addEventListener('mouseup', function terminateSequence() {
+                    document.removeEventListener('mousemove', trackMovement);
+                    document.removeEventListener('touchmove', trackMovement);
+                    
+                    const dropMat = document.getElementById('checkout-mat-target');
+                    const matRect = dropMat.getBoundingClientRect();
+                    const cloneRect = visualFloater.getBoundingClientRect();
+
+                    let hitDetected = !(cloneRect.right < matRect.left || 
+                                         cloneRect.left > matRect.right || 
+                                         cloneRect.bottom < matRect.top || 
+                                         cloneRect.top > matRect.bottom);
+
+                    if (hitDetected) {
+                        runningBasketTotal += incrementalValue;
+
+                        let placementClone = childAsset.cloneNode(true);
+                        let placementWrapper = document.createElement('div');
+                        placementWrapper.className = 'dropped-currency-token';
+                        placementWrapper.appendChild(placementClone);
+                        dropMat.appendChild(placementWrapper);
+
+                        refreshMatVisualCounter();
+                    }
+                    visualFloater.remove();
+                }, { once: true });
+            }
+        }
+
+        function refreshMatVisualCounter() {
+            let hint = document.getElementById('mat-placeholder-hint');
+            let feed = document.getElementById('mat-running-total');
+            
+            if (runningBasketTotal > 0) {
+                hint.style.display = 'none';
+                feed.style.display = 'block';
+                feed.innerText = `Tray Total: ₹${runningBasketTotal}`;
+            } else {
+                hint.style.display = 'block';
+                feed.style.display = 'none';
+            }
+        }
+
+        function clearCheckoutMat() {
+            runningBasketTotal = 0;
+            refreshMatVisualCounter();
+            document.getElementById('counter-status-feedback').innerText = "";
+            
+            const mat = document.getElementById('checkout-mat-target');
+            const elementsToRemove = mat.querySelectorAll('.dropped-currency-token');
+            elementsToRemove.forEach(el => el.remove());
+        }
+
+        function evaluateQuizSelection(buttonElement, clientValue, targetAnswer, hintMessage) {
+            if (clientValue === targetAnswer) {
+                document.querySelectorAll('.quiz-card-btn').forEach(b => b.disabled = true);
+                buttonElement.classList.add('correct');
+                currentScore += 10;
+                triggerRewardShower();
+                activeTurnIndex++;
+                setTimeout(buildActiveGameLevel, 2500);
+            } else {
+                turnWrongAttempts++;
+                playSound('sound-wrong');
+                buttonElement.classList.add('wrong');
+                buttonElement.disabled = true;
+
+                if (turnWrongAttempts === 1) {
+                    let banner = document.getElementById('game-hint-banner');
+                    banner.innerHTML = `💡 <b>Hint:</b> ${hintMessage}`;
+                    banner.style.display = "block";
+                } else {
+                    document.querySelectorAll('.quiz-card-btn').forEach(b => {
+                        b.disabled = true;
+                        if (b.innerText === targetAnswer) b.classList.add('correct');
+                    });
+                    activeTurnIndex++;
+                    setTimeout(buildActiveGameLevel, 2500);
+                }
+            }
+        }
+
+        function evaluateActivePuzzleOutput() {
+            let feedback = document.getElementById('counter-status-feedback');
+            let currentConfig = masterSimulationPool[activeTurnIndex];
+
+            if (runningBasketTotal === currentTargetPrice) {
+                currentScore += 10;
+                feedback.style.color = "#2e7d32";
+                feedback.innerText = "Excellent calculation! Correct! 🌟💰";
+                
+                triggerRewardShower();
+                activeTurnIndex++;
+                setTimeout(buildActiveGameLevel, 2000);
+            } else {
+                turnWrongAttempts++;
+                playSound('sound-wrong');
+                feedback.style.color = "#c62828";
+                
+                if (runningBasketTotal > currentTargetPrice) {
+                    feedback.innerText = `Too much! Count is ₹${runningBasketTotal}. Try clearing the tray.`;
+                } else {
+                    feedback.innerText = `Not quite enough. Currently at ₹${runningBasketTotal}. Add more cash!`;
+                }
+
+                if (turnWrongAttempts === 1) {
+                    let banner = document.getElementById('game-hint-banner');
+                    banner.innerHTML = `💡 <b>Hint:</b> ${currentConfig.hint}`;
+                    banner.style.display = "block";
+                } else {
+                    feedback.style.color = "#ef6c00";
+                    feedback.innerText = `Let's keep moving! The correct target was ₹${currentTargetPrice}.`;
+                    activeTurnIndex++;
+                    setTimeout(buildActiveGameLevel, 2500);
+                }
+            }
+        }
+
+        function concludeSimulationWorkflow() {
+            document.getElementById('progress-fill').style.width = "100%";
+            document.getElementById('screen-play').classList.remove('active');
+            document.getElementById('screen-end').classList.add('active');
+            
+            let totalPossibleScore = TOTAL_TURNS_MAX * 10;
+            document.getElementById('final-score-report').innerText = `Final Score: ${currentScore} / ${totalPossibleScore}`;
+            
+            let iconBox = document.getElementById('end-hero-icon');
+            let titleBox = document.getElementById('end-title-text');
+            let textSummary = document.getElementById('end-narrative-summary');
+
+            let accuracyRate = currentScore / totalPossibleScore;
+
+            if (accuracyRate >= 0.85) {
+                iconBox.innerText = "🏆🎓🎉";
+                titleBox.innerText = "Grand Master Scholar!";
+                textSummary.innerHTML = "Outstanding reasoning skills! You successfully balanced values, broke change totals cleanly, and managed your dynamic cash box like an absolute genius!";
+            } else if (accuracyRate >= 0.50) {
+                iconBox.innerText = "✨🛒👍";
+                titleBox.innerText = "Excellent Shop Manager!";
+                textSummary.innerHTML = "Great job out there! You figured out the right changes and values for most of the customers. Try again to get a perfect score next time!";
+            } else {
+                iconBox.innerText = "🪙💪🏃";
+                titleBox.innerText = "Keep Training, Explorer!";
+                textSummary.innerHTML = "You reached the end of the market route, but our registers noticed some mismatched values. Let's practice counting by 2s, 5s, and 10s to become a true Money Master!";
+            }
+        }
+
+        function reinitializeSimulation() {
+            activeTurnIndex = 0;
+            currentScore = 0;
+            switchActiveLayer('screen-intro');
+        }
+
+        // Strict 5-Second Branding Timeout
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                const splash = document.getElementById('screen-splash');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => {
+                        splash.style.display = 'none';
+                    }, 500);
+                }
+            }, 5000);
+        });
+    </script>
+</body>
+</html>
