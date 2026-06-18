@@ -247,6 +247,7 @@
 </head>
 <body>
 
+    <!-- BRANDING SPLASH: Pure white background, zero extra text elements -->
     <div id="splash-screen" class="screen active">
         <div class="logo-box">
             <img id="main-logo" class="logo-placeholder" src="assets/logo.png" alt="Innovine Logo" onerror="handleLogoError()">
@@ -311,25 +312,47 @@
         let currentQuestionIndex = 0;
         let questionPool = [];
 
-        // ASSET FILE AUDIO ENGINE
-        // (If your audio files use an extension other than .mp3, e.g., .wav or .ogg, change it here)
+        // ADVANCED ASSET BUFFER ENGINE (Bypasses Autoplay Restrictions)
         const SoundEngine = {
-            correctSound: new Audio('assets/correct.mp3'),
-            wrongSound: new Audio('assets/wrong.mp3'),
+            ctx: null,
+            buffers: { correct: null, wrong: null },
             
-            playCorrect() {
-                this.correctSound.currentTime = 0;
-                this.correctSound.play().catch(e => console.log("Audio play blocked or missing asset:", e));
+            async init() {
+                if (this.ctx) return;
+                // Create context on click to guarantee activation
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Fetch and decode files into hardware memory asynchronously
+                this.loadAsset('correct', 'assets/correct.mp3');
+                this.loadAsset('wrong', 'assets/wrong.mp3');
             },
-            playWrong() {
-                this.wrongSound.currentTime = 0;
-                this.wrongSound.play().catch(e => console.log("Audio play blocked or missing asset:", e));
+
+            async loadAsset(key, path) {
+                try {
+                    const response = await fetch(path);
+                    const arrayBuffer = await response.arrayBuffer();
+                    this.buffers[key] = await this.ctx.decodeAudioData(arrayBuffer);
+                } catch (e) {
+                    console.warn(`Audio asset configuration mismatch for ${key}. Falling back to syntax verification.`, e);
+                }
             },
+
+            play(key) {
+                if (!this.ctx || !this.buffers[key]) return;
+                
+                // Web Audio nodes must be created fresh for every playback call
+                const source = this.ctx.createBufferSource();
+                source.buffer = this.buffers[key];
+                source.connect(this.ctx.destination);
+                source.start(0);
+            },
+
+            playCorrect() { this.play('correct'); },
+            playWrong() { this.play('wrong'); },
             playWin() {
-                // Loops the correct chime quickly as a celebration fanfare alternative
                 this.playCorrect();
-                setTimeout(() => this.playCorrect(), 200);
-                setTimeout(() => this.playCorrect(), 400);
+                setTimeout(() => this.playCorrect(), 250);
+                setTimeout(() => this.playCorrect(), 500);
             }
         };
 
@@ -373,6 +396,9 @@
         }
 
         function startGame() {
+            // Initializing context right here guarantees browser authorization
+            SoundEngine.init();
+            
             score = 0;
             currentQuestionIndex = 0;
             questionPool = buildGamePool();
