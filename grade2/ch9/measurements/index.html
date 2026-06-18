@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Alice in Wonderland: The Great Measurement Adventure</title>
-    <!-- Canvas Confetti Library for Celebrations -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -298,7 +297,6 @@
     <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
-    <!-- INTRO SPLASH LAYER -->
     <div id="screen-splash">
         <div class="splash-inner">
             <img src="assets/innovine-logo.png" class="splash-logo" alt="Innovine Logo" id="brand-logo-img">
@@ -306,10 +304,8 @@
         </div>
     </div>
 
-    <!-- MAIN MATRIX CONTAINER -->
     <div class="game-container">
         
-        <!-- LAYER 1: INTRO SCREEN -->
         <div class="screen-layer active" id="screen-intro">
             <div class="hero-banner">⏰🕳️🐇</div>
             <h1 style="margin-bottom: 12px; font-size: 2.2rem; color: var(--wonderland-dark); text-align: center;">Alice in Wonderland</h1>
@@ -325,7 +321,6 @@
             <button class="cta-btn" onclick="switchActiveLayer('screen-play')">Begin Adventure 🚀</button>
         </div>
 
-        <!-- LAYER 2: PLAY CONTROLLER MODULE -->
         <div class="screen-layer" id="screen-play">
             <div class="hud-row">
                 <div>Keys: <span id="label-score-val">0</span> 🔑</div>
@@ -341,17 +336,26 @@
                     <div id="element-stage-visualizer"></div>
                 </div>
 
-                <!-- HINT BUBBLE COMPONENT -->
                 <div class="hint-bubble" id="element-hint-bubble"></div>
 
-                <!-- DYNAMIC ANSWER MOUNT PANELS -->
                 <div id="wrapper-input-mechanisms"></div>
 
                 <div class="banner-feedback" id="element-status-feedback"></div>
             </div>
         </div>
 
-        <!-- LAYER 3: END CELEBRATION GAME ENGINE -->
+        <div class="screen-layer" id="screen-transition">
+            <div class="hero-banner" id="transition-banner">🌟🎪🎉</div>
+            <h1 id="transition-title" style="color: var(--wonderland-dark); text-align: center; margin-bottom: 15px;">Level Complete!</h1>
+            <div class="story-bubble">
+                <h2 id="transition-subtitle">Wonderful Progress!</h2>
+                <p id="transition-feedback" style="font-size: 1.15rem; line-height: 1.6; text-align: center; color: var(--text-main);">
+                    Calculating level performance feedback...
+                </p>
+            </div>
+            <button class="cta-btn" style="margin: 0 auto; display: block;" onclick="advancePastTransitionSlide()">Continue Journey ➡️</button>
+        </div>
+
         <div class="screen-layer" id="screen-end">
             <div class="hero-banner">👑✨🔮</div>
             <h1 style="color: var(--wonderland-dark); font-size: 2.4rem; margin-bottom: 15px; text-align: center; width: 100%;">Wonderland Restored!</h1>
@@ -369,28 +373,32 @@
         let currentScore = 0;
         let activeTurnIndex = 0;
         let inputLock = false;
+
+        // Trackers for genuine feedback within the active level
+        let levelFirstTryCorrectCount = 0;
+        let currentQuestionMistakeCount = 0;
         
         const masterSimulationPool = [
             // LEVEL 1: LENGTH
-            { type: "choice", level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🔑", question: "Alice finds a tiny golden key. Which unit is best to measure its length?", options: ["metres (m)", "centimetres (cm)", "kilometres (km)"], answer: "centimetres (cm)", hint: "Think about how small a key is! It's much smaller than a door or a long road.", visual: "none" },
-            { type: "choice", level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🐰🔍", question: "Alice finds a note left by the White Rabbit: \"My tunnel is longer than 4 metres but shorter than 5 metres.\" Which of these lengths could be the length of the tunnel?", options: ["3.5 m", "4.5 m", "5.5 m"], answer: "4.5 m", hint: "Find the value that lies right between 4 and 5 on a measuring scale.", visual: "ruler" },
-            { type: "input",  level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🍄", question: "Alice estimates a mushroom to be 20 cm tall. When measured, it is actually 18 cm tall. How many centimetres was Alice's estimate off by?", answer: "2", suffix: "cm", hint: "Subtract the real size (18) from her guess (20) to find the difference!" },
-            { type: "choice", level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🐱", question: "Two garden paths lead to the Cheshire Cat. Path A = 3 m, Path B = 250 cm, Path C = 1 m. Which path is the longest?", options: ["Path A", "Path B", "Path C"], answer: "Path A", hint: "Remember that 1 metre is equal to 100 centimetres, so 3 m is 300 cm!", visual: "none" },
-            { type: "input",  level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🌹", question: "Alice walks 2 m to a mushroom and then 3 m more to a flower garden. How far did she walk altogether?", answer: "5", suffix: "m", hint: "Combine both distances together. What is 2 plus 3?" },
+            { id: 1, type: "choice", levelNum: 1, level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🔑", question: "Alice finds a tiny golden key. Which unit is best to measure its length?", options: ["metres (m)", "centimetres (cm)", "kilometres (km)"], answer: "centimetres (cm)", hint: "Think about how small a key is! It's much smaller than a door or a long road.", visual: "none" },
+            { id: 2, type: "choice", levelNum: 1, level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🐰🔍", question: "Alice finds a note left by the White Rabbit: \"My tunnel is longer than 4 metres but shorter than 5 metres.\" Which of these lengths could be the length of the tunnel?", options: ["3.5 m", "4.5 m", "5.5 m"], answer: "4.5 m", hint: "Find the value that lies right between 4 and 5 on a measuring scale.", visual: "ruler" },
+            { id: 3, type: "input",  levelNum: 1, level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🍄", question: "Alice estimates a mushroom to be 20 cm tall. When measured, it is actually 18 cm tall. How many centimetres was Alice's estimate off by?", answer: "2", suffix: "cm", hint: "Subtract the real size (18) from her guess (20) to find the difference!" },
+            { id: 4, type: "choice", levelNum: 1, level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🐱", question: "Two garden paths lead to the Cheshire Cat. Path A = 3 m, Path B = 250 cm, Path C = 1 m. Which path is the longest?", options: ["Path A", "Path B", "Path C"], answer: "Path A", hint: "Remember that 1 metre is equal to 100 centimetres, so 3 m is 300 cm!", visual: "none" },
+            { id: 5, type: "input",  levelNum: 1, level: "🌷 Level 1: Through the Rabbit Hole (Length)", color: "#26a69a", icon: "🌹", question: "Alice walks 2 m to a mushroom and then 3 m more to a flower garden. How far did she walk altogether?", answer: "5", suffix: "m", hint: "Combine both distances together. What is 2 plus 3?" },
             
             // LEVEL 2: WEIGHT
-            { type: "choice", level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "☕", question: "Which unit is best for measuring the weight of a tiny tea biscuit?", options: ["grams (g)", "kilograms (kg)", "metres (m)"], answer: "grams (g)", hint: "Grams are perfect for light things, while kilograms are used for very heavy items like bicycles.", visual: "none" },
-            { type: "choice", level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🐇", question: "The Dormouse weighs 800 g. The White Rabbit weighs 1 kg. A teapot weighs 400 g. Who or what is the heaviest?", options: ["Dormouse", "White Rabbit", "Teapot"], answer: "White Rabbit", hint: "1 kilogram (kg) is exactly equal to 1,000 grams (g), which beats 800g and 400g!", visual: "scale-right" },
-            { type: "input",  level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🫖", question: "The Mad Hatter carries a box weighing 3 kg and a teapot weighing 2 kg. What is the total weight?", answer: "5", suffix: "kg", hint: "Add the two weights together. Calculate 3 + 2." },
-            { type: "choice", level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🎃", question: "Alice guesses that a giant pumpkin weighs 10 kg. When weighed, it turns out to be 15 kg. Was Alice's estimate:", options: ["Too heavy", "Too light", "Exactly correct"], answer: "Too light", hint: "Alice guessed 10, but the pumpkin is actually much heavier at 15!", visual: "none" },
-            { type: "choice", level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🍰", question: "The Queen's cake weighs 2 kg. A tart weighs 500 g. A sugar cube weighs 5 g. Which dessert item is the absolute lightest?", options: ["The Cake", "The Tart", "The Sugar Cube"], answer: "The Sugar Cube", hint: "Grams are lighter than kilograms, and 5 grams is much less than 500 grams!", visual: "scale-left" },
+            { id: 6, type: "choice", levelNum: 2, level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "☕", question: "Which unit is best for measuring the weight of a tiny tea biscuit?", options: ["grams (g)", "kilograms (kg)", "metres (m)"], answer: "grams (g)", hint: "Grams are perfect for light things, while kilograms are used for very heavy items like bicycles.", visual: "none" },
+            { id: 7, type: "choice", levelNum: 2, level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🐇", question: "The Dormouse weighs 800 g. The White Rabbit weighs 1 kg. A teapot weighs 400 g. Who or what is the heaviest?", options: ["Dormouse", "White Rabbit", "Teapot"], answer: "White Rabbit", hint: "1 kilogram (kg) is exactly equal to 1,000 grams (g), which beats 800g and 400g!", visual: "scale-right" },
+            { id: 8, type: "input",  levelNum: 2, level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🫖", question: "The Mad Hatter carries a box weighing 3 kg and a teapot weighing 2 kg. What is the total weight?", answer: "5", suffix: "kg", hint: "Add the two weights together. Calculate 3 + 2." },
+            { id: 9, type: "choice", levelNum: 2, level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🎃", question: "Alice guesses that a giant pumpkin weighs 10 kg. When weighed, it turns out to be 15 kg. Was Alice's estimate:", options: ["Too heavy", "Too light", "Exactly correct"], answer: "Too light", hint: "Alice guessed 10, but the pumpkin is actually much heavier at 15!", visual: "none" },
+            { id: 10, type: "choice", levelNum: 2, level: "🎩 Level 2: Mad Hatter's Tea Party (Weight)", color: "#6a1b9a", icon: "🍰", question: "The Queen's cake weighs 2 kg. A tart weighs 500 g. A sugar cube weighs 5 g. Which dessert item is the absolute lightest?", options: ["The Cake", "The Tart", "The Sugar Cube"], answer: "The Sugar Cube", hint: "Grams are lighter than kilograms, and 5 grams is much less than 500 grams!", visual: "scale-left" },
             
             // LEVEL 3: CAPACITY
-            { type: "choice", level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🍵", question: "Which unit is best for measuring a small sip of tea inside a teacup?", options: ["millilitres (mL)", "litres (L)", "grams (g)"], answer: "millilitres (mL)", hint: "Litres are for large buckets or bottles. Small amounts of liquid use millilitres.", visual: "none" },
-            { type: "input",  level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🏺", question: "The Mad Hatter fills a jug with 3 L of tea. He pours out 1 L into cups. How many litres remain?", answer: "2", suffix: "L", hint: "Take away the tea poured out. What is 3 minus 1?" },
-            { type: "choice", level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🍾", question: "Alice has three bottles. Bottle A = 200 mL, Bottle B = 500 mL, Bottle C = 1 L. Which bottle holds the most liquid?", options: ["Bottle A", "Bottle B", "Bottle C"], answer: "Bottle C", hint: "1 Litre (L) is equal to 1,000 millilitres (mL), making it the largest volume here.", visual: "none" },
-            { type: "input",  level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🥣", question: "The Queen's punch bowl holds 5 L of juice. Three litres are served to card soldiers. How much juice remains?", answer: "2", suffix: "L", hint: "Subtract the volume served from the original total: 5 - 3." },
-            { type: "choice", level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "⭐", question: "To fix the Measuring Clock, Alice must sort objects by measurements: a ribbon, a cake, and a juice jug. Which measurement belongs to the liquid jug?", options: ["3 metres", "2 kilograms", "4 litres"], answer: "4 litres", hint: "Liquids and volume capacities are always measured in Litres or Millilitres!", visual: "none" }
+            { id: 11, type: "choice", levelNum: 3, level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🍵", question: "Which unit is best for measuring a small sip of tea inside a teacup?", options: ["millilitres (mL)", "litres (L)", "grams (g)"], answer: "millilitres (mL)", hint: "Litres are for large buckets or bottles. Small amounts of liquid use millilitres.", visual: "none" },
+            { id: 12, type: "input",  levelNum: 3, level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🏺", question: "The Mad Hatter fills a jug with 3 L of tea. He pours out 1 L into cups. How many litres remain?", answer: "2", suffix: "L", hint: "Take away the tea poured out. What is 3 minus 1?" },
+            { id: 13, type: "choice", levelNum: 3, level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🍾", question: "Alice has three bottles. Bottle A = 200 mL, Bottle B = 500 mL, Bottle C = 1 L. Which bottle holds the most liquid?", options: ["Bottle A", "Bottle B", "Bottle C"], answer: "Bottle C", hint: "1 Litre (L) is equal to 1,000 millilitres (mL), making it the largest volume here.", visual: "none" },
+            { id: 14, type: "input",  levelNum: 3, level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "🥣", question: "The Queen's punch bowl holds 5 L of juice. Three litres are served to card soldiers. How much juice remains?", answer: "2", suffix: "L", hint: "Subtract the volume served from the original total: 5 - 3." },
+            { id: 15, type: "choice", levelNum: 3, level: "👑 Level 3: The Queen's Castle (Capacity)", color: "#ec407a", icon: "⭐", question: "To fix the Measuring Clock, Alice must sort objects by measurements: a ribbon, a cake, and a juice jug. Which measurement belongs to the liquid jug?", options: ["3 metres", "2 kilograms", "4 litres"], answer: "4 litres", hint: "Liquids and volume capacities are always measured in Litres or Millilitres!", visual: "none" }
         ];
 
         const TOTAL_TURNS_MAX = masterSimulationPool.length;
@@ -436,6 +444,7 @@
             }
 
             inputLock = false;
+            currentQuestionMistakeCount = 0; // reset for the new question
             document.getElementById('element-status-feedback').innerText = "";
             document.getElementById('element-hint-bubble').style.display = "none";
             
@@ -564,6 +573,12 @@
                 feedbackNode.style.color = "#2e7d32";
                 feedbackNode.innerText = "Splendid! A Magic Key was earned! 🔑✨";
                 currentScore++;
+                
+                // Track first-attempt success
+                if (currentQuestionMistakeCount === 0) {
+                    levelFirstTryCorrectCount++;
+                }
+
                 playSound('success');
                 triggerMagicKeyShowerEffect();
                 if (typeof confetti === 'function') {
@@ -571,16 +586,15 @@
                 }
                 
                 document.getElementById('label-score-val').innerText = currentScore;
-                activeTurnIndex++;
-                setTimeout(buildActiveAssessmentItem, 2000);
+                handleQuestionProgression();
             } else {
+                currentQuestionMistakeCount++;
                 selectedButton.classList.add('wrong');
                 selectedButton.disabled = true;
                 feedbackNode.style.color = "#c62828";
                 feedbackNode.innerText = "Not quite! Try another option.";
                 playSound('wrong');
                 
-                // Show hint text container
                 hintNode.innerText = "💡 Hint: " + hintText;
                 hintNode.style.display = "block";
             }
@@ -601,6 +615,12 @@
                 feedbackNode.style.color = "#2e7d32";
                 feedbackNode.innerText = "Brilliant! The clock registers accuracy! 🔑🌟";
                 currentScore++;
+                
+                // Track first-attempt success
+                if (currentQuestionMistakeCount === 0) {
+                    levelFirstTryCorrectCount++;
+                }
+
                 playSound('success');
                 triggerMagicKeyShowerEffect();
                 if (typeof confetti === 'function') {
@@ -608,15 +628,14 @@
                 }
                 
                 document.getElementById('label-score-val').innerText = currentScore;
-                activeTurnIndex++;
-                setTimeout(buildActiveAssessmentItem, 2200);
+                handleQuestionProgression();
             } else {
+                currentQuestionMistakeCount++;
                 inputFieldElement.style.borderColor = "#c62828";
                 feedbackNode.style.color = "#c62828";
                 feedbackNode.innerText = "Hmm, let's recalculate and try again!";
                 playSound('wrong');
                 
-                // Show hint text container
                 hintNode.innerText = "💡 Hint: " + hintText;
                 hintNode.style.display = "block";
                 
@@ -625,9 +644,79 @@
             }
         }
 
+        function handleQuestionProgression() {
+            let currentQuestionData = masterSimulationPool[activeTurnIndex];
+            let nextQuestionData = masterSimulationPool[activeTurnIndex + 1];
+
+            activeTurnIndex++;
+
+            // If the next question belongs to a new level (or game is finished), trigger transition
+            if (!nextQuestionData || nextQuestionData.levelNum !== currentQuestionData.levelNum) {
+                setTimeout(() => triggerLevelTransitionSlide(currentQuestionData.levelNum), 2000);
+            } else {
+                setTimeout(buildActiveAssessmentItem, 2000);
+            }
+        }
+
+        function triggerLevelTransitionSlide(completedLevelNum) {
+            document.getElementById('screen-play').classList.remove('active');
+            document.getElementById('screen-transition').classList.add('active');
+
+            let banner = document.getElementById('transition-banner');
+            let title = document.getElementById('transition-title');
+            let subtitle = document.getElementById('transition-subtitle');
+            let feedback = document.getElementById('transition-feedback');
+
+            // Generate specific feedback comments depending on first try accurate hits out of 5 questions
+            let detailedGenuineFeedback = "";
+            if (levelFirstTryCorrectCount === 5) {
+                detailedGenuineFeedback = `Phenomenal job! You solved all 5 challenges perfectly on your first try without needing any hints! Your grasp of this measurement concept is completely flawless. The White Rabbit is amazed!`;
+            } else if (levelFirstTryCorrectCount >= 3) {
+                detailedGenuineFeedback = `Wonderful effort! You accurately figured out ${levelFirstTryCorrectCount} out of 5 challenges right away. Even when things got tricky, you used the hints effectively to discover the correct measurements. Keep up this amazing concentration!`;
+            } else {
+                detailedGenuineFeedback = `Fantastic perseverance! You found the correct values for every single challenge by learning directly from the hints. Making mistakes is how we train our brains, and your determination is inspiring!`;
+            }
+
+            // Customise theme tags per level
+            if (completedLevelNum === 1) {
+                banner.innerText = "🌷📏✨";
+                title.innerText = "Level 1 Cleared: Length Mastery!";
+                subtitle.innerText = "The Rabbit Hole Garden is Safe!";
+                feedback.innerHTML = `You've gathered all 5 Length Keys! <br><br><strong>Feedback:</strong> ${detailedGenuineFeedback}<br><br>Next up, the Mad Hatter invites you to look closely at weights!`;
+            } else if (completedLevelNum === 2) {
+                banner.innerText = "🎩☕⚖️";
+                title.innerText = "Level 2 Cleared: Weight Mastery!";
+                subtitle.innerText = "The Tea Party Balance Restored!";
+                feedback.innerHTML = `You've gathered all 5 Weight Keys! <br><br><strong>Feedback:</strong> ${detailedGenuineFeedback}<br><br>Prepare your volumetric minds, as we travel straight into the Queen's Castle!`;
+            } else if (completedLevelNum === 3) {
+                banner.innerText = "👑🧪💧";
+                title.innerText = "Level 3 Cleared: Capacity Mastery!";
+                subtitle.innerText = "The Queen's Castle Fully Measured!";
+                feedback.innerHTML = `You've gathered all 5 Capacity Keys! <br><br><strong>Feedback:</strong> ${detailedGenuineFeedback}<br><br>Let's head over to see the reconstructed Measuring Clock!`;
+            }
+
+            // Reset the internal tracker for the upcoming level
+            levelFirstTryCorrectCount = 0;
+            
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+            }
+        }
+
+        function advancePastTransitionSlide() {
+            document.getElementById('screen-transition').classList.remove('active');
+            if (activeTurnIndex >= TOTAL_TURNS_MAX) {
+                concludeSimulationWorkflow();
+            } else {
+                document.getElementById('screen-play').classList.add('active');
+                buildActiveAssessmentItem();
+            }
+        }
+
         function concludeSimulationWorkflow() {
             document.getElementById('progress-fill').style.width = "100%";
             document.getElementById('screen-play').classList.remove('active');
+            document.getElementById('screen-transition').classList.remove('active');
             document.getElementById('screen-end').classList.add('active');
             document.getElementById('final-score-report').innerText = `Total Magic Keys Earned: ${currentScore} / ${TOTAL_TURNS_MAX}`;
         }
@@ -635,6 +724,8 @@
         function reinitializeSimulation() {
             activeTurnIndex = 0;
             currentScore = 0;
+            levelFirstTryCorrectCount = 0;
+            currentQuestionMistakeCount = 0;
             switchActiveLayer('screen-intro');
         }
 
