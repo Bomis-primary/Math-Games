@@ -40,7 +40,7 @@
         
         /* STRICT BRANDING SCREEN REQUIREMENTS */
         #splash-screen { 
-            background-color: #ffffff !important; /* Fixed absolute white branding layer */
+            background-color: #ffffff !important; 
             color: #000000;
         }
         .logo-box {
@@ -54,7 +54,7 @@
             max-width: 300px; 
             max-height: 150px; 
             margin-bottom: 40px; 
-            background: transparent !important; /* Enforces clean alpha channels */
+            background: transparent !important; 
         }
         #logo-fallback {
             font-size: 3.5rem; 
@@ -311,57 +311,25 @@
         let currentQuestionIndex = 0;
         let questionPool = [];
 
+        // ASSET FILE AUDIO ENGINE
+        // (If your audio files use an extension other than .mp3, e.g., .wav or .ogg, change it here)
         const SoundEngine = {
-            ctx: null,
-            init() {
-                if (!this.ctx) {
-                    this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-            },
+            correctSound: new Audio('assets/correct.mp3'),
+            wrongSound: new Audio('assets/wrong.mp3'),
+            
             playCorrect() {
-                this.init();
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(523.25, this.ctx.currentTime);
-                osc.frequency.setValueAtTime(659.25, this.ctx.currentTime + 0.1);
-                osc.frequency.setValueAtTime(783.99, this.ctx.currentTime + 0.2);
-                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.4);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.4);
+                this.correctSound.currentTime = 0;
+                this.correctSound.play().catch(e => console.log("Audio play blocked or missing asset:", e));
             },
             playWrong() {
-                this.init();
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(180, this.ctx.currentTime);
-                osc.frequency.linearRampToValueAtTime(100, this.ctx.currentTime + 0.3);
-                gain.gain.setValueAtTime(0.3, this.ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.3);
-                osc.start();
-                osc.stop(this.ctx.currentTime + 0.3);
+                this.wrongSound.currentTime = 0;
+                this.wrongSound.play().catch(e => console.log("Audio play blocked or missing asset:", e));
             },
             playWin() {
-                this.init();
-                const notes = [261.63, 329.63, 392.00, 523.25];
-                notes.forEach((freq, index) => {
-                    const osc = this.ctx.createOscillator();
-                    const gain = this.ctx.createGain();
-                    osc.connect(gain);
-                    gain.connect(this.ctx.destination);
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime + (index * 0.08));
-                    gain.gain.setValueAtTime(0.2, this.ctx.currentTime + (index * 0.08));
-                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.6);
-                    osc.start(this.ctx.currentTime + (index * 0.08));
-                    osc.stop(this.ctx.currentTime + 0.6);
-                });
+                // Loops the correct chime quickly as a celebration fanfare alternative
+                this.playCorrect();
+                setTimeout(() => this.playCorrect(), 200);
+                setTimeout(() => this.playCorrect(), 400);
             }
         };
 
@@ -370,7 +338,6 @@
             document.getElementById('logo-fallback').style.display = 'block';
         }
 
-        // Timer enforces transition exactly at 5000ms
         window.addEventListener('load', () => {
             setTimeout(() => { 
                 transitionScreen('splash-screen', 'menu-screen'); 
