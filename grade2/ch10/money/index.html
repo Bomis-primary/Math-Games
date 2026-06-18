@@ -32,34 +32,6 @@
             user-select: none;
         }
 
-        /* --- SPLASH SCREEN --- */
-        #screen-splash {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #ffffff;
-            display: flex; justify-content: center; align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease-out;
-        }
-        .splash-inner { text-align: center; }
-        .splash-logo-img {
-            max-width: 240px;
-            max-height: 120px;
-            object-fit: contain;
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        .splash-loader { 
-            width: 160px; height: 10px; background: #e0e0e0; 
-            border-radius: 6px; margin: 25px auto 0 auto; overflow: hidden; 
-        }
-        .splash-bar { 
-            width: 100%; height: 100%; background: var(--accent-purple); 
-            transform: translateX(-100%); animation: loadStep 4.8s forwards ease-in-out; 
-        }
-        @keyframes loadStep { 100% { transform: translateX(0); } }
-
         /* --- MAIN CONTAINER --- */
         .game-container {
             width: 100%;
@@ -200,4 +172,520 @@
             align-items: center; text-align: center; height: 100%; gap: 15px;
             animation: fadeInCard 0.4s ease-in-out forwards;
         }
-        @keyframes fadeInCard { from { opacity: 0;
+        @keyframes fadeInCard { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        
+        .story-visual-icon { font-size: 5rem; animation: pulseIcon 1.5s infinite alternate ease-in-out; }
+        @keyframes pulseIcon { 0% { transform: scale(1); } 100% { transform: scale(1.08); } }
+
+        .story-visual-clues {
+            background: white; border-radius: 14px; padding: 18px; width: 100%;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.06); font-size: 1.2rem; font-weight: bold;
+            color: #004d40; line-height: 1.8; border: 2px solid #b2dfdb;
+        }
+
+        /* --- COINS / NOTES ASSETS --- */
+        .currency-asset-img { width: 44px; height: 44px; object-fit: contain; pointer-events: none; mix-blend-mode: multiply; }
+        .note-asset-img { width: 72px; height: 38px; object-fit: contain; pointer-events: none; mix-blend-mode: multiply; }
+        
+        .currency-fallback-circle {
+            width: 42px; height: 42px; border-radius: 50%; background: #ffcc80; border: 2px solid #ef6c00;
+            display: flex; align-items: center; justify-content: center; font-size: 0.95rem; color: #e65100; font-weight: bold;
+        }
+        .currency-fallback-rect {
+            width: 72px; height: 38px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; font-weight: bold;
+        }
+        .fb-50 { background: #b2dfdb; border: 2px solid #00695c; color: #004d40; }
+
+        .dropped-currency-token { animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; display: inline-block; }
+        @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(0.95); } }
+
+        /* --- FOOTER OPTIONS --- */
+        .action-row { display: flex; justify-content: center; gap: 20px; padding-top: 15px; }
+        .banner-msg { text-align: center; height: 25px; font-size: 1.2rem; font-weight: bold; margin-top: 8px; }
+
+        /* --- Particle Rewards FX --- */
+        .falling-star {
+            position: fixed; z-index: 9999; pointer-events: none; top: -45px;
+            font-size: 2rem; animation: fallDown var(--dur) linear forwards;
+        }
+        @keyframes fallDown {
+            0% { top: -45px; transform: translateX(0) rotate(0deg); opacity: 1; }
+            100% { top: 105vh; transform: translateX(var(--deviation)) rotate(360deg); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        
+        <div class="screen-layer active" id="screen-intro">
+            <div class="hero-banner">🏪💰📈</div>
+            <h1 style="margin-bottom: 15px; font-size: 2.6rem; color: #4a148c; padding: 0 10px;">Indian Money Adventure – Grade 2</h1>
+            <div class="story-bubble">
+                <p style="font-weight: bold; color: #7b1fa2; margin-bottom: 12px; font-size: 1.4rem;">🌟 Welcome, Young Money Explorer! 🌟</p>
+                <p style="margin-bottom: 12px;">Get ready to unlock your Money Master Powers and level up your skills in a fun shopping world!</p>
+                <p style="font-weight: 600; color: #2e3d49;">Step into exciting challenges where every coin counts and every rupee matters! 🪙✨</p>
+            </div>
+            <button class="cta-btn" onclick="switchActiveLayer('screen-play')">Start Adventure! 🚀</button>
+        </div>
+
+        <div class="screen-layer" id="screen-play">
+            <div class="hud-row">
+                <div>⭐ Score: <span id="label-score-val">0</span></div>
+                <div class="level-badge" id="label-level-badge">Level 1: Exchange Desk</div>
+                <div>Challenge: <span id="label-turn-val">1 / 12</span></div>
+            </div>
+            <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
+
+            <div class="hint-overlay-box" id="game-hint-banner"></div>
+
+            <div class="workspace-grid">
+                
+                <div class="counter-shelf">
+                    <div class="target-display-card" id="main-target-card">
+                        <div class="instruction-text" id="shelf-main-prompt">Loading puzzle text...</div>
+                        <div class="price-tag" id="shelf-price-badge">Target: ₹0</div>
+                    </div>
+
+                    <div class="drop-counter-zone" id="checkout-mat-target">
+                        <div class="drop-label" id="mat-placeholder-hint">🫳 Drag money onto this grid space!</div>
+                        <div class="live-math-feed" id="mat-running-total" style="display: none;">Total Put Inside: ₹0</div>
+                    </div>
+
+                    <div class="quiz-options-matrix" id="l3-quiz-row" style="display: none;"></div>
+                </div>
+
+                <div id="right-column-container" style="height: 100%;">
+                    
+                    <div class="wallet-rack" id="source-wallet-rack">
+                        <div class="wallet-title">👛 Your Dynamic Cash Box</div>
+                        
+                        <div class="money-tool-item" id="tool-v1" data-value="1">
+                            <img src="assets/coin1.png" class="currency-asset-img" alt="₹1" onerror="replaceWithFallback(this, 'circle', '₹1')">
+                            <span>₹1 Coin</span>
+                        </div>
+
+                        <div class="money-tool-item" id="tool-v2" data-value="2">
+                            <img src="assets/coin2.png" class="currency-asset-img" alt="₹2" onerror="replaceWithFallback(this, 'circle', '₹2')">
+                            <span>₹2 Coin</span>
+                        </div>
+                        
+                        <div class="money-tool-item" id="tool-v5" data-value="5">
+                            <img src="assets/coin5.png" class="currency-asset-img" alt="₹5" onerror="replaceWithFallback(this, 'circle', '₹5')">
+                            <span>₹5 Coin</span>
+                        </div>
+                        
+                        <div class="money-tool-item" id="tool-v10" data-value="10">
+                            <img src="assets/note10.png" class="note-asset-img" alt="₹10" onerror="replaceWithFallback(this, 'rect', '₹10')">
+                            <span>₹10 Note</span>
+                        </div>
+
+                        <div class="money-tool-item" id="tool-v20" data-value="20">
+                            <img src="assets/note20.png" class="note-asset-img" alt="₹20" onerror="replaceWithFallback(this, 'rect', '₹20')">
+                            <span>₹20 Note</span>
+                        </div>
+
+                        <div class="money-tool-item" id="tool-v50" data-value="50">
+                            <img src="assets/note50.png" class="note-asset-img" alt="₹50" onerror="replaceWithFallback(this, 'rect fb-50', '₹50')">
+                            <span>₹50 Note</span>
+                        </div>
+                    </div>
+
+                    <div class="story-visual-card" id="story-visual-card" style="display: none;">
+                        <div class="story-visual-icon" id="story-visual-icon">🏪</div>
+                        <div class="story-visual-clues" id="story-visual-clues"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="action-row" id="core-action-footer">
+                <button class="cta-btn" style="background: linear-gradient(135deg, #81c784, #4caf50); border-color: #2e7d32; color: white; box-shadow: 0 5px 0 #2e7d32;" onclick="evaluateActivePuzzleOutput()">Submit Verification 💸</button>
+                <button class="cta-btn" style="background: linear-gradient(135deg, #e57373, #ef5350); border-color: #c62828; color: white; box-shadow: 0 5px 0 #c62828;" onclick="clearCheckoutMat()">Clear Tray 🔄</button>
+            </div>
+            <div class="banner-msg" id="counter-status-feedback"></div>
+        </div>
+
+        <div class="screen-layer" id="screen-end">
+            <div class="hero-banner" id="end-hero-icon">🏆🎓🎉</div>
+            <h1 style="color: #4a148c; font-size: 2.5rem; margin-bottom: 12px;" id="end-title-text">Grade 2 Graduated!</h1>
+            <div class="story-bubble">
+                <p id="end-narrative-summary">Processing performance summary values...</p>
+            </div>
+            <h2 id="final-score-report" style="color: #7b1fa2; margin-bottom: 25px;">Final Score: 0 / 120</h2>
+            <button class="cta-btn" onclick="reinitializeSimulation()">Play Again 🔄</button>
+        </div>
+
+    </div>
+
+    <audio id="sound-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+    <script>
+        let currentScore = 0;
+        let activeTurnIndex = 0;
+        let runningBasketTotal = 0;
+        let currentTargetPrice = 0;
+        let customRuleCheck = null;
+        let turnWrongAttempts = 0;
+
+        const masterSimulationPool = [
+            { mode: 1, label: "Level 1: Exchange Counter (1/4)", color: "#ba68c8", prompt: "Exchange this high-value ₹10 Note using ONLY ₹2 Coins!", restriction: [2], target: 10, hint: "Try skip counting by twos: 2, 4, 6, 8, 10! Count how many coins you dropped." },
+            { mode: 1, label: "Level 1: Exchange Counter (2/4)", color: "#ba68c8", prompt: "Exchange this crisp ₹20 Note using ONLY ₹5 Coins!", restriction: [5], target: 20, hint: "Think of your 5 times tables! 5, 10, 15, 20... that's exactly 4 coins." },
+            { mode: 1, label: "Level 1: Exchange Counter (3/4)", color: "#ba68c8", prompt: "Break down a single ₹50 Note using ONLY ₹10 Notes!", restriction: [10], target: 50, hint: "Count by tens up to 50! It takes 5 groups of ten to match fifty." },
+            { mode: 1, label: "Level 1: Exchange Counter (4/4)", color: "#ba68c8", prompt: "Change a whole ₹5 Note using ONLY small ₹1 Coins!", restriction: [1], target: 5, hint: "Since each coin is worth ₹1, you need exactly 5 items." },
+
+            { mode: 2, label: "Level 2: Making Change (1/4)", color: "#ff8a65", prompt: "The candy costs ₹7. You hand over a ₹10 Note. Drag out the correct CHANGE balance owed to you!", target: 3, hint: "Subtract the price from your cash: 10 minus 7 leaves exactly how much?" },
+            { mode: 2, label: "Level 2: Making Change (2/4)", color: "#ff8a65", prompt: "A chocolate bar costs ₹15. You pay with a ₹20 Note. Drag out the exact CHANGE balance required!", target: 5, hint: "Count up from 15 to 20, or compute 20 - 15. A single brown coin will solve it!" },
+            { mode: 2, label: "Level 2: Making Change (3/4)", color: "#ff8a65", prompt: "A school notebook costs ₹30. You pay with a ₹50 Note. Give back the right CHANGE!", target: 20, hint: "5 tens minus 3 tens leaves 2 tens. Look for a green note worth twenty!" },
+            { mode: 2, label: "Level 2: Making Change (4/4)", color: "#ff8a65", prompt: "A balloon decoration costs ₹18. You pay with a ₹20 Note. Calculate and drop the CHANGE balance!", target: 2, hint: "What is 20 minus 18? You just need a single coin worth two rupees!" },
+
+            { mode: 3, label: "Level 3: Story Problems (1/4)", color: "#4db6ac", prompt: "Aarav has a ₹50 note. He buys an ice cream cone for ₹35. How much money does he have left?", options: ["₹10 left", "₹15 left", "₹25 left"], correct: "₹15 left", hint: "Borrow to subtract cleanly: 50 - 35 leaves 1 ten and 5 ones." },
+            { mode: 3, label: "Level 3: Story Problems (2/4)", color: "#4db6ac", prompt: "Sia wants to buy a coloring kit for ₹45. She has one ₹20 note and two ₹10 notes. How much more does she need?", options: ["₹5 more", "₹15 more", "₹10 more"], correct: "₹5 more", hint: "Sia currently has 20 + 10 + 10 = ₹40. Compare 40 against 45 to find what's missing!" },
+            { mode: 3, label: "Level 3: Story Problems (3/4)", color: "#4db6ac", prompt: "Vivaan saves three ₹10 notes inside his home piggy bank. What is the total maximum value he has?", options: ["₹20 total", "₹30 total", "₹40 total"], correct: "₹30 total", hint: "Add 10 together three times, or calculate 3 times 10!" },
+            { mode: 3, label: "Level 3: Story Problems (4/4)", color: "#4db6ac", prompt: "An item costs exactly ₹25. Which option shows a perfect combination to buy it without change?", options: ["Two ₹10 notes + One ₹5 coin", "One ₹20 note + Two ₹2 coins", "Three ₹5 coins"], correct: "Two ₹10 notes + One ₹5 coin", hint: "Break 25 into tens and ones: 20 (two tens) + 5 (one five)." }
+        ];
+
+        const TOTAL_TURNS_MAX = masterSimulationPool.length;
+
+        function playSound(soundId) {
+            const sound = document.getElementById(soundId);
+            if (sound) {
+                sound.currentTime = 0;
+                sound.play().catch(e => console.log("Audio deferred."));
+            }
+        }
+
+        function replaceWithFallback(imgElement, classMetaString, fallbackText) {
+            let containerDiv = document.createElement('div');
+            containerDiv.className = `currency-fallback-rect ${classMetaString}`;
+            containerDiv.innerText = fallbackText || "Note";
+            imgElement.parentNode.replaceChild(containerDiv, imgElement);
+        }
+
+        function triggerRewardShower() {
+            playSound('sound-correct');
+            let timerId = setInterval(() => {
+                let star = document.createElement('div');
+                star.className = 'falling-star';
+                star.innerText = Math.random() > 0.5 ? '⭐' : '🪙';
+                star.style.left = Math.random() * 90 + 'vw';
+                star.style.setProperty('--deviation', (Math.random() - 0.5) * 200 + 'px');
+                star.style.setProperty('--dur', (Math.random() * 0.8 + 1.2) + 's');
+                document.body.appendChild(star);
+                setTimeout(() => star.remove(), 2000);
+            }, 60);
+            setTimeout(() => clearInterval(timerId), 1500);
+        }
+
+        function switchActiveLayer(screenId) {
+            document.querySelectorAll('.screen-layer').forEach(l => l.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            if (screenId === 'screen-play') {
+                bindDragAndDropEngine();
+            }
+        }
+
+        function buildActiveGameLevel() {
+            if (activeTurnIndex >= TOTAL_TURNS_MAX) {
+                concludeSimulationWorkflow();
+                return;
+            }
+
+            turnWrongAttempts = 0; 
+            document.getElementById('game-hint-banner').style.display = "none";
+            document.getElementById('counter-status-feedback').innerText = "";
+            let currentConfig = masterSimulationPool[activeTurnIndex];
+
+            document.getElementById('label-turn-val').innerText = `${activeTurnIndex + 1} / ${TOTAL_TURNS_MAX}`;
+            document.getElementById('progress-fill').style.width = `${(activeTurnIndex / TOTAL_TURNS_MAX) * 100}%`;
+            document.getElementById('label-score-val').innerText = currentScore;
+            
+            let badge = document.getElementById('label-level-badge');
+            badge.innerText = currentConfig.label;
+            badge.style.background = currentConfig.color;
+            document.documentElement.style.setProperty('--level-color', currentConfig.color);
+
+            document.getElementById('main-target-card').style.display = "flex";
+            document.getElementById('checkout-mat-target').style.display = "flex";
+            document.getElementById('l3-quiz-row').style.display = "none";
+            document.getElementById('core-action-footer').style.display = "flex";
+            
+            document.querySelectorAll('.money-tool-item').forEach(el => {
+                el.classList.remove('restricted-locked');
+            });
+            clearCheckoutMat();
+
+            if (currentConfig.mode === 1 || currentConfig.mode === 2) {
+                document.getElementById('source-wallet-rack').style.display = "flex";
+                document.getElementById('story-visual-card').style.display = "none";
+                
+                if (currentConfig.mode === 1) {
+                    currentTargetPrice = currentConfig.target;
+                    customRuleCheck = currentConfig.restriction;
+                    
+                    document.getElementById('shelf-main-prompt').innerText = currentConfig.prompt;
+                    document.getElementById('shelf-price-badge').style.display = "inline-block";
+                    document.getElementById('shelf-price-badge').innerText = `Exchange Value: ₹${currentTargetPrice}`;
+                    
+                    document.querySelectorAll('.money-tool-item').forEach(el => {
+                        let val = parseInt(el.getAttribute('data-value'));
+                        if(!currentConfig.restriction.includes(val)) {
+                            el.classList.add('restricted-locked');
+                        }
+                    });
+                } else {
+                    currentTargetPrice = currentConfig.target;
+                    customRuleCheck = null;
+                    document.getElementById('shelf-main-prompt').innerText = currentConfig.prompt;
+                    document.getElementById('shelf-price-badge').style.display = "none";
+                }
+
+            } else if (currentConfig.mode === 3) {
+                document.getElementById('shelf-price-badge').style.display = "none";
+                document.getElementById('checkout-mat-target').style.display = "none";
+                document.getElementById('core-action-footer').style.display = "none";
+                document.getElementById('source-wallet-rack').style.display = "none";
+                
+                const visualCard = document.getElementById('story-visual-card');
+                const clueBox = document.getElementById('story-visual-clues');
+                const iconBox = document.getElementById('story-visual-icon');
+                visualCard.style.display = "flex";
+
+                if (activeTurnIndex === 8) {
+                    iconBox.innerText = "🍦💵";
+                    clueBox.innerHTML = `<div>💵 Aarav Has: <span style="color:#2e7d32;">₹50 Note</span></div><div style="margin-top: 8px;">🛍️ Ice Cream Cost: <span style="color:#c62828;">₹35</span></div>`;
+                } else if (activeTurnIndex === 9) {
+                    iconBox.innerText = "🎨👛";
+                    clueBox.innerHTML = `<div>🏷️ Kit Price: <span style="color:#c62828;">₹45</span></div><div style="margin-top: 8px; font-size:1.1rem;">👛 Sia's Pocket: <span style="color:#2e7d32;">₹20 + ₹10 + ₹10 = ₹40</span></div>`;
+                } else if (activeTurnIndex === 10) {
+                    iconBox.innerText = "🐷🪙";
+                    clueBox.innerHTML = `<div>💰 Piggy Bank Storage:</div><div style="color:#ef6c00; font-size: 1.4rem; margin-top: 6px;">3 × ₹10 Notes</div>`;
+                } else if (activeTurnIndex === 11) {
+                    iconBox.innerText = "🏷️✨";
+                    clueBox.innerHTML = `<div>🎯 Target Bill Value:</div><div style="color:#7b1fa2; font-size: 1.6rem; margin-top: 4px;">₹25</div>`;
+                }
+
+                document.getElementById('shelf-main-prompt').innerText = currentConfig.prompt;
+
+                let quizBox = document.getElementById('l3-quiz-row');
+                quizBox.innerHTML = "";
+                quizBox.style.display = "grid";
+
+                currentConfig.options.forEach(opt => {
+                    let btn = document.createElement('button');
+                    btn.className = "quiz-card-btn";
+                    btn.innerText = opt;
+                    btn.onclick = function() { evaluateQuizSelection(btn, opt, currentConfig.correct, currentConfig.hint); };
+                    quizBox.appendChild(btn);
+                });
+            }
+        }
+
+        function bindDragAndDropEngine() {
+            const toolkits = document.querySelectorAll('.money-tool-item');
+            toolkits.forEach(tool => {
+                tool.removeAttribute('data-bound');
+                tool.addEventListener('mousedown', initiateDragSequence, { passive: false });
+                tool.addEventListener('touchstart', initiateDragSequence, { passive: false });
+                tool.setAttribute('data-bound', 'true');
+            });
+
+            function initiateDragSequence(event) {
+                if (this.classList.contains('restricted-locked')) return;
+                event.preventDefault();
+                const originElement = this;
+                const incrementalValue = parseInt(originElement.getAttribute('data-value'));
+
+                const childAsset = originElement.firstElementChild.cloneNode(true);
+                const visualFloater = document.createElement('div');
+                visualFloater.className = 'dropped-currency-token';
+                visualFloater.style.position = 'absolute';
+                visualFloater.style.zIndex = '9999';
+                visualFloater.appendChild(childAsset);
+                document.body.appendChild(visualFloater);
+
+                let startX = event.type === 'touchstart' ? event.touches[0].clientX : event.clientX;
+                let startY = event.type === 'touchstart' ? event.touches[0].clientY : event.clientY;
+                let elemRect = originElement.getBoundingClientRect();
+
+                let pointerOffsetX = startX - elemRect.left;
+                let pointerOffsetY = startY - elemRect.top;
+
+                positionNode(startX, startY);
+
+                function positionNode(cx, cy) {
+                    visualFloater.style.left = (cx - pointerOffsetX) + 'px';
+                    visualFloater.style.top = (cy - pointerOffsetY) + 'px';
+                }
+
+                function trackMovement(moveEvent) {
+                    let curX = moveEvent.type === 'touchmove' ? moveEvent.touches[0].clientX : moveEvent.clientX;
+                    let curY = moveEvent.type === 'touchmove' ? moveEvent.touches[0].clientY : moveEvent.clientY;
+                    positionNode(curX, curY);
+                }
+
+                document.addEventListener('mousemove', trackMovement, { passive: false });
+                document.addEventListener('touchmove', trackMovement, { passive: false });
+
+                document.addEventListener('mouseup', function terminateSequence() {
+                    document.removeEventListener('mousemove', trackMovement);
+                    document.removeEventListener('touchmove', trackMovement);
+                    
+                    const dropMat = document.getElementById('checkout-mat-target');
+                    const matRect = dropMat.getBoundingClientRect();
+                    const cloneRect = visualFloater.getBoundingClientRect();
+
+                    let hitDetected = !(cloneRect.right < matRect.left || 
+                                         cloneRect.left > matRect.right || 
+                                         cloneRect.bottom < matRect.top || 
+                                         cloneRect.top > matRect.bottom);
+
+                    if (hitDetected) {
+                        runningBasketTotal += incrementalValue;
+
+                        let placementClone = childAsset.cloneNode(true);
+                        let placementWrapper = document.createElement('div');
+                        placementWrapper.className = 'dropped-currency-token';
+                        placementWrapper.appendChild(placementClone);
+                        dropMat.appendChild(placementWrapper);
+
+                        refreshMatVisualCounter();
+                    }
+                    visualFloater.remove();
+                }, { once: true });
+            }
+        }
+
+        function refreshMatVisualCounter() {
+            let hint = document.getElementById('mat-placeholder-hint');
+            let feed = document.getElementById('mat-running-total');
+            
+            if (runningBasketTotal > 0) {
+                hint.style.display = 'none';
+                feed.style.display = 'block';
+                feed.innerText = `Tray Total: ₹${runningBasketTotal}`;
+            } else {
+                hint.style.display = 'block';
+                feed.style.display = 'none';
+            }
+        }
+
+        function clearCheckoutMat() {
+            runningBasketTotal = 0;
+            refreshMatVisualCounter();
+            document.getElementById('counter-status-feedback').innerText = "";
+            
+            const mat = document.getElementById('checkout-mat-target');
+            const elementsToRemove = mat.querySelectorAll('.dropped-currency-token');
+            elementsToRemove.forEach(el => el.remove());
+        }
+
+        function evaluateQuizSelection(buttonElement, clientValue, targetAnswer, hintMessage) {
+            if (clientValue === targetAnswer) {
+                document.querySelectorAll('.quiz-card-btn').forEach(b => b.disabled = true);
+                buttonElement.classList.add('correct');
+                currentScore += 10;
+                triggerRewardShower();
+                activeTurnIndex++;
+                setTimeout(buildActiveGameLevel, 2500);
+            } else {
+                turnWrongAttempts++;
+                playSound('sound-wrong');
+                buttonElement.classList.add('wrong');
+                buttonElement.disabled = true;
+
+                if (turnWrongAttempts === 1) {
+                    let banner = document.getElementById('game-hint-banner');
+                    banner.innerHTML = `💡 <b>Hint:</b> ${hintMessage}`;
+                    banner.style.display = "block";
+                } else {
+                    document.querySelectorAll('.quiz-card-btn').forEach(b => {
+                        b.disabled = true;
+                        if (b.innerText === targetAnswer) b.classList.add('correct');
+                    });
+                    activeTurnIndex++;
+                    setTimeout(buildActiveGameLevel, 2500);
+                }
+            }
+        }
+
+        function evaluateActivePuzzleOutput() {
+            let feedback = document.getElementById('counter-status-feedback');
+            let currentConfig = masterSimulationPool[activeTurnIndex];
+
+            if (runningBasketTotal === currentTargetPrice) {
+                currentScore += 10;
+                feedback.style.color = "#2e7d32";
+                feedback.innerText = "Excellent calculation! Correct! 🌟💰";
+                
+                triggerRewardShower();
+                activeTurnIndex++;
+                setTimeout(buildActiveGameLevel, 2000);
+            } else {
+                turnWrongAttempts++;
+                playSound('sound-wrong');
+                feedback.style.color = "#c62828";
+                
+                if (runningBasketTotal > currentTargetPrice) {
+                    feedback.innerText = `Too much! Count is ₹${runningBasketTotal}. Try clearing the tray.`;
+                } else {
+                    feedback.innerText = `Not quite enough. Currently at ₹${runningBasketTotal}. Add more cash!`;
+                }
+
+                if (turnWrongAttempts === 1) {
+                    let banner = document.getElementById('game-hint-banner');
+                    banner.innerHTML = `💡 <b>Hint:</b> ${currentConfig.hint}`;
+                    banner.style.display = "block";
+                } else {
+                    feedback.style.color = "#ef6c00";
+                    feedback.innerText = `Let's keep moving! The correct target was ₹${currentTargetPrice}.`;
+                    activeTurnIndex++;
+                    setTimeout(buildActiveGameLevel, 2500);
+                }
+            }
+        }
+
+        function concludeSimulationWorkflow() {
+            document.getElementById('progress-fill').style.width = "100%";
+            document.getElementById('screen-play').classList.remove('active');
+            document.getElementById('screen-end').classList.add('active');
+            
+            let totalPossibleScore = TOTAL_TURNS_MAX * 10;
+            document.getElementById('final-score-report').innerText = `Final Score: ${currentScore} / ${totalPossibleScore}`;
+            
+            let iconBox = document.getElementById('end-hero-icon');
+            let titleBox = document.getElementById('end-title-text');
+            let textSummary = document.getElementById('end-narrative-summary');
+
+            let accuracyRate = currentScore / totalPossibleScore;
+
+            if (accuracyRate >= 0.85) {
+                iconBox.innerText = "🏆🎓🎉";
+                titleBox.innerText = "Grand Master Scholar!";
+                textSummary.innerHTML = "Outstanding reasoning skills! You successfully balanced values, broke change totals cleanly, and managed your dynamic cash box like an absolute genius!";
+            } else if (accuracyRate >= 0.50) {
+                iconBox.innerText = "✨🛒👍";
+                titleBox.innerText = "Excellent Shop Manager!";
+                textSummary.innerHTML = "Great job out there! You figured out the right changes and values for most of the customers. Try again to get a perfect score next time!";
+            } else {
+                iconBox.innerText = "🪙💪🏃";
+                titleBox.innerText = "Keep Training, Explorer!";
+                textSummary.innerHTML = "You reached the end of the market route, but our registers noticed some mismatched values. Let's practice counting by 2s, 5s, and 10s to become a true Money Master!";
+            }
+        }
+
+        function reinitializeSimulation() {
+            activeTurnIndex = 0;
+            currentScore = 0;
+            buildActiveGameLevel();
+            switchActiveLayer('screen-intro');
+        }
+
+        // Initialize state right on load
+        window.addEventListener('DOMContentLoaded', function() {
+            buildActiveGameLevel();
+        });
+    </script>
+</body>
+</html>
