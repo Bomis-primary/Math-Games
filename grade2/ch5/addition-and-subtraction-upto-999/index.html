@@ -279,9 +279,9 @@
     let playerCurrentTileSpace = 1;
     let finalWinningTileSpace = 16; 
     let correctAnswersCount = 0;
+    let totalIncorrectCount = 0; // Tracks total errors throughout the session
     let targetSolution = 0;
 
-    // Strike trackers
     let currentQuestionAttempts = 0;
     let currentRoundType = 'addition';
 
@@ -299,7 +299,6 @@
         1,  2,  3,  4   
     ];
 
-    // Responsive Load Engine for Splash dismissal channel
     let splashDismissed = false;
     function dismissSplash() {
         if (splashDismissed) return;
@@ -332,14 +331,16 @@
 
     function pickCharacter(index) {
         activeCharacterIdx = index;
-        document.querySelectorAll('.char-card').forEach(c => r.classList.remove('selected'));
+        document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
         const targetCard = document.getElementById(`c-${index}`);
         if(targetCard) targetCard.classList.add('selected');
     }
 
+    // Completely clear variables for a fresh game loop iteration
     function resetBoardState() {
         playerCurrentTileSpace = 1;
         correctAnswersCount = 0;
+        totalIncorrectCount = 0;
         currentQuestionAttempts = 0;
         setTimeout(() => { positionTokenOnGridSpace(1); }, 50);
     }
@@ -511,24 +512,24 @@
                     playerCurrentTileSpace = finalWinningTileSpace;
                     positionTokenOnGridSpace(playerCurrentTileSpace);
                     
-                    // Trigger custom end screen reporting evaluation performance
+                    // Trigger dynamic text using incorrect counts
                     setTimeout(() => {
                         let title = "Tower Conquered! 🏆";
                         let description = "";
                         let emoji = "🏆👑";
 
-                        if (correctAnswersCount >= 15) {
-                            title = "Ultimate Math Grandmaster! 🌟";
+                        if (totalIncorrectCount === 0) {
+                            title = "Flawless Arithmetic Grandmaster! 🌟";
                             emoji = "👑💎⚡";
-                            description = `Sensational math skills! You cleared the entire arena and answered an unbelievable ${correctAnswersCount} questions correctly! You are a master of place values.`;
-                        } else if (correctAnswersCount >= 12) {
+                            description = `Sensational math skills! You answered a total of ${correctAnswersCount} problems with 0 mistakes! Absolute perfection in all your addition and subtraction calculations!`;
+                        } else if (totalIncorrectCount <= 3) {
                             title = "Elite Math Climber! 🚀";
                             emoji = "🎯🥇🔥";
-                            description = `Outstanding work! You answered ${correctAnswersCount} addition and subtraction problems successfully while navigating all the board hazards. Highly precise calculations!`;
+                            description = `Outstanding accuracy! You answered ${correctAnswersCount} problems correctly and only made ${totalIncorrectCount} small mistake(s). Your addition and subtraction logic is incredibly sharp!`;
                         } else {
-                            title = "Tower Conqueror! 🪜";
+                            title = "Determined Tower Conqueror! 🪜";
                             emoji = "🎉🧗🎲";
-                            description = `Magnificent work! You met the core challenge perfectly, solved exactly ${correctAnswersCount} math problems accurately, and guided your companion to victory!`;
+                            description = `Fantastic persistence! Even though you had ${totalIncorrectCount} incorrect answers along the way, you learned from them, corrected your work, solved ${correctAnswersCount} problems perfectly, and won!`;
                         }
 
                         document.getElementById('end-emoji-display').innerText = emoji;
@@ -568,6 +569,7 @@
 
         } else {
             currentQuestionAttempts++;
+            totalIncorrectCount++; // Global increment for analytical report card at end screen
             
             const audioW = document.getElementById('snd-wrong');
             if(audioW) audioW.play().catch(() => {});
