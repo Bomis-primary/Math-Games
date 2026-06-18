@@ -77,7 +77,13 @@
         .intro-title {
             color: #e65100;
             font-size: 28px;
-            margin-bottom: 15px;
+            margin-bottom: 5px;
+        }
+        .intro-chef-img {
+            max-width: 140px;
+            height: auto;
+            margin: 10px auto;
+            display: block;
         }
         .intro-card {
             background: #fff8e1;
@@ -110,6 +116,21 @@
             font-size: 13px;
         }
 
+        /* Game Header Elements */
+        .title-area {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 5px;
+        }
+        .header-chef-avatar {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+            display: none; /* hidden in level 1, visible in level 2 */
+        }
+
         /* Game Container */
         .game-container {
             background: white;
@@ -124,7 +145,7 @@
         }
         h1 {
             color: #e65100;
-            margin: 0 0 4px 0;
+            margin: 0;
             font-size: 22px;
         }
         .part-badge {
@@ -209,7 +230,7 @@
             display: inline-block;
             transition: transform 0.1s;
         }
-        .treat-piece.dragging, .formula-card.dragging {
+        .treat-piece.dragging {
             cursor: grabbing;
             transform: scale(1.1) rotate(-3deg) !important;
             z-index: 1000 !important;
@@ -248,7 +269,7 @@
             box-sizing: border-box;
             transition: background 0.2s, transform 0.2s;
         }
-        .drop-plate.hovered, .station-target.hovered {
+        .drop-plate.hovered {
             background: #ffd54f !important;
             transform: scale(1.05);
         }
@@ -295,7 +316,7 @@
             border-color: #0288d1;
         }
 
-        /* LEVEL 2 - SWEET TREAT BAKERY ORDERS THEME */
+        /* LEVEL 2 - CLICKABLE BAKERY ORDERS BOXES */
         .formula-card {
             background: linear-gradient(135deg, #ff8a80, #ff5252);
             border: 3px solid #b71c1c;
@@ -305,7 +326,6 @@
             color: white;
             padding: 16px 20px;
             display: inline-block;
-            cursor: grab;
             box-shadow: 0 6px 12px rgba(0,0,0,0.15);
             min-width: 240px;
             max-width: 340px;
@@ -320,6 +340,7 @@
         .station-target {
             background: #fff8e1;
             border: 3px dashed #ffb300;
+            border-bottom: 5px solid #ffb300;
             border-radius: 16px;
             width: 110px;
             padding: 12px 5px;
@@ -328,8 +349,12 @@
             align-items: center;
             font-weight: bold;
             color: #5d4037;
-            transition: background 0.2s, transform 0.2s;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
             box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .station-target:active {
+            transform: scale(0.95);
         }
         .station-icon {
             font-size: 36px;
@@ -351,6 +376,16 @@
             border: 2px solid #ffb300;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
+        .station-target.correct-box {
+            background: #c8e6c9 !important;
+            border-color: #2e7d32 !important;
+            color: #1b5e20 !important;
+        }
+        .station-target.wrong-box {
+            background: #ffcdd2 !important;
+            border-color: #c62828 !important;
+            color: #b71c1c !important;
+        }
     </style>
 </head>
 <body>
@@ -365,7 +400,8 @@
     <!-- Intro Screen Panel -->
     <div id="intro-screen">
         <h2 class="intro-title">🎂 Sweet Bakery Party!</h2>
-        <div style="font-size: 50px; margin-bottom: 15px;">👩‍🍳🧁🍬</div>
+        <!-- Verified integration of chef image -->
+        <img src="chef.png" alt="Chef Character" class="intro-chef-img">
         <p style="color: #4e342e; font-weight: bold; font-size: 15px; margin-top: 0;">Welcome, Chef! Ready to sort out your delicious treat orders?</p>
         
         <div class="intro-card">
@@ -380,7 +416,7 @@
                 <span class="intro-icon">📦</span>
                 <div class="intro-level-text">
                     <h3>Level 2: Fill Bakery Orders</h3>
-                    <p>Match the word tickets to the correct delivery box sizes.</p>
+                    <p>Tap the correct delivery box sizes to match the word tickets.</p>
                 </div>
             </div>
         </div>
@@ -394,7 +430,11 @@
 
     <div class="game-container" id="main-game">
         <span class="part-badge" id="game-part-lbl">Level 1: Sharing Objects</span>
-        <h1 id="game-title">🧁 Cupcake Party Share!</h1>
+        
+        <div class="title-area">
+            <img src="chef.png" alt="Chef Head" class="header-chef-avatar" id="header-chef">
+            <h1 id="game-title">🧁 Cupcake Party Share!</h1>
+        </div>
         
         <div class="volume-box">
             <label for="volume">🔊 Volume: </label>
@@ -457,7 +497,7 @@
         let points = 0;
         let acceptInput = true;
         let piecesLeft = 0;
-        let attemptCount = 0; // Tracks response attempts per item index
+        let attemptCount = 0; 
 
         // Transitions from Splash Screen to Intro Screen
         setTimeout(() => {
@@ -485,6 +525,7 @@
 
         function startPart1() {
             currentGamePart = 1;
+            document.getElementById('header-chef').style.display = "none";
             document.getElementById('game-part-lbl').innerText = "Level 1: Drag & Divide Objects";
             activeQuestions = [...part1Questions].sort(() => Math.random() - 0.5);
             index = 0;
@@ -494,7 +535,7 @@
 
         function showPart1Question() {
             acceptInput = true;
-            attemptCount = 0; // Reset attempts for new question
+            attemptCount = 0; 
             const container = document.getElementById('game-content');
             const prog = document.getElementById('progress');
             const mainTitle = document.getElementById('game-title');
@@ -660,7 +701,6 @@
                 }, 2000);
             } else {
                 if (attemptCount === 1) {
-                    // First incorrect answer - give second chance
                     element.classList.add('wrong');
                     playSound(false);
                     const status = document.getElementById('status-msg');
@@ -669,12 +709,10 @@
                         status.style.background = "#fff3e0";
                         status.style.color = "#e65100";
                     }
-                    // Briefly keep wrong highlight, then allow clicking others
                     setTimeout(() => {
                         element.classList.remove('wrong');
                     }, 1000);
                 } else {
-                    // Second incorrect answer - reveal correct answer and move on
                     acceptInput = false;
                     element.classList.add('wrong');
                     playSound(false);
@@ -691,11 +729,12 @@
             }
         }
 
-        /* LEVEL 2 - SWEET BAKERY ORDERS THEMED IMPLEMENTATION */
+        /* LEVEL 2 - TAP THE BAKERY BOX IMPLEMENTATION */
         function startPart2() {
             currentGamePart = 2;
+            document.getElementById('header-chef').style.display = "block";
             document.getElementById('game-part-lbl').innerText = "Level 2: The Sweet Bakery Orders";
-            document.getElementById('game-title').innerText = "👩‍🍳 Fill the Sweet Orders!";
+            document.getElementById('game-title').innerText = "Fill the Sweet Orders!";
             activeQuestions = [...part2Questions].sort(() => Math.random() - 0.5);
             index = 0;
             showPart2Question();
@@ -703,7 +742,7 @@
 
         function showPart2Question() {
             acceptInput = true;
-            attemptCount = 0; // Reset attempts for new question
+            attemptCount = 0; 
             const container = document.getElementById('game-content');
             const prog = document.getElementById('progress');
             
@@ -722,7 +761,7 @@
             let stationsHTML = "";
             q.options.forEach(num => {
                 stationsHTML += `
-                    <div class="station-target" data-value="${num}">
+                    <div class="station-target" onclick="submitPart2Answer(this, ${num})">
                         <div class="station-name">Box Size</div>
                         <div class="station-icon">📦</div>
                         <div class="station-num">${num}</div>
@@ -735,8 +774,8 @@
                     <div class="story-text" style="color: #d84315; font-size: 14px; text-transform: uppercase;">
                         🧁 Ticket: ${q.typeText}
                     </div>
-                    <div class="story-text" style="margin-bottom: 10px;" id="l2-status">
-                        Drag the main order card into the box with the correct matching answer!
+                    <div class="story-text" style="margin-bottom: 15px;" id="l2-status">
+                        Tap the box with the correct matching answer!
                     </div>
                     
                     <div style="min-height: 120px; display: flex; justify-content: center; align-items: center; margin-bottom: 25px;">
@@ -750,117 +789,59 @@
                         ${stationsHTML}
                     </div>
                 `;
-                attachPart2TouchTracking();
             }
         }
 
-        function attachPart2TouchTracking() {
-            const card = document.getElementById('active-formula-card');
-            if (!card) return;
+        function submitPart2Answer(selectedStation, chosenValue) {
+            if (!acceptInput) return;
+            const q = activeQuestions[index];
+            attemptCount++;
 
-            card.addEventListener('pointerdown', (e) => {
-                if (!acceptInput) return;
-                e.preventDefault();
-                let selectedStation = null;
+            if (chosenValue === q.answer) {
+                acceptInput = false;
+                points++;
+                selectedStation.classList.add('correct-box');
+                playSound(true);
+                confetti({ particleCount: 30, spread: 40, origin: { y: 0.75 } });
                 
-                card.classList.add('dragging');
-                card.style.position = 'fixed';
-                card.setPointerCapture(e.pointerId);
-
-                function trackCard(evt) {
-                    card.style.left = (evt.clientX - card.offsetWidth / 2) + 'px';
-                    card.style.top = (evt.clientY - card.offsetHeight / 2) + 'px';
-
-                    card.style.display = 'none';
-                    let elementUnderneath = document.elementFromPoint(evt.clientX, evt.clientY);
-                    card.style.display = 'inline-block';
-
-                    if (elementUnderneath) {
-                        let targetStation = elementUnderneath.closest('.station-target');
-                        document.querySelectorAll('.station-target').forEach(b => b.classList.remove('hovered'));
-                        if (targetStation) {
-                            targetStation.classList.add('hovered');
-                            selectedStation = targetStation;
-                        } else {
-                            selectedStation = null;
-                        }
+                setTimeout(() => {
+                    index++;
+                    showPart2Question();
+                }, 2000);
+            } else {
+                if (attemptCount === 1) {
+                    selectedStation.classList.add('wrong-box');
+                    playSound(false);
+                    
+                    const l2Status = document.getElementById('l2-status');
+                    if (l2Status) {
+                        l2Status.innerText = "❌ Not quite right! Try one more time.";
+                        l2Status.style.color = "#d84315";
                     }
-                }
 
-                trackCard(e);
-
-                function releaseCard(evt) {
-                    card.releasePointerCapture(evt.pointerId);
-                    card.classList.remove('dragging');
-                    document.querySelectorAll('.station-target').forEach(b => b.classList.remove('hovered'));
-
-                    card.removeEventListener('pointermove', trackCard);
-                    card.removeEventListener('pointerup', releaseCard);
-
-                    if (selectedStation) {
-                        const chosenValue = parseInt(selectedStation.getAttribute('data-value'));
-                        const q = activeQuestions[index];
-                        attemptCount++;
-
-                        if (chosenValue === q.answer) {
-                            acceptInput = false;
-                            points++;
-                            selectedStation.style.background = "#c8e6c9";
-                            selectedStation.style.borderColor = "#2e7d32";
-                            playSound(true);
-                            confetti({ particleCount: 30, spread: 40, origin: { y: 0.75 } });
-                            
-                            setTimeout(() => {
-                                index++;
-                                showPart2Question();
-                            }, 2200);
-                        } else {
-                            if (attemptCount === 1) {
-                                // First wrong attempt - return card and let them try again
-                                selectedStation.style.background = "#ffcdd2";
-                                selectedStation.style.borderColor = "#c62828";
-                                playSound(false);
-                                
-                                const l2Status = document.getElementById('l2-status');
-                                if (l2Status) {
-                                    l2Status.innerText = "❌ Not quite right! Try one more time.";
-                                    l2Status.style.color = "#d84315";
-                                }
-
-                                setTimeout(() => {
-                                    selectedStation.style.background = "#fff8e1";
-                                    selectedStation.style.borderColor = "#ffb300";
-                                    card.style.position = 'static';
-                                }, 1200);
-                            } else {
-                                // Second wrong attempt - reveal correct answer and move on
-                                acceptInput = false;
-                                selectedStation.style.background = "#ffcdd2";
-                                selectedStation.style.borderColor = "#c62828";
-                                playSound(false);
-                                
-                                document.querySelectorAll('.station-target').forEach(b => {
-                                    if (parseInt(b.getAttribute('data-value')) === q.answer) {
-                                        b.style.background = "#c8e6c9";
-                                        b.style.borderColor = "#2e7d32";
-                                    }
-                                });
-
-                                setTimeout(() => {
-                                    index++;
-                                    showPart2Question();
-                                }, 2500);
-                            }
+                    setTimeout(() => {
+                        selectedStation.classList.remove('wrong-box');
+                    }, 1200);
+                } else {
+                    acceptInput = false;
+                    selectedStation.classList.add('wrong-box');
+                    playSound(false);
+                    
+                    // Reveal correct answer box
+                    const boxes = document.querySelectorAll('.station-target');
+                    boxes.forEach(box => {
+                        const numLabel = parseInt(box.querySelector('.station-num').innerText);
+                        if (numLabel === q.answer) {
+                            box.classList.add('correct-box');
                         }
+                    });
 
-                    } else {
-                        card.style.position = 'static';
-                    }
+                    setTimeout(() => {
+                        index++;
+                        showPart2Question();
+                    }, 2200);
                 }
-
-                card.addEventListener('pointermove', trackCard);
-                card.addEventListener('pointerup', releaseCard);
-            });
+            }
         }
 
         function endGame() {
