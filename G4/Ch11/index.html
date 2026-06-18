@@ -45,9 +45,11 @@
             background: #ffffff;
             z-index: 9999;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             transition: opacity 0.5s ease;
+            gap: 24px;
         }
         
         .splash-content-wrapper {
@@ -69,6 +71,30 @@
             max-width: 80%;
             height: 95px;
             object-fit: contain;
+        }
+
+        #logo-fallback {
+            font-size: 2.8rem;
+            font-weight: 900;
+            color: #111827;
+            letter-spacing: -1px;
+        }
+
+        /* Minimalist Linear Loading Strip Container */
+        .loading-bar-wrapper {
+            width: 180px;
+            height: 4px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .loading-bar-progress {
+            width: 0%;
+            height: 100%;
+            background: #0284c7;
+            border-radius: 10px;
+            transition: width 0.1s linear;
         }
 
         /* Instruction Screen Modal Layer */
@@ -210,6 +236,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
+            touch-action: manipulation;
         }
         .action-dispatch-btn:disabled {
             background: #374151;
@@ -228,14 +255,15 @@
 </head>
 <body>
 
-    <audio id="s-correct" src="assets/correct.mp3" preload="auto"></audio>
-    <audio id="s-wrong" src="assets/wrong.mp3" preload="auto"></audio>
-
     <div id="hard-splash">
         <div class="splash-content-wrapper">
             <div class="splash-logo-container">
-                <img src="assets/logo.png" class="splash-img" alt="Innovine Solutions Logo">
+                <img src="assets/logo.png" class="splash-img" alt="Innovine Solutions Logo" onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';">
+                <div id="logo-fallback" style="display:none;">innovine</div>
             </div>
+        </div>
+        <div class="loading-bar-wrapper">
+            <div class="loading-bar-progress" id="splash-progress-fill"></div>
         </div>
     </div>
 
@@ -253,7 +281,7 @@
 
         <div class="bank-display">
             <div class="hud-logo-container">
-                <img src="assets/logo.png" class="hud-img" alt="Innovine Solutions Branding">
+                <img src="assets/logo.png" class="hud-img" alt="Innovine Solutions Branding" onerror="this.style.display='none';">
             </div>
             <div class="screen-ticker">
                 <div class="ticker-title">CASHIER LEDGER VERIFICATION</div>
@@ -295,10 +323,15 @@
         // Standard 5-Second Master Clock Sequence
         let timeElapsed = 0;
         const totalDuration = 5000; 
-        const tickInterval = 100;
+        const tickInterval = 50;
+        const progressFill = document.getElementById('splash-progress-fill');
         
         const progressTicker = setInterval(() => {
             timeElapsed += tickInterval;
+            let percent = Math.min((timeElapsed / totalDuration) * 100, 100);
+            if (progressFill) {
+                progressFill.style.width = percent + '%';
+            }
             
             if (timeElapsed >= totalDuration) {
                 clearInterval(progressTicker);
@@ -307,8 +340,10 @@
                 if (splash) splash.style.opacity = '0';
                 setTimeout(() => {
                     if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
-                    if (mainApp) mainApp.style.opacity = '1';
-                    initSystemContext();
+                    if (mainApp) {
+                        mainApp.style.opacity = '1';
+                        initSystemContext();
+                    }
                 }, 500);
             }
         }, tickInterval);
@@ -318,22 +353,23 @@
             canvasContext = canvasElement.getContext('2d');
             
             recalculateCanvasDimensions();
+            window.addEventListener('resize', recalculateCanvasDimensions);
             generateBankPuzzle();
             runBankSimulationLoop();
         }
 
         function dismissInstructions() {
             const modal = document.getElementById('instruction-modal');
-            if (modal && modal.parentNode) {
-                modal.parentNode.removeChild(modal);
+            if (modal) {
+                modal.style.display = 'none';
             }
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         }
 
         function recalculateCanvasDimensions() {
-            const rect = canvasElement.getBoundingClientRect();
-            canvasElement.width = rect.width;
-            canvasElement.height = rect.height;
+            if (!canvasElement) return;
+            canvasElement.width = canvasElement.clientWidth;
+            canvasElement.height = canvasElement.clientHeight;
         }
 
         function generateBankPuzzle() {
@@ -416,11 +452,13 @@
         }
 
         function renderSimulationGraphics() {
-            if (!canvasContext) return;
-            canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
-
+            if (!canvasContext || !canvasElement) return;
+            
             const w = canvasElement.width;
             const h = canvasElement.height;
+            if (w === 0 || h === 0) return;
+
+            canvasContext.clearRect(0, 0, w, h);
 
             canvasContext.fillStyle = '#1e293b';
             canvasContext.fillRect(0, h - 35, w, 35);
@@ -519,7 +557,7 @@
             const feedbackLabel = document.getElementById('lbl-status-toast');
 
             if (chosenAnswer && chosenAnswer.isCorrect) {
-                playSound('s-correct', 'correct');
+                playSynthesizedFallback('correct');
                 feedbackLabel.innerText = "✓ DEPOSIT SUCCESSFUL! Balance logged into ledger vault.";
                 feedbackLabel.style.color = "#10b981";
                 
@@ -527,7 +565,7 @@
                     generateBankPuzzle();
                 }, 1600);
             } else {
-                playSound('s-wrong', 'wrong');
+                playSynthesizedFallback('wrong');
                 securityTruck.isTumbling = true;
                 feedbackLabel.innerText = "💥 COUNTER ERROR! Mismatched entry triggers tumbling crash!";
                 feedbackLabel.style.color = "#ef4444";
@@ -548,42 +586,37 @@
             feedbackLabel.style.color = "#9ca3af";
         }
 
-        function playSound(domId, typeFallback) {
-            try {
-                const soundNode = document.getElementById(domId);
-                if (soundNode) soundNode.play().catch(() => playSynthesizedFallback(typeFallback));
-                else playSynthesizedFallback(typeFallback);
-            } catch (e) {
-                playSynthesizedFallback(typeFallback);
-            }
-        }
-
         function playSynthesizedFallback(type) {
             if (!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            
-            const now = audioCtx.currentTime;
-            if (type === 'correct') {
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(523.25, now); 
-                osc.frequency.setValueAtTime(659.25, now + 0.1); 
-                osc.frequency.setValueAtTime(783.99, now + 0.2); 
-                gain.gain.setValueAtTime(0.1, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
-                osc.start(now);
-                osc.stop(now + 0.4);
-            } else {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(150, now);
-                osc.frequency.linearRampToValueAtTime(60, now + 0.5);
-                gain.gain.setValueAtTime(0.2, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.55);
-                osc.start(now);
-                osc.stop(now + 0.55);
-            }
+            try {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                
+                const now = audioCtx.currentTime;
+                if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now); 
+                    osc.frequency.setValueAtTime(659.25, now + 0.1); 
+                    osc.frequency.setValueAtTime(783.99, now + 0.2); 
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                    osc.start(now);
+                    osc.stop(now + 0.4);
+                } else {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.linearRampToValueAtTime(60, now + 0.5);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.55);
+                    osc.start(now);
+                    osc.stop(now + 0.55);
+                }
+            } catch (e) {}
         }
     </script>
 </body>
