@@ -436,16 +436,22 @@
     function pressKey(val) {
       triggerAudioTone(600, 'sine', 0.05);
       if (val === 'CLEAR') {
-        currentAnswerArray = ["?", "?", "?"];
-        activeSlotIndex = 2; // Reset focus to the Ones position
+        // If an active slot is highlighted, clear just that slot, else clear all
+        if (activeSlotIndex !== null && currentAnswerArray[activeSlotIndex] !== "?") {
+          currentAnswerArray[activeSlotIndex] = "?";
+        } else {
+          currentAnswerArray = ["?", "?", "?"];
+          activeSlotIndex = 2; // Reset focus back to the baseline Ones column
+        }
         updateAnswerGridDisplay();
       } else {
         if (activeSlotIndex !== null && activeSlotIndex >= 0 && activeSlotIndex <= 2) {
           currentAnswerArray[activeSlotIndex] = val;
           
-          // Auto-advance backward systematically (Ones -> Tens -> Hundreds) for smooth workflow
+          // Auto-advance backward systematically only if moving naturally from right-to-left
           if (activeSlotIndex === 2) activeSlotIndex = 1;
           else if (activeSlotIndex === 1) activeSlotIndex = 0;
+          else if (activeSlotIndex === 0) activeSlotIndex = null; // Typing finished
           
           updateAnswerGridDisplay();
         }
@@ -455,13 +461,14 @@
     function submitLibraryAnswer() {
       const helper = document.getElementById('helper-character');
       
-      let strH = currentAnswerArray[0] === "?" ? "0" : currentAnswerArray[0];
-      let strT = currentAnswerArray[1] === "?" ? "0" : currentAnswerArray[1];
-      let strO = currentAnswerArray[2] === "?" ? "0" : currentAnswerArray[2];
+      // Clean string conversion: replace blanks or question marks safely with 0
+      let strH = (currentAnswerArray[0] === "?" || currentAnswerArray[0] === " ") ? "0" : currentAnswerArray[0];
+      let strT = (currentAnswerArray[1] === "?" || currentAnswerArray[1] === " ") ? "0" : currentAnswerArray[1];
+      let strO = (currentAnswerArray[2] === "?" || currentAnswerArray[2] === " ") ? "0" : currentAnswerArray[2];
       
       const numericSubmission = parseInt(strH + strT + strO, 10);
  
-      if (numericSubmission === currentLevelData.remain) {
+      if (!isNaN(numericSubmission) && numericSubmission === currentLevelData.remain) {
         runningScore += 10;
         document.getElementById('score-val').innerText = runningScore;
          
@@ -487,7 +494,7 @@
         document.getElementById('feedback-box').innerText = "Try working it out column by column from right to left!";
          
         currentAnswerArray = ["?", "?", "?"];
-        activeSlotIndex = 2;
+        activeSlotIndex = 2; // Always realign to Ones upon failure
         updateAnswerGridDisplay();
         setTimeout(() => helper.classList.remove('sad'), 500);
       }
