@@ -35,7 +35,7 @@
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: #ffffff !important; z-index: 99999;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        opacity: 1; transition: opacity 0.5s ease;
+        opacity: 1; transition: opacity 0.4s ease;
     }
     .logo-container {
         display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -50,7 +50,7 @@
     }
     .splash-loader-bar {
         position: absolute; background: #0284c7; width: 100%; height: 100%;
-        left: -100%; animation: loadProgress 5s linear forwards; 
+        left: -100%; animation: loadProgress 1.2s linear forwards; 
     }
 
     .screen {
@@ -167,6 +167,7 @@
     .btn-choice {
         background: white; color: #1e293b; border: 4px solid #cbd5e1;
         box-shadow: 0 6px 0px #94a3b8, 0 8px 12px rgba(0,0,0,0.1); font-size: 24px;
+        transition: opacity 0.2s, background 0.2s;
     }
     .btn-choice:hover { border-color: #38bdf8; background: #f8fafc; box-shadow: 0 8px 0px #94a3b8; }
 
@@ -184,7 +185,8 @@
         0%, 100% { transform: translateY(0); }
         50% { transform: translateY(-5px); }
     }
-    .dice-cube { font-size: 40px; display: inline-block; margin-left: 8px; display: none; animation: spinD 0.4s infinite alternate; }
+    .dice-cube { font-size: 40px; display: inline-block; margin-left: 8px; display: none; }
+    .dice-cube.rolling { display: inline-block; animation: spinD 0.4s infinite alternate; }
     @keyframes spinD { 0% { transform: rotate(0deg); } 100% { transform: rotate(180deg); } }
 </style>
 </head>
@@ -275,11 +277,14 @@
     
     let activeCharacterIdx = 0;
     let playerCurrentTileSpace = 1;
-    let finalWinningTileSpace = 16; // Stable, fixed target space on the grid layout
+    let finalWinningTileSpace = 16; 
     let correctAnswersCount = 0;
     let targetSolution = 0;
 
-    // Classic stable ladders & structural snakes layout maps
+    // Strike trackers
+    let currentQuestionAttempts = 0;
+    let currentRoundType = 'addition';
+
     const specialTilesLayout = {
         2: { type: 'ladder', target: 7, label: '🪜 Up to 7' },
         5: { type: 'ladder', target: 11, label: '🪜 Up to 11' },
@@ -294,8 +299,11 @@
         1,  2,  3,  4   
     ];
 
-    // Absolute 5-Second Timer Splash Exit Channel
-    setTimeout(function() {
+    // Responsive Load Engine for Splash dismissal channel
+    let splashDismissed = false;
+    function dismissSplash() {
+        if (splashDismissed) return;
+        splashDismissed = true;
         const splash = document.getElementById('screen-splash');
         const mainAppWrapper = document.getElementById('app-viewport-wrapper');
         
@@ -309,9 +317,12 @@
                         positionTokenOnGridSpace(playerCurrentTileSpace);
                     }
                 }
-            }, 500);
+            }, 400);
         }
-    }, 5000); 
+    }
+
+    window.addEventListener('load', () => { setTimeout(dismissSplash, 1100); });
+    setTimeout(dismissSplash, 1500); 
 
     function goToScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -329,6 +340,8 @@
     function resetBoardState() {
         playerCurrentTileSpace = 1;
         correctAnswersCount = 0;
+        currentQuestionAttempts = 0;
+        setTimeout(() => { positionTokenOnGridSpace(1); }, 50);
     }
 
     function startBoardClimb() {
@@ -402,7 +415,12 @@
     function generateEquationRound() {
         document.getElementById('hud-status').innerText = "Your Turn";
         document.getElementById('hud-status').style.color = "#0284c7";
-        document.getElementById('dice-graphic').style.display = 'none';
+        
+        currentQuestionAttempts = 0; // Reset attempts for the new card round
+
+        const diceNode = document.getElementById('dice-graphic');
+        if(diceNode) diceNode.className = 'dice-cube'; 
+
         document.getElementById('hud-score').innerText = `Solved: 📝 ${correctAnswersCount} / 10`;
         
         if(correctAnswersCount >= 10) {
@@ -412,6 +430,7 @@
         }
 
         const isAdditionMode = Math.random() > 0.5;
+        currentRoundType = isAdditionMode ? 'addition' : 'subtraction';
         let numA, numB;
 
         if (isAdditionMode) {
@@ -442,7 +461,7 @@
             const btn = document.createElement('button');
             btn.className = 'btn btn-choice';
             btn.innerText = val;
-            btn.onclick = function() { checkPlayerAnswer(val); };
+            btn.onclick = function() { checkPlayerAnswer(val, btn); };
             btnGrid.appendChild(btn);
         });
     }
@@ -456,10 +475,10 @@
         setTimeout(() => banner.classList.remove('pop-show'), 1800);
     }
 
-    function checkPlayerAnswer(selectedVal) {
-        document.querySelectorAll('.btn-choice').forEach(b => b.onclick = null);
-
+    function checkPlayerAnswer(selectedVal, clickedBtn) {
         if (selectedVal === targetSolution) {
+            document.querySelectorAll('.btn-choice').forEach(b => b.onclick = null);
+
             correctAnswersCount++;
             document.getElementById('hud-score').innerText = `Solved: 📝 ${correctAnswersCount} / 10`;
             
@@ -471,19 +490,16 @@
             document.getElementById('hud-status').style.color = "#22c55e";
             
             const diceNode = document.getElementById('dice-graphic');
-            if(diceNode) diceNode.style.display = 'inline-block';
+            if(diceNode) diceNode.className = 'dice-cube rolling';
 
-            // PAWN ONLY MOVES AFTER DICE STOPS ROLLING ANIMATION
             setTimeout(() => {
                 const movementSteps = Math.floor(Math.random() * 3) + 1;
                 playerCurrentTileSpace += movementSteps;
                 
-                // Keep looping board naturally if they haven't finished their 10 equations yet
                 if (playerCurrentTileSpace > 16 && correctAnswersCount < 10) {
                     playerCurrentTileSpace = (playerCurrentTileSpace % 16) || 1;
                 }
 
-                // Check Victory Conditions safely
                 if (correctAnswersCount >= 10 && playerCurrentTileSpace >= finalWinningTileSpace) {
                     playerCurrentTileSpace = finalWinningTileSpace;
                     positionTokenOnGridSpace(playerCurrentTileSpace);
@@ -494,7 +510,6 @@
                     return;
                 }
 
-                // Move pawn visually on the board map
                 positionTokenOnGridSpace(playerCurrentTileSpace);
 
                 setTimeout(() => {
@@ -521,16 +536,41 @@
             }, 1400);
 
         } else {
+            currentQuestionAttempts++;
+            
             const audioW = document.getElementById('snd-wrong');
             if(audioW) audioW.play().catch(() => {});
 
-            document.getElementById('math-problem-display').innerText = `Oops! Solved: ${targetSolution}`;
-            document.getElementById('hud-status').innerText = "Try Again!";
-            document.getElementById('hud-status').style.color = "#ef4444";
+            if (currentQuestionAttempts === 1) {
+                // Strike 1: Grey out and lock the single wrong choice button
+                if (clickedBtn) {
+                    clickedBtn.style.opacity = "0.25";
+                    clickedBtn.style.background = "#e2e8f0";
+                    clickedBtn.style.boxShadow = "none";
+                    clickedBtn.style.transform = "none";
+                    clickedBtn.onclick = null;
+                }
+                
+                // Formulate a helpful Grade 2 tip without wiping out the equation panel numbers
+                let tacticalHint = currentRoundType === 'addition' ? 
+                    "Check your Ones place sum!" : 
+                    "Check your Tens place subtraction!";
+                
+                document.getElementById('hud-status').innerText = `Hint: ${tacticalHint}`;
+                document.getElementById('hud-status').style.color = "#d97706";
 
-            setTimeout(() => {
-                generateEquationRound();
-            }, 2400);
+            } else {
+                // Strike 2: Lock out options, show correct formula result, and advance to next turn
+                document.querySelectorAll('.btn-choice').forEach(b => b.onclick = null);
+                
+                document.getElementById('math-problem-display').innerText = `Answer: ${targetSolution}`;
+                document.getElementById('hud-status').innerText = "Let's try a fresh one!";
+                document.getElementById('hud-status').style.color = "#ef4444";
+
+                setTimeout(() => {
+                    generateEquationRound();
+                }, 2500);
+            }
         }
     }
 
