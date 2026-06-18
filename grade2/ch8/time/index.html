@@ -3,18 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Time & Seasons Adventure</title>
+    <title>Time & Seasons: Case Study Challenge</title>
     <!-- Canvas Confetti Library for Celebrations -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
-            --primary: #1e88e5;
-            --secondary: #ffb74d;
-            --background: #e3f2fd;
+            --primary: #2e7d32;
+            --secondary: #a1887f;
+            --background: #f1f8e9;
             --card-bg: #ffffff;
             --text: #263238;
             --correct: #4caf50;
             --wrong: #f44336;
+            --case-bg: #f5f5f5;
         }
 
         * {
@@ -36,7 +37,7 @@
 
         .game-container {
             width: 100%;
-            max-width: 500px;
+            max-width: 550px;
             background: var(--card-bg);
             border-radius: 24px;
             padding: 20px;
@@ -53,7 +54,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
-            background: #fff3e0;
+            background: #efebe9;
             padding: 10px 15px;
             border-radius: 15px;
         }
@@ -93,39 +94,39 @@
         .progress-bar {
             height: 100%;
             width: 0%;
-            background: linear-gradient(90deg, #ffb74d, #ff9800);
+            background: linear-gradient(90deg, #a1887f, #8d6e63);
             transition: width 0.4s ease;
+        }
+
+        /* Case Study Box */
+        .case-box {
+            background-color: var(--case-bg);
+            border-left: 5px solid var(--primary);
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+            color: #37474f;
+        }
+
+        .case-title {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
         /* Question Layout */
         .question-box {
-            font-size: 20px;
+            font-size: 18px;
             font-weight: bold;
-            text-align: center;
+            text-align: left;
             margin-bottom: 20px;
-            color: var(--primary);
+            color: #1a237e;
             line-height: 1.4;
-        }
-
-        /* Dynamic Visual Clocks or Context Icons */
-        .visual-display {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        .clock-svg {
-            width: 140px;
-            height: 140px;
-            background: #fff;
-            border-radius: 50%;
-            border: 5px solid var(--primary);
-            position: relative;
-        }
-
-        .scenery-emoji {
-            font-size: 70px;
-            animation: bounce 2s infinite ease-in-out;
         }
 
         /* Options Wrapper */
@@ -139,8 +140,8 @@
             background: #f5f5f5;
             border: 2px solid #e0e0e0;
             border-radius: 15px;
-            padding: 15px;
-            font-size: 16px;
+            padding: 14px;
+            font-size: 15px;
             font-weight: 600;
             text-align: left;
             cursor: pointer;
@@ -189,13 +190,8 @@
             border-radius: 50px;
             cursor: pointer;
             margin-top: 20px;
-            box-shadow: 0 4px 15px rgba(30, 136, 229, 0.3);
+            box-shadow: 0 4px 15px rgba(46, 125, 50, 0.3);
             width: 100%;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
         }
     </style>
 </head>
@@ -204,7 +200,7 @@
     <div class="game-container">
         <!-- Top Controls Panel -->
         <div class="header-panel">
-            <div class="score-lbl" id="score-display">Score: 0/10</div>
+            <div class="score-lbl" id="score-display">Score: 0/8</div>
             <div class="audio-ctrl">
                 <label for="volumeSlider">🔊 Vol:</label>
                 <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5">
@@ -223,76 +219,67 @@
     </div>
 
     <script>
-        const masterQuestionsList = [
+        // Data Bank mapping exact structural parameters of the generated CBQs
+        const cbqQuestionsList = [
+            // Case 1: Rahul's Sunday Routine
             {
-                type: 'clock',
-                question: "Look closely at the clock! What time does it show?",
-                hour: 3, minute: 0,
-                options: ["3 o'clock", "12 o'clock", "Half past 3", "6 o'clock"],
-                answer: "3 o'clock"
+                caseTitle: "Case Study 1: Rahul's Sunday Routine",
+                caseText: "Rahul wakes up in the morning when the short hand points to 7 and the long hand points to 12. He eats breakfast when the short hand is between 8 and 9, and the long hand points exactly to 6. In the evening, his friends come over to play at 5 o'clock.",
+                question: "Q1. What exact time does Rahul wake up in the morning?",
+                options: ["7 o'clock", "12 o'clock", "Half past 7", "8 o'clock"],
+                answer: "7 o'clock"
             },
             {
-                type: 'clock',
-                question: "The little hand is between 8 and 9. The big hand is on 6. What time is it?",
-                hour: 8, minute: 30,
-                options: ["8 o'clock", "9 o'clock", "Half past 8", "Half past 9"],
+                caseTitle: "Case Study 1: Rahul's Sunday Routine",
+                caseText: "Rahul wakes up in the morning when the short hand points to 7 and the long hand points to 12. He eats breakfast when the short hand is between 8 and 9, and the long hand points exactly to 6. In the evening, his friends come over to play at 5 o'clock.",
+                question: "Q2. What time does Rahul have his breakfast?",
+                options: ["Half past 8", "Half past 9", "8 o'clock", "6 o'clock"],
                 answer: "Half past 8"
             },
             {
-                type: 'clock',
-                question: "Look at this clock! Where are the hands pointing?",
-                hour: 11, minute: 0,
-                options: ["11 o'clock", "12 o'clock", "Half past 11", "1 o'clock"],
-                answer: "11 o'clock"
+                caseTitle: "Case Study 1: Rahul's Sunday Routine",
+                caseText: "Rahul wakes up in the morning when the short hand points to 7 and the long hand points to 12. He eats breakfast when the short hand is between 8 and 9, and the long hand points exactly to 6. In the evening, his friends come over to play at 5 o'clock.",
+                question: "Q3. If Rahul finishes playing 1 hour after his friends arrive at 5 o'clock, what time do they stop playing?",
+                options: ["6 o'clock", "4 o'clock", "Half past 5", "5 o'clock"],
+                answer: "6 o'clock"
             },
+            // Case 2: The School Project Timeline
             {
-                type: 'clock',
-                question: "The clock face shows the long hand on 6 and short hand between 1 and 2. It is...",
-                hour: 1, minute: 30,
-                options: ["1 o'clock", "Half past 1", "2 o'clock", "Half past 2"],
-                answer: "Half past 1"
-            },
-            {
-                type: 'text',
-                emoji: '📅',
-                question: "If today is Wednesday, what day was it yesterday?",
+                caseTitle: "Case Study 2: The School Project Timeline",
+                caseText: "Sana is working on a special science project. Today is Wednesday, and she is busy assembling her model. She collected all her raw materials yesterday. She has to submit the completed project to her teacher tomorrow.",
+                question: "Q4. On which day of the week did Sana collect her raw materials (yesterday)?",
                 options: ["Tuesday", "Thursday", "Monday", "Friday"],
                 answer: "Tuesday"
             },
             {
-                type: 'text',
-                emoji: '☀️',
-                question: "If yesterday was Sunday, what day will it be tomorrow?",
-                options: ["Monday", "Tuesday", "Saturday", "Wednesday"],
-                answer: "Tuesday"
+                caseTitle: "Case Study 2: The School Project Timeline",
+                caseText: "Sana is working on a special science project. Today is Wednesday, and she is busy assembling her model. She collected all her raw materials yesterday. She has to submit the completed project to her teacher tomorrow.",
+                question: "Q5. On which day of the week does Sana need to submit her project (tomorrow)?",
+                options: ["Thursday", "Tuesday", "Friday", "Wednesday"],
+                answer: "Thursday"
+            },
+            // Case 3: Planning the Year
+            {
+                caseTitle: "Case Study 3: Planning the Year",
+                caseText: "Aarav is looking at a calendar. His birthday falls in the second month of the year. He is currently in the month of July, looking forward to Independence Day, which comes in the very next month. He notices this year is a leap year.",
+                question: "Q6. In which month is Aarav's birthday (the second month of the year)?",
+                options: ["February", "January", "March", "April"],
+                answer: "February"
             },
             {
-                type: 'text',
-                emoji: '❄️',
-                question: "Which month comes right after July?",
-                options: ["June", "August", "September", "May"],
-                answer: "August"
-            },
-            {
-                type: 'text',
-                emoji: '🦘',
-                question: "How many days are there in February during a Leap Year?",
-                options: ["28 Days", "29 Days", "30 Days", "31 Days"],
+                caseTitle: "Case Study 3: Planning the Year",
+                caseText: "Aarav is looking at a calendar. His birthday falls in the second month of the year. He is currently in the month of July, looking forward to Independence Day, which comes in the very next month. He notices this year is a leap year.",
+                question: "Q7. Since Aarav noticed it is a leap year, how many days will there be in February this year?",
+                options: ["29 Days", "28 Days", "30 Days", "31 Days"],
                 answer: "29 Days"
             },
+            // Case 4: Changing Seasons
             {
-                type: 'text',
-                emoji: '🍦',
-                question: "Riya is wearing cotton clothes and drinking cold mango juice. What season is it?",
-                options: ["Winter Season", "Monsoon Season", "Summer Season", "Autumn Season"],
+                caseTitle: "Case Study 4: Changing Seasons",
+                caseText: "Riya is wearing cotton clothes, drinking cold mango juice, and using an air conditioner because the weather is very hot. She knows that after a few months, the sky will be filled with dark clouds, and she will need to carry an umbrella.",
+                question: "Q8. Which current season is Riya experiencing right now?",
+                options: ["Summer Season", "Winter Season", "Monsoon Season", "Autumn Season"],
                 answer: "Summer Season"
-            },
-            {
-                type: 'text',
-                emoji: '☔',
-                question: "The sky is filled with dark clouds and you need an umbrella to go out. What season is this?",
-                options: ["Summer Season", "Monsoon Season", "Winter Season", "Spring Season"],
-                answer: "Monsoon Season"
             }
         ];
 
@@ -333,26 +320,9 @@
             }
         }
 
-        function buildClockSVG(h, m) {
-            const hrAngle = (h * 30) + (m * 0.5);
-            const minAngle = m * 6;
-
-            return `
-                <svg class="clock-svg" viewBox="0 0 200 200">
-                    <circle cx="100" cy="100" r="90" fill="#ffffff" stroke="#1e88e5" stroke-width="6"/>
-                    <text x="100" y="30" font-size="16" font-weight="bold" text-anchor="middle">12</text>
-                    <text x="175" y="106" font-size="16" font-weight="bold" text-anchor="middle">3</text>
-                    <text x="100" y="182" font-size="16" font-weight="bold" text-anchor="middle">6</text>
-                    <text x="25" y="106" font-size="16" font-weight="bold" text-anchor="middle">9</text>
-                    <circle cx="100" cy="100" r="6" fill="#1e88e5" />
-                    <line x1="100" y1="100" x2="100" y2="55" stroke="#263238" stroke-width="6" stroke-linecap="round" transform="rotate(${hrAngle} 100 100)" />
-                    <line x1="100" y1="100" x2="100" y2="35" stroke="#ff9800" stroke-width="4" stroke-linecap="round" transform="rotate(${minAngle} 100 100)" />
-                </svg>
-            `;
-        }
-
         function initGameLoop() {
-            activeDeck = [...masterQuestionsList].sort(() => Math.random() - 0.5);
+            // Keep case studies ordered or shuffle questions natively
+            activeDeck = [...cbqQuestionsList];
             currentIndex = 0;
             runningScore = 0;
             isInputLocked = false;
@@ -379,19 +349,14 @@
 
             const activeQuestionData = activeDeck[currentIndex];
             const arena = document.getElementById('game-arena');
-
-            let visualLayout = '';
-            if (activeQuestionData.type === 'clock') {
-                visualLayout = buildClockSVG(activeQuestionData.hour, activeQuestionData.minute);
-            } else {
-                visualLayout = `<div class="scenery-emoji">${activeQuestionData.emoji || '⏰'}</div>`;
-            }
-
             const randomizedChoices = [...activeQuestionData.options].sort(() => Math.random() - 0.5);
 
             arena.innerHTML = `
+                <div class="case-box">
+                    <div class="case-title">📖 ${activeQuestionData.caseTitle}</div>
+                    <div>${activeQuestionData.caseText}</div>
+                </div>
                 <div class="question-box">${activeQuestionData.question}</div>
-                <div class="visual-display">${visualLayout}</div>
                 <div class="options-list">
                     ${randomizedChoices.map(choice => `
                         <button class="option-btn" onclick="handleChoiceSubmission(this, '${choice.replace(/'/g, "\\'")}')">
@@ -434,28 +399,28 @@
             setTimeout(() => {
                 currentIndex++;
                 renderQuestionScreen();
-            }, 1800);
+            }, 2500); // 2.5 seconds text review window for CBQ tracking
         }
 
         function renderEndGameScreen() {
             const arena = document.getElementById('game-arena');
             document.getElementById('progress-bar').style.width = '100%';
 
-            let finalMessage = "Keep practicing! You can do it! 💪";
+            let finalMessage = "Keep practicing! Analytical questions take a bit of thought. 💪";
             let celebrationEmoji = "🎈";
 
-            if (runningScore >= 9) {
-                finalMessage = "Wow! You are a Time & Seasons Master! 👑🎖️";
+            if (runningScore >= 7) {
+                finalMessage = "Incredible! You completely mastered the Case-Based analytical challenges! 👑🎖️";
                 celebrationEmoji = "🏆";
-            } else if (runningScore >= 6) {
-                finalMessage = "Wonderful Job! Great work tracking the days and seasons! 🌟";
+            } else if (runningScore >= 5) {
+                finalMessage = "Wonderful Job! Great comprehension of text timelines! 🌟";
                 celebrationEmoji = "🎉";
             }
 
             arena.innerHTML = `
                 <div class="summary-card">
                     <div class="summary-emoji">${celebrationEmoji}</div>
-                    <h2>Game Finished!</h2>
+                    <h2>Case Studies Complete!</h2>
                     <p style="font-size: 20px; font-weight: bold; color: var(--primary); margin: 10px 0;">
                         Final Score: ${runningScore} / ${activeDeck.length}
                     </p>
