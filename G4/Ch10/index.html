@@ -23,16 +23,15 @@
             justify-content: center;
             align-items: center;
             overflow: hidden;
-            padding: 10px;
+            padding: 12px;
         }
         
-        /* Scalable structural container fitting both Laptop displays and Mobile viewports */
         #viewport-root {
             width: 100%;
-            max-width: 460px;
+            max-width: 450px;
             height: 100%;
-            max-height: 85vh;
-            display: none; /* Safely managed by 5s splash screen loader */
+            max-height: 680px;
+            display: none; /* Managed cleanly via the 5s splash screen loader */
             flex-direction: column;
             padding: 16px;
             gap: 12px;
@@ -42,9 +41,10 @@
             border: 2px solid #1f2937;
             border-radius: 16px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            position: relative;
         }
 
-        /* 5-Second Universal Plain Splash Screen Block */
+        /* 5-Second Plain Splash Loader Screen Overlay */
         #hard-splash {
             position: fixed;
             top: 0; 
@@ -54,45 +54,115 @@
             background: #ffffff;
             z-index: 99999;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
+            gap: 20px;
             transition: opacity 0.5s ease;
         }
+        .splash-logo {
+            width: 180px;
+            height: auto;
+            object-fit: contain;
+        }
         .splash-text {
-            font-size: 1.75rem;
-            font-weight: 800;
+            font-size: 1.2rem;
+            font-weight: 700;
             color: #0b0f17;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
             text-transform: uppercase;
+        }
+
+        /* Game Rules Modal Overlay */
+        #rules-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(11, 15, 23, 0.95);
+            z-index: 1000;
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            text-align: center;
+        }
+        .rules-box {
+            background: #1f2937;
+            border: 2px solid #374151;
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+        .rules-title {
+            color: #10b981;
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+        .rules-list {
+            text-align: left;
+            margin-bottom: 20px;
+            color: #94a3b8;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            list-style-type: none;
+        }
+        .rules-list li {
+            margin-bottom: 8px;
+            position: relative;
+            padding-left: 18px;
+        }
+        .rules-list li::before {
+            content: "⚡";
+            position: absolute;
+            left: 0;
+            color: #38bdf8;
         }
 
         .control-panel {
             text-align: center;
             display: flex;
-            flex-direction: column;
             align-items: center;
+            gap: 12px;
+            width: 100%;
+            background: #1f2937;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid #374151;
+        }
+        .hud-logo {
+            width: 45px;
+            height: 45px;
+            object-fit: contain;
+            border-radius: 6px;
         }
 
         .signpost {
             background: #022c22;
-            border: 2px solid #059669;
-            border-radius: 10px;
-            padding: 12px;
+            border: 1px solid #059669;
+            border-radius: 8px;
+            padding: 8px;
             box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
-            width: 100%;
+            flex-grow: 1;
         }
         .signpost-title {
-            font-size: 0.75rem;
+            font-size: 0.65rem;
             color: #34d399;
             text-transform: uppercase;
-            letter-spacing: 1.5px;
+            letter-spacing: 1px;
             font-weight: 700;
         }
         .signpost-value {
-            font-size: 1.35rem;
+            font-size: 1.25rem;
             font-weight: 800;
             color: #ffffff;
-            margin-top: 4px;
+            margin-top: 2px;
             text-shadow: 0 0 8px rgba(52, 211, 153, 0.4);
         }
 
@@ -102,7 +172,8 @@
             border: 2px solid #334155;
             border-radius: 12px;
             position: relative;
-            min-height: 240px; /* Safeguards canvas layout on shorter windows */
+            min-height: 240px;
+            width: 100%;
         }
         canvas {
             position: absolute;
@@ -125,7 +196,7 @@
             border: 1px solid #475569;
             color: #94a3b8;
             border-radius: 10px;
-            padding: 14px 6px;
+            padding: 14px 4px;
             font-size: 0.85rem;
             font-weight: 700;
             cursor: pointer;
@@ -149,7 +220,7 @@
             color: #ffffff;
             border: none;
             border-radius: 10px;
-            padding: 15px;
+            padding: 16px;
             font-size: 1rem;
             font-weight: 700;
             cursor: pointer;
@@ -173,27 +244,46 @@
             text-align: center;
             font-weight: 700;
             font-size: 0.9rem;
-            min-height: 20px;
+            min-height: 22px;
+            width: 100%;
         }
         .device-tips {
             font-size: 0.7rem;
             color: #475569;
             text-align: center;
-            line-height: 1.3;
+            line-height: 1.4;
+            width: 100%;
         }
     </style>
 </head>
 <body>
 
     <div id="hard-splash">
-        <div class="splash-text">LOADING ENGINE...</div>
+        <img class="splash-logo" src="https://picsum.photos/200" alt="Logo">
+        <div class="splash-text">Loading Game Engine...</div>
     </div>
 
     <div id="viewport-root">
+        
+        <div id="rules-modal">
+            <div class="rules-box">
+                <h2 class="rules-title">How To Play</h2>
+                <ul class="rules-list">
+                    <li>Look at the target fraction metric at the top panel.</li>
+                    <li>Match it to the correct metric value variant shown in the lanes.</li>
+                    <li><b>Mobile:</b> Tap the lane switch keys to alter track layout.</li>
+                    <li><b>Laptop:</b> Press hotkeys [1, 2, 3] on your keyboard.</li>
+                    <li>Click <b>"Launch Traffic Flow"</b> (or Spacebar) to fire. Avoid crashing!</li>
+                </ul>
+                <button class="btn-submit" onclick="closeRulesAndStart()">Accept & Start</button>
+            </div>
+        </div>
+
         <div class="control-panel">
+            <img class="hud-logo" src="https://picsum.photos/200" alt="Logo">
             <div class="signpost">
-                <div class="signpost-title">METRIC ROUTING CONTROLLER</div>
-                <div class="signpost-value" id="lbl-highway-directive">Booting Lanes...</div>
+                <div class="signpost-title">METRIC TARGET CONVERSION</div>
+                <div class="signpost-value" id="lbl-highway-directive">Synchronizing...</div>
             </div>
         </div>
 
@@ -201,7 +291,7 @@
             <canvas id="highway-canvas"></canvas>
         </div>
 
-        <div class="toast-banner" id="lbl-feedback">Calibrating connection...</div>
+        <div class="toast-banner" id="lbl-feedback">System ready...</div>
 
         <div class="switch-deck">
             <button class="btn-switch" id="sw-0" onclick="alignRouteLane(0)">Lane 1</button>
@@ -210,7 +300,7 @@
         </div>
 
         <button class="btn-submit" id="btn-dispatch" onclick="dispatchVehicles()">Launch Traffic Flow</button>
-        <div class="device-tips">Laptop: Keys [1, 2, 3] to pick lane • [Space/Enter] to launch.<br>Mobile: Tap lane buttons or route targets directly.</div>
+        <div class="device-tips">Laptop: Press keys [1, 2, 3] to route • [Space/Enter] to launch.<br>Mobile/Tablet: Tap lane deck elements or click lines directly.</div>
     </div>
 
     <script>
@@ -235,7 +325,7 @@
             color: '#f43f5e'
         };
 
-        // Regulated 5-Second Transition Sequence Loop
+        // Regulated 5000ms App Start Counter
         let timeElapsed = 0;
         const totalDuration = 5000; 
         const tickInterval = 100;
@@ -255,52 +345,55 @@
                         mainApp.style.display = 'flex';
                         setTimeout(() => mainApp.style.opacity = '1', 50);
                     }
-                    initGameEngine();
                 }, 500);
             }
         }, tickInterval);
+
+        function closeRulesAndStart() {
+            const modal = document.getElementById('rules-modal');
+            if(modal) modal.style.display = 'none';
+            initGameEngine();
+        }
 
         function initGameEngine() {
             canvasElement = document.getElementById('highway-canvas');
             canvasContext = canvasElement.getContext('2d');
             
-            setupCanvasSize();
-            window.addEventListener('resize', setupCanvasSize);
+            setupCanvasResizing();
+            window.addEventListener('resize', setupCanvasResizing);
             setupInputBinds();
             generateNextHighwayLevel();
             startGameLoop();
         }
 
-        function setupCanvasSize() {
+        function setupCanvasResizing() {
             if (!canvasElement) return;
-            // Native fluid width/height bounding for perfect rendering scale on both trackpads and mobile screens
-            canvasElement.width = canvasElement.offsetWidth;
-            canvasElement.height = canvasElement.offsetHeight;
+            canvasElement.width = canvasElement.clientWidth;
+            canvasElement.height = canvasElement.clientHeight;
         }
 
         function setupInputBinds() {
-            // Laptop Keyboard Mapping
             window.addEventListener('keydown', (e) => {
-                if (currentVehicle.isMoving || currentVehicle.isTumbling) return;
-                if (e.key === '1') alignRouteLane(0);
-                if (e.key === '2') alignRouteLane(1);
-                if (e.key === '3') alignRouteLane(2);
-                if (e.key === ' ' || e.key === 'Enter') {
-                    e.preventDefault();
-                    dispatchVehicles();
+                if (document.getElementById('rules-modal').style.display === 'none') {
+                    if (currentVehicle.isMoving || currentVehicle.isTumbling) return;
+                    if (e.key === '1') alignRouteLane(0);
+                    if (e.key === '2') alignRouteLane(1);
+                    if (e.key === '3') alignRouteLane(2);
+                    if (e.key === ' ' || e.key === 'Enter') {
+                        e.preventDefault();
+                        dispatchVehicles();
+                    }
                 }
             });
 
-            // Direct Canvas Pointer/Touch Detection
             canvasElement.addEventListener('pointerdown', (e) => {
                 if (currentVehicle.isMoving || currentVehicle.isTumbling) return;
                 const rect = canvasElement.getBoundingClientRect();
-                const clickY = e.clientY - rect.top;
+                const pointerY = e.clientY - rect.top;
                 const h = rect.height;
 
-                // Segment path selectors cleanly by thirds
-                if (clickY < h * 0.38) alignRouteLane(0);
-                else if (clickY < h * 0.65) alignRouteLane(1);
+                if (pointerY < h * 0.38) alignRouteLane(0);
+                else if (pointerY < h * 0.65) alignRouteLane(1);
                 else alignRouteLane(2);
             });
         }
@@ -310,7 +403,6 @@
             document.getElementById('lbl-feedback').style.color = "#64748b";
             document.getElementById('btn-dispatch').disabled = false;
 
-            // Pure Metric Database Pools
             const basePool = [
                 { val: '1/2', unit: 'm', cVal: '50 cm', w1: '5 cm', w2: '500 cm' },
                 { val: '1/4', unit: 'km', cVal: '250 m', w1: '25 m', w2: '2500 m' },
@@ -380,6 +472,7 @@
         }
 
         function startGameLoop() {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
             function loop() {
                 updatePhysics();
                 renderCanvasGraphics();
@@ -411,10 +504,12 @@
 
         function renderCanvasGraphics() {
             if (!canvasContext || !canvasElement) return;
-            canvasContext.clearRect(0, 0, canvasElement.width, canvasElement.height);
-
+            
             const w = canvasElement.width;
             const h = canvasElement.height;
+            if (w === 0 || h === 0) return;
+
+            canvasContext.clearRect(0, 0, w, h);
             const laneYPositions = [h * 0.23, h * 0.5, h * 0.77];
 
             canvasContext.fillStyle = '#1e293b';
@@ -516,7 +611,7 @@
             } else {
                 currentVehicle.isTumbling = true;
                 triggerSynthesizerFallback('wrong');
-                feedbackText.innerText = "💥 COLLISION! Roadblock alignment fault.";
+                feedbackText.innerText = "💥 COLLISION! Alignment mismatch.";
                 feedbackText.style.color = "#f43f5e";
             }
         }
@@ -530,13 +625,16 @@
             currentVehicle.tumbleTimer = 0;
             
             document.getElementById('btn-dispatch').disabled = false;
-            feedbackText.innerText = "Realign connections and try again.";
+            feedbackText.innerText = "Realign connections and retry.";
             feedbackText.style.color = "#64748b";
         }
 
         function triggerSynthesizerFallback(type) {
             if (!audioCtx) return;
             try {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.connect(gain);
