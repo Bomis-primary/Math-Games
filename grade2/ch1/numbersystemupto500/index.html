@@ -38,22 +38,20 @@
             padding: 24px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             text-align: center;
-            position: relative;
         }
 
-        /* Method 2: Fixed Splash Screen to hide logo background blocks */
+        /* FIX: True full-screen overlay to seamlessly blend logo background blocks */
         #splash-screen {
-            position: absolute;
+            position: fixed;
             top: 0; 
             left: 0; 
-            width: 100%; 
-            height: 100%;
-            background: #FFFFFF; 
-            border-radius: 12px;
+            width: 100vw; 
+            height: 100vh;
+            background: #FFFFFF; /* Matches the white box inside your image perfectly */
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 10;
+            z-index: 9999; /* Forces splash to stay on top of everything */
         }
 
         #splash-screen img {
@@ -136,11 +134,11 @@
 </head>
 <body>
 
-<div class="container">
-    <div id="splash-screen">
-        <img src="assets/logo.png" alt="Innovine Logo">
-    </div>
+<div id="splash-screen">
+    <img src="assets/logo.png" alt="Innovine Logo">
+</div>
 
+<div class="container">
     <div id="intro-screen" class="hidden">
         <h2>Grade 2 - Chapter 1</h2>
         <p style="margin: 15px 0; color: #64748B;">Welcome to the Number Systems Challenge! Let's apply what we know about place value, grouping, and number tracking.</p>
@@ -179,4 +177,167 @@
         { id: 5, q: "A child counts 248 objects and then counts 100 more. Is the total more than 300?", opts: { a: "Yes", b: "No", c: "Exactly 300", d: "Less than 300" }, ans: "a", hint: "Add 1 hundred to the hundreds digit of 248.", exp: "248 + 100 equals 348, which is greater than 300." },
         { id: 6, q: "A number is 372. Is it more than 350?", opts: { a: "Yes", b: "No", c: "Exactly 350", d: "Less than 300" }, ans: "a", hint: "Look at the tens digit of both numbers.", exp: "372 has 7 tens, which is greater than 350 which has 5 tens." },
         { id: 7, q: "A number is formed using 5 hundreds, 0 tens, and 8 ones. Is the number more than 500?", opts: { a: "Yes", b: "No", c: "Exactly 500", d: "Less than 100" }, ans: "a", hint: "Write out the digits together to form the number.", exp: "The number is 508, which is slightly more than 500." },
-        { id:
+        { id: 8, q: "Which number is closest to 400?", opts: { a: "398", b: "420", c: "450", d: "470" }, ans: "a", hint: "Which number needs the fewest jumps to reach 400?", exp: "398 is only 2 jumps away from 400." },
+        { id: 9, q: "(Picture-Based) Image: Number line 100–200 with a point right in the middle at 150. Which statement is correct?", opts: { a: "The number is exactly 150", b: "The number is less than 150", c: "The number is more than 150", d: "The number is 100" }, ans: "a", hint: "Look at where the mark sits between 100 and 200.", exp: "The mark sits exactly halfway, pointing straight to 150." },
+        { id: 10, q: "Riya has 3 currency notes of ₹100, 4 notes of ₹10, and 7 coins of ₹1. She wants to buy a toy that costs ₹350. Does she have enough money?", opts: { a: "Yes, she has exactly ₹350", b: "No, she only has ₹347", c: "Yes, she has ₹374", d: "No, she only has ₹304" }, ans: "b", hint: "Count up her total value: 300 + 40 + 7.", exp: "Riya only has ₹347, which is short of the ₹350 price tag." },
+        { id: 11, q: "A frog is jumping on a number track. It starts at 120 and jumps forward by 10s. What number will the frog land on after 3 more jumps?", opts: { a: "150", b: "160", c: "170", d: "200" }, ans: "a", hint: "Count up by tens three times: 130, 140...", exp: "Three jumps of 10 add 30 to 120, landing the frog right on 150." },
+        { id: 12, q: "Rohan packs sweets into boxes. Each full box holds 100 sweets. He fills 5 boxes completely and has 8 individual sweets left over. Which number represents his total sweets?", opts: { a: "58", b: "580", c: "508", d: "805" }, ans: "c", hint: "Be careful! He has 5 hundreds and 8 ones, but 0 extra tens.", exp: "5 hundreds and 8 ones is written as 508 in standard form." },
+        { id: 13, q: "Section A of Grade 2 has 235 books in its mini-library. Section B has 253 books. Which statement is true about their libraries?", opts: { a: "Section A has more books than Section B", b: "Section B has more books than Section A", c: "Both sections have the exact same number of books", d: "Section A has 300 books" }, ans: "b", hint: "Compare the tens column: 3 tens vs 5 tens.", exp: "253 has 5 tens, making Section B's collection larger than Section A's 235." },
+        { id: 14, q: "I am a 3-digit number. My hundreds digit is 6, my tens digit is 0, and my ones digit is greater than 7 but less than 9. What number am I?", opts: { a: "678", b: "607", c: "609", d: "608" }, ans: "d", hint: "What single whole number sits between 7 and 9?", exp: "The number is 608 because 8 is the unique digit between 7 and 9." },
+        { id: 15, q: "Meera is writing numbers backwards from 500 by tens. She writes: 500, 490, 480, 460, 450. Which number did she accidentally skip?", opts: { a: "470", b: "440", c: "400", d: "495" }, ans: "a", hint: "What number comes 10 steps below 480?", exp: "Counting backwards by tens means 470 belongs right between 480 and 460." }
+    ];
+
+    let currentQIdx = 0;
+    let score = 0;
+    let attempts = 0;
+    let timerInterval;
+    let timeLeft = 60;
+
+    window.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            document.getElementById('splash-screen').classList.add('hidden');
+            document.getElementById('intro-screen').classList.remove('hidden');
+        }, 5000);
+    });
+
+    function startInteractive() {
+        document.getElementById('intro-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        clearInterval(timerInterval);
+        timeLeft = 60;
+        attempts = 0;
+        
+        document.getElementById('timer-count').textContent = timeLeft;
+        document.getElementById('feedback-container').classList.add('hidden');
+        document.getElementById('next-btn').classList.add('hidden');
+        
+        const qData = quizData[currentQIdx];
+        document.getElementById('question-number').textContent = `Q: ${currentQIdx + 1}/15`;
+        document.getElementById('question-container').textContent = qData.q;
+        
+        const optionsDiv = document.getElementById('options-container');
+        optionsDiv.innerHTML = '';
+        
+        Object.keys(qData.opts).forEach(key => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = `${key.toUpperCase()}) ${qData.opts[key]}`;
+            btn.onclick = () => handleAnswer(btn, key);
+            optionsDiv.appendChild(btn);
+        });
+
+        startTimer();
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer-count').textContent = timeLeft;
+            if(timeLeft <= 0) {
+                clearInterval(timerInterval);
+                lockQuestionOnTimeout();
+            }
+        }, 1000);
+    }
+
+    function handleAnswer(selectedBtn, chosenKey) {
+        const qData = quizData[currentQIdx];
+        const isCorrect = (chosenKey === qData.ans);
+        
+        if (isCorrect) {
+            clearInterval(timerInterval);
+            selectedBtn.classList.add('correct');
+            document.getElementById('sound-correct').play().catch(()=>{});
+            score++;
+            document.getElementById('score-tracker').textContent = `Score: ${score}`;
+            disableAllOptions();
+            showFinalExplanation(qData.exp);
+        } else {
+            attempts++;
+            document.getElementById('sound-wrong').play().catch(()=>{});
+            if (attempts === 1) {
+                selectedBtn.classList.add('wrong');
+                selectedBtn.disabled = true;
+                showHint(qData.hint);
+            } else {
+                clearInterval(timerInterval);
+                selectedBtn.classList.add('wrong');
+                disableAllOptions();
+                highlightCorrectAnswer(qData.ans);
+                showFinalExplanation(qData.exp);
+            }
+        }
+    }
+
+    function showHint(hintText) {
+        const fb = document.getElementById('feedback-container');
+        fb.className = "feedback-box hint";
+        fb.textContent = `Hint: ${hintText}`;
+        fb.classList.remove('hidden');
+    }
+
+    function showFinalExplanation(expText) {
+        const fb = document.getElementById('feedback-container');
+        fb.className = "feedback-box explanation";
+        fb.textContent = `Explanation: ${expText}`;
+        fb.classList.remove('hidden');
+        document.getElementById('next-btn').classList.remove('hidden');
+    }
+
+    function highlightCorrectAnswer(correctKey) {
+        const btns = document.getElementsByClassName('option-btn');
+        for(let btn of btns) {
+            if(btn.textContent.startsWith(correctKey.toUpperCase())) {
+                btn.classList.add('correct');
+            }
+        }
+    }
+
+    function disableAllOptions() {
+        const btns = document.getElementsByClassName('option-btn');
+        for(let btn of btns) {
+            btn.disabled = true;
+        }
+    }
+
+    function lockQuestionOnTimeout() {
+        disableAllOptions();
+        const qData = quizData[currentQIdx];
+        highlightCorrectAnswer(qData.ans);
+        showFinalExplanation(`Time ran out! ${qData.exp}`);
+    }
+
+    function nextQuestion() {
+        currentQIdx++;
+        if(currentQIdx < quizData.length) {
+            loadQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        const resultScreen = document.getElementById('result-screen');
+        resultScreen.classList.remove('hidden');
+        
+        document.getElementById('final-score').textContent = `Your Score: ${score}/15`;
+        
+        const percentage = (score / 15) * 100;
+        let msg = "";
+        if (percentage >= 75) {
+            msg = "Good job!";
+        } else if (percentage >= 40) {
+            msg = "Review this chapter and try again.";
+        } else {
+            msg = "Let's practise more.";
+        }
+        document.getElementById('result-message').textContent = msg;
+    }
+</script>
+</body>
+</html>
