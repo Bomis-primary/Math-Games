@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Multiplication Level 1 - Dynamic Matrix</title>
+    <title>Multiplication Level 1 - Master Matrix Journey</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -30,6 +30,7 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            overflow: hidden;
         }
 
         .game-container {
@@ -42,48 +43,44 @@
             border: 4px solid #fff;
             text-align: center;
             position: relative;
+            min-height: 520px;
         }
 
-        .header-meta {
+        /* --- EXPLICIT SCREEN FLOW OVERLAYS --- */
+        #splash-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #ffffff;
+            border-radius: 24px;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
-            margin-bottom: 15px;
+            z-index: 100;
+            transition: opacity 0.5s ease;
         }
 
-        .level-badge {
-            background: var(--primary);
+        .brand-logo-img {
+            max-width: 240px;
+            max-height: 90px;
+            object-fit: contain;
+        }
+
+        #title-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #74b9ff, #0984e3);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 90;
             color: white;
-            padding: 6px 16px;
-            border-radius: 50px;
-            font-size: 13px;
-            font-weight: bold;
+            padding: 30px;
+            transition: opacity 0.5s ease;
         }
 
-        .score-badge {
-            background: #fff;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-            padding: 4px 14px;
-            border-radius: 50px;
-            font-size: 13px;
-            font-weight: bold;
-        }
-
-        h1 {
-            color: var(--text-main);
-            font-size: 24px;
-            margin: 0 0 5px 0;
-        }
-
-        .instruction {
-            color: #64748b;
-            font-size: 14px;
-            margin-bottom: 20px;
-            font-weight: bold;
-        }
-
-        .stage-overlay {
+        #end-overlay {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #6c5ce7, #4834d4);
@@ -92,19 +89,13 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 10;
+            z-index: 80;
             color: white;
             padding: 25px;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.4s ease;
+            display: none;
         }
 
-        .stage-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
+        /* --- THE SPLIT MATCHING BOARD --- */
         .matching-board {
             display: grid;
             grid-template-columns: 1fr 1.3fr;
@@ -157,6 +148,7 @@
             transform: scale(1);
         }
 
+        /* --- GRAPHICAL LAYOUT ENGINES --- */
         .visual-array {
             display: grid;
             gap: 5px;
@@ -201,19 +193,27 @@
             font-weight: bold;
             cursor: pointer;
             width: 100%;
-            display: none;
             box-shadow: 0 5px 15px rgba(46, 125, 50, 0.3);
         }
+        
+        #next-round-btn { display: none; }
     </style>
 </head>
 <body>
 
     <div class="game-container">
-        <div id="end-overlay" class="stage-overlay">
-            <div style="font-size: 65px; margin-bottom: 10px;">👑</div>
-            <h2>Chapter 1 Mastered!</h2>
-            <p id="final-score-txt" style="font-size: 18px; margin-bottom: 25px;">You cleared all 4 screens with entirely unique equations!</p>
-            <button class="action-btn" id="restart-btn" style="display:block; background:white; color:var(--primary);" onclick="restartGame()">Play Again 🔄</button>
+        
+        <div id="splash-screen">
+            <img src="assets/logo.png" alt="Logo" class="brand-logo-img">
+        </div>
+
+        <div id="title-screen">
+            <div style="font-size: 60px; margin-bottom: 10px;">🧩</div>
+            <h2 style="font-size: 28px; margin: 0 0 10px 0;">Multiplication Matrix</h2>
+            <p style="font-size: 15px; margin-bottom: 30px; text-align: center; max-width: 340px;">
+                Connect multiplication expressions directly to their true visual layouts across 4 non-repeating boards!
+            </p>
+            <button class="action-btn" style="background: white; color: #0984e3;" onclick="startGame()">Start Expedition 🧭</button>
         </div>
 
         <div class="header-meta">
@@ -221,8 +221,10 @@
             <div class="score-badge" id="score-badge">Score: 0</div>
         </div>
 
-        <h1>Multiplication Concept Connector</h1>
-        <div class="instruction">Connect each multiplication expression to its true graphical layout!</div>
+        <h1 style="font-size: 22px; color: var(--text-main);">Level 1: Core Concepts</h1>
+        <div style="color: #64748b; font-size: 13px; margin-bottom: 20px; font-weight: bold;">
+            Tap a formula on the left, then connect it to its perfect match on the right!
+        </div>
 
         <div class="matching-board">
             <div class="column column-left" id="left-col"></div>
@@ -230,6 +232,15 @@
         </div>
 
         <button class="action-btn" id="next-round-btn" onclick="advanceRound()">Next Screen 🚀</button>
+
+        <div id="end-overlay">
+            <div style="font-size: 65px; margin-bottom: 15px;">👑</div>
+            <h2 style="font-size: 26px; margin: 0 0 10px 0;">Great Job!</h2>
+            <p style="font-size: 18px; margin-bottom: 30px; max-width: 400px; line-height: 1.4;">
+                You successfully matched all the mathematical statements with their visual setups!
+            </p>
+            <button class="action-btn" style="background:white; color:var(--primary);" onclick="restartGame()">Play Again 🔄</button>
+        </div>
     </div>
 
     <script>
@@ -241,22 +252,51 @@
         let selectedLeftNode = null;
         let selectedRightNode = null;
         let matchesClearedOnScreen = 0;
-        
-        // Dynamic Global Tracking Sets to prevent duplicates completely
         let usedEquations = new Set(); 
+
+        window.onload = () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if(splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.style.display = 'none', 500);
+                }
+            }, 2000);
+        };
+
+        function startGame() {
+            const title = document.getElementById('title-screen');
+            title.style.opacity = '0';
+            setTimeout(() => {
+                title.style.display = 'none';
+                loadScreenMatrix();
+            }, 500);
+        }
+
+        // Knuth-Fisher-Yates High Entropy Shuffle Engine
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
 
         function generateUniquePairs() {
             const concepts = ["array", "repeated-addition", "groups"];
             let screenPairs = [];
 
-            concepts.forEach((type) => {
+            // Copy list of cosmetics so that we select distinct configurations for this batch
+            let localEmojis = shuffleArray([...emojis]);
+            let localThemes = shuffleArray([...themes]);
+
+            concepts.forEach((type, index) => {
                 let valid = false;
                 let factor1, factor2, eqKey;
 
-                // Loop generation pool until a completely unique math puzzle combination is hit
                 while (!valid) {
-                    factor1 = Math.floor(Math.random() * 4) + 2; // 2 to 5
-                    factor2 = Math.floor(Math.random() * 4) + 2; // 2 to 5
+                    factor1 = Math.floor(Math.random() * 3) + 2; // 2 to 4
+                    factor2 = Math.floor(Math.random() * 3) + 2; // 2 to 4
                     eqKey = `${factor1}x${factor2}`;
 
                     if (!usedEquations.has(eqKey)) {
@@ -269,8 +309,8 @@
                     id: Math.random().toString(36).substr(2, 9),
                     expression: `${factor1} × ${factor2}`,
                     type: type,
-                    emoji: emojis[Math.floor(Math.random() * emojis.length)],
-                    theme: themes[Math.floor(Math.random() * themes.length)]
+                    emoji: localEmojis[index % localEmojis.length],
+                    theme: localThemes[index % localThemes.length]
                 };
 
                 if (type === "array") {
@@ -297,14 +337,14 @@
             document.getElementById('round-badge').innerText = `Screen ${currentScreenIdx + 1} / 4`;
             document.getElementById('score-badge').innerText = `Score: ${runningScore}`;
 
-            // Generate procedurally fresh non-repeating configurations
             const currentPairs = generateUniquePairs();
 
             let leftSideData = currentPairs.map((p, index) => ({ id: p.id, val: p.expression, link: index }));
             let rightSideData = currentPairs.map((p, index) => ({ id: p.id, raw: p, link: index }));
 
-            leftSideData.sort(() => Math.random() - 0.5);
-            rightSideData.sort(() => Math.random() - 0.5);
+            // Ensure full structural randomization on layout grids every time
+            shuffleArray(leftSideData);
+            shuffleArray(rightSideData);
 
             const leftCol = document.getElementById('left-col');
             const rightCol = document.getElementById('right-col');
@@ -409,8 +449,7 @@
                 currentScreenIdx++;
                 loadScreenMatrix();
             } else {
-                document.getElementById('final-score-txt').innerText = `Awesome job! You cleared all 4 screens with completely unique equation signatures. Final Score: ${runningScore}`;
-                document.getElementById('end-overlay').classList.add('active');
+                document.getElementById('end-overlay').style.display = 'flex';
             }
         }
 
@@ -418,11 +457,10 @@
             currentScreenIdx = 0;
             runningScore = 0;
             usedEquations.clear();
-            document.getElementById('end-overlay').classList.remove('active');
-            loadScreenMatrix();
+            document.getElementById('end-overlay').style.display = 'none';
+            document.getElementById('title-screen').style.display = 'flex';
+            document.getElementById('title-screen').style.opacity = '1';
         }
-
-        window.onload = loadScreenMatrix;
     </script>
 </body>
 </html>
