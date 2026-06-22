@@ -28,37 +28,25 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            overflow: hidden;
         }
 
         .outer-app-wrapper {
             width: 100%;
             max-width: 440px;
             position: relative;
-            min-height: 480px;
-        }
-
-        .game-card {
-            background: white;
-            border-radius: 24px;
-            border: 4px solid #ffeb3b;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            padding: 24px;
-            text-align: center;
-            width: 100%;
         }
 
         /* --- SPLASH SCREEN --- */
         #splash-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
             background: #ffffff;
-            border-radius: 20px;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            padding: 40px 24px;
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 2000;
-            transition: opacity 0.5s ease;
+            width: 100%;
+            min-height: 480px;
         }
 
         .brand-logo-img {
@@ -68,18 +56,17 @@
 
         /* --- TITLE SCREEN --- */
         #title-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #0288d1, #01579b);
-            border-radius: 20px;
-            display: none;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            display: none; /* Controlled via JS */
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
+            width: 100%;
+            min-height: 480px;
             color: white;
             padding: 30px;
-            transition: opacity 0.5s ease;
         }
 
         .start-btn {
@@ -98,6 +85,18 @@
 
         .start-btn:active {
             transform: scale(0.95);
+        }
+
+        /* --- MAIN GAME CARD --- */
+        #game-screen {
+            background: white;
+            border-radius: 24px;
+            border: 4px solid #ffeb3b;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            padding: 24px;
+            text-align: center;
+            width: 100%;
+            display: none; /* Controlled via JS */
         }
 
         /* --- QUESTION PROMPT --- */
@@ -223,7 +222,7 @@
             <button class="start-btn" onclick="startGame()">Start Game 🧭</button>
         </div>
 
-        <div class="game-card">
+        <div id="game-screen">
             <div class="instruction-heading">
                 5:00 o'clock. Show this time on the clock face!
             </div>
@@ -279,18 +278,10 @@
         let audioCtx = null;
 
         window.onload = () => {
-            // 1. Splash display holds for 2 seconds
+            // Displays Splash Screen for 2 seconds, then swaps layout blocks cleanly
             setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                if (splash) {
-                    splash.style.opacity = '0';
-                    setTimeout(() => {
-                        splash.style.display = 'none';
-                        // 2. Reveal Title Screen
-                        const titleScreen = document.getElementById('title-screen');
-                        titleScreen.style.display = 'flex';
-                    }, 500);
-                }
+                document.getElementById('splash-screen').style.display = 'none';
+                document.getElementById('title-screen').style.display = 'flex';
             }, 2000);
         };
 
@@ -301,13 +292,9 @@
         }
 
         function startGame() {
-            // Unlock audio node framework on direct action click
             initAudioEngine();
-            const titleScreen = document.getElementById('title-screen');
-            titleScreen.style.opacity = '0';
-            setTimeout(() => {
-                titleScreen.style.display = 'none';
-            }, 500);
+            document.getElementById('title-screen').style.display = 'none';
+            document.getElementById('game-screen').style.display = 'block';
         }
 
         function playInstantFeedbackSound(isSuccessful) {
@@ -322,4 +309,56 @@
 
             if (isSuccessful) {
                 oscillator.type = 'sine';
-                oscillator.frequency.setValueAtTime(523.25, audio
+                oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
+                oscillator.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.08); 
+                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+                oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.35);
+            } else {
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(146.83, audioCtx.currentTime); 
+                gainNode.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.25);
+            }
+        }
+
+        function updateUIState() {
+            if (userCurrentHour > 12) userCurrentHour = 1;
+            if (userCurrentHour < 1) userCurrentHour = 12;
+            document.getElementById('numerical-display').innerText = `${userCurrentHour}:00 O'clock`;
+            const computedDegrees = userCurrentHour * 30;
+            document.getElementById('hour-hand').setAttribute('transform', `rotate(${computedDegrees} 100 100)`);
+        }
+
+        function adjustTime(directionStep) {
+            userCurrentHour += directionStep;
+            updateUIState();
+        }
+
+        function evaluateAnswer() {
+            if (userCurrentHour === targetHour) {
+                playInstantFeedbackSound(true);
+                showCustomModal("Success! 🎉", "Fantastic job! You matched the target time perfectly.");
+            } else {
+                playInstantFeedbackSound(false);
+                showCustomModal("bomis-primary.github.io says", "Try again! Change the clock or move the pieces to find the right order! ✨");
+            }
+        }
+
+        function showCustomModal(title, text) {
+            document.getElementById('modal-title-host').innerText = title;
+            document.getElementById('modal-msg-body').innerText = text;
+            document.getElementById('alert-modal').style.display = 'flex';
+        }
+
+        document.body.addEventListener('click', () => {
+            initAudioEngine();
+            if (audioCtx && audioCtx.state === 'suspended') { audioCtx.resume(); }
+        });
+
+        function dismissModal() { document.getElementById('alert-modal').style.display = 'none'; }
+        updateUIState();
+    </script>
+</body>
+</html>
