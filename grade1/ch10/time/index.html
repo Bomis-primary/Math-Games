@@ -366,10 +366,13 @@
         let targetHour = 5;
         let userCurrentHour = 4;
         let isAnswerSuccessful = false;
-        let audioCtx = null;
 
         let currentScenarioIndex = 0;
         let selectedCardIndex = null;
+
+        // Preload repository MP3 audio assets
+        const audioClaps = new Audio('assets/claps.mp3');
+        const audioWrong = new Audio('assets/wrong.mp3');
 
         const routineScenarios = [
             {
@@ -404,7 +407,6 @@
         let displayCardsState = [];
 
         window.onload = () => {
-            // Exactly 5000 milliseconds splash screen timeout
             setTimeout(() => {
                 document.getElementById('splash-screen').style.display = 'none';
                 document.getElementById('title-screen').style.display = 'flex';
@@ -413,12 +415,18 @@
             initScenario(0);
         };
 
-        function initAudioEngine() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        /* --- REDIRECTED TO REPOSITORY REPOSITORY AUDIO FILES --- */
+        function playAudioEffect(isCorrectAction) {
+            if (isCorrectAction) {
+                audioClaps.currentTime = 0;
+                audioClaps.play().catch(e => console.log("Audio playback waiting for user click interaction."));
+            } else {
+                audioWrong.currentTime = 0;
+                audioWrong.play().catch(e => console.log("Audio playback waiting for user click interaction."));
+            }
         }
 
         function startClockGame() {
-            initAudioEngine();
             document.getElementById('title-screen').style.display = 'none';
             document.getElementById('game-screen-clock').style.display = 'block';
             setupClockQuestion();
@@ -447,27 +455,10 @@
             updateClockUI();
         }
 
-        function playSound(isSuccessful) {
-            initAudioEngine();
-            if (!audioCtx || audioCtx.state === 'suspended') return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            if (isSuccessful) {
-                osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-            } else {
-                osc.type = 'triangle'; osc.frequency.setValueAtTime(146.83, audioCtx.currentTime);
-                gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.25);
-            }
-        }
-
         function evaluateClockAnswer() {
             if (userCurrentHour === targetHour) {
                 isAnswerSuccessful = true;
-                playSound(true);
+                playAudioEffect(true); // Triggers assets/claps.mp3
                 if (clockQuestionIndex < totalClockQuestions) {
                     showCustomModal("Correct! 🎉", "Fantastic work! Let's try the next clock challenge.");
                 } else {
@@ -475,7 +466,7 @@
                 }
             } else {
                 isAnswerSuccessful = false;
-                playSound(false);
+                playAudioEffect(false); // Triggers assets/wrong.mp3
                 showCustomModal("bomis-primary.github.io says", `Try again! Use the buttons to turn the hand to ${targetHour}:00 o'clock. ⏰`);
             }
         }
@@ -493,7 +484,6 @@
             document.getElementById('scenario-emoji').innerText = activeData.emoji;
             document.getElementById('scenario-instruction').innerText = activeData.hint;
             
-            // Generate scrambled placement order layout
             displayCardsState = [
                 activeData.correctOrder[1],
                 activeData.correctOrder[2],
@@ -537,7 +527,7 @@
             
             if (isCorrect) {
                 isAnswerSuccessful = true;
-                playSound(true);
+                playAudioEffect(true); // Triggers assets/claps.mp3
                 if (currentScenarioIndex < routineScenarios.length - 1) {
                     showCustomModal("Wonderful! 🌟", "Awesome sequencing! Let's try the next daily routine scenario.");
                 } else {
@@ -545,7 +535,7 @@
                 }
             } else {
                 isAnswerSuccessful = false;
-                playSound(false);
+                playAudioEffect(false); // Triggers assets/wrong.mp3
                 showCustomModal("bomis-primary.github.io says", "Not quite right yet! Look at the hints and try swapping the actions into a matching time order! ✨");
             }
         }
@@ -579,11 +569,6 @@
                 }
             }
         }
-
-        document.body.addEventListener('click', () => {
-            initAudioEngine();
-            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
-        });
     </script>
 </body>
 </html>
