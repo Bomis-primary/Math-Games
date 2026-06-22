@@ -267,11 +267,11 @@
             font-size: 26px;
         }
 
-        /* --- CONTROLS / OPTIONS ZONE (UPDATED CLEAN COLUMN DESIGN) --- */
+        /* --- CONTROLS / OPTIONS ZONE (UPDATED FOR 2-COLUMN + CENTERED 3RD OPTION) --- */
         .options-box {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
             margin-top: 5px;
             width: 100%;
         }
@@ -284,11 +284,18 @@
             color: white;
             font-size: 17px;
             font-weight: bold;
-            padding: 14px 15px;
+            padding: 14px 10px;
             cursor: pointer;
             transition: all 0.1s ease;
             width: 100%;
             text-align: center;
+        }
+
+        /* If there's an odd 3rd button, stretch it across both columns and center its contents */
+        .btn:nth-child(3):last-child {
+            grid-column: span 2;
+            margin: 0 auto;
+            max-width: 210px; /* Aligns its width beautifully with the buttons above */
         }
 
         .btn:active {
@@ -471,207 +478,4 @@
         }
 
         function assembleRandomizedWorkflow() {
-            const lvl1 = rawPuzzleBank.filter(p => p.level === 1).sort(() => Math.random() - 0.5);
-            const lvl2 = rawPuzzleBank.filter(p => p.level === 2).sort(() => Math.random() - 0.5);
-            const lvl3 = rawPuzzleBank.filter(p => p.level === 3).sort(() => Math.random() - 0.5);
-            activeQuestionSuite = [...lvl1, ...lvl2, ...lvl3];
-        }
-
-        setTimeout(() => {
-            const splashElement = document.getElementById('splash-screen');
-            if (splashElement) {
-                splashElement.style.opacity = '0';
-                setTimeout(() => {
-                    splashElement.style.display = 'none';
-                    document.getElementById('intro-screen').classList.add('active');
-                }, 600);
-            }
-        }, 5000);
-
-        document.getElementById('btn-start-game').addEventListener('pointerdown', () => {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            document.getElementById('intro-screen').classList.remove('active');
-            document.getElementById('main-game').style.display = 'block';
-            assembleRandomizedWorkflow();
-            loadIslandLevel();
-        });
-
-        function loadIslandLevel() {
-            interactionLock = false;
-            questionAttempts = 0;
-            
-            const targetSpace = document.getElementById('interactive-space');
-            const choicesZone = document.getElementById('options-zone');
-            const fillProgress = document.getElementById('progress-bar-fill');
-            const hintDisplay = document.getElementById('hint-display');
-            
-            hintDisplay.style.display = 'none';
-            document.getElementById('score-lbl').innerText = `Score: ${runningScore}`;
-            fillProgress.style.width = `${(currentIndex / activeQuestionSuite.length) * 100}%`;
-
-            if (currentIndex >= activeQuestionSuite.length) {
-                renderAppreciationSummary();
-                return;
-            }
-
-            const activeNode = activeQuestionSuite[currentIndex];
-            
-            document.getElementById('level-lbl').innerText = `Level ${activeNode.level}`;
-            document.getElementById('game-title').innerText = activeNode.title;
-            document.getElementById('instruction-txt').innerText = activeNode.instruction;
-
-            targetSpace.innerHTML = "";
-            choicesZone.innerHTML = "";
-
-            if (activeNode.type === "visual-math") {
-                if (activeNode.isArray) {
-                    let arrayHtml = `<div class="array-container">`;
-                    for (let i = 0; i < activeNode.groups; i++) {
-                        arrayHtml += `<div class="array-row">`;
-                        for (let j = 0; j < activeNode.itemsPerGroup; j++) {
-                            arrayHtml += `<div class="group-item">${activeNode.emoji}</div>`;
-                        }
-                        arrayHtml += `</div>`;
-                    }
-                    arrayHtml += `</div>`;
-                    targetSpace.innerHTML = arrayHtml;
-                } else {
-                    let gridHtml = `<div class="grid-container">`;
-                    for (let i = 0; i < activeNode.groups; i++) {
-                        gridHtml += `<div class="visual-group">`;
-                        for (let j = 0; j < activeNode.itemsPerGroup; j++) {
-                            gridHtml += `<div class="group-item">${activeNode.emoji}</div>`;
-                        }
-                        gridHtml += `</div>`;
-                    }
-                    gridHtml += `</div>`;
-                    targetSpace.innerHTML = gridHtml;
-                }
-            } 
-            else if (activeNode.type === "story-sum") {
-                targetSpace.innerHTML = `
-                    <div style="font-size: 20px; font-weight: bold; padding: 20px; color: var(--primary); text-align: center; line-height: 1.6;">
-                        ${activeNode.textBlock}
-                    </div>
-                `;
-            }
-
-            activeNode.options.forEach(choiceText => {
-                const choiceBtn = document.createElement('button');
-                choiceBtn.className = "btn";
-                choiceBtn.innerText = choiceText;
-                choiceBtn.addEventListener('pointerdown', (e) => {
-                    e.preventDefault(); 
-                    evaluateTargetAnswer(choiceText, choiceBtn);
-                });
-                choicesZone.appendChild(choiceBtn);
-            });
-        }
-
-        function evaluateTargetAnswer(selectedString, pressedButton) {
-            if (interactionLock) return;
-
-            const activeNode = activeQuestionSuite[currentIndex];
-            let isUserCorrect = (selectedString === activeNode.answer);
-
-            if (isUserCorrect) {
-                interactionLock = true;
-                pressedButton.classList.add('correct');
-                runningScore += (questionAttempts === 0) ? 2 : 1; 
-                document.getElementById('score-lbl').innerText = `Score: ${runningScore}`;
-                
-                playSoundEffect('correct');
-                confetti({ particleCount: 40, spread: 60, origin: { y: 0.85 } });
-
-                setTimeout(advanceGameSequence, 2000);
-            } else {
-                questionAttempts++;
-                playSoundEffect('wrong');
-                pressedButton.classList.add('wrong');
-
-                if (questionAttempts === 1) {
-                    const hintDisplay = document.getElementById('hint-display');
-                    hintDisplay.innerText = `💡 Hint: ${activeNode.hint}`;
-                    hintDisplay.style.display = 'block';
-                } else if (questionAttempts >= 2) {
-                    interactionLock = true;
-                    const interfaceButtons = document.querySelectorAll('#options-zone .btn');
-                    interfaceButtons.forEach(btn => {
-                        if (btn.innerText === activeNode.answer) {
-                            btn.classList.add('correct');
-                        }
-                    });
-                    setTimeout(advanceGameSequence, 2500);
-                }
-            }
-        }
-
-        function advanceGameSequence() {
-            const currentLevel = activeQuestionSuite[currentIndex].level;
-            const nextIndex = currentIndex + 1;
-            
-            if (nextIndex < activeQuestionSuite.length && activeQuestionSuite[nextIndex].level > currentLevel) {
-                const slide = document.getElementById('progression-slide');
-                const slideText = document.getElementById('slide-level-text');
-                
-                slideText.innerText = `Entering Level ${activeQuestionSuite[nextIndex].level}! 🚀`;
-                slide.classList.add('active');
-                
-                let end = Date.now() + 1500;
-                (function frame() {
-                    confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0 } });
-                    confetti({ particleCount: 2, angle: 120, spread: 55, origin: { x: 1 } });
-                    if (Date.now() < end) { requestAnimationFrame(frame); }
-                }());
-
-                setTimeout(() => {
-                    slide.classList.remove('active');
-                    currentIndex++;
-                    loadIslandLevel();
-                }, 2200);
-            } else {
-                currentIndex++;
-                loadIslandLevel();
-            }
-        }
-
-        function renderAppreciationSummary() {
-            document.getElementById('main-game').style.display = 'none';
-            const screen = document.getElementById('appreciation-screen');
-            const heading = document.getElementById('appreciation-heading');
-            const emoji = document.getElementById('appreciation-emoji');
-            const scoreText = document.getElementById('final-score-txt');
-            const description = document.getElementById('appreciation-desc');
-
-            const maxPossibleScore = activeQuestionSuite.length * 2;
-            scoreText.innerText = `Final Score Points: ${runningScore} / ${maxPossibleScore}`;
-            screen.classList.add('active');
-
-            if (runningScore >= maxPossibleScore * 0.85) {
-                emoji.innerText = "👑";
-                heading.innerText = "Flawless Victory!";
-                description.innerText = "Incredible performance! You answered with precision and fully mastered all the learning outcomes for Chapter 9!";
-                confetti({ particleCount: 180, spread: 100, origin: { y: 0.4 } });
-            } else if (runningScore >= maxPossibleScore * 0.6) {
-                emoji.innerText = "🏆";
-                heading.innerText = "Spectacular Job!";
-                description.innerText = "Great job! You showed awesome mathematical proficiency converting repeated items to multiplication blocks.";
-                confetti({ particleCount: 100, spread: 60, origin: { y: 0.5 } });
-            } else {
-                emoji.innerText = "🏅";
-                heading.innerText = "Keep It Up!";
-                description.innerText = "Good effort, Explorer! Try another journey round to maximize your multiplication knowledge loop speeds.";
-            }
-        }
-
-        document.getElementById('btn-restart-game').addEventListener('pointerdown', () => {
-            currentIndex = 0;
-            runningScore = 0;
-            document.getElementById('appreciation-screen').classList.remove('active');
-            document.getElementById('main-game').style.display = 'block';
-            assembleRandomizedWorkflow();
-            loadIslandLevel();
-        });
-    </script>
-</body>
-</html>
+            const lvl1 = rawPuzzleBank
