@@ -3,354 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Time Quiz - Hourly Master</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <title>Level 3: Daily Routines</title>
     <style>
         :root {
-            --primary: #4a6fa5;
-            --primary-dark: #3b5984;
-            --secondary: #ff9f43;
-            --text-main: #2c3e50;
-            --success: #2ecc71;
-            --error: #e74c3c;
+            --primary-green: #2cd49e;
+            --text-dark: #2c3e50;
+            --border-light: #cbd5e1;
+            --card-blue: #23a6f0;
         }
 
         * {
             box-sizing: border-box;
-            font-family: 'Capriola', 'Comic Sans MS', sans-serif;
+            font-family: 'Comic Sans MS', 'Capriola', sans-serif;
             -webkit-user-select: none;
             user-select: none;
         }
 
         body {
-            background: linear-gradient(135deg, #e0f2fe 0%, #ch7dd9 100%);
+            background-color: #f0fdf4;
             margin: 0;
-            padding: 15px;
+            padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            overflow: hidden;
         }
 
-        .game-container {
+        .game-card {
             background: white;
-            border-radius: 28px;
-            padding: 24px;
+            border-radius: 24px;
+            border: 6px solid #ffcc00;
+            box-shadow: 0 12px 24px rgba(0,0,0,0.06);
             width: 100%;
-            max-width: 550px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
-            border: 4px solid #fff;
+            max-width: 500px;
+            padding: 24px;
             text-align: center;
             position: relative;
-            min-height: 540px;
         }
 
-        /* --- OVERLAYS --- */
-        #splash-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #ffffff;
-            border-radius: 24px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-            transition: opacity 0.5s ease;
-        }
-
-        .brand-logo-img {
-            max-width: 220px;
-            object-fit: contain;
-        }
-
-        #title-screen {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #4ea8de, #5390d9);
-            border-radius: 24px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 90;
-            color: white;
-            padding: 30px;
-            transition: opacity 0.5s ease;
-        }
-
-        #end-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #4a6fa5, #3b5984);
-            border-radius: 24px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 80;
-            color: white;
-            padding: 25px;
-            display: none;
-        }
-
-        /* --- HUD META --- */
-        .header-meta {
+        /* --- TOP BAR HUD --- */
+        .hud-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .badge-level {
+            background: #00e676;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .audio-slider-container {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .audio-slider {
+            width: 70px;
+            accent-color: #ff4081;
+        }
+
+        /* --- PROGRESS BAR --- */
+        .progress-container {
+            width: 100%;
+            background: #e2e8f0;
+            height: 12px;
+            border-radius: 10px;
+            margin-bottom: 24px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            width: 80%;
+            background: linear-gradient(90deg, #ff7675, #ff4757);
+            height: 100%;
+        }
+
+        /* --- QUESTION PROMPT --- */
+        .prompt-text {
+            font-size: 18px;
+            color: var(--text-dark);
+            line-height: 1.5;
+            margin-bottom: 20px;
+            text-align: center;
+            padding: 0 5px;
+        }
+
+        .underlined {
+            border-bottom: 2px solid var(--card-blue);
+            font-weight: bold;
+        }
+
+        .sub-caption {
+            color: #7f8c8d;
+            font-size: 13px;
             margin-bottom: 15px;
         }
 
-        .level-badge {
-            background: var(--primary);
-            color: white;
-            padding: 6px 16px;
-            border-radius: 50px;
-            font-size: 13px;
-            font-weight: bold;
-        }
-
-        /* --- CLOCK DESIGN AREA --- */
-        .clock-holder {
-            display: flex;
-            justify-content: center;
-            margin: 20px 0;
-        }
-
-        .clock-svg {
-            width: 200px;
-            height: 200px;
-        }
-
-        /* --- MCQ ENGINE --- */
-        .mcq-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            margin-top: 20px;
-        }
-
-        .option-btn {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
+        /* --- CONTAINER BOX & CARDS --- */
+        .sorting-area {
+            border: 2px dashed var(--border-light);
             border-radius: 16px;
+            padding: 20px 10px;
+            min-height: 130px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 24px;
+            background: #fafafa;
+        }
+
+        .draggable-item {
+            background: white;
+            border: 2px solid var(--card-blue);
+            color: var(--text-dark);
+            font-weight: bold;
+            font-size: 15px;
+            padding: 10px 16px;
+            border-radius: 12px;
+            cursor: grab;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            transition: transform 0.15s ease;
+        }
+
+        .draggable-item:active {
+            cursor: grabbing;
+        }
+
+        .draggable-item.ghost-dragging {
+            opacity: 0.3;
+            transform: scale(0.95);
+        }
+
+        /* --- ACTION SUBMIT BUTTON --- */
+        .submit-btn {
+            background: var(--primary-green);
+            color: white;
+            border: none;
+            width: 100%;
             padding: 14px;
             font-size: 18px;
             font-weight: bold;
-            color: var(--text-main);
+            border-radius: 30px;
             cursor: pointer;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.01);
+            box-shadow: 0 4px 12px rgba(44, 212, 158, 0.3);
+            transition: background 0.2s;
         }
 
-        .option-btn:hover {
-            background: #f1f5f9;
-            border-color: #cbd5e1;
-        }
-
-        .option-btn.correct {
-            background: #d4edda !important;
-            border-color: var(--success) !important;
-            color: #155724 !important;
-        }
-
-        .option-btn.wrong {
-            background: #f8d7da !important;
-            border-color: var(--error) !important;
-            color: #721c24 !important;
-        }
-
-        .action-btn {
-            background: var(--success);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 16px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
+        .submit-btn:hover {
+            background: #25be8e;
         }
     </style>
 </head>
 <body>
 
-    <div class="game-container">
+    <audio id="success-ch" src="assets/claps.mp3" preload="auto"></audio>
+    <audio id="fail-ch" src="assets/wrong.mp3" preload="auto"></audio>
+
+    <div class="game-card">
         
-        <div id="splash-screen">
-            <img src="assets/logo.png" alt="Logo" class="brand-logo-img">
+        <div class="hud-row">
+            <div class="badge-level">Level 3: Daily Routines 🔄</div>
+            <div class="audio-slider-container">
+                <span>🔊</span>
+                <input type="range" class="audio-slider" min="0" max="100" value="85">
+            </div>
         </div>
 
-        <div id="title-screen">
-            <div style="font-size: 60px; margin-bottom: 10px;">⏰</div>
-            <h2 style="font-size: 28px; margin: 0 0 10px 0;">Tick Tock Clock</h2>
-            <p style="font-size: 15px; margin-bottom: 30px; text-align: center; max-width: 340px;">
-                Look closely at the hands of the analog clock face and select the true matching numerical hours!
-            </p>
-            <button class="action-btn" style="background: white; color: #5390d9;" onclick="startGame()">Start Quiz 🧭</button>
+        <div class="progress-container">
+            <div class="progress-bar-fill"></div>
         </div>
 
-        <div class="header-meta">
-            <div class="level-badge" id="round-badge">Screen 1 / 4</div>
-            <div></div>
+        <div class="prompt-text">
+            Sequence <span class="underlined">Riya's</span> evening routine! <span class="underlined">Riya</span> loves to play outside right after school, then finishes her homework before eating dinner!
         </div>
 
-        <h1 style="font-size: 22px; color: var(--text-main); margin: 5px 0;">What time is shown?</h1>
-        <div style="color: #64748b; font-size: 14px; font-weight: bold; margin-bottom: 10px;">
-            Analyze the position of the short hour hand.
+        <div class="sub-caption">
+            Drag and arrange items in order (Left to Right):
         </div>
 
-        <div class="clock-holder">
-            <svg class="clock-svg" viewBox="0 0 200 200" id="live-clock">
-                <circle cx="100" cy="100" r="95" stroke="#4a6fa5" stroke-width="6" fill="#ffffff" />
-                <circle cx="100" cy="100" r="88" stroke="#e2e8f0" stroke-width="2" fill="none" />
-                
-                <text x="100" y="30" text-anchor="middle" font-weight="bold" font-size="16" fill="#2c3e50">12</text>
-                <text x="175" y="106" text-anchor="middle" font-weight="bold" font-size="16" fill="#2c3e50">3</text>
-                <text x="100" y="182" text-anchor="middle" font-weight="bold" font-size="16" fill="#2c3e50">6</text>
-                <text x="25" y="106" text-anchor="middle" font-weight="bold" font-size="16" fill="#2c3e50">9</text>
-                
-                <text x="138" y="49" text-anchor="middle" font-weight="bold" font-size="13" fill="#64748b">1</text>
-                <text x="163" y="74" text-anchor="middle" font-weight="bold" font-size="13" fill="#64748b">2</text>
-                <text x="163" y="138" text-anchor="middle" font-weight="bold" font-size="13" fill="#64748b">4</text>
-                <text x="138" y="164" text-anchor="middle" font-weight="bold" font-size="13" fill="#64748b">5</text>
-                <text x="64" y="164" text-anchor="middle" font-weight="bold" font-size="13" fill="#64748b">7</text>
-                <text x="39" y="138" text-anchor="middle" font-weight="bold" font-size="13" fill="#64748b">8</text>
-                <text x="39" y="74" text-anchor="middle" font-weight="bold" font-size="13" fill="#64748b">10</text>
-                <text x="64" y="49" text-anchor="middle" font-weight="bold" font-size="13" fill="#64748b">11</text>
-
-                <line x1="100" y1="100" x2="100" y2="40" stroke="#2c3e50" stroke-width="5" stroke-linecap="round" />
-                
-                <line id="hour-hand" x1="100" y1="100" x2="100" y2="55" stroke="#ff9f43" stroke-width="7" stroke-linecap="round" />
-                
-                <circle cx="100" cy="100" r="6" fill="#2c3e50" />
-            </svg>
+        <div class="sorting-area" id="board-arena">
+            <div class="draggable-item" draggable="true">Do Homework</div>
+            <div class="draggable-item" draggable="true">Eat Dinner</div>
+            <div class="draggable-item" draggable="true">Play Outside</div>
+            <div class="draggable-item" draggable="true">Go to Bed</div>
         </div>
 
-        <div class="mcq-container" id="options-box"></div>
-
-        <div id="end-overlay">
-            <div style="font-size: 65px; margin-bottom: 15px;">👑</div>
-            <h2 style="font-size: 26px; margin: 0 0 10px 0;">Great Job!</h2>
-            <p style="font-size: 18px; margin-bottom: 30px; max-width: 400px; line-height: 1.4;">
-                You successfully solved all the analog clock reading challenges accurately!
-            </p>
-            <button class="action-btn" style="background:white; color:var(--primary);" onclick="restartGame()">Play Again 🔄</button>
-        </div>
+        <button class="submit-btn" onclick="checkCurrentOrder()">Check Answer ✓</button>
     </div>
 
     <script>
-        let currentScreenIdx = 0;
-        let screenHours = [];
-        let canInteract = true;
+        // Exact solution array matching chronological parameters
+        const correctSequence = ["Play Outside", "Do Homework", "Eat Dinner", "Go to Bed"];
+        const arena = document.getElementById('board-arena');
 
-        window.onload = () => {
-            setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                if(splash) {
-                    splash.style.opacity = '0';
-                    setTimeout(() => splash.style.display = 'none', 500);
-                }
-            }, 2000);
-        };
-
-        function startGame() {
-            const title = document.getElementById('title-screen');
-            title.style.opacity = '0';
-            setTimeout(() => {
-                title.style.display = 'none';
-                generateScreenHours();
-                loadQuizScreen();
-            }, 500);
-        }
-
-        // Generates 4 strictly distinct hours for each quiz card run
-        function generateScreenHours() {
-            let hoursSet = new Set();
-            while(hoursSet.size < 4) {
-                let randomHour = Math.floor(Math.random() * 12) + 1; // 1 to 12
-                hoursSet.add(randomHour);
+        // Drag and Drop interactive listener matrix
+        arena.addEventListener('dragstart', (e) => {
+            if(e.target.classList.contains('draggable-item')) {
+                e.target.classList.add('ghost-dragging');
             }
-            screenHours = Array.from(hoursSet);
-        }
+        });
 
-        function loadQuizScreen() {
-            canInteract = true;
-            document.getElementById('round-badge').innerText = `Screen ${currentScreenIdx + 1} / 4`;
-            
-            let targetHour = screenHours[currentScreenIdx];
-            updateClockFace(targetHour);
-
-            // Construct choices pool with target answer + 2 unique distractors
-            let options = new Set([targetHour]);
-            while(options.size < 3) {
-                let distractor = Math.floor(Math.random() * 12) + 1;
-                options.add(distractor);
+        arena.addEventListener('dragend', (e) => {
+            if(e.target.classList.contains('draggable-item')) {
+                e.target.classList.remove('ghost-dragging');
             }
+        });
 
-            let sortedOptions = Array.from(options).sort(() => Math.random() - 0.5);
-            const optionsBox = document.getElementById('options-box');
-            optionsBox.innerHTML = '';
+        arena.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const activeCard = document.querySelector('.ghost-dragging');
+            if(!activeCard) return;
 
-            sortedOptions.forEach(val => {
-                const button = document.createElement('button');
-                button.className = 'option-btn';
-                button.innerText = `${val}:00 O'clock`;
-                button.onclick = () => checkSelection(button, val, targetHour);
-                optionsBox.appendChild(button);
+            const surroundingCards = [...arena.querySelectorAll('.draggable-item:not(.ghost-dragging)')];
+            const targetNextSibling = surroundingCards.find(card => {
+                const box = card.getBoundingClientRect();
+                return e.clientX <= box.left + box.width / 2;
             });
-        }
 
-        function updateClockFace(hour) {
-            // Calculate rotational degrees based on standard circle geometric space
-            let angle = hour * 30; 
-            let hand = document.getElementById('hour-hand');
-            if(hand) {
-                hand.setAttribute('transform', `rotate(${angle} 100 100)`);
-            }
-        }
+            arena.insertBefore(activeCard, targetNextSibling);
+        });
 
-        function checkSelection(button, pickedValue, correctValue) {
-            if (!canInteract) return;
-            canInteract = false;
+        function checkCurrentOrder() {
+            const currentOrder = [...arena.querySelectorAll('.draggable-item')].map(c => c.innerText.trim());
+            
+            let isCorrect = currentOrder.length === correctSequence.length && 
+                            currentOrder.every((val, index) => val === correctSequence[index]);
 
-            if (pickedValue === correctValue) {
-                button.classList.add('correct');
-                confetti({ particleCount: 30, spread: 50 });
-                
-                setTimeout(() => {
-                    if (currentScreenIdx + 1 < 4) {
-                        currentScreenIdx++;
-                        loadQuizScreen();
-                    } else {
-                        document.getElementById('end-overlay').style.display = 'flex';
-                    }
-                }, 1200);
+            if(isCorrect) {
+                const successAudio = document.getElementById('success-ch');
+                if(successAudio) { successAudio.currentTime = 0; successAudio.play().catch(()=>{}); }
+                alert("Correct Answer! 🎉");
             } else {
-                button.classList.add('wrong');
-                // Auto highlight correct answer button
-                setTimeout(() => {
-                    Array.from(document.getElementsByClassName('option-btn')).forEach(btn => {
-                        if (btn.innerText.startsWith(correctValue + ':')) {
-                            btn.classList.add('correct');
-                        }
-                    });
-                }, 300);
-
-                setTimeout(() => {
-                    loadQuizScreen();
-                }, 1500);
+                const failAudio = document.getElementById('fail-ch');
+                if(failAudio) { failAudio.currentTime = 0; failAudio.play().catch(()=>{}); }
+                alert("Try again! Move the pieces to find the right order! ✨");
             }
-        }
-
-        function restartGame() {
-            currentScreenIdx = 0;
-            generateScreenHours();
-            document.getElementById('end-overlay').style.display = 'none';
-            document.getElementById('title-screen').style.display = 'flex';
-            document.getElementById('title-screen').style.opacity = '1';
         }
     </script>
 </body>
