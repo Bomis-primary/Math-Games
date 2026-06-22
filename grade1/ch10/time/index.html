@@ -160,44 +160,67 @@
             align-items: center;
         }
 
-        /* --- PART 2: DRAG CARDS STYLES --- */
+        /* --- PART 2: MOBILE TAP-TO-SWAP CARDS --- */
         .drag-container {
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 12px;
             margin-bottom: 25px;
         }
 
         .routine-card {
             background-color: #f8fafc;
             border: 2px solid #cbd5e1;
-            border-radius: 12px;
-            padding: 12px;
+            border-radius: 16px;
+            padding: 16px;
             text-align: left;
             font-size: 15px;
             color: #334155;
-            cursor: grab;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
         }
 
-        .routine-card:active {
-            cursor: grabbing;
-            background-color: #e2e8f0;
+        .routine-card:hover {
+            background-color: #f1f5f9;
+            border-color: #94a3b8;
+        }
+
+        .routine-card.selected {
+            background-color: #e0f2fe;
+            border-color: #0288d1;
+            box-shadow: 0 0 0 2px #0288d1;
+            transform: scale(1.02);
         }
 
         .routine-card .number-badge {
             background-color: #cbd5e1;
             color: #475569;
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
+            width: 28px;
+            height: 28px;
             display: flex;
             justify-content: center;
             align-items: center;
             font-weight: bold;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .routine-card.selected .number-badge {
+            background-color: #0288d1;
+            color: white;
+        }
+
+        .hint-text {
             font-size: 13px;
+            color: #64748b;
+            margin-top: -10px;
+            margin-bottom: 15px;
+            font-style: italic;
         }
 
         /* --- COMMON SUBMIT BUTTON --- */
@@ -304,15 +327,21 @@
             <div style="font-size: 60px; margin-bottom: 10px;">🌟</div>
             <h2 style="font-size: 26px; margin: 0 0 10px 0; text-align: center;">Amazing Job!</h2>
             <p style="font-size: 15px; text-align: center; max-width: 320px; line-height: 1.5; margin-bottom: 15px;">
-                You mastered telling time on the clock face! Now let's help arrange Riya's daily evening routine cards in order.
+                You mastered telling time on the clock face! Now let's help arrange some daily routine cards in order.
             </p>
             <button class="action-btn" onclick="startRoutineGame()">Next Activity ➡️</button>
         </div>
 
         <div id="game-screen-routine" class="game-card">
-            <div class="instruction-heading">
-                Sequence Riya's evening routine by dragging the activities into the correct order!
+            <div class="progress-indicator" id="routine-progress-text">Scenario 1 of 3</div>
+            
+            <div style="background-color: #f0fdf4; border: 2px dashed #1ebd9b; border-radius: 16px; padding: 12px; margin-bottom: 15px;">
+                <span style="font-size: 22px;" id="scenario-emoji">🌅</span>
+                <div class="instruction-heading" id="scenario-instruction" style="margin: 5px 0 0 0; font-size: 16px;">
+                    </div>
             </div>
+            
+            <div class="hint-text">💡 Tap any two cards to switch their positions!</div>
 
             <div class="drag-container" id="cards-list-box"></div>
 
@@ -339,26 +368,49 @@
         let isAnswerSuccessful = false;
         let audioCtx = null;
 
-        const correctRoutineOrder = [
-            { id: "a", text: "🌙 Riya completes her homework in the evening." },
-            { id: "b", text: "🍽️ She dines with her family at night." },
-            { id: "c", text: "🛏️ Riya falls asleep peacefully in bed." }
-        ];
-        
-        let displayCardsState = [
-            correctRoutineOrder[1],
-            correctRoutineOrder[2],
-            correctRoutineOrder[0]
+        let currentScenarioIndex = 0;
+        let selectedCardIndex = null;
+
+        const routineScenarios = [
+            {
+                emoji: "🌅",
+                hint: "Help Aarav organize his early morning sequence before leaving his bedroom!",
+                correctOrder: [
+                    { id: "m1", text: "⏰ First, Aarav wakes up and stretches when his alarm rings." },
+                    { id: "m2", text: "🛏️ Next, he neatly makes his bed." },
+                    { id: "m3", text: "👕 Then, he changes out of his pajamas into clean clothes." }
+                ]
+            },
+            {
+                emoji: "🎒",
+                hint: "Help Riya get ready for school neat and clean after eating breakfast!",
+                correctOrder: [
+                    { id: "s1", text: "🪥 First, Riya brushes her teeth until they are sparkling white." },
+                    { id: "s2", text: "🦷 Next, she combs her messy hair smoothly." },
+                    { id: "s3", text: "🚌 Then, she grabs her backpack and runs to catch the school bus." }
+                ]
+            },
+            {
+                emoji: "🌳",
+                hint: "Help Kabir sequence his fun afternoon and evening timeline after returning home!",
+                correctOrder: [
+                    { id: "e1", text: "🥪 First, Kabir eats a healthy snack after a long school day." },
+                    { id: "e2", text: "⚽ Next, he goes outside to play football with his friends." },
+                    { id: "e3", text: "📝 Then, he sits down to finish his homework before dinner." }
+                ]
+            }
         ];
 
-        // FIXED: Timeout set to exactly 5000ms (5 seconds)
+        let displayCardsState = [];
+
         window.onload = () => {
+            // Exactly 5000 milliseconds splash screen timeout
             setTimeout(() => {
                 document.getElementById('splash-screen').style.display = 'none';
                 document.getElementById('title-screen').style.display = 'flex';
             }, 5000); 
             
-            renderRoutineCards();
+            initScenario(0);
         };
 
         function initAudioEngine() {
@@ -374,17 +426,11 @@
 
         function setupClockQuestion() {
             document.getElementById('clock-progress-text').innerText = `Question ${clockQuestionIndex} of ${totalClockQuestions}`;
-            
             let nextHour;
-            do {
-                nextHour = Math.floor(Math.random() * 12) + 1;
-            } while (nextHour === targetHour);
+            do { nextHour = Math.floor(Math.random() * 12) + 1; } while (nextHour === targetHour);
             targetHour = nextHour;
 
-            do {
-                userCurrentHour = Math.floor(Math.random() * 12) + 1;
-            } while (userCurrentHour === targetHour);
-
+            do { userCurrentHour = Math.floor(Math.random() * 12) + 1; } while (userCurrentHour === targetHour);
             document.getElementById('clock-instruction-text').innerText = `${targetHour}:00 o'clock. Show this time on the clock face!`;
             updateClockUI();
         }
@@ -439,40 +485,68 @@
             document.getElementById('game-screen-routine').style.display = 'block';
         }
 
-        /* --- DRAG & DROP FOR PART 2 --- */
+        function initScenario(index) {
+            selectedCardIndex = null;
+            const activeData = routineScenarios[index];
+            
+            document.getElementById('routine-progress-text').innerText = `Scenario ${index + 1} of ${routineScenarios.length}`;
+            document.getElementById('scenario-emoji').innerText = activeData.emoji;
+            document.getElementById('scenario-instruction').innerText = activeData.hint;
+            
+            // Generate scrambled placement order layout
+            displayCardsState = [
+                activeData.correctOrder[1],
+                activeData.correctOrder[2],
+                activeData.correctOrder[0]
+            ];
+            
+            renderRoutineCards();
+        }
+
         function renderRoutineCards() {
             const box = document.getElementById('cards-list-box');
             if(!box) return;
             box.innerHTML = "";
+            
             displayCardsState.forEach((item, index) => {
                 const el = document.createElement('div');
-                el.className = "routine-card";
-                el.draggable = true;
+                el.className = `routine-card ${selectedCardIndex === index ? 'selected' : ''}`;
                 el.innerHTML = `<span class="number-badge">${index + 1}</span> <span>${item.text}</span>`;
-                el.addEventListener('dragstart', (e) => e.dataTransfer.setData('text', index));
-                el.addEventListener('dragover', (e) => e.preventDefault());
-                el.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    const draggedIdx = parseInt(e.dataTransfer.getData('text'));
-                    const temp = displayCardsState[draggedIdx];
-                    displayCardsState.splice(draggedIdx, 1);
-                    displayCardsState.splice(index, 0, temp);
+                
+                el.addEventListener('click', () => {
+                    if (selectedCardIndex === null) {
+                        selectedCardIndex = index;
+                    } else {
+                        if (selectedCardIndex !== index) {
+                            const temp = displayCardsState[selectedCardIndex];
+                            displayCardsState[selectedCardIndex] = displayCardsState[index];
+                            displayCardsState[index] = temp;
+                        }
+                        selectedCardIndex = null; 
+                    }
                     renderRoutineCards();
                 });
+                
                 box.appendChild(el);
             });
         }
 
         function evaluateRoutineAnswer() {
-            let correct = displayCardsState.every((item, i) => item.id === correctRoutineOrder[i].id);
-            if (correct) {
+            const currentCorrectSequence = routineScenarios[currentScenarioIndex].correctOrder;
+            let isCorrect = displayCardsState.every((item, i) => item.id === currentCorrectSequence[i].id);
+            
+            if (isCorrect) {
                 isAnswerSuccessful = true;
                 playSound(true);
-                showCustomModal("Wonderful! 🌟", "Awesome! You placed all tasks in the perfect order. Lesson Complete!");
+                if (currentScenarioIndex < routineScenarios.length - 1) {
+                    showCustomModal("Wonderful! 🌟", "Awesome sequencing! Let's try the next daily routine scenario.");
+                } else {
+                    showCustomModal("Perfect Lesson Complete! 🏆", "Splendid job! You sorted every timeline and mastered routines perfectly.");
+                }
             } else {
                 isAnswerSuccessful = false;
                 playSound(false);
-                showCustomModal("bomis-primary.github.io says", "Try again! Rearrange the actions to find the correct evening sequence. ✨");
+                showCustomModal("bomis-primary.github.io says", "Not quite right yet! Look at the hints and try swapping the actions into a matching time order! ✨");
             }
         }
 
@@ -484,16 +558,23 @@
 
         function dismissModal() {
             document.getElementById('alert-modal').style.display = 'none';
+            
             if (isAnswerSuccessful) {
                 isAnswerSuccessful = false;
+                
                 if (currentLessonPhase === "phase_clock") {
                     if (clockQuestionIndex < totalClockQuestions) {
                         clockQuestionIndex++;
                         setupClockQuestion();
                     } else {
-                        currentLessonPhase = "phase_transition";
+                        currentLessonPhase = "phase_routine";
                         document.getElementById('game-screen-clock').style.display = 'none';
                         document.getElementById('transition-screen').style.display = 'flex';
+                    }
+                } else if (currentLessonPhase === "phase_routine") {
+                    if (currentScenarioIndex < routineScenarios.length - 1) {
+                        currentScenarioIndex++;
+                        initScenario(currentScenarioIndex);
                     }
                 }
             }
