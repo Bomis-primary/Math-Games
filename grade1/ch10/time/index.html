@@ -205,10 +205,12 @@
 
     <div class="outer-app-wrapper">
         
+        <!-- LAYER 1: SPLASH SCREEN -->
         <div id="splash-screen">
             <img src="assets/logo.png" alt="Logo" class="brand-logo-img">
         </div>
 
+        <!-- LAYER 2: TITLE SCREEN -->
         <div id="title-screen">
             <div style="font-size: 60px; margin-bottom: 10px;">⏰</div>
             <h2 style="font-size: 28px; margin: 0 0 10px 0; text-align: center;">Tick Tock Clock</h2>
@@ -218,8 +220,10 @@
             <button class="start-btn" onclick="startGame()">Start Game 🧭</button>
         </div>
 
+        <!-- LAYER 3: MAIN CLOCK GAMEPLAY SCREEN -->
         <div id="game-screen">
-            <div class="instruction-heading">
+            <!-- Dynamic Question Heading -->
+            <div class="instruction-heading" id="main-instruction">
                 5:00 o'clock. Show this time on the clock face!
             </div>
 
@@ -239,7 +243,9 @@
                     <text x="40" y="68" text-anchor="middle" font-weight="bold" font-size="14" fill="#555">10</text>
                     <text x="64" y="44" text-anchor="middle" font-weight="bold" font-size="14" fill="#555">11</text>
 
+                    <!-- Minute Hand (Static at 12) -->
                     <line x1="100" y1="100" x2="100" y2="36" stroke="#2c3e50" stroke-width="4.5" stroke-linecap="round" />
+                    <!-- Hour Hand (Dynamically Adjusted) -->
                     <line id="hour-hand" x1="100" y1="100" x2="100" y2="52" stroke="#ff4081" stroke-width="6.5" stroke-linecap="round" />
                     <circle cx="100" cy="100" r="6" fill="#1ebd9b" />
                 </svg>
@@ -257,6 +263,7 @@
             <button class="submit-btn" onclick="evaluateAnswer()">Check Answer ✓</button>
         </div>
 
+        <!-- RELEVANT, DEDICATED DIALOG POPUP -->
         <div class="modal-overlay" id="alert-modal">
             <div class="custom-popup-box">
                 <div class="popup-header" id="modal-title-host">bomis-primary.github.io says</div>
@@ -269,8 +276,10 @@
     </div>
 
     <script>
-        const targetHour = 5; 
+        let targetHour = 5; 
         let userCurrentHour = 4;
+        let totalQuestionsAnswered = 0;
+        let isCurrentAnswerCorrect = false;
         let audioCtx = null;
 
         // Transitions cleanly from Splash screen out after 2 seconds
@@ -287,11 +296,31 @@
             }
         }
 
-        // Click event unblocks audio engine constraints cleanly
         function startGame() {
             initAudioEngine();
             document.getElementById('title-screen').style.display = 'none';
             document.getElementById('game-screen').style.display = 'block';
+            generateNewQuestion();
+        }
+
+        // Generate a clean new target hour context
+        function generateNewQuestion() {
+            let nextHour;
+            // Prevent picking the exact same target hour consecutively
+            do {
+                nextHour = Math.floor(Math.random() * 12) + 1;
+            } while (nextHour === targetHour);
+
+            targetHour = nextHour;
+            
+            // Randomize user's starting hour, ensuring it doesn't accidentally start on the correct answer
+            do {
+                userCurrentHour = Math.floor(Math.random() * 12) + 1;
+            } while (userCurrentHour === targetHour);
+
+            // Update DOM text instructions instantly
+            document.getElementById('main-instruction').innerText = `${targetHour}:00 o'clock. Show this time on the clock face!`;
+            updateUIState();
         }
 
         function playInstantFeedbackSound(isSuccessful) {
@@ -335,11 +364,13 @@
 
         function evaluateAnswer() {
             if (userCurrentHour === targetHour) {
+                isCurrentAnswerCorrect = true;
                 playInstantFeedbackSound(true);
-                showCustomModal("Success! 🎉", "Great job! You set the clock to 5:00 o'clock.");
+                showCustomModal("Success! 🎉", `Great job! You set the clock to ${targetHour}:00 o'clock perfectly.`);
             } else {
+                isCurrentAnswerCorrect = false;
                 playInstantFeedbackSound(false);
-                showCustomModal("bomis-primary.github.io says", "Try again! Move the clock hands to make it 5:00 o'clock. ⏰");
+                showCustomModal("bomis-primary.github.io says", `Try again! Move the clock hands to make it ${targetHour}:00 o'clock. ⏰`);
             }
         }
 
@@ -349,12 +380,19 @@
             document.getElementById('alert-modal').style.display = 'flex';
         }
 
+        function dismissModal() { 
+            document.getElementById('alert-modal').style.display = 'none'; 
+            // If they answered right, advance them by pulling a new active target question!
+            if (isCurrentAnswerCorrect) {
+                generateNewQuestion();
+            }
+        }
+
         document.body.addEventListener('click', () => {
             initAudioEngine();
             if (audioCtx && audioCtx.state === 'suspended') { audioCtx.resume(); }
         });
 
-        function dismissModal() { document.getElementById('alert-modal').style.display = 'none'; }
         updateUIState();
     </script>
 </body>
