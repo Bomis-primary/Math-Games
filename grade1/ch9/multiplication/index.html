@@ -267,7 +267,7 @@
             font-size: 26px;
         }
 
-        /* --- CONTROLS / OPTIONS ZONE (UPDATED FOR 2-COLUMN + CENTERED 3RD OPTION) --- */
+        /* --- CONTROLS / OPTIONS ZONE --- */
         .options-box {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -291,11 +291,10 @@
             text-align: center;
         }
 
-        /* If there's an odd 3rd button, stretch it across both columns and center its contents */
         .btn:nth-child(3):last-child {
             grid-column: span 2;
             margin: 0 auto;
-            max-width: 210px; /* Aligns its width beautifully with the buttons above */
+            max-width: 210px;
         }
 
         .btn:active {
@@ -416,7 +415,7 @@
 
             // --- LEVEL 2: MASTERING TABLES 1, 2, 5, 10 (5 QUESTIONS) ---
             { level: 2, title: "🔢 Counting Bicycles", instruction: "Count the total number of bicycles on the rack. What is 5 groups of 2?", type: "visual-math", isArray: false, groups: 5, itemsPerGroup: 2, emoji: "🚲", answer: "10 bicycles", options: ["8 bicycles", "10 bicycles", "12 bicycles"], hint: "Skip count by 2s five times: 2, 4, 6, 8..." },
-            { level: 2, title: "🔢 Starfish Containers", instruction: "There are 3 specific beach buckets, each containing 5 starfish. Solve the total!", type: "visual-math", isArray: false, groups: 3, itemsPerGroup: 5, emoji: "⭐", answer: "15 starfish", options: ["12 starfish", "15 starfish", "20 starfish"], hint: "Use your 5 times table skip counting rules: 5, 10..." },
+            { level: 2, title: "🔢 Starfish Containers", instruction: "There are 3 specific beach buckets, each containing 5 starfish. Find the total!", type: "visual-math", isArray: false, groups: 3, itemsPerGroup: 5, emoji: "⭐", answer: "15 starfish", options: ["12 starfish", "15 starfish", "20 starfish"], hint: "Use your 5 times table skip counting rules: 5, 10..." },
             { level: 2, title: "🔢 Golden Chest Value", instruction: "Each ancient treasure box contains 10 gold coins. How many coins are in 2 chests?", type: "visual-math", isArray: false, groups: 2, itemsPerGroup: 10, emoji: "🪙", answer: "20 coins", options: ["15 coins", "20 coins", "30 coins"], hint: "What is 10 plus 10? Or calculate 2 groups of 10." },
             { level: 2, title: "🔢 Singly Grouped Butterflies", instruction: "Look at these single groups holding 6 butterflies altogether. What is 6 groups of 1?", type: "visual-math", isArray: false, groups: 6, itemsPerGroup: 1, emoji: "🦋", answer: "6 butterflies", options: ["1 butterfly", "5 butterflies", "6 butterflies"], hint: "Any number multiplied by 1 always stays exactly the same!" },
             { level: 2, title: "🔢 Tropical Palm Trees", instruction: "Count the coconuts growing on these trees. What value do we get from 4 groups of 5?", type: "visual-math", isArray: false, groups: 4, itemsPerGroup: 5, emoji: "🥥", answer: "20 coconuts", options: ["15 coconuts", "20 coconuts", "25 coconuts"], hint: "Count up by fives: 5, 10, 15..." },
@@ -478,4 +477,207 @@
         }
 
         function assembleRandomizedWorkflow() {
-            const lvl1 = rawPuzzleBank
+            const lvl1 = rawPuzzleBank.filter(p => p.level === 1).sort(() => Math.random() - 0.5);
+            const lvl2 = rawPuzzleBank.filter(p => p.level === 2).sort(() => Math.random() - 0.5);
+            const lvl3 = rawPuzzleBank.filter(p => p.level === 3).sort(() => Math.random() - 0.5);
+            activeQuestionSuite = [...lvl1, ...lvl2, ...lvl3];
+        }
+
+        setTimeout(() => {
+            const splashElement = document.getElementById('splash-screen');
+            if (splashElement) {
+                splashElement.style.opacity = '0';
+                setTimeout(() => {
+                    splashElement.style.display = 'none';
+                    document.getElementById('intro-screen').classList.add('active');
+                }, 600);
+            }
+        }, 5000);
+
+        document.getElementById('btn-start-game').addEventListener('pointerdown', () => {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            document.getElementById('intro-screen').classList.remove('active');
+            document.getElementById('main-game').style.display = 'block';
+            assembleRandomizedWorkflow();
+            loadIslandLevel();
+        });
+
+        function loadIslandLevel() {
+            interactionLock = false;
+            questionAttempts = 0;
+            
+            const targetSpace = document.getElementById('interactive-space');
+            const choicesZone = document.getElementById('options-zone');
+            const fillProgress = document.getElementById('progress-bar-fill');
+            const hintDisplay = document.getElementById('hint-display');
+            
+            hintDisplay.style.display = 'none';
+            document.getElementById('score-lbl').innerText = `Score: ${runningScore}`;
+            fillProgress.style.width = `${(currentIndex / activeQuestionSuite.length) * 100}%`;
+
+            if (currentIndex >= activeQuestionSuite.length) {
+                renderAppreciationSummary();
+                return;
+            }
+
+            const activeNode = activeQuestionSuite[currentIndex];
+            
+            document.getElementById('level-lbl').innerText = `Level ${activeNode.level}`;
+            document.getElementById('game-title').innerText = activeNode.title;
+            document.getElementById('instruction-txt').innerText = activeNode.instruction;
+
+            targetSpace.innerHTML = "";
+            choicesZone.innerHTML = "";
+
+            if (activeNode.type === "visual-math") {
+                if (activeNode.isArray) {
+                    let arrayHtml = `<div class="array-container">`;
+                    for (let i = 0; i < activeNode.groups; i++) {
+                        arrayHtml += `<div class="array-row">`;
+                        for (let j = 0; j < activeNode.itemsPerGroup; j++) {
+                            arrayHtml += `<div class="group-item">${activeNode.emoji}</div>`;
+                        }
+                        arrayHtml += `</div>`;
+                    }
+                    arrayHtml += `</div>`;
+                    targetSpace.innerHTML = arrayHtml;
+                } else {
+                    let gridHtml = `<div class="grid-container">`;
+                    for (let i = 0; i < activeNode.groups; i++) {
+                        gridHtml += `<div class="visual-group">`;
+                        for (let j = 0; j < activeNode.itemsPerGroup; j++) {
+                            gridHtml += `<div class="group-item">${activeNode.emoji}</div>`;
+                        }
+                        gridHtml += `</div>`;
+                    }
+                    gridHtml += `</div>`;
+                    targetSpace.innerHTML = gridHtml;
+                }
+            } 
+            else if (activeNode.type === "story-sum") {
+                targetSpace.innerHTML = `
+                    <div style="font-size: 20px; font-weight: bold; padding: 20px; color: var(--primary); text-align: center; line-height: 1.6;">
+                        ${activeNode.textBlock}
+                    </div>
+                `;
+            }
+
+            activeNode.options.forEach(choiceText => {
+                const choiceBtn = document.createElement('button');
+                choiceBtn.className = "btn";
+                choiceBtn.innerText = choiceText;
+                choiceBtn.addEventListener('pointerdown', (e) => {
+                    e.preventDefault(); 
+                    evaluateTargetAnswer(choiceText, choiceBtn);
+                });
+                choicesZone.appendChild(choiceBtn);
+            });
+        }
+
+        function evaluateTargetAnswer(selectedString, pressedButton) {
+            if (interactionLock) return;
+
+            const activeNode = activeQuestionSuite[currentIndex];
+            let isUserCorrect = (selectedString === activeNode.answer);
+
+            if (isUserCorrect) {
+                interactionLock = true;
+                pressedButton.classList.add('correct');
+                runningScore += (questionAttempts === 0) ? 2 : 1; 
+                document.getElementById('score-lbl').innerText = `Score: ${runningScore}`;
+                
+                playSoundEffect('correct');
+                confetti({ particleCount: 40, spread: 60, origin: { y: 0.85 } });
+
+                setTimeout(advanceGameSequence, 2000);
+            } else {
+                questionAttempts++;
+                playSoundEffect('wrong');
+                pressedButton.classList.add('wrong');
+
+                if (questionAttempts === 1) {
+                    const hintDisplay = document.getElementById('hint-display');
+                    hintDisplay.innerText = `💡 Hint: ${activeNode.hint}`;
+                    hintDisplay.style.display = 'block';
+                } else if (questionAttempts >= 2) {
+                    interactionLock = true;
+                    const interfaceButtons = document.querySelectorAll('#options-zone .btn');
+                    interfaceButtons.forEach(btn => {
+                        if (btn.innerText === activeNode.answer) {
+                            btn.classList.add('correct');
+                        }
+                    });
+                    setTimeout(advanceGameSequence, 2500);
+                }
+            }
+        }
+
+        function advanceGameSequence() {
+            const currentLevel = activeQuestionSuite[currentIndex].level;
+            const nextIndex = currentIndex + 1;
+            
+            if (nextIndex < activeQuestionSuite.length && activeQuestionSuite[nextIndex].level > currentLevel) {
+                const slide = document.getElementById('progression-slide');
+                const slideText = document.getElementById('slide-level-text');
+                
+                slideText.innerText = `Entering Level ${activeQuestionSuite[nextIndex].level}! 🚀`;
+                slide.classList.add('active');
+                
+                let end = Date.now() + 1500;
+                (function frame() {
+                    confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0 } });
+                    confetti({ particleCount: 2, angle: 120, spread: 55, origin: { x: 1 } });
+                    if (Date.now() < end) { requestAnimationFrame(frame); }
+                }());
+
+                setTimeout(() => {
+                    slide.classList.remove('active');
+                    currentIndex++;
+                    loadIslandLevel();
+                }, 2200);
+            } else {
+                currentIndex++;
+                loadIslandLevel();
+            }
+        }
+
+        function renderAppreciationSummary() {
+            document.getElementById('main-game').style.display = 'none';
+            const screen = document.getElementById('appreciation-screen');
+            const heading = document.getElementById('appreciation-heading');
+            const emoji = document.getElementById('appreciation-emoji');
+            const scoreText = document.getElementById('final-score-txt');
+            const description = document.getElementById('appreciation-desc');
+
+            const maxPossibleScore = activeQuestionSuite.length * 2;
+            scoreText.innerText = `Final Score Points: ${runningScore} / ${maxPossibleScore}`;
+            screen.classList.add('active');
+
+            if (runningScore >= maxPossibleScore * 0.85) {
+                emoji.innerText = "👑";
+                heading.innerText = "Flawless Victory!";
+                description.innerText = "Incredible performance! You answered with precision and fully mastered all the learning outcomes for Chapter 9!";
+                confetti({ particleCount: 180, spread: 100, origin: { y: 0.4 } });
+            } else if (runningScore >= maxPossibleScore * 0.6) {
+                emoji.innerText = "🏆";
+                heading.innerText = "Spectacular Job!";
+                description.innerText = "Great job! You showed awesome mathematical proficiency converting repeated items to multiplication blocks.";
+                confetti({ particleCount: 100, spread: 60, origin: { y: 0.5 } });
+            } else {
+                emoji.innerText = "🏅";
+                heading.innerText = "Keep It Up!";
+                description.innerText = "Good effort, Explorer! Try another journey round to maximize your multiplication knowledge loop speeds.";
+            }
+        }
+
+        document.getElementById('btn-restart-game').addEventListener('pointerdown', () => {
+            currentIndex = 0;
+            runningScore = 0;
+            document.getElementById('appreciation-screen').classList.remove('active');
+            document.getElementById('main-game').style.display = 'block';
+            assembleRandomizedWorkflow();
+            loadIslandLevel();
+        });
+    </script>
+</body>
+</html>
