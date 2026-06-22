@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Multiplication Island Quest</title>
+    <title>Multiplication Island Quest - Matching</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -216,8 +216,8 @@
             background: #ffffff;
             border: 3px dashed #cbd5e1;
             border-radius: 24px;
-            min-height: 180px;
-            margin-bottom: 20px;
+            min-height: 150px;
+            margin-bottom: 15px;
             position: relative;
             display: flex;
             flex-direction: column;
@@ -267,53 +267,86 @@
             font-size: 26px;
         }
 
-        /* --- CONTROLS / OPTIONS ZONE --- */
-        .options-box {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-            margin-top: 5px;
+        /* --- DRAG & DROP TARGET MAT --- */
+        .drop-zone {
             width: 100%;
+            min-height: 65px;
+            background: #edf2f7;
+            border: 3px dashed var(--primary-light);
+            border-radius: 18px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.2s ease;
+            padding: 8px;
         }
 
-        .btn {
+        .drop-zone.hovered {
+            background: #e0e7ff;
+            border-color: var(--primary);
+            transform: scale(1.02);
+        }
+
+        /* --- DRAGGABLE MATCH ELEMENTS --- */
+        .options-box {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 5px;
+            width: 100%;
+            min-height: 60px;
+        }
+
+        .drag-card {
             background: var(--secondary);
-            border: none;
             border-bottom: 5px solid var(--secondary-dark);
             border-radius: 16px;
             color: white;
-            font-size: 17px;
+            font-size: 16px;
             font-weight: bold;
-            padding: 14px 10px;
-            cursor: pointer;
-            transition: all 0.1s ease;
+            padding: 12px 20px;
+            cursor: grab;
+            touch-action: none; /* Disables standard scrolling on element while dragging */
+            transition: transform 0.1s ease, box-shadow 0.1s ease;
+            user-select: none;
+            display: inline-block;
+        }
+
+        .drag-card:active {
+            cursor: grabbing;
+        }
+
+        .drag-card.dragging {
+            opacity: 0.7;
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            position: fixed;
+            z-index: 10000;
+            pointer-events: none; /* Let pointer events drop through onto target mat beneath */
+            border-bottom: 2px solid var(--secondary-dark);
+        }
+
+        .drop-zone .drag-card {
+            cursor: default;
             width: 100%;
-            text-align: center;
+            max-width: 260px;
+            animation: popIn 0.3s ease;
         }
 
-        .btn:nth-child(3):last-child {
-            grid-column: span 2;
-            margin: 0 auto;
-            max-width: 210px;
-        }
-
-        .btn:active {
-            transform: translateY(3px);
-            border-bottom-width: 2px;
-        }
-
-        .btn.correct {
+        .drop-zone .drag-card.correct {
             background: var(--success) !important;
             border-color: #1b5e20 !important;
-            animation: pulseSuccess 0.4s ease;
         }
 
-        .btn.wrong {
+        .drop-zone .drag-card.wrong {
             background: #c62828 !important;
             border-color: #5a1212 !important;
             animation: shakeError 0.4s ease;
-            opacity: 0.6;
-            pointer-events: none;
         }
 
         .action-btn {
@@ -336,12 +369,6 @@
             border-bottom-width: 2px;
         }
 
-        @keyframes pulseSuccess {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.04); }
-            100% { transform: scale(1); }
-        }
-
         @keyframes shakeError {
             0%, 100% { transform: translateX(0); }
             25% { transform: translateX(-6px); }
@@ -360,9 +387,9 @@
     <div id="intro-screen" class="stage-overlay">
         <div class="overlay-card">
             <div style="font-size: 60px; margin-bottom: 10px;">🏝️</div>
-            <div class="slide-title">Multiplication Quest</div>
+            <div class="slide-title">Multiplication Match</div>
             <p style="font-size: 15px; color: #eee; line-height: 1.6; margin-bottom: 25px;">
-                Welcome Explorer! Prepare to navigate through visual groups, skip-count along shores, and clear story sums. You have 2 attempts per puzzle!
+                Welcome Explorer! Drag the correct answer card from the bench and drop it right into the Match Zone. You have 2 attempts per puzzle!
             </p>
             <button class="action-btn" id="btn-start-game">Begin Expedition 🧭</button>
         </div>
@@ -388,7 +415,13 @@
 
         <div class="instruction-card" id="instruction-txt">...</div>
         <div class="hint-box" id="hint-display">💡 Hint goes here...</div>
+        
         <div class="workspace" id="interactive-space"></div>
+        
+        <!-- Drag Target Zone -->
+        <div class="drop-zone" id="drop-zone">📥 Drag & Drop Answer Here</div>
+        
+        <!-- Draggable Source Elements Container -->
         <div class="options-box" id="options-zone"></div>
     </div>
 
@@ -414,9 +447,9 @@
             { level: 1, title: "➕ Diamond Match Up", instruction: "Translate this dynamic cluster of gemstones into a fast multiplication statement.", type: "visual-math", isArray: false, groups: 5, itemsPerGroup: 1, emoji: "💎", answer: "5 × 1", options: ["1 × 5", "5 × 1", "5 × 5"], hint: "Count the separate blocks. There are 5 blocks containing 1 gem each." },
 
             // --- LEVEL 2: MASTERING TABLES 1, 2, 5, 10 (5 QUESTIONS) ---
-            { level: 2, title: "🔢 Counting Bicycles", instruction: "Count the total number of bicycles on the rack. What is 5 groups of 2?", type: "visual-math", isArray: false, groups: 5, itemsPerGroup: 2, emoji: "🚲", answer: "10 bicycles", options: ["8 bicycles", "10 bicycles", "12 bicycles"], hint: "Skip count by 2s five times: 2, 4, 6, 8..." },
+            { level: 2, title: "🔢 Counting Bicycles", instruction: "Look at the groups of bicycles! What is 5 groups of 2?", type: "visual-math", isArray: false, groups: 5, itemsPerGroup: 2, emoji: "🚲", answer: "10 bicycles", options: ["8 bicycles", "10 bicycles", "12 bicycles"], hint: "Skip count by 2s five times: 2, 4, 6, 8..." },
             { level: 2, title: "🔢 Starfish Containers", instruction: "There are 3 specific beach buckets, each containing 5 starfish. Find the total!", type: "visual-math", isArray: false, groups: 3, itemsPerGroup: 5, emoji: "⭐", answer: "15 starfish", options: ["12 starfish", "15 starfish", "20 starfish"], hint: "Use your 5 times table skip counting rules: 5, 10..." },
-            { level: 2, title: "🔢 Golden Chest Value", instruction: "Each ancient treasure box contains 10 gold coins. How many coins are in 2 chests?", type: "visual-math", isArray: false, groups: 2, itemsPerGroup: 10, emoji: "🪙", answer: "20 coins", options: ["15 coins", "20 coins", "30 coins"], hint: "What is 10 plus 10? Or calculate 2 groups of 10." },
+            { level: 2, title: "🔢 Golden Chest Value", instruction: "Look at the rows of shiny gold coins! How many coins are there in 2 rows of 10?", type: "visual-math", isArray: false, groups: 2, itemsPerGroup: 10, emoji: "🪙", answer: "20 coins", options: ["15 coins", "20 coins", "30 coins"], hint: "What is 10 plus 10? Or calculate 2 groups of 10." },
             { level: 2, title: "🔢 Singly Grouped Butterflies", instruction: "Look at these single groups holding 6 butterflies altogether. What is 6 groups of 1?", type: "visual-math", isArray: false, groups: 6, itemsPerGroup: 1, emoji: "🦋", answer: "6 butterflies", options: ["1 butterfly", "5 butterflies", "6 butterflies"], hint: "Any number multiplied by 1 always stays exactly the same!" },
             { level: 2, title: "🔢 Tropical Palm Trees", instruction: "Count the coconuts growing on these trees. What value do we get from 4 groups of 5?", type: "visual-math", isArray: false, groups: 4, itemsPerGroup: 5, emoji: "🥥", answer: "20 coconuts", options: ["15 coconuts", "20 coconuts", "25 coconuts"], hint: "Count up by fives: 5, 10, 15..." },
 
@@ -435,13 +468,10 @@
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
         function playSoundEffect(type) {
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
+            osc.connect(gain); gain.connect(audioCtx.destination);
 
             if (type === 'correct') {
                 osc.type = 'triangle';
@@ -450,29 +480,14 @@
                 osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); 
                 gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.4);
-                for(let i=0; i<3; i++) {
-                    setTimeout(() => {
-                        const burstOsc = audioCtx.createOscillator();
-                        const burstGain = audioCtx.createGain();
-                        burstOsc.type = 'sine';
-                        burstOsc.frequency.setValueAtTime(400 + (Math.random()*200), audioCtx.currentTime);
-                        burstOsc.connect(burstGain);
-                        burstGain.connect(audioCtx.destination);
-                        burstGain.gain.setValueAtTime(0.15, audioCtx.currentTime);
-                        burstGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                        burstOsc.start(); burstOsc.stop(audioCtx.currentTime + 0.1);
-                    }, 100 + (i * 120));
-                }
+                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
             } else if (type === 'wrong') {
                 osc.type = 'sawtooth';
                 osc.frequency.setValueAtTime(130.81, audioCtx.currentTime); 
                 osc.frequency.linearRampToValueAtTime(110.00, audioCtx.currentTime + 0.3);
                 gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.35);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.35);
             }
         }
 
@@ -508,10 +523,14 @@
             
             const targetSpace = document.getElementById('interactive-space');
             const choicesZone = document.getElementById('options-zone');
+            const dropZone = document.getElementById('drop-zone');
             const fillProgress = document.getElementById('progress-bar-fill');
             const hintDisplay = document.getElementById('hint-display');
             
             hintDisplay.style.display = 'none';
+            dropZone.innerHTML = "📥 Drag & Drop Answer Here";
+            dropZone.className = "drop-zone";
+            
             document.getElementById('score-lbl').innerText = `Score: ${runningScore}`;
             fillProgress.style.width = `${(currentIndex / activeQuestionSuite.length) * 100}%`;
 
@@ -563,26 +582,107 @@
             }
 
             activeNode.options.forEach(choiceText => {
-                const choiceBtn = document.createElement('button');
-                choiceBtn.className = "btn";
-                choiceBtn.innerText = choiceText;
-                choiceBtn.addEventListener('pointerdown', (e) => {
-                    e.preventDefault(); 
-                    evaluateTargetAnswer(choiceText, choiceBtn);
-                });
-                choicesZone.appendChild(choiceBtn);
+                const card = document.createElement('div');
+                card.className = "drag-card";
+                card.innerText = choiceText;
+                setupPointerDragEvents(card);
+                choicesZone.appendChild(card);
             });
         }
 
-        function evaluateTargetAnswer(selectedString, pressedButton) {
-            if (interactionLock) return;
+        // Custom Cross-Platform pointer drag engine mapping
+        function setupPointerDragEvents(el) {
+            let startX = 0, startY = 0;
+            let currentX = 0, currentY = 0;
+            let clone = null;
 
+            el.addEventListener('pointerdown', onPointerDown);
+
+            function onPointerDown(e) {
+                if (interactionLock || el.parentElement.classList.contains('drop-zone')) return;
+                e.preventDefault();
+                el.setPointerCapture(e.pointerId);
+
+                const rect = el.getBoundingClientRect();
+                startX = e.clientX;
+                startY = e.clientY;
+
+                // Create floating drag clone to bypass flex restrictions
+                clone = el.cloneNode(true);
+                clone.classList.add('dragging');
+                clone.style.width = `${rect.width}px`;
+                clone.style.height = `${rect.height}px`;
+                clone.style.left = `${rect.left}px`;
+                clone.style.top = `${rect.top}px`;
+                document.body.appendChild(clone);
+
+                el.style.visibility = 'hidden';
+
+                el.addEventListener('pointermove', onPointerMove);
+                el.addEventListener('pointerup', onPointerUp);
+            }
+
+            function onPointerMove(e) {
+                if (!clone) return;
+                currentX = e.clientX - startX;
+                currentY = e.clientY - startY;
+                clone.style.transform = `translate(${currentX}px, ${currentY}px) scale(1.05)`;
+
+                const dropZone = document.getElementById('drop-zone');
+                const dzRect = dropZone.getBoundingClientRect();
+                
+                // Real-time hover verification check
+                if (e.clientX >= dzRect.left && e.clientX <= dzRect.right &&
+                    e.clientY >= dzRect.top && e.clientY <= dzRect.bottom) {
+                    dropZone.classList.add('hovered');
+                } else {
+                    dropZone.classList.remove('hovered');
+                }
+            }
+
+            function onPointerUp(e) {
+                if (!clone) return;
+                el.releasePointerCapture(e.pointerId);
+                
+                const dropZone = document.getElementById('drop-zone');
+                dropZone.classList.remove('hovered');
+                
+                const dzRect = dropZone.getBoundingClientRect();
+                const droppedInside = (
+                    e.clientX >= dzRect.left && e.clientX <= dzRect.right &&
+                    e.clientY >= dzRect.top && e.clientY <= dzRect.bottom
+                );
+
+                // Clean up drag events
+                el.removeEventListener('pointermove', onPointerMove);
+                el.removeEventListener('pointerup', onPointerUp);
+                document.body.removeChild(clone);
+                clone = null;
+
+                if (droppedInside && !interactionLock) {
+                    el.style.visibility = 'visible';
+                    evaluateTargetAnswer(el.innerText, el);
+                } else {
+                    el.style.visibility = 'visible';
+                }
+            }
+        }
+
+        function evaluateTargetAnswer(selectedString, originalCardElement) {
             const activeNode = activeQuestionSuite[currentIndex];
+            const dropZone = document.getElementById('drop-zone');
+            
+            // Lock out original card item from further placement loops
+            let displayCard = originalCardElement.cloneNode(true);
+            dropZone.innerHTML = "";
+            dropZone.appendChild(displayCard);
+            originalCardElement.remove();
+
             let isUserCorrect = (selectedString === activeNode.answer);
 
             if (isUserCorrect) {
                 interactionLock = true;
-                pressedButton.classList.add('correct');
+                displayCard.classList.add('correct');
                 runningScore += (questionAttempts === 0) ? 2 : 1; 
                 document.getElementById('score-lbl').innerText = `Score: ${runningScore}`;
                 
@@ -593,20 +693,26 @@
             } else {
                 questionAttempts++;
                 playSoundEffect('wrong');
-                pressedButton.classList.add('wrong');
+                displayCard.classList.add('wrong');
 
                 if (questionAttempts === 1) {
                     const hintDisplay = document.getElementById('hint-display');
                     hintDisplay.innerText = `💡 Hint: ${activeNode.hint}`;
                     hintDisplay.style.display = 'block';
+                    
+                    // Return card back down to options bench automatically on first failure
+                    setTimeout(() => {
+                        if (currentIndex < activeQuestionSuite.length) {
+                            dropZone.innerHTML = "📥 Drag & Drop Answer Here";
+                            displayCard.classList.remove('wrong');
+                            setupPointerDragEvents(displayCard);
+                            document.getElementById('options-zone').appendChild(displayCard);
+                        }
+                    }, 1200);
                 } else if (questionAttempts >= 2) {
                     interactionLock = true;
-                    const interfaceButtons = document.querySelectorAll('#options-zone .btn');
-                    interfaceButtons.forEach(btn => {
-                        if (btn.innerText === activeNode.answer) {
-                            btn.classList.add('correct');
-                        }
-                    });
+                    // Reveal the right card inside mat area on failure threshold limit
+                    dropZone.innerHTML = `<div class="drag-card correct">${activeNode.answer}</div>`;
                     setTimeout(advanceGameSequence, 2500);
                 }
             }
