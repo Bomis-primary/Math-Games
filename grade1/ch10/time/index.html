@@ -2,740 +2,355 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grade 1 Math - Time Master Challenge</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Time Quiz - Hourly Master</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
+        :root {
+            --primary: #4a6fa5;
+            --primary-dark: #3b5984;
+            --secondary: #ff9f43;
+            --text-main: #2c3e50;
+            --success: #2ecc71;
+            --error: #e74c3c;
+        }
+
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial Rounded MT Bold', sans-serif;
+            font-family: 'Capriola', 'Comic Sans MS', sans-serif;
+            -webkit-user-select: none;
             user-select: none;
         }
 
         body {
-            background: linear-gradient(135deg, #FFF5CC 0%, #CCFFFA 100%);
-            min-height: 100vh;
+            background: linear-gradient(135deg, #e0f2fe 0%, #ch7dd9 100%);
+            margin: 0;
+            padding: 15px;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 15px;
-            overflow-x: hidden;
+            min-height: 100vh;
+            overflow: hidden;
         }
 
-        /* --- SPLASH SCREEN --- */
-        #splash-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
+        .game-container {
+            background: white;
+            border-radius: 28px;
+            padding: 24px;
             width: 100%;
-            height: 100%;
+            max-width: 550px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+            border: 4px solid #fff;
+            text-align: center;
+            position: relative;
+            min-height: 540px;
+        }
+
+        /* --- OVERLAYS --- */
+        #splash-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
             background: #ffffff;
+            border-radius: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.5s ease;
+        }
+
+        .brand-logo-img {
+            max-width: 220px;
+            object-fit: contain;
+        }
+
+        #title-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #4ea8de, #5390d9);
+            border-radius: 24px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease-out;
+            z-index: 90;
+            color: white;
+            padding: 30px;
+            transition: opacity 0.5s ease;
         }
 
-        #splash-logo {
-            max-width: 240px;
-            width: 60%;
-            height: auto;
-            animation: pulse 1.5s infinite ease-in-out;
-        }
-
-        #splash-fallback {
-            font-size: 80px;
-            animation: pulse 1.5s infinite ease-in-out;
-            display: none;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        /* --- MAIN GAME CARD --- */
-        .game-container {
-            background: #ffffff;
+        #end-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #4a6fa5, #3b5984);
             border-radius: 24px;
-            padding: 20px;
-            width: 100%;
-            max-width: 480px;
-            box-shadow: 0 12px 28px rgba(0,0,0,0.12);
-            border: 4px solid #FFD166;
-            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 80;
+            color: white;
+            padding: 25px;
             display: none;
-            position: relative;
         }
 
-        .header-controls {
+        /* --- HUD META --- */
+        .header-meta {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
-            background: #F8F9FA;
-            padding: 8px 12px;
-            border-radius: 16px;
         }
 
         .level-badge {
-            background-color: #06D6A0;
+            background: var(--primary);
             color: white;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 14px;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 13px;
             font-weight: bold;
         }
 
-        .volume-container {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 14px;
-        }
-
-        .volume-slider {
-            width: 60px;
-            accent-color: #EF476F;
-            cursor: pointer;
-        }
-
-        .progress-bar {
-            background: #E0E0E0;
-            border-radius: 12px;
-            height: 12px;
-            width: 100%;
-            margin-bottom: 15px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            background: linear-gradient(90deg, #FFD166, #EF476F);
-            height: 100%;
-            width: 0%;
-            transition: width 0.3s ease;
-        }
-
-        .prompt-box {
-            font-size: 20px;
-            color: #2D3436;
-            margin-bottom: 15px;
-            font-weight: bold;
-            min-height: 55px;
+        /* --- CLOCK DESIGN AREA --- */
+        .clock-holder {
             display: flex;
             justify-content: center;
-            align-items: center;
-            padding: 0 10px;
-            line-height: 1.4;
+            margin: 20px 0;
         }
 
-        /* --- CLOCK FACE ENGINE MECHANICS --- */
-        .clock-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .clock {
+        .clock-svg {
             width: 200px;
             height: 200px;
-            border: 10px solid #118AB2;
-            border-radius: 50%;
-            position: relative;
-            background: #FFF;
-            box-shadow: inset 0 0 12px rgba(0,0,0,0.1), 0 4px 10px rgba(0,0,0,0.08);
         }
 
-        .clock-center {
-            width: 14px;
-            height: 14px;
-            background: #06D6A0;
-            border-radius: 50%;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 10;
-            border: 2px solid #FFF;
-        }
-
-        .hand {
-            position: absolute;
-            left: 50%;
-            transform-origin: 50% 100%; 
-            border-radius: 6px;
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .hour-hand {
-            width: 6px;
-            height: 50px;
-            background: #EF476F;
-            z-index: 5;
-            top: 40px; 
-            margin-left: -3px;
-        }
-
-        .minute-hand {
-            width: 4px;
-            height: 75px;
-            background: #073B4C;
-            z-index: 4;
-            top: 15px; 
-            margin-left: -2px;
-        }
-
-        .clock-number {
-            position: absolute;
-            font-size: 16px;
-            font-weight: bold;
-            color: #2D3436;
-            width: 24px;
-            height: 24px;
-            text-align: center;
-            line-height: 24px;
-        }
-
-        .stepper-controls {
+        /* --- MCQ ENGINE --- */
+        .mcq-container {
             display: flex;
-            gap: 20px;
-            align-items: center;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 20px;
         }
 
-        .step-btn {
-            background-color: #118AB2;
-            color: white;
-            border: none;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            font-size: 24px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .step-btn:active { transform: scale(0.95); }
-
-        .time-display-bubble {
-            background: #F0F4F8;
-            padding: 6px 15px;
-            border-radius: 12px;
-            font-weight: bold;
+        .option-btn {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 14px;
             font-size: 18px;
-            color: #118AB2;
-            border: 2px dashed #118AB2;
-            min-width: 140px;
-        }
-
-        /* --- DRAG & DROP / SEQUENCING --- */
-        .cards-container {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            margin: 15px 0;
-            min-height: 75px;
-            padding: 10px;
-            background: #F8F9FA;
-            border-radius: 16px;
-            border: 2px dashed #CED4DA;
-        }
-
-        .flashcard {
-            background: white;
-            border: 3px solid #118AB2;
-            border-radius: 12px;
-            padding: 10px 14px;
-            font-size: 15px;
             font-weight: bold;
-            color: #073B4C;
-            cursor: grab;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-            transition: transform 0.2s, background-color 0.2s;
-            touch-action: none;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.01);
         }
 
-        .flashcard.sortable-ghost {
-            opacity: 0.4;
-            background-color: #E2E8F0;
+        .option-btn:hover {
+            background: #f1f5f9;
+            border-color: #cbd5e1;
         }
 
-        /* --- CONNECTING STORY SLIDES --- */
-        .story-view {
-            padding: 10px 5px;
-            animation: fadeIn 0.5s ease-in-out;
+        .option-btn.correct {
+            background: #d4edda !important;
+            border-color: var(--success) !important;
+            color: #155724 !important;
         }
 
-        .story-emoji {
-            font-size: 64px;
-            margin-bottom: 15px;
-            animation: bounce 2s infinite;
+        .option-btn.wrong {
+            background: #f8d7da !important;
+            border-color: var(--error) !important;
+            color: #721c24 !important;
         }
 
-        .story-title {
-            color: #118AB2;
-            font-size: 24px;
-            margin-bottom: 12px;
-        }
-
-        .story-text {
-            font-size: 16px;
-            color: #4A4A4A;
-            line-height: 1.5;
-            margin-bottom: 20px;
-            background: #FFF9E6;
-            padding: 15px;
-            border-radius: 16px;
-            border: 2px dashed #FFD166;
-        }
-
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        /* --- BUTTONS --- */
         .action-btn {
-            background: linear-gradient(135deg, #06D6A0 0%, #4BF3C5 100%);
+            background: var(--success);
             color: white;
             border: none;
-            padding: 14px 28px;
+            padding: 15px 30px;
+            border-radius: 16px;
             font-size: 18px;
             font-weight: bold;
-            border-radius: 50px;
             cursor: pointer;
             width: 100%;
-            box-shadow: 0 4px 10px rgba(6, 214, 160, 0.3);
-            margin-top: 10px;
-        }
-        .action-btn:active { transform: scale(0.98); }
-
-        .restart-btn {
-            background: linear-gradient(135deg, #118AB2 0%, #06D6A0 100%);
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            font-size: 18px;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 15px;
-        }
-
-        /* --- CONFETTI CANVAS --- */
-        #confetti-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 999;
+            box-shadow: 0 5px 15px rgba(46, 204, 113, 0.3);
         }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 </head>
 <body>
 
-    <div id="splash-screen">
-        <img id="splash-logo" src="assets/logo.png" alt="Logo" onerror="this.style.display='none'; document.getElementById('splash-fallback').style.display='block';">
-        <div id="splash-fallback">⏰</div>
+    <div class="game-container">
+        
+        <div id="splash-screen">
+            <img src="assets/logo.png" alt="Logo" class="brand-logo-img">
+        </div>
+
+        <div id="title-screen">
+            <div style="font-size: 60px; margin-bottom: 10px;">⏰</div>
+            <h2 style="font-size: 28px; margin: 0 0 10px 0;">Tick Tock Clock</h2>
+            <p style="font-size: 15px; margin-bottom: 30px; text-align: center; max-width: 340px;">
+                Look closely at the hands of the analog clock face and select the true matching numerical hours!
+            </p>
+            <button class="action-btn" style="background: white; color: #5390d9;" onclick="startGame()">Start Quiz 🧭</button>
+        </div>
+
+        <div class="header-meta">
+            <div class="level-badge" id="round-badge">Screen 1 / 4</div>
+            <div></div>
+        </div>
+
+        <h1 style="font-size: 22px; color: var(--text-main); margin: 5px 0;">What time is shown?</h1>
+        <div style="color: #64748b; font-size: 14px; font-weight: bold; margin-bottom: 10px;">
+            Analyze the position of the short hour hand.
+        </div>
+
+        <div class="clock-holder">
+            <svg class="clock-svg" viewBox="0 0 200 200" id="live-clock">
+                <circle cx="100" cy="100" r="95" stroke="#4a6fa5" stroke-width="6" fill="#ffffff" />
+                <circle cx="100" cy="100" r="88" stroke="#e2e8f0" stroke-width="2" fill="none" />
+                
+                <text x="100" y="30" text-anchor="middle" font-weight="bold" font-size="16" fill="#2c3e50">12</text>
+                <text x="175" y="106" text-anchor="middle" font-weight="bold" font-size="16" fill="#2c3e50">3</text>
+                <text x="100" y="182" text-anchor="middle" font-weight="bold" font-size="16" fill="#2c3e50">6</text>
+                <text x="25" y="106" text-anchor="middle" font-weight="bold" font-size="16" fill="#2c3e50">9</text>
+                
+                <text x="138" y="49" text-anchor="middle" font-weight="bold" font-size="13" fill="#64748b">1</text>
+                <text x="163" y="74" text-anchor="middle" font-weight="bold" font-size="13" fill="#64748b">2</text>
+                <text x="163" y="138" text-anchor="middle" font-weight="bold" font-size="13" fill="#64748b">4</text>
+                <text x="138" y="164" text-anchor="middle" font-weight="bold" font-size="13" fill="#64748b">5</text>
+                <text x="64" y="164" text-anchor="middle" font-weight="bold" font-size="13" fill="#64748b">7</text>
+                <text x="39" y="138" text-anchor="middle" font-weight="bold" font-size="13" fill="#64748b">8</text>
+                <text x="39" y="74" text-anchor="middle" font-weight="bold" font-size="13" fill="#64748b">10</text>
+                <text x="64" y="49" text-anchor="middle" font-weight="bold" font-size="13" fill="#64748b">11</text>
+
+                <line x1="100" y1="100" x2="100" y2="40" stroke="#2c3e50" stroke-width="5" stroke-linecap="round" />
+                
+                <line id="hour-hand" x1="100" y1="100" x2="100" y2="55" stroke="#ff9f43" stroke-width="7" stroke-linecap="round" />
+                
+                <circle cx="100" cy="100" r="6" fill="#2c3e50" />
+            </svg>
+        </div>
+
+        <div class="mcq-container" id="options-box"></div>
+
+        <div id="end-overlay">
+            <div style="font-size: 65px; margin-bottom: 15px;">👑</div>
+            <h2 style="font-size: 26px; margin: 0 0 10px 0;">Great Job!</h2>
+            <p style="font-size: 18px; margin-bottom: 30px; max-width: 400px; line-height: 1.4;">
+                You successfully solved all the analog clock reading challenges accurately!
+            </p>
+            <button class="action-btn" style="background:white; color:var(--primary);" onclick="restartGame()">Play Again 🔄</button>
+        </div>
     </div>
-
-    <canvas id="confetti-canvas"></canvas>
-
-    <div class="game-container" id="game-card">
-        <div class="header-controls">
-            <div class="level-badge" id="level-indicator">Welcome</div>
-            <div class="volume-container">
-                <span>🔊</span>
-                <input type="range" class="volume-slider" id="volume-control" min="0" max="1" step="0.1" value="0.8">
-            </div>
-        </div>
-
-        <div class="progress-bar">
-            <div class="progress-fill" id="progress-indicator"></div>
-        </div>
-
-        <div id="game-playground" style="display: none;">
-            <div class="prompt-box" id="question-prompt">Loading puzzle prompt...</div>
-
-            <div id="clock-view" class="clock-wrapper">
-                <div class="clock" id="analog-clock">
-                    <div class="clock-center"></div>
-                    <div class="hand hour-hand" id="hour-hand"></div>
-                    <div class="hand minute-hand" id="minute-hand"></div>
-                </div>
-                <div class="time-display-bubble" id="digital-bubble">12:00 O'clock</div>
-                <div class="stepper-controls">
-                    <button class="step-btn" onclick="adjustClockTime(-1)">−</button>
-                    <button class="step-btn" onclick="adjustClockTime(1)">+</button>
-                </div>
-            </div>
-
-            <div id="sequence-view" style="display: none;">
-                <p style="font-size: 14px; color: #666; margin-bottom: 8px;">Drag and arrange items in order (Left to Right):</p>
-                <div class="cards-container" id="sortable-list"></div>
-            </div>
-
-            <button class="action-btn" id="submit-btn" onclick="verifyCurrentAnswer()">Check Answer ✓</button>
-        </div>
-
-        <div id="story-playground" class="story-view">
-            <div class="story-emoji" id="story-icon">🎮</div>
-            <h2 class="story-title" id="story-headline">Welcome, Time Hero!</h2>
-            <div class="story-text" id="story-narration">Are you ready to learn about time? In this fun game, you will help Riya fix her day! You will move clock hands, sort days of the week, and line up morning routines. Let's start playing!</div>
-            <button class="action-btn" onclick="dismissStorySlide()">Let's Play! 🎉</button>
-        </div>
-
-        <div id="end-view" style="display: none;">
-            <div class="story-emoji">👑</div>
-            <h2 style="font-size: 26px; color: #118AB2; margin-bottom: 10px;">Ultimate Time Master! 🌟</h2>
-            <p style="font-size: 18px; color: #4A4A4A;">Riya successfully completed her routine perfectly thanks to you!</p>
-            <button class="restart-btn" onclick="restartEntireGame()">Play Again 🔄</button>
-        </div>
-    </div>
-
-    <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
-    <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
     <script>
-        const level1Missions = [
-            { text: "Riya wakes up early for school at 7:00 o'clock. Show this time on the clock face!", target: 7, hint: "Turn the short clock hand until it points directly at the number 7!" },
-            { text: "Riya eats her tasty lunch at 1:00 o'clock. Show this time on the clock face!", target: 1, hint: "Move the short red hand up to point right at the number 1!" },
-            { text: "Riya returns home from school at 3:00 o'clock. Show this time on the clock face!", target: 3, hint: "Click the buttons until the short hand points straight at the number 3." },
-            { text: "Riya goes out to play with friends at 5:00 o'clock. Show this time on the clock face!", target: 5, hint: "Make the short red hand point straight towards the number 5!" },
-            { text: "It is bedtime! Riya goes to sleep at 9:00 o'clock. Show this time on the clock face!", target: 9, hint: "Turn the clock hand until the short hand points directly at the number 9!" }
-        ];
+        let currentScreenIdx = 0;
+        let screenHours = [];
+        let canInteract = true;
 
-        const level2Missions = [
-            { text: "Arrange these days of the week in correct order!", items: ["Wednesday", "Tuesday", "Thursday", "Monday"], correctOrder: ["Monday", "Tuesday", "Wednesday", "Thursday"], hint: "The school week starts with Monday!" },
-            { text: "Put these days starting right after Thursday!", items: ["Saturday", "Sunday", "Friday"], correctOrder: ["Friday", "Saturday", "Sunday"], hint: "Friday comes right after Thursday!" },
-            { text: "Put these early months of the year in order!", items: ["March", "January", "February", "April"], correctOrder: ["January", "February", "March", "April"], hint: "The very first month of the New Year is January!" },
-            { text: "Sort these late months of the year correctly!", items: ["November", "September", "December", "October"], correctOrder: ["September", "October", "November", "December"], hint: "The last month of the entire year is December!" }
-        ];
-
-        const level3Missions = [
-            { text: "Sequence your morning routine activities step-by-step!", items: ["Eat Breakfast", "Go to School", "Wake Up", "Brush Teeth"], correctOrder: ["Wake Up", "Brush Teeth", "Eat Breakfast", "Go to School"], hint: "You must Wake Up before you can do anything else!" },
-            // FIXED: Expanded prompt with an explicit clue to eliminate order confusion
-            { text: "Sequence your evening routine! Riya loves to play outside right after school, then finishes her homework before eating dinner!", items: ["Go to Bed", "Play Outside", "Eat Dinner", "Do Homework"], correctOrder: ["Play Outside", "Do Homework", "Eat Dinner", "Go to Bed"], hint: "Riya plays outside first, does her homework next, eats dinner, and goes to bed last!" }
-        ];
-
-        // Narrative Configuration Mapping Data for Level Entrances
-        const storySlides = {
-            gameIntro: {
-                emoji: "🎮⚡",
-                badge: "Game Intro",
-                title: "Welcome, Time Hero!",
-                text: "Are you ready to learn all about time? In this game, you will help Riya fix her busy days! You will change clock faces, sort calendar pages, and line up fun daily routines. Let's click below to start!"
-            },
-            level2: {
-                emoji: "😴💤",
-                badge: "Level 2 Intro",
-                title: "The Calendar Land!",
-                text: "Fantastic job! Riya went to sleep right on time. But oh look... she is dreaming about a magical world made of calendars! Let's help her sort out the Days and Months to find her way through!"
-            },
-            level3: {
-                emoji: "🌀⏰",
-                badge: "Level 3 Intro",
-                title: "The Golden Time Gate!",
-                text: "Wow, you sorted the calendar paths perfectly! A glowing Time Gate has opened. To fly back home and win the game, help Riya arrange her daily routines in order from morning to night!"
-            }
-        };
-
-        let currentLevel = 1; 
-        let internalStep = 0; 
-        let currentLevel1Hour = 12; 
-        let sortableInstance = null;
-        let volumeLevel = 0.8;
-        let runningMission = null;
-        let wrongAttemptsCount = 0;
-        let storyProgressState = "gameIntro"; 
-
-        // FIXED: Audio playback rewritten to look for correct.mp3 and wrong.mp3 in the assets directory
-        function playSoundEffect(isCorrect) {
-            const audioNode = document.getElementById(isCorrect ? 'audio-correct' : 'audio-wrong');
-            if (audioNode) {
-                audioNode.volume = volumeLevel;
-                audioNode.currentTime = 0;
-                audioNode.play().catch(err => {
-                    // Fallback to synthesized sound if file asset engine is blocked
-                    try {
-                        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                        const osc = ctx.createOscillator();
-                        const amp = ctx.createGain();
-                        osc.type = isCorrect ? 'triangle' : 'sawtooth';
-                        osc.frequency.setValueAtTime(isCorrect ? 523.25 : 220.00, ctx.currentTime);
-                        amp.gain.setValueAtTime(volumeLevel, ctx.currentTime);
-                        amp.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.3);
-                        osc.connect(amp);
-                        amp.connect(ctx.destination);
-                        osc.start();
-                        osc.stop(ctx.currentTime + 0.3);
-                    } catch(e) {}
-                });
-            }
-        }
-
-        const canvas = document.getElementById("confetti-canvas");
-        const ctx = canvas.getContext("2d");
-        let activeConfetti = [];
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        function dropConfetti() {
-            for(let i = 0; i < 60; i++) {
-                activeConfetti.push({
-                    x: canvas.width / 2, y: canvas.height / 2 - 50,
-                    vx: (Math.random() - 0.5) * 12, vy: (Math.random() - 0.7) * 15,
-                    color: `hsl(${Math.random() * 360}, 90%, 65%)`,
-                    size: Math.random() * 8 + 6, rotation: Math.random() * 360,
-                    rSpeed: (Math.random() - 0.5) * 10
-                });
-            }
-            animateConfettiStream();
-        }
-
-        function animateConfettiStream() {
-            if (activeConfetti.length === 0) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            for(let i = activeConfetti.length - 1; i >= 0; i--) {
-                let p = activeConfetti[i];
-                p.x += p.vx; p.y += p.vy; p.vy += 0.4; p.rotation += p.rSpeed;
-                ctx.save();
-                ctx.translate(p.x, p.y);
-                ctx.rotate(p.rotation * Math.PI / 180);
-                ctx.fillStyle = p.color;
-                ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
-                ctx.restore();
-                if(p.y > canvas.height) activeConfetti.splice(i, 1);
-            }
-            requestAnimationFrame(animateConfettiStream);
-        }
-
-        function generateClockTicks() {
-            const face = document.getElementById('analog-clock');
-            const radius = 68; 
-            for (let i = 1; i <= 12; i++) {
-                const angle = (i * 30) * Math.PI / 180;
-                const num = document.createElement('div');
-                num.className = 'clock-number';
-                num.innerText = i;
-                const x = 90 + radius * Math.sin(angle) - 12; 
-                const y = 90 - radius * Math.cos(angle) - 12;
-                num.style.left = `${x}px`;
-                num.style.top = `${y}px`;
-                face.appendChild(num);
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            generateClockTicks();
-            
+        window.onload = () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
-                splash.style.opacity = 0;
-                setTimeout(() => {
-                    splash.style.display = 'none';
-                    document.getElementById('game-card').style.display = 'block';
-                    launchCoreGameEngine();
-                }, 500);
-            }, 5000);
+                if(splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => splash.style.display = 'none', 500);
+                }
+            }, 2000);
+        };
 
-            document.getElementById('volume-control').addEventListener('input', (e) => {
-                volumeLevel = parseFloat(e.target.value);
+        function startGame() {
+            const title = document.getElementById('title-screen');
+            title.style.opacity = '0';
+            setTimeout(() => {
+                title.style.display = 'none';
+                generateScreenHours();
+                loadQuizScreen();
+            }, 500);
+        }
+
+        // Generates 4 strictly distinct hours for each quiz card run
+        function generateScreenHours() {
+            let hoursSet = new Set();
+            while(hoursSet.size < 4) {
+                let randomHour = Math.floor(Math.random() * 12) + 1; // 1 to 12
+                hoursSet.add(randomHour);
+            }
+            screenHours = Array.from(hoursSet);
+        }
+
+        function loadQuizScreen() {
+            canInteract = true;
+            document.getElementById('round-badge').innerText = `Screen ${currentScreenIdx + 1} / 4`;
+            
+            let targetHour = screenHours[currentScreenIdx];
+            updateClockFace(targetHour);
+
+            // Construct choices pool with target answer + 2 unique distractors
+            let options = new Set([targetHour]);
+            while(options.size < 3) {
+                let distractor = Math.floor(Math.random() * 12) + 1;
+                options.add(distractor);
+            }
+
+            let sortedOptions = Array.from(options).sort(() => Math.random() - 0.5);
+            const optionsBox = document.getElementById('options-box');
+            optionsBox.innerHTML = '';
+
+            sortedOptions.forEach(val => {
+                const button = document.createElement('button');
+                button.className = 'option-btn';
+                button.innerText = `${val}:00 O'clock`;
+                button.onclick = () => checkSelection(button, val, targetHour);
+                optionsBox.appendChild(button);
             });
-        });
-
-        function launchCoreGameEngine() {
-            currentLevel = 1;
-            internalStep = 0;
-            wrongAttemptsCount = 0;
-            showStorySlide('gameIntro');
         }
 
-        function updateGlobalProgressBar() {
-            let rawProgress = 0;
-            if (storyProgressState === "gameIntro") rawProgress = 0;
-            else if (currentLevel === 1) rawProgress = internalStep;
-            else if (currentLevel === 2) rawProgress = 5 + internalStep;
-            else if (currentLevel === 3) rawProgress = 9 + internalStep;
-            
-            document.getElementById('progress-indicator').style.width = `${(rawProgress / 11) * 100}%`;
-        }
-
-        function loadCurrentMission() {
-            updateGlobalProgressBar();
-            wrongAttemptsCount = 0; 
-            
-            document.getElementById('game-playground').style.display = 'block';
-            document.getElementById('story-playground').style.display = 'none';
-
-            if (currentLevel === 1) {
-                document.getElementById('level-indicator').innerText = "Level 1: Set Clock Time 🕒";
-                document.getElementById('clock-view').style.display = 'flex';
-                document.getElementById('sequence-view').style.display = 'none';
-                
-                runningMission = level1Missions[internalStep];
-                document.getElementById('question-prompt').innerText = runningMission.text;
-                
-                currentLevel1Hour = 12; 
-                refreshClockHandNodePositions();
-            } 
-            else if (currentLevel === 2 || currentLevel === 3) {
-                document.getElementById('level-indicator').innerText = currentLevel === 2 ? "Level 2: Ordering Time 🗓️" : "Level 3: Daily Routines 🔄";
-                document.getElementById('clock-view').style.display = 'none';
-                document.getElementById('sequence-view').style.display = 'block';
-                
-                const setPool = currentLevel === 2 ? level2Missions : level3Missions;
-                runningMission = setPool[internalStep];
-                document.getElementById('question-prompt').innerText = runningMission.text;
-                
-                let scrambledItems;
-                let loops = 0;
-                do {
-                    scrambledItems = [...runningMission.items].sort(() => Math.random() - 0.5);
-                    loops++;
-                } while (
-                    scrambledItems.every((val, index) => val === runningMission.correctOrder[index]) && 
-                    loops < 20
-                );
-
-                const listbox = document.getElementById('sortable-list');
-                listbox.innerHTML = '';
-                
-                scrambledItems.forEach(itemText => {
-                    const el = document.createElement('div');
-                    el.className = 'flashcard';
-                    el.innerText = itemText;
-                    listbox.appendChild(el);
-                });
-
-                if (sortableInstance) sortableInstance.destroy();
-                sortableInstance = new Sortable(listbox, {
-                    animation: 150,
-                    ghostClass: 'sortable-ghost'
-                });
+        function updateClockFace(hour) {
+            // Calculate rotational degrees based on standard circle geometric space
+            let angle = hour * 30; 
+            let hand = document.getElementById('hour-hand');
+            if(hand) {
+                hand.setAttribute('transform', `rotate(${angle} 100 100)`);
             }
         }
 
-        function adjustClockTime(delta) {
-            currentLevel1Hour += delta;
-            if (currentLevel1Hour > 12) currentLevel1Hour = 1;
-            if (currentLevel1Hour < 1) currentLevel1Hour = 12;
-            refreshClockHandNodePositions();
-        }
+        function checkSelection(button, pickedValue, correctValue) {
+            if (!canInteract) return;
+            canInteract = false;
 
-        function refreshClockHandNodePositions() {
-            const hrDeg = currentLevel1Hour * 30;
-            document.getElementById('hour-hand').style.transform = `rotate(${hrDeg}deg)`;
-            document.getElementById('minute-hand').style.transform = `rotate(0deg)`;
-            document.getElementById('digital-bubble').innerText = `${currentLevel1Hour}:00 O'clock`;
-        }
-
-        function verifyCurrentAnswer() {
-            let userIsCorrect = false;
-
-            if (currentLevel === 1) {
-                if (currentLevel1Hour === runningMission.target) {
-                    userIsCorrect = true;
-                }
-            } 
-            else {
-                const currentCards = Array.from(document.getElementById('sortable-list').children);
-                const userOrder = currentCards.map(c => c.innerText.trim());
-                userIsCorrect = userOrder.length === runningMission.correctOrder.length && 
-                                userOrder.every((val, index) => val === runningMission.correctOrder[index]);
-            }
-
-            if (userIsCorrect) {
-                playSoundEffect(true);
-                dropConfetti();
-                advanceGamePipeline();
+            if (pickedValue === correctValue) {
+                button.classList.add('correct');
+                confetti({ particleCount: 30, spread: 50 });
+                
+                setTimeout(() => {
+                    if (currentScreenIdx + 1 < 4) {
+                        currentScreenIdx++;
+                        loadQuizScreen();
+                    } else {
+                        document.getElementById('end-overlay').style.display = 'flex';
+                    }
+                }, 1200);
             } else {
-                playSoundEffect(false);
-                wrongAttemptsCount++;
-                
-                if (wrongAttemptsCount >= 2) {
-                    alert(`💡 Hint: ${runningMission.hint}`);
-                } else {
-                    alert("Try again! Change the clock or move the pieces to find the right order! ✨");
-                }
+                button.classList.add('wrong');
+                // Auto highlight correct answer button
+                setTimeout(() => {
+                    Array.from(document.getElementsByClassName('option-btn')).forEach(btn => {
+                        if (btn.innerText.startsWith(correctValue + ':')) {
+                            btn.classList.add('correct');
+                        }
+                    });
+                }, 300);
+
+                setTimeout(() => {
+                    loadQuizScreen();
+                }, 1500);
             }
         }
 
-        function advanceGamePipeline() {
-            internalStep++;
-            
-            if (currentLevel === 1 && internalStep >= level1Missions.length) {
-                currentLevel = 2;
-                internalStep = 0;
-                showStorySlide('level2');
-            } else if (currentLevel === 2 && internalStep >= level2Missions.length) {
-                currentLevel = 3;
-                internalStep = 0;
-                showStorySlide('level3');
-            } else if (currentLevel === 3 && internalStep >= level3Missions.length) {
-                document.getElementById('progress-indicator').style.width = '100%';
-                document.getElementById('game-playground').style.display = 'none';
-                document.getElementById('story-playground').style.display = 'none';
-                document.getElementById('end-view').style.display = 'block';
-                return;
-            } else {
-                setTimeout(loadCurrentMission, 1000);
-            }
-        }
-
-        // Story Mode Layout Drivers
-        function showStorySlide(slideKey) {
-            storyProgressState = slideKey;
-            const data = storySlides[slideKey];
-            
-            document.getElementById('game-playground').style.display = 'none';
-            document.getElementById('level-indicator').innerText = data.badge;
-            
-            document.getElementById('story-icon').innerText = data.emoji;
-            document.getElementById('story-headline').innerText = data.title;
-            document.getElementById('story-narration').innerText = data.text;
-            
-            document.getElementById('story-playground').style.display = 'block';
-            updateGlobalProgressBar();
-        }
-
-        function dismissStorySlide() {
-            if (storyProgressState === "gameIntro") {
-                storyProgressState = "level1"; 
-                loadCurrentMission(); 
-            } else {
-                loadCurrentMission();
-            }
-        }
-
-        function restartEntireGame() {
-            document.getElementById('game-playground').style.display = 'none';
-            document.getElementById('end-view').style.display = 'none';
-            launchCoreGameEngine();
+        function restartGame() {
+            currentScreenIdx = 0;
+            generateScreenHours();
+            document.getElementById('end-overlay').style.display = 'none';
+            document.getElementById('title-screen').style.display = 'flex';
+            document.getElementById('title-screen').style.opacity = '1';
         }
     </script>
 </body>
