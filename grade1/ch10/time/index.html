@@ -36,7 +36,7 @@
             position: relative;
         }
 
-        /* --- SPLASH SCREEN --- */
+        /* --- 1. SPLASH SCREEN --- */
         #splash-screen {
             background: #ffffff;
             border-radius: 24px;
@@ -54,7 +54,7 @@
             object-fit: contain;
         }
 
-        /* --- TITLE SCREEN & TRANSITION SLIDE --- */
+        /* --- 2. TITLE SCREEN & TRANSITION SLIDE --- */
         .intro-slide {
             background: linear-gradient(135deg, #0288d1, #01579b);
             border-radius: 24px;
@@ -267,4 +267,242 @@
             </div>
 
             <div class="clock-container">
-                <svg class="clock-svg" viewBox="0 0
+                <svg class="clock-svg" viewBox="0 0 200 200">
+                    <circle cx="100" cy="100" r="92" fill="#ffffff" stroke="#0288d1" stroke-width="7" />
+                    <text x="100" y="28" text-anchor="middle" font-weight="bold" font-size="15" fill="#2c3e50">12</text>
+                    <text x="170" y="105" text-anchor="middle" font-weight="bold" font-size="15" fill="#2c3e50">3</text>
+                    <text x="100" y="178" text-anchor="middle" font-weight="bold" font-size="15" fill="#2c3e50">6</text>
+                    <text x="30" y="105" text-anchor="middle" font-weight="bold" font-size="15" fill="#2c3e50">9</text>
+                    <text x="136" y="44" text-anchor="middle" font-weight="bold" font-size="14" fill="#555">1</text>
+                    <text x="160" y="68" text-anchor="middle" font-weight="bold" font-size="14" fill="#555">2</text>
+                    <text x="160" y="142" text-anchor="middle" font-weight="bold" font-size="14" fill="#555">4</text>
+                    <text x="136" y="166" text-anchor="middle" font-weight="bold" font-size="14" fill="#555">5</text>
+                    <text x="64" y="166" text-anchor="middle" font-weight="bold" font-size="14" fill="#555">7</text>
+                    <text x="40" y="142" text-anchor="middle" font-weight="bold" font-size="14" fill="#555">8</text>
+                    <text x="40" y="68" text-anchor="middle" font-weight="bold" font-size="14" fill="#555">10</text>
+                    <text x="64" y="44" text-anchor="middle" font-weight="bold" font-size="14" fill="#555">11</text>
+
+                    <line x1="100" y1="100" x2="100" y2="36" stroke="#2c3e50" stroke-width="4.5" stroke-linecap="round" />
+                    <line id="hour-hand" x1="100" y1="100" x2="100" y2="52" stroke="#ff4081" stroke-width="6.5" stroke-linecap="round" />
+                    <circle cx="100" cy="100" r="6" fill="#1ebd9b" />
+                </svg>
+            </div>
+
+            <div>
+                <div class="time-display-pill" id="numerical-display">4:00 O'clock</div>
+            </div>
+
+            <div class="controls-row">
+                <button class="circle-step-btn" onclick="adjustTime(-1)">−</button>
+                <button class="circle-step-btn" onclick="adjustTime(1)">+</button>
+            </div>
+
+            <button class="submit-btn" onclick="evaluateClockAnswer()">Check Answer ✓</button>
+        </div>
+
+        <div id="transition-screen" class="intro-slide">
+            <div style="font-size: 60px; margin-bottom: 10px;">🌟</div>
+            <h2 style="font-size: 26px; margin: 0 0 10px 0; text-align: center;">Amazing Job!</h2>
+            <p style="font-size: 15px; text-align: center; max-width: 320px; line-height: 1.5; margin-bottom: 15px;">
+                You mastered telling time on the clock face! Now let's help arrange Riya's daily evening routine cards in order.
+            </p>
+            <button class="action-btn" onclick="startRoutineGame()">Next Activity ➡️</button>
+        </div>
+
+        <div id="game-screen-routine" class="game-card">
+            <div class="instruction-heading">
+                Sequence Riya's evening routine by dragging the activities into the correct order!
+            </div>
+
+            <div class="drag-container" id="cards-list-box"></div>
+
+            <button class="submit-btn" onclick="evaluateRoutineAnswer()">Submit Order ✓</button>
+        </div>
+
+        <div class="modal-overlay" id="alert-modal">
+            <div class="custom-popup-box">
+                <div class="popup-header" id="modal-title-host">bomis-primary.github.io says</div>
+                <div class="popup-message" id="modal-msg-body">Feedback text.</div>
+                <div class="popup-actions">
+                    <button class="popup-ok-btn" onclick="dismissModal()">OK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLessonPhase = "phase_clock"; 
+        let clockQuestionIndex = 1;
+        const totalClockQuestions = 5; 
+        let targetHour = 5;
+        let userCurrentHour = 4;
+        let isAnswerSuccessful = false;
+        let audioCtx = null;
+
+        const correctRoutineOrder = [
+            { id: "a", text: "🌙 Riya completes her homework in the evening." },
+            { id: "b", text: "🍽️ She dines with her family at night." },
+            { id: "c", text: "🛏️ Riya falls asleep peacefully in bed." }
+        ];
+        
+        let displayCardsState = [
+            correctRoutineOrder[1],
+            correctRoutineOrder[2],
+            correctRoutineOrder[0]
+        ];
+
+        // FIXED: Timeout set to exactly 5000ms (5 seconds)
+        window.onload = () => {
+            setTimeout(() => {
+                document.getElementById('splash-screen').style.display = 'none';
+                document.getElementById('title-screen').style.display = 'flex';
+            }, 5000); 
+            
+            renderRoutineCards();
+        };
+
+        function initAudioEngine() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function startClockGame() {
+            initAudioEngine();
+            document.getElementById('title-screen').style.display = 'none';
+            document.getElementById('game-screen-clock').style.display = 'block';
+            setupClockQuestion();
+        }
+
+        function setupClockQuestion() {
+            document.getElementById('clock-progress-text').innerText = `Question ${clockQuestionIndex} of ${totalClockQuestions}`;
+            
+            let nextHour;
+            do {
+                nextHour = Math.floor(Math.random() * 12) + 1;
+            } while (nextHour === targetHour);
+            targetHour = nextHour;
+
+            do {
+                userCurrentHour = Math.floor(Math.random() * 12) + 1;
+            } while (userCurrentHour === targetHour);
+
+            document.getElementById('clock-instruction-text').innerText = `${targetHour}:00 o'clock. Show this time on the clock face!`;
+            updateClockUI();
+        }
+
+        function updateClockUI() {
+            if (userCurrentHour > 12) userCurrentHour = 1;
+            if (userCurrentHour < 1) userCurrentHour = 12;
+            document.getElementById('numerical-display').innerText = `${userCurrentHour}:00 O'clock`;
+            document.getElementById('hour-hand').setAttribute('transform', `rotate(${userCurrentHour * 30} 100 100)`);
+        }
+
+        function adjustTime(val) {
+            userCurrentHour += val;
+            updateClockUI();
+        }
+
+        function playSound(isSuccessful) {
+            initAudioEngine();
+            if (!audioCtx || audioCtx.state === 'suspended') return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            if (isSuccessful) {
+                osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            } else {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(146.83, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.25);
+            }
+        }
+
+        function evaluateClockAnswer() {
+            if (userCurrentHour === targetHour) {
+                isAnswerSuccessful = true;
+                playSound(true);
+                if (clockQuestionIndex < totalClockQuestions) {
+                    showCustomModal("Correct! 🎉", "Fantastic work! Let's try the next clock challenge.");
+                } else {
+                    showCustomModal("All Clocks Completed! 🏅", "Superb job! You finished all 5 clock questions.");
+                }
+            } else {
+                isAnswerSuccessful = false;
+                playSound(false);
+                showCustomModal("bomis-primary.github.io says", `Try again! Use the buttons to turn the hand to ${targetHour}:00 o'clock. ⏰`);
+            }
+        }
+
+        function startRoutineGame() {
+            document.getElementById('transition-screen').style.display = 'none';
+            document.getElementById('game-screen-routine').style.display = 'block';
+        }
+
+        /* --- DRAG & DROP FOR PART 2 --- */
+        function renderRoutineCards() {
+            const box = document.getElementById('cards-list-box');
+            if(!box) return;
+            box.innerHTML = "";
+            displayCardsState.forEach((item, index) => {
+                const el = document.createElement('div');
+                el.className = "routine-card";
+                el.draggable = true;
+                el.innerHTML = `<span class="number-badge">${index + 1}</span> <span>${item.text}</span>`;
+                el.addEventListener('dragstart', (e) => e.dataTransfer.setData('text', index));
+                el.addEventListener('dragover', (e) => e.preventDefault());
+                el.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    const draggedIdx = parseInt(e.dataTransfer.getData('text'));
+                    const temp = displayCardsState[draggedIdx];
+                    displayCardsState.splice(draggedIdx, 1);
+                    displayCardsState.splice(index, 0, temp);
+                    renderRoutineCards();
+                });
+                box.appendChild(el);
+            });
+        }
+
+        function evaluateRoutineAnswer() {
+            let correct = displayCardsState.every((item, i) => item.id === correctRoutineOrder[i].id);
+            if (correct) {
+                isAnswerSuccessful = true;
+                playSound(true);
+                showCustomModal("Wonderful! 🌟", "Awesome! You placed all tasks in the perfect order. Lesson Complete!");
+            } else {
+                isAnswerSuccessful = false;
+                playSound(false);
+                showCustomModal("bomis-primary.github.io says", "Try again! Rearrange the actions to find the correct evening sequence. ✨");
+            }
+        }
+
+        function showCustomModal(title, text) {
+            document.getElementById('modal-title-host').innerText = title;
+            document.getElementById('modal-msg-body').innerText = text;
+            document.getElementById('alert-modal').style.display = 'flex';
+        }
+
+        function dismissModal() {
+            document.getElementById('alert-modal').style.display = 'none';
+            if (isAnswerSuccessful) {
+                isAnswerSuccessful = false;
+                if (currentLessonPhase === "phase_clock") {
+                    if (clockQuestionIndex < totalClockQuestions) {
+                        clockQuestionIndex++;
+                        setupClockQuestion();
+                    } else {
+                        currentLessonPhase = "phase_transition";
+                        document.getElementById('game-screen-clock').style.display = 'none';
+                        document.getElementById('transition-screen').style.display = 'flex';
+                    }
+                }
+            }
+        }
+
+        document.body.addEventListener('click', () => {
+            initAudioEngine();
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        });
+    </script>
+</body>
+</html>
