@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Multiplication Island Quest - Matching</title>
+    <title>Multiplication Island Quest - Fixed Matching</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -14,7 +14,6 @@
             --bg-island: #f7f9fa;
             --text-dark: #2c3e50;
             --text-muted: #5a738e;
-            --accent-yellow: #ffd54f;
             --success: #2e7d32;
         }
 
@@ -50,26 +49,14 @@
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: opacity 0.6s ease;
             padding: 20px;
-        }
-
-        .innovine-logo-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            animation: floatLogo 3s ease-in-out infinite alternate;
         }
 
         .brand-logo-img {
             max-width: 240px;
             max-height: 90px;
             object-fit: contain;
-        }
-
-        @keyframes floatLogo {
-            0% { transform: translateY(0px); }
-            100% { transform: translateY(-8px); }
         }
 
         /* --- STAGE OVERLAYS --- */
@@ -112,7 +99,6 @@
             font-size: 32px;
             font-weight: 800;
             margin-bottom: 15px;
-            text-shadow: 0 4px 6px rgba(0,0,0,0.15);
         }
 
         /* --- MAIN GAME CONTAINER --- */
@@ -123,16 +109,10 @@
             padding: 20px;
             width: 100%;
             max-width: 480px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15), inset 0 -8px 0 rgba(0,0,0,0.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
             text-align: center;
             display: none;
             position: relative;
-            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        @keyframes popIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
         }
 
         .header-meta {
@@ -179,7 +159,6 @@
             background: linear-gradient(90deg, var(--primary-light), var(--primary));
             height: 100%;
             width: 0%;
-            border-radius: 50px;
             transition: width 0.4s ease;
         }
 
@@ -192,7 +171,6 @@
             background: white;
             padding: 15px;
             border-radius: 18px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
             border-left: 6px solid var(--primary);
             text-align: left;
         }
@@ -208,25 +186,33 @@
             margin-bottom: 15px;
             display: none;
             text-align: left;
-            animation: popIn 0.3s ease;
         }
 
-        /* --- INTERACTIVE WORKSPACE --- */
+        /* --- INTERACTIVE WORKSPACE & CONTAINER ENGINE --- */
         .workspace {
             background: #ffffff;
             border: 3px dashed #cbd5e1;
             border-radius: 24px;
-            min-height: 150px;
+            min-height: 180px;
             margin-bottom: 15px;
-            position: relative;
             display: flex;
-            flex-direction: column;
             justify-content: center;
             align-items: center;
             padding: 15px;
         }
 
-        .grid-container {
+        /* Dynamic Grid Layout for Arrays */
+        .array-grid {
+            display: grid;
+            gap: 8px;
+            background: #f8fafc;
+            border: 3px solid #6c5ce7; /* Distinct Border for Arrays */
+            border-radius: 18px;
+            padding: 15px;
+        }
+
+        /* Equal Groups Container */
+        .groups-layout {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
@@ -234,40 +220,54 @@
             width: 100%;
         }
 
-        .array-container {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
-            border-radius: 18px;
-            padding: 15px 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.02);
-        }
-
-        .array-row {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .visual-group {
-            background: #f8fafc;
-            border: 2px solid #e2e8f0;
+        /* --- THEMED CONTAINERS (FIXES MANAGER FEEDBACK) --- */
+        .theme-default {
+            background: #f1f5f9;
+            border: 2px solid #cbd5e1;
             border-radius: 16px;
             padding: 10px;
-            display: flex;
-            gap: 6px;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        /* Actual Branch styling for butterflies */
+        .theme-branch {
+            background: linear-gradient(90deg, #8b5a2b 0%, #a0522d 100%);
+            border-radius: 20px;
+            padding: 10px 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            min-width: 70px;
+        }
+
+        /* Actual Rack styling for bikes */
+        .theme-rack {
+            border: 4px solid #64748b;
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 10px;
+            position: relative;
+        }
+        .theme-rack::after {
+            content: '';
+            position: absolute;
+            bottom: 2px; left: 5%; right: 5%;
+            height: 4px; background: #64748b;
+        }
+
+        /* Actual Chest styling for gold coins */
+        .theme-chest {
+            background: #b45309;
+            border: 4px solid #78350f;
+            border-radius: 14px;
+            padding: 12px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
         }
 
         .group-item {
-            font-size: 26px;
+            font-size: 24px;
+            display: inline-block;
+            margin: 2px;
         }
 
-        /* --- DRAG & DROP TARGET MAT --- */
+        /* --- DRAG & DROP TARGET ZONE --- */
         .drop-zone {
             width: 100%;
             min-height: 65px;
@@ -288,18 +288,15 @@
         .drop-zone.hovered {
             background: #e0e7ff;
             border-color: var(--primary);
-            transform: scale(1.02);
         }
 
-        /* --- DRAGGABLE MATCH ELEMENTS --- */
+        /* --- DRAGGABLE BENCH ELEMENTS --- */
         .options-box {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
             gap: 12px;
-            margin-top: 5px;
             width: 100%;
-            min-height: 60px;
         }
 
         .drag-card {
@@ -311,43 +308,24 @@
             font-weight: bold;
             padding: 12px 20px;
             cursor: grab;
-            touch-action: none; /* Disables standard scrolling on element while dragging */
-            transition: transform 0.1s ease, box-shadow 0.1s ease;
-            user-select: none;
-            display: inline-block;
-        }
-
-        .drag-card:active {
-            cursor: grabbing;
+            touch-action: none;
         }
 
         .drag-card.dragging {
             opacity: 0.7;
-            transform: scale(1.05);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
             position: fixed;
             z-index: 10000;
-            pointer-events: none; /* Let pointer events drop through onto target mat beneath */
-            border-bottom: 2px solid var(--secondary-dark);
+            pointer-events: none;
         }
 
         .drop-zone .drag-card {
             cursor: default;
             width: 100%;
             max-width: 260px;
-            animation: popIn 0.3s ease;
         }
 
-        .drop-zone .drag-card.correct {
-            background: var(--success) !important;
-            border-color: #1b5e20 !important;
-        }
-
-        .drop-zone .drag-card.wrong {
-            background: #c62828 !important;
-            border-color: #5a1212 !important;
-            animation: shakeError 0.4s ease;
-        }
+        .drop-zone .drag-card.correct { background: var(--success) !important; border-color: #1b5e20 !important; }
+        .drop-zone .drag-card.wrong { background: #c62828 !important; border-color: #5a1212 !important; animation: shake 0.4s ease; }
 
         .action-btn {
             background: #fff;
@@ -359,46 +337,28 @@
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
-            margin-top: 20px;
             width: 100%;
-            transition: all 0.1s ease;
         }
 
-        .action-btn:active {
-            transform: translateY(3px);
-            border-bottom-width: 2px;
-        }
-
-        @keyframes shakeError {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-6px); }
-            75% { transform: translateX(6px); }
-        }
+        .action-btn:active { transform: translateY(3px); border-bottom-width: 2px; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
     </style>
 </head>
 <body>
 
     <div id="splash-screen">
-        <div class="innovine-logo-container">
-            <img src="assets/logo.png" alt="Innovine Logo" class="brand-logo-img">
-        </div>
+        <img src="assets/logo.png" alt="Logo" class="brand-logo-img">
     </div>
 
     <div id="intro-screen" class="stage-overlay">
         <div class="overlay-card">
-            <div style="font-size: 60px; margin-bottom: 10px;">🏝️</div>
+            <div style="font-size: 60px;">🏝️</div>
             <div class="slide-title">Multiplication Match</div>
-            <p style="font-size: 15px; color: #eee; line-height: 1.6; margin-bottom: 25px;">
-                Welcome Explorer! Drag the correct answer card from the bench and drop it right into the Match Zone. You have 2 attempts per puzzle!
+            <p style="font-size: 15px; margin-bottom: 25px;">
+                Drag the correct answer card from the bench and drop it right into the Match Zone.
             </p>
             <button class="action-btn" id="btn-start-game">Begin Expedition 🧭</button>
         </div>
-    </div>
-
-    <div id="progression-slide" class="stage-overlay">
-        <div style="font-size: 65px; margin-bottom: 10px;">⚡</div>
-        <div class="slide-title" id="slide-level-text">Level Completed!</div>
-        <p style="font-size: 16px; color: #dff9fb; font-weight: bold; margin: 0;">Unlocking next mathematical island gateway...</p>
     </div>
 
     <div class="game-container" id="main-game">
@@ -408,381 +368,214 @@
         </div>
         
         <h1 id="game-title">Multiplication Journey</h1>
-
-        <div class="progress-bar">
-            <div class="progress" id="progress-bar-fill"></div>
-        </div>
-
+        <div class="progress-bar"><div class="progress" id="progress-bar-fill"></div></div>
         <div class="instruction-card" id="instruction-txt">...</div>
-        <div class="hint-box" id="hint-display">💡 Hint goes here...</div>
-        
+        <div class="hint-box" id="hint-display">...</div>
         <div class="workspace" id="interactive-space"></div>
-        
-        <!-- Drag Target Zone -->
         <div class="drop-zone" id="drop-zone">📥 Drag & Drop Answer Here</div>
-        
-        <!-- Draggable Source Elements Container -->
         <div class="options-box" id="options-zone"></div>
     </div>
 
     <div id="appreciation-screen" class="stage-overlay">
         <div class="overlay-card">
-            <div style="font-size: 70px; margin-bottom: 15px;" id="appreciation-emoji">🏆</div>
+            <div style="font-size: 70px;" id="appreciation-emoji">🏆</div>
             <div class="slide-title" id="appreciation-heading">Outstanding!</div>
-            <div style="font-size: 24px; font-weight: 800; color: #fff; margin-bottom: 10px;" id="final-score-txt">Score: 0/0</div>
-            <p style="color: #e0f2f1; font-size: 14px; line-height: 1.5; margin-bottom: 25px;" id="appreciation-desc">
-                You have successfully completed all competency loops for Chapter 9.
-            </p>
-            <button class="action-btn" id="btn-restart-game" style="color: #6c5ce7;">Play Again 🔄</button>
+            <div style="font-size: 24px; font-weight: 800; margin-bottom: 25px;" id="final-score-txt">Score: 0</div>
+            <button class="action-btn" id="btn-restart-game">Play Again 🔄</button>
         </div>
     </div>
 
     <script>
         const rawPuzzleBank = [
-            // --- LEVEL 1: REPEATED ADDITION & ARRAYS (5 QUESTIONS) ---
-            { level: 1, title: "➕ Repeated Addition Groups", instruction: "Look at the groupings of fresh apples! Choose the addition sentence that matches the groups.", type: "visual-math", isArray: false, groups: 3, itemsPerGroup: 2, emoji: "🍎", answer: "2 + 2 + 2", options: ["2 + 2 + 2", "3 + 3", "2 + 2 + 2 + 2"], hint: "Count how many items are inside one individual bubble group first!" },
-            { level: 1, title: "🧮 Array Multiplication", instruction: "Convert this array of stars into a quick multiplication sentence!", type: "visual-math", isArray: true, groups: 4, itemsPerGroup: 5, emoji: "⭐", answer: "4 × 5", options: ["5 × 5", "4 × 5", "4 × 4"], hint: "An array represents multiplication as: (Number of Rows) × (Columns in each Row)." },
-            { level: 1, title: "➕ Fish Tank Addition", instruction: "Count the friendly goldfish swimming in groups. Find the correct addition matching layout.", type: "visual-math", isArray: false, groups: 2, itemsPerGroup: 4, emoji: "🐟", answer: "4 + 4", options: ["4 + 4", "2 + 2 + 2 + 2", "4 + 4 + 4"], hint: "There are 2 groups. Each group has exactly 4 fishes inside." },
-            { level: 1, title: "➕ Sweet Treat Groupings", instruction: "Look at these delicious cookies! Which repeated addition sentence models this group accurately?", type: "visual-math", isArray: false, groups: 3, itemsPerGroup: 3, emoji: "🍪", answer: "3 + 3 + 3", options: ["3 + 3", "3 + 3 + 3", "3 + 3 + 3 + 3"], hint: "Add the number 3 together as many times as there are cookie containers." },
-            { level: 1, title: "➕ Diamond Match Up", instruction: "Translate this dynamic cluster of gemstones into a fast multiplication statement.", type: "visual-math", isArray: false, groups: 5, itemsPerGroup: 1, emoji: "💎", answer: "5 × 1", options: ["1 × 5", "5 × 1", "5 × 5"], hint: "Count the separate blocks. There are 5 blocks containing 1 gem each." },
+            // --- FIXED LEVEL 1: ACCURATE ARRAYS AND REPEATED ADDITION ---
+            { level: 1, title: "🧮 Array Multiplication", instruction: "Look at this array of columns and rows. Convert this array into a multiplication sentence!", type: "array", rows: 4, cols: 5, emoji: "⭐", answer: "4 × 5", options: ["5 × 5", "4 × 5", "4 × 4"], hint: "Count the rows downward, then multiply by the number of columns across.", containerClass: "theme-default" },
+            { level: 1, title: "➕ Repeated Addition Groups", instruction: "Look at these separate visual groups of apples. Choose the addition sentence that matches them.", type: "groups", groups: 3, items: 2, emoji: "🍎", answer: "2 + 2 + 2", options: ["2 + 2 + 2", "3 + 3", "2 + 2 + 2 + 2"], hint: "Count the number of items inside one group, and add it together for each group.", containerClass: "theme-default" },
+            { level: 1, title: "➕ Fish Tank Addition", instruction: "Count the friendly goldfish swimming in separate groups. Find the correct addition matching layout.", type: "groups", groups: 2, items: 4, emoji: "🐟", answer: "4 + 4", options: ["4 + 4", "2 + 2 + 2 + 2", "4 + 4 + 4"], hint: "There are 2 groups. Each group has exactly 4 fishes.", containerClass: "theme-default" },
 
-            // --- LEVEL 2: MASTERING TABLES 1, 2, 5, 10 (5 QUESTIONS) ---
-            { level: 2, title: "🔢 Counting Bicycles", instruction: "Look at the groups of bicycles! What is 5 groups of 2?", type: "visual-math", isArray: false, groups: 5, itemsPerGroup: 2, emoji: "🚲", answer: "10 bicycles", options: ["8 bicycles", "10 bicycles", "12 bicycles"], hint: "Skip count by 2s five times: 2, 4, 6, 8..." },
-            { level: 2, title: "🔢 Starfish Containers", instruction: "There are 3 specific beach buckets, each containing 5 starfish. Find the total!", type: "visual-math", isArray: false, groups: 3, itemsPerGroup: 5, emoji: "⭐", answer: "15 starfish", options: ["12 starfish", "15 starfish", "20 starfish"], hint: "Use your 5 times table skip counting rules: 5, 10..." },
-            { level: 2, title: "🔢 Golden Chest Value", instruction: "Look at the rows of shiny gold coins! How many coins are there in 2 rows of 10?", type: "visual-math", isArray: false, groups: 2, itemsPerGroup: 10, emoji: "🪙", answer: "20 coins", options: ["15 coins", "20 coins", "30 coins"], hint: "What is 10 plus 10? Or calculate 2 groups of 10." },
-            { level: 2, title: "🔢 Singly Grouped Butterflies", instruction: "Look at these single groups holding 6 butterflies altogether. What is 6 groups of 1?", type: "visual-math", isArray: false, groups: 6, itemsPerGroup: 1, emoji: "🦋", answer: "6 butterflies", options: ["1 butterfly", "5 butterflies", "6 butterflies"], hint: "Any number multiplied by 1 always stays exactly the same!" },
-            { level: 2, title: "🔢 Tropical Palm Trees", instruction: "Count the coconuts growing on these trees. What value do we get from 4 groups of 5?", type: "visual-math", isArray: false, groups: 4, itemsPerGroup: 5, emoji: "🥥", answer: "20 coconuts", options: ["15 coconuts", "20 coconuts", "25 coconuts"], hint: "Count up by fives: 5, 10, 15..." },
-
-            // --- LEVEL 3: APPLICATION STORY SUMS (3 QUESTIONS) ---
-            { level: 3, title: "📖 Packaged Pencil Supplies", instruction: "An island scholar buys 6 small boxes of pencils. Each box contains exactly 2 pencils. How many pencils are there in total?", type: "story-sum", textBlock: "📝 6 boxes × 2 pencils per box", answer: "12 pencils", options: ["10 pencils", "12 pencils", "14 pencils"], hint: "This represents 6 groups of 2. Think about 6 doubled!" },
-            { level: 3, title: "📖 Coconut Farm Harvest", instruction: "A farmer packages organic coconuts into large sacks. If there are 4 sacks and each contains 10 coconuts, what's the combined total?", type: "story-sum", textBlock: "📝 4 sacks × 10 coconuts per sack", answer: "40 coconuts", options: ["30 coconuts", "35 coconuts", "40 coconuts"], hint: "Count up by tens four separate times: 10, 20, 30..." },
-            { level: 3, title: "📖 Box of Colorful Crayons", instruction: "A classroom helper opens 5 brand new boxes of crayons. If each box contains exactly 5 crayons, what is the total count?", type: "story-sum", textBlock: "📝 5 boxes × 5 crayons per box", answer: "25 crayons", options: ["20 crayons", "25 crayons", "30 crayons"], hint: "Multiply 5 by 5 to find out the grand answer layout." }
+            // --- FIXED LEVEL 2: DYNAMIC GRAPHICS MATCHING CONTEXT RULES ---
+            { level: 2, title: "🔢 Counting Bicycles", instruction: "Count the total number of bicycles parked on each rack. What is 5 groups of 2?", type: "groups", groups: 5, items: 2, emoji: "🚲", answer: "10 bicycles", options: ["8 bicycles", "10 bicycles", "12 bicycles"], hint: "Skip count by 2s for each rack: 2, 4, 6, 8, 10.", containerClass: "theme-rack" },
+            { level: 2, title: "🔢 Golden Chest Value", instruction: "Each ancient treasure box contains 10 gold coins. How many coins are there in 2 chests?", type: "groups", groups: 2, items: 10, emoji: "🪙", answer: "20 coins", options: ["15 coins", "20 coins", "30 coins"], hint: "Count the contents of both chests: 10 + 10.", containerClass: "theme-chest" },
+            { level: 2, title: "🔢 Singly Grouped Butterflies", instruction: "Look at these unique branches holding 1 butterfly each. What is 6 groups of 1?", type: "groups", groups: 6, items: 1, emoji: "🦋", answer: "6 butterflies", options: ["1 butterfly", "5 butterflies", "6 butterflies"], hint: "Each branch has exactly 1 butterfly. Count the branches!", containerClass: "theme-branch" }
         ];
 
-        let activeQuestionSuite = [];
+        let activeSuite = [];
         let currentIndex = 0;
-        let runningScore = 0;
-        let questionAttempts = 0;
-        let interactionLock = false;
-
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        function playSoundEffect(type) {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-
-            if (type === 'correct') {
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
-                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); 
-                osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); 
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
-            } else if (type === 'wrong') {
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(130.81, audioCtx.currentTime); 
-                osc.frequency.linearRampToValueAtTime(110.00, audioCtx.currentTime + 0.3);
-                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.35);
-            }
-        }
-
-        function assembleRandomizedWorkflow() {
-            const lvl1 = rawPuzzleBank.filter(p => p.level === 1).sort(() => Math.random() - 0.5);
-            const lvl2 = rawPuzzleBank.filter(p => p.level === 2).sort(() => Math.random() - 0.5);
-            const lvl3 = rawPuzzleBank.filter(p => p.level === 3).sort(() => Math.random() - 0.5);
-            activeQuestionSuite = [...lvl1, ...lvl2, ...lvl3];
-        }
+        let score = 0;
+        let attempts = 0;
+        let lock = false;
 
         setTimeout(() => {
-            const splashElement = document.getElementById('splash-screen');
-            if (splashElement) {
-                splashElement.style.opacity = '0';
-                setTimeout(() => {
-                    splashElement.style.display = 'none';
-                    document.getElementById('intro-screen').classList.add('active');
-                }, 600);
-            }
-        }, 5000);
+            document.getElementById('splash-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('splash-screen').style.display = 'none';
+                document.getElementById('intro-screen').classList.add('active');
+            }, 600);
+        }, 2000);
 
         document.getElementById('btn-start-game').addEventListener('pointerdown', () => {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
             document.getElementById('intro-screen').classList.remove('active');
             document.getElementById('main-game').style.display = 'block';
-            assembleRandomizedWorkflow();
-            loadIslandLevel();
+            activeSuite = [...rawPuzzleBank].sort(() => Math.random() - 0.5);
+            loadQuestion();
         });
 
-        function loadIslandLevel() {
-            interactionLock = false;
-            questionAttempts = 0;
+        function loadQuestion() {
+            lock = false;
+            attempts = 0;
             
-            const targetSpace = document.getElementById('interactive-space');
-            const choicesZone = document.getElementById('options-zone');
+            const space = document.getElementById('interactive-space');
+            const bench = document.getElementById('options-zone');
             const dropZone = document.getElementById('drop-zone');
-            const fillProgress = document.getElementById('progress-bar-fill');
-            const hintDisplay = document.getElementById('hint-display');
             
-            hintDisplay.style.display = 'none';
+            document.getElementById('hint-display').style.display = 'none';
             dropZone.innerHTML = "📥 Drag & Drop Answer Here";
             dropZone.className = "drop-zone";
             
-            document.getElementById('score-lbl').innerText = `Score: ${runningScore}`;
-            fillProgress.style.width = `${(currentIndex / activeQuestionSuite.length) * 100}%`;
+            document.getElementById('score-lbl').innerText = `Score: ${score}`;
+            document.getElementById('progress-bar-fill').style.width = `${(currentIndex / activeSuite.length) * 100}%`;
 
-            if (currentIndex >= activeQuestionSuite.length) {
-                renderAppreciationSummary();
+            if (currentIndex >= activeSuite.length) {
+                showResults();
                 return;
             }
 
-            const activeNode = activeQuestionSuite[currentIndex];
-            
-            document.getElementById('level-lbl').innerText = `Level ${activeNode.level}`;
-            document.getElementById('game-title').innerText = activeNode.title;
-            document.getElementById('instruction-txt').innerText = activeNode.instruction;
+            const node = activeSuite[currentIndex];
+            document.getElementById('level-lbl').innerText = `Level ${node.level}`;
+            document.getElementById('game-title').innerText = node.title;
+            document.getElementById('instruction-txt').innerText = node.instruction;
 
-            targetSpace.innerHTML = "";
-            choicesZone.innerHTML = "";
+            space.innerHTML = "";
+            bench.innerHTML = "";
 
-            if (activeNode.type === "visual-math") {
-                if (activeNode.isArray) {
-                    let arrayHtml = `<div class="array-container">`;
-                    for (let i = 0; i < activeNode.groups; i++) {
-                        arrayHtml += `<div class="array-row">`;
-                        for (let j = 0; j < activeNode.itemsPerGroup; j++) {
-                            arrayHtml += `<div class="group-item">${activeNode.emoji}</div>`;
-                        }
-                        arrayHtml += `</div>`;
-                    }
-                    arrayHtml += `</div>`;
-                    targetSpace.innerHTML = arrayHtml;
-                } else {
-                    let gridHtml = `<div class="grid-container">`;
-                    for (let i = 0; i < activeNode.groups; i++) {
-                        gridHtml += `<div class="visual-group">`;
-                        for (let j = 0; j < activeNode.itemsPerGroup; j++) {
-                            gridHtml += `<div class="group-item">${activeNode.emoji}</div>`;
-                        }
-                        gridHtml += `</div>`;
-                    }
-                    gridHtml += `</div>`;
-                    targetSpace.innerHTML = gridHtml;
+            // RENDERING ENGINE (REBUILT ACCORDING TO CONCEPT TYPES)
+            if (node.type === "array") {
+                // Generates an explicit strict CSS Grid Matrix representing a formal array
+                const grid = document.createElement('div');
+                grid.className = "array-grid";
+                grid.style.gridTemplateColumns = `repeat(${node.cols}, 1fr)`;
+                for (let i = 0; i < (node.rows * node.cols); i++) {
+                    grid.innerHTML += `<div class="group-item">${node.emoji}</div>`;
                 }
-            } 
-            else if (activeNode.type === "story-sum") {
-                targetSpace.innerHTML = `
-                    <div style="font-size: 20px; font-weight: bold; padding: 20px; color: var(--primary); text-align: center; line-height: 1.6;">
-                        ${activeNode.textBlock}
-                    </div>
-                `;
+                space.appendChild(grid);
+            } else if (node.type === "groups") {
+                // Generates individual themed objects (Racks, Chests, Branches) containing explicit sub-items
+                const wrapper = document.createElement('div');
+                wrapper.className = "groups-layout";
+                for (let g = 0; g < node.groups; g++) {
+                    const groupContainer = document.createElement('div');
+                    groupContainer.className = node.containerClass;
+                    for (let i = 0; i < node.items; i++) {
+                        groupContainer.innerHTML += `<div class="group-item">${node.emoji}</div>`;
+                    }
+                    wrapper.appendChild(groupContainer);
+                }
+                space.appendChild(wrapper);
             }
 
-            activeNode.options.forEach(choiceText => {
+            node.options.forEach(opt => {
                 const card = document.createElement('div');
                 card.className = "drag-card";
-                card.innerText = choiceText;
-                setupPointerDragEvents(card);
-                choicesZone.appendChild(card);
+                card.innerText = opt;
+                bindDrag(card);
+                bench.appendChild(card);
             });
         }
 
-        // Custom Cross-Platform pointer drag engine mapping
-        function setupPointerDragEvents(el) {
-            let startX = 0, startY = 0;
-            let currentX = 0, currentY = 0;
-            let clone = null;
-
-            el.addEventListener('pointerdown', onPointerDown);
-
-            function onPointerDown(e) {
-                if (interactionLock || el.parentElement.classList.contains('drop-zone')) return;
+        function bindDrag(el) {
+            let startX = 0, startY = 0, clone = null;
+            el.addEventListener('pointerdown', e => {
+                if (lock || el.parentElement.classList.contains('drop-zone')) return;
                 e.preventDefault();
                 el.setPointerCapture(e.pointerId);
 
-                const rect = el.getBoundingClientRect();
-                startX = e.clientX;
-                startY = e.clientY;
+                const r = el.getBoundingClientRect();
+                startX = e.clientX; startY = e.clientY;
 
-                // Create floating drag clone to bypass flex restrictions
                 clone = el.cloneNode(true);
                 clone.classList.add('dragging');
-                clone.style.width = `${rect.width}px`;
-                clone.style.height = `${rect.height}px`;
-                clone.style.left = `${rect.left}px`;
-                clone.style.top = `${rect.top}px`;
+                clone.style.width = `${r.width}px`; clone.style.height = `${r.height}px`;
+                clone.style.left = `${r.left}px`; clone.style.top = `${r.top}px`;
                 document.body.appendChild(clone);
-
                 el.style.visibility = 'hidden';
 
-                el.addEventListener('pointermove', onPointerMove);
-                el.addEventListener('pointerup', onPointerUp);
-            }
+                const move = ev => {
+                    if (!clone) return;
+                    clone.style.transform = `translate(${ev.clientX - startX}px, ${ev.clientY - startY}px) scale(1.05)`;
+                    const dz = document.getElementById('drop-zone').getBoundingClientRect();
+                    if (ev.clientX >= dz.left && ev.clientX <= dz.right && ev.clientY >= dz.top && ev.clientY <= dz.bottom) {
+                        document.getElementById('drop-zone').classList.add('hovered');
+                    } else {
+                        document.getElementById('drop-zone').classList.remove('hovered');
+                    }
+                };
 
-            function onPointerMove(e) {
-                if (!clone) return;
-                currentX = e.clientX - startX;
-                currentY = e.clientY - startY;
-                clone.style.transform = `translate(${currentX}px, ${currentY}px) scale(1.05)`;
+                const up = ev => {
+                    el.releasePointerCapture(e.pointerId);
+                    document.getElementById('drop-zone').classList.remove('hovered');
+                    const dz = document.getElementById('drop-zone').getBoundingClientRect();
+                    const inside = (ev.clientX >= dz.left && ev.clientX <= dz.right && ev.clientY >= dz.top && ev.clientY <= dz.bottom);
 
-                const dropZone = document.getElementById('drop-zone');
-                const dzRect = dropZone.getBoundingClientRect();
-                
-                // Real-time hover verification check
-                if (e.clientX >= dzRect.left && e.clientX <= dzRect.right &&
-                    e.clientY >= dzRect.top && e.clientY <= dzRect.bottom) {
-                    dropZone.classList.add('hovered');
-                } else {
-                    dropZone.classList.remove('hovered');
-                }
-            }
+                    el.removeEventListener('pointermove', move);
+                    el.removeEventListener('pointerup', up);
+                    document.body.removeChild(clone); clone = null;
 
-            function onPointerUp(e) {
-                if (!clone) return;
-                el.releasePointerCapture(e.pointerId);
-                
-                const dropZone = document.getElementById('drop-zone');
-                dropZone.classList.remove('hovered');
-                
-                const dzRect = dropZone.getBoundingClientRect();
-                const droppedInside = (
-                    e.clientX >= dzRect.left && e.clientX <= dzRect.right &&
-                    e.clientY >= dzRect.top && e.clientY <= dzRect.bottom
-                );
-
-                // Clean up drag events
-                el.removeEventListener('pointermove', onPointerMove);
-                el.removeEventListener('pointerup', onPointerUp);
-                document.body.removeChild(clone);
-                clone = null;
-
-                if (droppedInside && !interactionLock) {
-                    el.style.visibility = 'visible';
-                    evaluateTargetAnswer(el.innerText, el);
-                } else {
-                    el.style.visibility = 'visible';
-                }
-            }
+                    if (inside && !lock) {
+                        el.style.visibility = 'visible';
+                        checkAnswer(el.innerText, el);
+                    } else {
+                        el.style.visibility = 'visible';
+                    }
+                };
+                el.addEventListener('pointermove', move);
+                el.addEventListener('pointerup', up);
+            });
         }
 
-        function evaluateTargetAnswer(selectedString, originalCardElement) {
-            const activeNode = activeQuestionSuite[currentIndex];
-            const dropZone = document.getElementById('drop-zone');
-            
-            // Lock out original card item from further placement loops
-            let displayCard = originalCardElement.cloneNode(true);
-            dropZone.innerHTML = "";
-            dropZone.appendChild(displayCard);
-            originalCardElement.remove();
+        function checkAnswer(val, card) {
+            const node = activeSuite[currentIndex];
+            const dz = document.getElementById('drop-zone');
+            let copy = card.cloneNode(true);
+            dz.innerHTML = ""; dz.appendChild(copy);
+            card.remove();
 
-            let isUserCorrect = (selectedString === activeNode.answer);
-
-            if (isUserCorrect) {
-                interactionLock = true;
-                displayCard.classList.add('correct');
-                runningScore += (questionAttempts === 0) ? 2 : 1; 
-                document.getElementById('score-lbl').innerText = `Score: ${runningScore}`;
-                
-                playSoundEffect('correct');
-                confetti({ particleCount: 40, spread: 60, origin: { y: 0.85 } });
-
-                setTimeout(advanceGameSequence, 2000);
+            if (val === node.answer) {
+                lock = true;
+                copy.classList.add('correct');
+                score += (attempts === 0) ? 2 : 1;
+                confetti({ particleCount: 30, spread: 50, origin: { y: 0.8 } });
+                setTimeout(() => { currentIndex++; loadQuestion(); }, 1500);
             } else {
-                questionAttempts++;
-                playSoundEffect('wrong');
-                displayCard.classList.add('wrong');
-
-                if (questionAttempts === 1) {
-                    const hintDisplay = document.getElementById('hint-display');
-                    hintDisplay.innerText = `💡 Hint: ${activeNode.hint}`;
-                    hintDisplay.style.display = 'block';
-                    
-                    // Return card back down to options bench automatically on first failure
+                attempts++;
+                copy.classList.add('wrong');
+                if (attempts === 1) {
+                    const h = document.getElementById('hint-display');
+                    h.innerText = `💡 Hint: ${node.hint}`; h.style.display = 'block';
                     setTimeout(() => {
-                        if (currentIndex < activeQuestionSuite.length) {
-                            dropZone.innerHTML = "📥 Drag & Drop Answer Here";
-                            displayCard.classList.remove('wrong');
-                            setupPointerDragEvents(displayCard);
-                            document.getElementById('options-zone').appendChild(displayCard);
-                        }
+                        dz.innerHTML = "📥 Drag & Drop Answer Here";
+                        copy.classList.remove('wrong');
+                        bindDrag(copy);
+                        document.getElementById('options-zone').appendChild(copy);
                     }, 1200);
-                } else if (questionAttempts >= 2) {
-                    interactionLock = true;
-                    // Reveal the right card inside mat area on failure threshold limit
-                    dropZone.innerHTML = `<div class="drag-card correct">${activeNode.answer}</div>`;
-                    setTimeout(advanceGameSequence, 2500);
+                } else {
+                    lock = true;
+                    dz.innerHTML = `<div class="drag-card correct">${node.answer}</div>`;
+                    setTimeout(() => { currentIndex++; loadQuestion(); }, 2000);
                 }
             }
         }
 
-        function advanceGameSequence() {
-            const currentLevel = activeQuestionSuite[currentIndex].level;
-            const nextIndex = currentIndex + 1;
-            
-            if (nextIndex < activeQuestionSuite.length && activeQuestionSuite[nextIndex].level > currentLevel) {
-                const slide = document.getElementById('progression-slide');
-                const slideText = document.getElementById('slide-level-text');
-                
-                slideText.innerText = `Entering Level ${activeQuestionSuite[nextIndex].level}! 🚀`;
-                slide.classList.add('active');
-                
-                let end = Date.now() + 1500;
-                (function frame() {
-                    confetti({ particleCount: 2, angle: 60, spread: 55, origin: { x: 0 } });
-                    confetti({ particleCount: 2, angle: 120, spread: 55, origin: { x: 1 } });
-                    if (Date.now() < end) { requestAnimationFrame(frame); }
-                }());
-
-                setTimeout(() => {
-                    slide.classList.remove('active');
-                    currentIndex++;
-                    loadIslandLevel();
-                }, 2200);
-            } else {
-                currentIndex++;
-                loadIslandLevel();
-            }
-        }
-
-        function renderAppreciationSummary() {
+        function showResults() {
             document.getElementById('main-game').style.display = 'none';
-            const screen = document.getElementById('appreciation-screen');
-            const heading = document.getElementById('appreciation-heading');
-            const emoji = document.getElementById('appreciation-emoji');
-            const scoreText = document.getElementById('final-score-txt');
-            const description = document.getElementById('appreciation-desc');
-
-            const maxPossibleScore = activeQuestionSuite.length * 2;
-            scoreText.innerText = `Final Score Points: ${runningScore} / ${maxPossibleScore}`;
-            screen.classList.add('active');
-
-            if (runningScore >= maxPossibleScore * 0.85) {
-                emoji.innerText = "👑";
-                heading.innerText = "Flawless Victory!";
-                description.innerText = "Incredible performance! You answered with precision and fully mastered all the learning outcomes for Chapter 9!";
-                confetti({ particleCount: 180, spread: 100, origin: { y: 0.4 } });
-            } else if (runningScore >= maxPossibleScore * 0.6) {
-                emoji.innerText = "🏆";
-                heading.innerText = "Spectacular Job!";
-                description.innerText = "Great job! You showed awesome mathematical proficiency converting repeated items to multiplication blocks.";
-                confetti({ particleCount: 100, spread: 60, origin: { y: 0.5 } });
-            } else {
-                emoji.innerText = "🏅";
-                heading.innerText = "Keep It Up!";
-                description.innerText = "Good effort, Explorer! Try another journey round to maximize your multiplication knowledge loop speeds.";
-            }
+            document.getElementById('final-score-txt').innerText = `Total Points: ${score}`;
+            document.getElementById('appreciation-screen').classList.add('active');
         }
 
         document.getElementById('btn-restart-game').addEventListener('pointerdown', () => {
-            currentIndex = 0;
-            runningScore = 0;
+            currentIndex = 0; score = 0;
             document.getElementById('appreciation-screen').classList.remove('active');
             document.getElementById('main-game').style.display = 'block';
-            assembleRandomizedWorkflow();
-            loadIslandLevel();
+            activeSuite = [...rawPuzzleBank].sort(() => Math.random() - 0.5);
+            loadQuestion();
         });
     </script>
 </body>
