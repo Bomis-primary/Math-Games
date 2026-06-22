@@ -225,9 +225,12 @@
  
        .dropped-currency-token { 
             animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; 
-            display: inline-block; 
+            display: inline-flex; 
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
             position: relative;
+            margin: 5px;
         }
         @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(0.95); } }
        .big-piggy-target { font-size: 5.5rem; position: relative; transition: transform 0.15s; }
@@ -273,7 +276,6 @@
     <audio id="audio-correct" src="assets/correct.mp3" preload="auto"></audio>
     <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
  
-    <!-- Innovine Logo Screen -->
     <div id="screen-splash">
         <div class="splash-inner">
             <img class="splash-logo" src="assets/logo.png" alt="Innovine Logo" onerror="this.style.display='none'; document.getElementById('splash-icon-fallback').style.display='block';">
@@ -284,7 +286,6 @@
  
     <div class="game-container">
         
-        <!-- Interactive Mode Instructions Page -->
         <div class="screen-layer" id="screen-intro">
             <div class="hero-banner">🪙🐷🛍️</div>
             <h1 style="margin-bottom: 10px; font-size: 2.3rem; color: var(--text-dark);">Indian Money Game</h1>
@@ -301,7 +302,6 @@
             <button class="cta-btn" onclick="switchActiveLayer('screen-play')">Start Challenge! 🚀</button>
         </div>
  
-        <!-- Level Up Interstitial -->
         <div class="screen-layer" id="screen-transition">
             <div class="hero-banner" id="trans-banner-icon">🎉👏🌟</div>
             <h1 id="trans-headline-title" style="margin-bottom: 12px; font-size: 2.3rem; color: #2e7d32;">Level Completed!</h1>
@@ -311,7 +311,6 @@
             <button class="cta-btn" id="trans-continue-btn" onclick="switchActiveLayer('screen-play')">Let's Play! ➡️</button>
         </div>
  
-        <!-- Main Workspace Layer Screen -->
         <div class="screen-layer" id="screen-play">
             <div class="hud-row">
                <div>⭐ Score: <span id="label-score-val">0</span></div>
@@ -347,7 +346,6 @@
                        <div class="price-tag" id="shelf-toy-price">Target: ₹0</div>
                    </div>
  
-                   <!-- Drop Zone Mat Area -->
                    <div class="drop-counter-zone" id="checkout-mat-target" ondragover="allowDrop(event)" ondrop="handleDropEvent(event)">
                        <div class="drop-label" id="mat-placeholder-hint">🛒 Drag or Tap currency elements into this mat!</div>
                        <div class="live-math-feed" id="mat-running-total" style="display: none;">Counter Total: ₹0</div>
@@ -356,7 +354,6 @@
                    <div class="quiz-options-matrix" id="l2-quiz-row" style="display: none;"></div>
                </div>
  
-               <!-- Source Wallet Vault Block -->
                <div class="wallet-rack" id="source-wallet-rack">
                    <div class="wallet-title" id="wallet-header-title">🎒 Infinite Wallet Pocket</div>
                    <div class="inventory-hint" id="wallet-sub-hint">Unlimited coins & notes</div>
@@ -401,7 +398,6 @@
             <div class="banner-msg" id="counter-status-feedback"></div>
         </div>
  
-        <!-- End Score Reporting Screen Container -->
         <div class="screen-layer" id="screen-end">
             <div class="hero-banner">👑🏆🥇</div>
             <h1 style="color: #2e7d32; font-size: 2.4rem; margin-bottom: 12px;">Grand Champion!</h1>
@@ -482,18 +478,25 @@
             }
         }
  
-        window.addEventListener('DOMContentLoaded', () => {
-           setTimeout(() => {
+        /* --- TIMING BUG FIX FROM YOUR NOTES --- */
+        function startSplashTimer() {
+            setTimeout(() => {
                 const splashNode = document.getElementById('screen-splash');
                 if (splashNode) {
-                   splashNode.style.opacity = 0;
-                   setTimeout(() => {
-                       splashNode.style.display = 'none';
-                       switchActiveLayer('screen-intro');
+                    splashNode.style.opacity = 0;
+                    setTimeout(() => {
+                        splashNode.style.display = 'none';
+                        switchActiveLayer('screen-intro');
                     }, 500);
                 }
-            }, 2000); // Shortened loader wait time so you don't have to wait 5 seconds while troubleshooting
-        });
+            }, 2000);
+        }
+
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', startSplashTimer);
+        } else {
+            startSplashTimer();
+        }
  
         function switchActiveLayer(screenId) {
            document.querySelectorAll('.screen-layer').forEach(layer => layer.classList.remove('active'));
@@ -622,6 +625,7 @@
             insertCurrencyTokenToMat(value);
         }
  
+        /* --- FIXED: MATCHES WALLET IMAGES INSTEAD OF GENERIC DOLLAR/COIN EMOJIS --- */
         function insertCurrencyTokenToMat(value) {
             const config = masterSimulationPool[activeTurnIndex];
             
@@ -648,7 +652,19 @@
  
             const token = document.createElement('div');
             token.className = 'dropped-currency-token';
-            token.innerHTML = `<span style="font-size:2.2rem; margin:5px; display:inline-block;">${value >= 10 ? '💵' : '🪙'}</span>`;
+            
+            // Map the injected token's graphic to mirror its identical sidebar source counterpart asset
+            let assetSource = "";
+            let assetClass = "";
+            if (value === 1) { assetSource = "assets/coin1.png"; assetClass = "currency-asset-img"; }
+            else if (value === 2) { assetSource = "assets/coin2.png"; assetClass = "currency-asset-img"; }
+            else if (value === 5) { assetSource = "assets/coin5.png"; assetClass = "currency-asset-img"; }
+            else if (value === 10) { assetSource = "assets/note10.png"; assetClass = "note-asset-img"; }
+            else if (value === 20) { assetSource = "assets/note20.png"; assetClass = "note-asset-img"; }
+            else if (value === 50) { assetSource = "assets/note50.png"; assetClass = "note-asset-img"; }
+
+            let visualShape = (value >= 10) ? 'rect' : 'circle';
+            token.innerHTML = `<img src="${assetSource}" class="${assetClass}" alt="₹${value}" onerror="this.style.display='none'; let fallback = document.createElement('div'); fallback.className='currency-fallback-${visualShape}'; fallback.innerText='₹${value}'; this.parentNode.appendChild(fallback);">`;
             
             token.onclick = function() {
                 if (config.mode === 3) {
@@ -704,7 +720,18 @@
             config.tokens.forEach(val => {
                 const token = document.createElement('div');
                 token.className = 'dropped-currency-token';
-                token.innerHTML = `<span style="font-size:2.5rem; margin:5px;">${val >= 10 ? '💵' : '🪙'}</span>`;
+                
+                let assetSource = "";
+                let assetClass = "";
+                if (val === 1) { assetSource = "assets/coin1.png"; assetClass = "currency-asset-img"; }
+                else if (val === 2) { assetSource = "assets/coin2.png"; assetClass = "currency-asset-img"; }
+                else if (val === 5) { assetSource = "assets/coin5.png"; assetClass = "currency-asset-img"; }
+                else if (val === 10) { assetSource = "assets/note10.png"; assetClass = "note-asset-img"; }
+                else if (val === 20) { assetSource = "assets/note20.png"; assetClass = "note-asset-img"; }
+                else if (val === 50) { assetSource = "assets/note50.png"; assetClass = "note-asset-img"; }
+
+                let visualShape = (val >= 10) ? 'rect' : 'circle';
+                token.innerHTML = `<img src="${assetSource}" class="${assetClass}" alt="₹${val}" onerror="this.style.display='none'; let fallback = document.createElement('div'); fallback.className='currency-fallback-${visualShape}'; fallback.innerText='₹${val}'; this.parentNode.appendChild(fallback);">`;
                 mat.appendChild(token);
             });
            document.getElementById('mat-placeholder-hint').style.display = "none";
