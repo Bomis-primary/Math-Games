@@ -198,13 +198,18 @@
         .money-tool-item.disabled { opacity: 0.3; cursor: not-allowed; pointer-events: none; background: #eeeeee; border-color: #bdbdbd; box-shadow: none; }
         .count-badge { background: #e65100; color: white; border-radius: 8px; padding: 1px 8px; font-size: 0.85rem; }
  
+        /* DRAG AND DROP CRITICAL FIX: Prevent images and text badges inside cards from stealing drag focus */
+        .money-tool-item * {
+            pointer-events: none;
+        }
+ 
         /* --- VISUAL CURRENCY PRODUCTION IMAGE ASSETS --- */
         .currency-img-coin {
-            width: 72px; height: 72px; object-fit: contain; pointer-events: none;
+            width: 72px; height: 72px; object-fit: contain;
             filter: drop-shadow(0px 3px 2px rgba(0,0,0,0.15));
         }
         .currency-img-note {
-            width: 135px; height: 68px; object-fit: fill; pointer-events: none;
+            width: 135px; height: 68px; object-fit: fill;
             filter: drop-shadow(0px 3px 3px rgba(0,0,0,0.2));
         }
  
@@ -260,17 +265,18 @@
 </head>
 <body>
  
+    <!-- LOGO ONLY SPLASH SCREEN (SUBHEADINGS REMOVED) -->
     <div id="screen-splash">
         <div class="splash-inner">
-            <img src="assets/logo.png" alt="Innovine Logo" class="splash-logo" onerror="this.style.display='none'">
-            <h1 style="color: #1b5e20; margin-bottom: 5px; font-size: 2.1rem; letter-spacing: 2px;">INNOVINE</h1>
+            <img src="assets/logo.png" alt="Logo" class="splash-logo" onerror="this.style.display='none'">
             <div class="splash-loader"><div class="splash-bar"></div></div>
-            <p style="margin-top: 15px; font-size: 0.9rem; color: #666; letter-spacing: 1px;">LOADING CHANNELS...</p>
         </div>
     </div>
  
+    <!-- MAIN APPLICATION FRAME -->
     <div class="game-container" id="main-game-wrapper">
         
+        <!-- Interactive Instruction Layer -->
         <div class="screen-layer" id="screen-intro">
             <div class="hero-banner">🪙🐷🛍️</div>
             <h1 style="margin-bottom: 12px; font-size: 2.4rem; color: var(--text-dark);">Indian Money Game</h1>
@@ -287,6 +293,7 @@
             <button class="cta-btn" onclick="switchActiveLayer('screen-play')">Start Challenge! 🚀</button>
         </div>
  
+        <!-- Milestone Transition Screen -->
         <div class="screen-layer" id="screen-transition">
             <div class="hero-banner" id="trans-banner-icon">🎉👏🌟</div>
             <h1 id="trans-headline-title" style="margin-bottom: 12px; font-size: 2.3rem; color: #2e7d32;">Level Completed!</h1>
@@ -296,6 +303,7 @@
             <button class="cta-btn" id="trans-continue-btn" onclick="switchActiveLayer('screen-play')">Let's Play! ➡️</button>
         </div>
  
+        <!-- Main Gameplay Arena -->
         <div class="screen-layer" id="screen-play">
             <div class="hud-row">
                 <div>⭐ Score: <span id="label-score-val">0</span></div>
@@ -306,8 +314,10 @@
  
             <div class="workspace-grid" id="main-workspace-grid-layout">
                 
+                <!-- Left Play Workspace Area -->
                 <div class="counter-shelf" id="left-workspace-panel">
                     
+                   <!-- Level 3 Interactive Shelf -->
                    <div class="level3-carousel-shelf" id="l3-item-shelf" style="display: none;">
                        <div class="carousel-item-card" id="l3-card-teddy" data-item="teddy" data-price="45" onclick="selectLevel3Product(this)">
                            <div style="font-size: 2.2rem;">🧸</div>
@@ -326,19 +336,23 @@
                        </div>
                    </div>
  
+                   <!-- Objective Card Info Panel -->
                    <div class="target-display-card" id="main-target-card">
                        <div class="toy-avatar" id="shelf-toy-icon">🐖</div>
                        <div class="price-tag" id="shelf-toy-price">Target: ₹5</div>
                    </div>
  
+                   <!-- Verification / Output Display Area Matrix -->
                    <div class="drop-counter-zone" id="checkout-mat-target" ondragover="allowDrop(event)" ondrop="handleDropEvent(event)">
                        <div class="drop-label" id="mat-placeholder-hint">🛒 Drag currency elements onto this mat!</div>
                        <div class="live-math-feed" id="mat-running-total" style="display: none;">Counter Total: ₹0</div>
                    </div>
  
+                   <!-- Level 2 Multiple Choice Options Container Row -->
                    <div class="quiz-options-matrix" id="l2-quiz-row" style="display: none;"></div>
                </div>
  
+               <!-- Right Dynamic Sourced Wallet Vault Container Block -->
                <div class="wallet-rack" id="source-wallet-rack">
                    <div class="wallet-title" id="wallet-header-title">🎒 Infinite Wallet Pocket</div>
                    <div class="inventory-hint" id="wallet-sub-hint">Unlimited coins & notes</div>
@@ -376,6 +390,7 @@
  
             </div>
  
+            <!-- Primary Operations Navigation -->
             <div class="action-row" id="core-action-footer">
                <button class="cta-btn btn-success" id="btn-verify-trigger" onclick="evaluateSimulatorBasket()">Verify Money 💸</button>
                <button class="cta-btn btn-danger" id="btn-clear-trigger" onclick="clearCheckoutMat()">Clear Matrix 🔄</button>
@@ -383,6 +398,7 @@
             <div class="banner-msg" id="counter-status-feedback"></div>
         </div>
  
+        <!-- Score Report Frame Layer Container -->
         <div class="screen-layer" id="screen-end">
             <div class="hero-banner">👑🏆🥇</div>
             <h1 style="color: #2e7d32; font-size: 2.5rem; margin-bottom: 12px;">Grand Champion!</h1>
@@ -406,8 +422,6 @@
         let currentBasketItems = []; 
  
         let level3PurchasedRegistry = { teddy: false, car: false, book: false };
-        
-        // Balanced pool distribution ensuring Level 3 can be fully cleared with exact changes
         let walletInventoryStock = { v1: 5, v2: 4, v5: 4, v10: 4, v20: 3, v50: 1 };
  
         const masterSimulationPool = [
@@ -442,7 +456,6 @@
             }, intervalTime);
             setTimeout(() => clearInterval(timerId), spawnDuration);
             
-            // Play Audio Fallback Safely
             let audio = new Audio('assets/claps.mp3');
             audio.volume = 0.4;
             audio.play().catch(() => {});
@@ -454,6 +467,17 @@
             audio.play().catch(() => {});
         }
  
+        /* FIXED SPLASH SCREEN EXECUTION FLOW USING EXPLICIT SAFE TIMER INTERACTION REPLACEMENT VIA image_8db7e2.png MECHANISM */
+        function startSplashTimer() {
+            setTimeout(forceBypassSplashScreen, 2300);
+        }
+
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', startSplashTimer);
+        } else {
+            startSplashTimer();
+        }
+ 
         function forceBypassSplashScreen() {
             const splashElement = document.getElementById('screen-splash');
             if (splashElement) splashElement.style.display = 'none';
@@ -461,7 +485,6 @@
             if (mainContainer) mainContainer.style.display = 'flex';
             switchActiveLayer('screen-intro');
         }
-        setTimeout(forceBypassSplashScreen, 2300);
  
         function switchActiveLayer(screenId) {
             document.querySelectorAll('.screen-layer').forEach(layer => layer.classList.remove('active'));
@@ -568,18 +591,16 @@
                 setupWalletInterface(false);
             } 
             else if (currentConfig.mode === 2) {
-                // Remove right wallet column cleanly for Level 2 mobile friendliness
                 workspaceGrid.classList.add('full-width');
                 walletRack.style.setProperty('display', 'none', 'important');
                 
                 document.getElementById('l3-item-shelf').style.display = "none";
-                document.getElementById('main-target-card').style.display = "none"; // Hide standard icon view
+                document.getElementById('main-target-card').style.display = "none";
                 document.getElementById('checkout-mat-target').style.display = "flex";
                 document.getElementById('l2-quiz-row').style.display = "grid";
                 document.getElementById('core-action-footer').style.display = "none";
                 document.getElementById('mat-placeholder-hint').style.display = "none";
                 
-                // Populate high contrast scalable display assets inside the main central box
                 currentConfig.tokens.forEach(val => {
                     let tokenDiv = document.createElement('div');
                     tokenDiv.className = "dropped-currency-token";
@@ -670,10 +691,7 @@
  
         function selectLevel3Product(element) {
             if (element.classList.contains('bought')) return;
-            
-            // Clear checkout mat immediately if user changes mind mid-choice to refund current unverified coins
             clearCheckoutMat();
- 
             document.querySelectorAll('.carousel-item-card').forEach(c => c.classList.remove('selected'));
             element.classList.add('selected');
             let price = parseInt(element.getAttribute('data-price'));
@@ -722,7 +740,6 @@
             tokenDiv.className = "dropped-currency-token";
             tokenDiv.innerHTML = getCurrencyAssetMarkup(value);
             
-            // Interactive Refund Trigger on item click inside mat box
             tokenDiv.onclick = () => {
                 tokenDiv.remove();
                 runningBasketTotal -= value;
