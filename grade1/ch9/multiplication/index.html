@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Multiplication Level 1 - Matrix Match</title>
+    <title>Multiplication Level 1 - Dynamic Matrix</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
@@ -12,6 +12,7 @@
             --secondary: #ff7043;
             --text-main: #2c3e50;
             --success: #2e7d32;
+            --bg-canvas: #f8fafc;
         }
 
         * {
@@ -36,10 +37,11 @@
             border-radius: 28px;
             padding: 24px;
             width: 100%;
-            max-width: 600px;
+            max-width: 650px;
             box-shadow: 0 15px 35px rgba(0,0,0,0.1);
             border: 4px solid #fff;
             text-align: center;
+            position: relative;
         }
 
         .header-meta {
@@ -58,6 +60,16 @@
             font-weight: bold;
         }
 
+        .score-badge {
+            background: #fff;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 4px 14px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
         h1 {
             color: var(--text-main);
             font-size: 24px;
@@ -67,14 +79,35 @@
         .instruction {
             color: #64748b;
             font-size: 14px;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
             font-weight: bold;
         }
 
-        /* --- THE SPLIT BOARD GRID --- */
+        .stage-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, #6c5ce7, #4834d4);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            color: white;
+            padding: 25px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        .stage-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
         .matching-board {
             display: grid;
-            grid-template-columns: 1fr 1.2fr;
+            grid-template-columns: 1fr 1.3fr;
             gap: 20px;
             margin-bottom: 20px;
         }
@@ -85,31 +118,28 @@
             gap: 15px;
         }
 
-        /* --- CARD STYLING --- */
         .match-card {
             background: #f1f5f9;
             border: 2px solid #cbd5e1;
             border-radius: 20px;
             padding: 15px;
-            min-height: 100px;
+            min-height: 110px;
             display: flex;
             justify-content: center;
             align-items: center;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
         }
 
-        /* Mathematical Expressions Layout */
         .column-left .match-card {
             background: #e0e7ff;
             border-color: #c7d2fe;
             color: var(--primary-dark);
             font-size: 24px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
         }
 
-        /* Selection States */
         .match-card.selected {
             border-color: var(--primary);
             background: #eeebff;
@@ -117,7 +147,6 @@
             box-shadow: 0 8px 15px rgba(108, 92, 231, 0.15);
         }
 
-        /* Perfect Match Connection State */
         .match-card.matched {
             background: #e2f0d9 !important;
             border-color: #a9d08e !important;
@@ -128,7 +157,6 @@
             transform: scale(1);
         }
 
-        /* --- VISUAL MECHANICAL RENDERS --- */
         .visual-array {
             display: grid;
             gap: 5px;
@@ -145,20 +173,16 @@
             justify-content: center;
         }
 
-        .theme-basket {
-            background: #fff;
-            border: 2px dashed #ff7043;
-            padding: 6px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .theme-basket { background: #fff; border: 2px dashed #ff7043; padding: 6px; border-radius: 12px; }
+        .theme-branch { background: linear-gradient(90deg, #8b5a2b, #a0522d); padding: 6px 12px; border-radius: 14px; }
+        .theme-chest { background: #b45309; border: 3px solid #78350f; border-radius: 12px; padding: 6px; }
+        .theme-rack { border: 3px solid #64748b; background: #f8fafc; border-radius: 10px; padding: 6px; }
 
         .repeated-addition-text {
             font-size: 20px;
             color: #ff7043;
             letter-spacing: 1px;
+            font-weight: 800;
         }
 
         .item-emoji {
@@ -185,155 +209,220 @@
 <body>
 
     <div class="game-container">
+        <div id="end-overlay" class="stage-overlay">
+            <div style="font-size: 65px; margin-bottom: 10px;">👑</div>
+            <h2>Chapter 1 Mastered!</h2>
+            <p id="final-score-txt" style="font-size: 18px; margin-bottom: 25px;">You cleared all 4 screens with entirely unique equations!</p>
+            <button class="action-btn" id="restart-btn" style="display:block; background:white; color:var(--primary);" onclick="restartGame()">Play Again 🔄</button>
+        </div>
+
         <div class="header-meta">
-            <div class="level-badge">Level 1 Concept Exploration</div>
+            <div class="level-badge" id="round-badge">Screen 1 / 4</div>
+            <div class="score-badge" id="score-badge">Score: 0</div>
         </div>
 
         <h1>Multiplication Concept Connector</h1>
-        <div class="instruction">Connect each multiplication expression to its true graphical model!</div>
+        <div class="instruction">Connect each multiplication expression to its true graphical layout!</div>
 
         <div class="matching-board">
             <div class="column column-left" id="left-col"></div>
             <div class="column column-right" id="right-col"></div>
         </div>
 
-        <button class="action-btn" id="complete-btn" onclick="celebrateFinish()">Finish Chapter Loop 🎉</button>
+        <button class="action-btn" id="next-round-btn" onclick="advanceRound()">Next Screen 🚀</button>
     </div>
 
     <script>
-        // STRICT LEVEL 1 SETUP: 3 different expressions mapping directly to the distinct concepts
-        const level1Data = [
-            { id: "pair1", expression: "4 × 5", type: "array", rows: 4, cols: 5, emoji: "⭐" },
-            { id: "pair2", expression: "3 × 2", type: "repeated-addition", text: "2 + 2 + 2" },
-            { id: "pair3", expression: "2 × 4", type: "groups", groups: 2, items: 4, emoji: "🐟" }
-        ];
-
+        const emojis = ["⭐", "🍎", "🦋", "🪙", "🚲", "💎", "🐟", "🎈", "🍪", "🐞"];
+        const themes = ["theme-basket", "theme-branch", "theme-chest", "theme-rack"];
+        
+        let currentScreenIdx = 0;
+        let runningScore = 0;
         let selectedLeftNode = null;
         let selectedRightNode = null;
-        let totalMatchesCleared = 0;
+        let matchesClearedOnScreen = 0;
+        
+        // Dynamic Global Tracking Sets to prevent duplicates completely
+        let usedEquations = new Set(); 
 
-        function buildLevel1Matrix() {
-            totalMatchesCleared = 0;
+        function generateUniquePairs() {
+            const concepts = ["array", "repeated-addition", "groups"];
+            let screenPairs = [];
+
+            concepts.forEach((type) => {
+                let valid = false;
+                let factor1, factor2, eqKey;
+
+                // Loop generation pool until a completely unique math puzzle combination is hit
+                while (!valid) {
+                    factor1 = Math.floor(Math.random() * 4) + 2; // 2 to 5
+                    factor2 = Math.floor(Math.random() * 4) + 2; // 2 to 5
+                    eqKey = `${factor1}x${factor2}`;
+
+                    if (!usedEquations.has(eqKey)) {
+                        usedEquations.add(eqKey);
+                        valid = true;
+                    }
+                }
+
+                let pairObj = {
+                    id: Math.random().toString(36).substr(2, 9),
+                    expression: `${factor1} × ${factor2}`,
+                    type: type,
+                    emoji: emojis[Math.floor(Math.random() * emojis.length)],
+                    theme: themes[Math.floor(Math.random() * themes.length)]
+                };
+
+                if (type === "array") {
+                    pairObj.rows = factor1;
+                    pairObj.cols = factor2;
+                } else if (type === "groups") {
+                    pairObj.groups = factor1;
+                    pairObj.items = factor2;
+                } else if (type === "repeated-addition") {
+                    pairObj.text = Array(factor1).fill(factor2).join(" + ");
+                }
+
+                screenPairs.push(pairObj);
+            });
+
+            return screenPairs;
+        }
+
+        function loadScreenMatrix() {
+            matchesClearedOnScreen = 0;
             selectedLeftNode = null;
             selectedRightNode = null;
+            document.getElementById('next-round-btn').style.display = 'none';
+            document.getElementById('round-badge').innerText = `Screen ${currentScreenIdx + 1} / 4`;
+            document.getElementById('score-badge').innerText = `Score: ${runningScore}`;
 
-            // Generate structural deep copies to shuffle left expressions independently from right layouts
-            let leftCards = level1Data.map((d, index) => ({ id: d.id, val: d.expression, link: index }));
-            let rightCards = level1Data.map((d, index) => ({ id: d.id, raw: d, link: index }));
+            // Generate procedurally fresh non-repeating configurations
+            const currentPairs = generateUniquePairs();
 
-            // High entropy random shuffle
-            leftCards.sort(() => Math.random() - 0.5);
-            rightCards.sort(() => Math.random() - 0.5);
+            let leftSideData = currentPairs.map((p, index) => ({ id: p.id, val: p.expression, link: index }));
+            let rightSideData = currentPairs.map((p, index) => ({ id: p.id, raw: p, link: index }));
 
-            const leftColElement = document.getElementById('left-col');
-            const rightColElement = document.getElementById('right-col');
-            leftColElement.innerHTML = '';
-            rightColElement.innerHTML = '';
+            leftSideData.sort(() => Math.random() - 0.5);
+            rightSideData.sort(() => Math.random() - 0.5);
 
-            // 1. Render Left Blocks (Expressions)
-            leftCards.forEach(item => {
+            const leftCol = document.getElementById('left-col');
+            const rightCol = document.getElementById('right-col');
+            leftCol.innerHTML = '';
+            rightCol.innerHTML = '';
+
+            leftSideData.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'match-card';
                 card.innerText = item.val;
                 card.dataset.link = item.link;
-                card.onclick = () => triggerLeftSelection(card);
-                leftColElement.appendChild(card);
+                card.onclick = () => selectLeft(card);
+                leftCol.appendChild(card);
             });
 
-            // 2. Render Right Blocks (Dynamic Visual Layouts)
-            rightCards.forEach(item => {
+            rightSideData.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'match-card';
                 card.dataset.link = item.link;
-                card.onclick = () => triggerRightSelection(card);
+                card.onclick = () => selectRight(card);
 
                 if (item.raw.type === "array") {
-                    // Strict Grid Matrix Render
-                    const arrayBox = document.createElement('div');
-                    arrayBox.className = 'visual-array';
-                    arrayBox.style.gridTemplateColumns = `repeat(${item.raw.cols}, 1fr)`;
+                    const box = document.createElement('div');
+                    box.className = 'visual-array';
+                    box.style.gridTemplateColumns = `repeat(${item.raw.cols}, 1fr)`;
                     for (let i = 0; i < (item.raw.rows * item.raw.cols); i++) {
-                        arrayBox.innerHTML += `<span class="item-emoji">${item.raw.emoji}</span>`;
+                        box.innerHTML += `<span class="item-emoji">${item.raw.emoji}</span>`;
                     }
-                    card.appendChild(arrayBox);
+                    card.appendChild(box);
                 } 
                 else if (item.raw.type === "groups") {
-                    // Individual Grouping Baskets Render
-                    const groupsBox = document.createElement('div');
-                    groupsBox.className = 'visual-groups';
+                    const wrap = document.createElement('div');
+                    wrap.className = 'visual-groups';
                     for (let g = 0; g < item.raw.groups; g++) {
-                        const basket = document.createElement('div');
-                        basket.className = 'theme-basket';
+                        const container = document.createElement('div');
+                        container.className = item.raw.theme;
                         for (let i = 0; i < item.raw.items; i++) {
-                            basket.innerHTML += `<span class="item-emoji">${item.raw.emoji}</span>`;
+                            container.innerHTML += `<span class="item-emoji">${item.raw.emoji}</span>`;
                         }
-                        groupsBox.appendChild(basket);
+                        wrap.appendChild(container);
                     }
-                    card.appendChild(groupsBox);
+                    card.appendChild(wrap);
                 } 
                 else if (item.raw.type === "repeated-addition") {
-                    // Pure Repeated Addition Expression Render
-                    const textContainer = document.createElement('div');
-                    textContainer.className = 'repeated-addition-text';
-                    textContainer.innerText = item.raw.text;
-                    card.appendChild(textContainer);
+                    const textNode = document.createElement('div');
+                    textNode.className = 'repeated-addition-text';
+                    textNode.innerText = item.raw.text;
+                    card.appendChild(textNode);
                 }
 
-                rightColElement.appendChild(card);
+                rightCol.appendChild(card);
             });
         }
 
-        function triggerLeftSelection(card) {
+        function selectLeft(card) {
             if (card.classList.contains('matched')) return;
             document.querySelectorAll('#left-col .match-card').forEach(c => c.classList.remove('selected'));
             selectedLeftNode = card;
             card.classList.add('selected');
-            verifyConnection();
+            evaluatePairing();
         }
 
-        function triggerRightSelection(card) {
+        function selectRight(card) {
             if (card.classList.contains('matched')) return;
             document.querySelectorAll('#right-col .match-card').forEach(c => c.classList.remove('selected'));
             selectedRightNode = card;
             card.classList.add('selected');
-            verifyConnection();
+            evaluatePairing();
         }
 
-        function verifyConnection() {
+        function evaluatePairing() {
             if (!selectedLeftNode || !selectedRightNode) return;
 
             if (selectedLeftNode.dataset.link === selectedRightNode.dataset.link) {
-                // SUCCESS MATCH MATCH
                 selectedLeftNode.classList.replace('selected', 'matched');
                 selectedRightNode.classList.replace('selected', 'matched');
-                totalMatchesCleared++;
+                runningScore += 10;
+                document.getElementById('score-badge').innerText = `Score: ${runningScore}`;
+                matchesClearedOnScreen++;
 
                 selectedLeftNode = null;
                 selectedRightNode = null;
 
-                if (totalMatchesCleared === level1Data.length) {
-                    confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 } });
-                    document.getElementById('complete-btn').style.display = 'block';
+                if (matchesClearedOnScreen === 3) {
+                    confetti({ particleCount: 40, spread: 60 });
+                    document.getElementById('next-round-btn').style.display = 'block';
                 }
             } else {
-                // FAILURE MISMATCH - Reset selected nodes with a subtle delay
-                const leftNodeToReset = selectedLeftNode;
-                const rightNodeToReset = selectedRightNode;
+                const l = selectedLeftNode;
+                const r = selectedRightNode;
                 setTimeout(() => {
-                    leftNodeToReset.classList.remove('selected');
-                    rightNodeToReset.classList.remove('selected');
+                    l.classList.remove('selected');
+                    r.classList.remove('selected');
                 }, 300);
                 selectedLeftNode = null;
                 selectedRightNode = null;
             }
         }
 
-        function celebrateFinish() {
-            confetti({ particleCount: 150, spread: 100 });
-            alert("Chapter 1 Competency Matrix Verified!");
+        function advanceRound() {
+            if (currentScreenIdx + 1 < 4) {
+                currentScreenIdx++;
+                loadScreenMatrix();
+            } else {
+                document.getElementById('final-score-txt').innerText = `Awesome job! You cleared all 4 screens with completely unique equation signatures. Final Score: ${runningScore}`;
+                document.getElementById('end-overlay').classList.add('active');
+            }
         }
 
-        window.onload = buildLevel1Matrix;
+        function restartGame() {
+            currentScreenIdx = 0;
+            runningScore = 0;
+            usedEquations.clear();
+            document.getElementById('end-overlay').classList.remove('active');
+            loadScreenMatrix();
+        }
+
+        window.onload = loadScreenMatrix;
     </script>
 </body>
 </html>
