@@ -7,714 +7,279 @@
     <style>
         :root {
             --soil-brown: #5c4033;
-            --garden-green: #4caf50;
-            --garden-dark: #2e7d32;
-            --carrot-orange: #ff9800;
-            --tomato-red: #f44336;
-            --sunflower-yellow: #ffeb3b;
-            --sky-blue: #e3f2fd;
-            --text-main: #263238;
-            --accent-purple: #9c27b0;
+            --garden-green: #2e7d32;
+            --sky-blue: #0288d1;
+            --card-white: rgba(255, 255, 255, 0.95);
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
 
         body {
-            background: linear-gradient(rgba(255,255,255,0.4), rgba(255,255,255,0.4)), url('assets/garden-bg.jpg') no-repeat center center fixed;
+            background: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1)), url('assets/garden-bg.png') no-repeat center center fixed;
             background-size: cover;
-            background-color: #c8e6c9; /* Fallback */
-            color: var(--text-main);
             min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            user-select: none;
+            display: flex; justify-content: center; align-items: center; padding: 15px;
         }
 
-        /* --- SPLASH LAUNCH SCREEN --- */
-        #screen-splash {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: #ffffff;
-            display: flex; 
-            flex-direction: column;
-            justify-content: center; 
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.5s ease-out;
-        }
-        .splash-inner { text-align: center; }
-        .splash-logo { 
-            max-width: 280px; 
-            height: auto; 
-            margin-bottom: 25px; 
-            display: block; 
-            margin-left: auto; 
-            margin-right: auto; 
-        }
-        .splash-loader { 
-            width: 180px; height: 10px; background: #e0e0e0; 
-            border-radius: 5px; margin: 0 auto; overflow: hidden; 
-        }
-        .splash-bar { 
-            width: 100%; height: 100%; background: var(--garden-dark); 
-            transform: translateX(-100%); animation: loadStep 1.2s forwards ease-in-out; 
-        }
-        @keyframes loadStep { 100% { transform: translateX(0); } }
-
-        /* --- MAIN CONTAINER --- */
         .game-container {
-            width: 100%;
-            max-width: 850px;
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 24px;
-            box-shadow: 0 16px 40px rgba(46, 125, 50, 0.25);
-            border: 4px solid var(--garden-dark);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            min-height: 640px;
-            position: relative;
+            width: 100%; max-width: 850px; background: var(--card-white);
+            border-radius: 24px; border: 4px solid var(--garden-green);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.15); display: flex; flex-direction: column; overflow: hidden;
         }
 
-        /* --- SCREEN LAYER ARCHITECTURE --- */
-        .screen-layer {
-            display: none;
-            flex-direction: column;
-            flex: 1;
-            padding: 35px;
-            opacity: 0;
-            transition: opacity 0.4s ease-in-out;
-        }
-        .screen-layer.active { display: flex; opacity: 1; }
+        .screen { display: none; padding: 30px; flex-direction: column; align-items: center; text-align: center; }
+        .screen.active { display: flex; }
 
-        /* --- INTRO SCREEN --- */
-        #screen-intro { justify-content: center; align-items: center; text-align: center; }
-        .hero-banner { 
-            font-size: 5rem; 
-            margin-bottom: 15px; 
-            animation: floatAnim 3s infinite alternate ease-in-out; 
-        }
-        @keyframes floatAnim { 0% { transform: translateY(0); } 100% { transform: translateY(-10px); } }
-
-        .story-bubble {
-            background: #f1f8e9; padding: 25px; border-radius: 20px;
-            border: 3px dashed var(--garden-green); max-width: 720px; margin-bottom: 30px;
-            font-size: 1.1rem; line-height: 1.6; text-align: left;
-        }
-        .story-bubble h2 { text-align: center; margin-bottom: 12px; color: var(--garden-dark); }
-
+        .logo-img { max-width: 220px; height: auto; margin-bottom: 15px; }
         .cta-btn {
-            background: linear-gradient(135deg, var(--garden-green), var(--garden-dark));
-            border: none; color: white; font-size: 1.25rem; font-weight: bold;
-            padding: 14px 40px; border-radius: 50px; cursor: pointer;
-            box-shadow: 0 6px 15px rgba(46, 125, 50, 0.3); transition: all 0.2s;
+            background: linear-gradient(135deg, #4caf50, var(--garden-green));
+            color: white; border: none; font-size: 1.25rem; font-weight: bold;
+            padding: 12px 35px; border-radius: 50px; cursor: pointer; transition: transform 0.1s;
         }
-        .cta-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(46, 125, 50, 0.4); }
-        .cta-btn:active { transform: translateY(2px); }
-        .cta-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+        .cta-btn:hover { transform: scale(1.03); }
 
-        /* --- HUD TRACKER BAR --- */
+        /* HUD Tracker Row */
         .hud-row {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 15px; font-size: 1.15rem; font-weight: bold; color: var(--garden-dark);
-            border-bottom: 2px solid #e8f5e9; padding-bottom: 10px;
+            display: flex; justify-content: space-between; width: 100%; font-size: 1.2rem;
+            font-weight: bold; color: var(--garden-green); border-bottom: 2px dashed #c8e6c9; padding-bottom: 10px; margin-bottom: 15px;
         }
-        .level-badge {
-            color: white; padding: 6px 20px; border-radius: 30px; font-size: 1rem; 
-            font-weight: bold; background-color: var(--garden-green);
-        }
-        .progress-track { width: 100%; height: 12px; background: #e0e0e0; border-radius: 10px; overflow: hidden; margin-bottom: 25px; }
-        .progress-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #a5d6a7, var(--garden-dark)); transition: width 0.4s ease; }
 
-        /* --- INTERACTIVE STAGE --- */
-        .workspace-layout { display: flex; flex-direction: column; flex: 1; justify-content: space-between; }
+        /* --- TACTILE MECHANIC 1: PARTS OF A WHOLE --- */
+        .soil-bed-container {
+            position: relative; width: 100%; max-width: 480px; height: 180px;
+            background: url('assets/dirt-bed.png') no-repeat center center; background-size: 100% 100%;
+            border-radius: 12px; overflow: hidden; display: flex; box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
+        }
+        .soil-slice {
+            flex: 1; border-right: 4px dashed rgba(255,255,255,0.65); height: 100%;
+            position: relative; cursor: pointer; transition: background 0.2s;
+            display: flex; justify-content: center; align-items: center;
+        }
+        .soil-slice:last-child { border-right: none; }
+        .soil-slice.planted { background: rgba(76, 175, 80, 0.25); }
+        .soil-slice.planted::after {
+            content: ''; width: 65px; height: 65px;
+            background: url('assets/seed-pack.png') no-repeat center center; background-size: contain;
+        }
+
+        /* --- TACTILE MECHANIC 2: PARTS OF A GROUP --- */
+        .harvest-field {
+            display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;
+            width: 100%; max-width: 500px; min-height: 100px; margin-bottom: 20px;
+        }
+        .item-flower {
+            width: 65px; height: 65px; cursor: pointer; transition: transform 0.2s, opacity 0.3s;
+            background: url('assets/sunflower.png') no-repeat center center; background-size: contain;
+        }
+        .item-flower.harvested { transform: scale(0); opacity: 0; pointer-events: none; }
         
-        .interactive-stage {
-            background: #fafafa; border: 2px solid #c8e6c9; border-radius: 20px;
-            padding: 25px; min-height: 260px; display: flex; flex-direction: column; 
-            justify-content: center; align-items: center; margin-bottom: 15px; position: relative;
+        .basket-zone {
+            width: 160px; height: 120px; margin-top: 10px;
+            background: url('assets/basket-empty.png') no-repeat center center; background-size: contain;
+            display: flex; justify-content: center; align-items: center; position: relative;
         }
-        .stage-avatar { font-size: 4rem; margin-bottom: 5px; }
-        .stage-prompt { font-size: 1.3rem; font-weight: bold; text-align: center; color: var(--text-main); line-height: 1.5; margin-bottom: 15px; }
-
-        /* --- OPTIONS MATRIX GRID --- */
-        .options-matrix { 
-            display: flex; flex-wrap: wrap; gap: 15px; width: 100%; justify-content: center; 
-        }
-        
-        .option-card-btn {
-            background: #ffffff; border: 3px solid #c8e6c9; border-radius: 16px;
-            padding: 16px 25px; font-size: 1.2rem; font-weight: bold; color: var(--text-main);
-            cursor: pointer; box-shadow: 0 4px 8px rgba(0,0,0,0.04); text-align: left;
-            transition: all 0.2s; display: flex; align-items: center; flex: 1 1 calc(50% - 15px); min-width: 260px;
-        }
-        .option-card-btn:hover:not(:disabled) { border-color: var(--garden-green); background: #f1f8e9; transform: translateY(-2px); }
-        .option-card-btn .prefix { background: #e8f5e9; color: var(--garden-dark); width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; margin-right: 15px; font-size: 1rem; flex-shrink: 0; }
-        .option-card-btn:disabled { cursor: not-allowed; opacity: 0.6; }
-        
-        @media (max-width: 700px) { .option-card-btn { flex: 1 1 100%; } }
-
-        /* Input Fields */
-        .text-input-field {
-            width: 100%; max-width: 140px; padding: 10px 15px; font-size: 1.6rem; font-weight: bold;
-            border: 3px solid #c8e6c9; border-radius: 14px; text-align: center; color: var(--garden-dark);
-            outline: none; transition: border-color 0.2s; margin: 0 10px;
-        }
-        .text-input-field:focus { border-color: var(--garden-dark); box-shadow: 0 0 10px rgba(46, 125, 50, 0.2); }
-
-        /* Feedback styling */
-        .option-card-btn.correct { background: #e8f5e9 !important; border-color: #2e7d32 !important; color: #1b5e20 !important; opacity: 1 !important; }
-        .option-card-btn.wrong { background: #ffebee !important; border-color: #c62828 !important; color: #b71c1c !important; }
-        
-        .banner-feedback { text-align: center; font-size: 1.3rem; font-weight: bold; margin-top: 10px; min-height: 30px; }
-        .hint-feedback { text-align: center; font-size: 1.05rem; font-weight: bold; color: #e65100; margin-top: 5px; min-height: 24px; }
-
-        /* --- DYNAMIC SVG GARDEN SHAPES --- */
-        .svg-visualizer {
-            max-width: 100%; height: auto; display: block; margin: 10px auto;
+        .basket-counter {
+            position: absolute; bottom: -10px; background: #ff9800; color: white;
+            padding: 3px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9rem;
         }
 
-        /* Sprout Animation Particle */
-        .sprout-pop {
-            position: absolute; font-size: 2.5rem; z-index: 999; pointer-events: none;
-            top: -50px; animation: fallAnim var(--dur) linear forwards;
-        }
-        @keyframes fallAnim {
-            0% { top: -50px; transform: translateX(0) rotate(0deg); opacity: 1; }
-            100% { top: 105vh; transform: translateX(var(--deviation)) rotate(360deg); opacity: 0; }
-        }
+        /* Controls UI Layout */
+        .slider-control-box { margin: 20px 0; width: 100%; max-width: 400px; }
+        .slider-control-box label { font-weight: bold; display: block; margin-bottom: 8px; }
+        .fraction-slider { width: 100%; accent-color: var(--garden-green); cursor: pointer; }
+
+        .prompt-text { font-size: 1.3rem; font-weight: bold; margin-bottom: 15px; color: #333; line-height: 1.4; }
+        .feedback-msg { font-size: 1.2rem; font-weight: bold; min-height: 28px; margin-top: 15px; }
     </style>
 </head>
 <body>
 
-    <audio id="audio-correct" src="assets/plant.mp3" preload="auto"></audio>
-    <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
-    <audio id="audio-victory" src="assets/claps.mp3" preload="auto"></audio>
-
-    <div id="screen-splash">
-        <div class="splash-inner">
-            <img src="assets/logo.png" class="splash-logo" alt="The Master Garden Planner" onerror="this.style.display='none';">
-            <h2 style="color: var(--garden-dark); margin-bottom: 15px;">The Master Garden Planner</h2>
-            <div class="splash-loader"><div class="splash-bar"></div></div>
-        </div>
-    </div>
+    <audio id="snd-correct" src="assets/claps.mp3" preload="auto"></audio>
+    <audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
     <div class="game-container">
-        
-        <div class="screen-layer active" id="screen-intro">
-            <div class="hero-banner">🌻🥕🏡</div>
-            <h1 style="margin-bottom: 12px; font-size: 2.5rem; color: var(--garden-dark);">The Master Garden Planner</h1>
-            <h3 style="margin-bottom: 20px; color: #d84315; font-style: italic;">Chapter 10: Equal Garden Fractions</h3>
-            <div class="story-bubble">
-                <h2>Your Planting Mission</h2>
-                <p>Welcome to the Community Farm! As our Master Planner, neighbors will send you orders to organize different vegetable beds, seed wheels, and flower pots using exact fractions.</p>
-                <br>
-                <p>Calculate parts of a single garden patch (**Parts of a Whole**) and count groups of separate tools and flower rows (**Parts of a Group**) to earn your **Gardener Merit Stars ⭐**.</p>
-                <br>
-                <p style="font-weight: bold; color: var(--garden-dark); text-align: center;">Fulfill all 10 garden layout blueprints to complete the harvest festival!</p>
-            </div>
-            <button class="cta-btn" onclick="switchActiveLayer('screen-play')">Open the Garden Gates 🚀</button>
+        <div class="screen active" id="scr-intro">
+            <img src="assets/logo.png" class="logo-img" alt="Logo" onerror="this.style.display='none'">
+            <h1 style="color: var(--garden-green); margin-bottom: 10px;">The Interactive Garden Planner</h1>
+            <p style="font-size: 1.1rem; max-width: 600px; margin-bottom: 25px; color: #555;">
+                Welcome to a real tactile experience! Become a master farmer by manually slicing soil patches, sowing seeds, and collecting groups of beautiful sunflowers into your harvest baskets.
+            </p>
+            <button class="cta-btn" onclick="startAppGameplay()">Start Designing 🌻</button>
         </div>
 
-        <div class="screen-layer" id="screen-play">
+        <div class="screen" id="scr-play">
             <div class="hud-row">
-                <div>⭐ Score: <span id="label-score-val">0</span></div>
-                <div class="level-badge" id="label-level-badge">Bed 1</div>
-                <div>Progress: <span id="label-turn-val">1 / 10</span></div>
+                <div id="hud-level">Task: 1 / 10</div>
+                <div id="hud-score">Points: 0</div>
             </div>
-            <div class="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
 
-            <div class="workspace-layout">
-                <div class="interactive-stage">
-                    <div class="stage-avatar" id="element-stage-icon">🌱</div>
-                    <div class="stage-prompt" id="element-stage-question">Preparing soil layout coordinates...</div>
-                    <div id="element-stage-visualizer" style="width:100%;"></div>
-                </div>
+            <div class="prompt-text" id="game-prompt">Loading puzzle coordinate blueprints...</div>
 
-                <div id="wrapper-input-mechanisms"></div>
-
-                <div>
-                    <div class="banner-feedback" id="element-status-feedback"></div>
-                    <div class="hint-feedback" id="element-hint-feedback"></div>
+            <div id="mount-canvas-whole" style="display:none; flex-direction:column; align-items:center; width:100%;">
+                <div class="soil-bed-container" id="soil-bed"></div>
+                <div class="slider-control-box">
+                    <label id="slider-label">Slice field into: 2 Equal Parts</label>
+                    <input type="range" min="2" max="6" value="2" class="fraction-slider" id="field-slider" oninput="handleSliceChange(this.value)">
                 </div>
             </div>
-        </div>
 
-        <div class="screen-layer" id="screen-end">
-            <div class="hero-banner">🍅🌻👩‍🌾</div>
-            <h1 style="color: var(--garden-dark); font-size: 2.6rem; margin-bottom: 15px; text-align: center;">Harvest Festival Complete!</h1>
-            <div class="story-bubble" style="text-align: center; margin: 0 auto 30px auto;">
-                <h2>🏆 Legendary Harvester Status</h2>
-                <p>Incredible! You mapped out every single garden plot, flower row, and collection of pots with absolute precision. Your mathematical layout skills sprouted a perfect community crop yield!</p>
+            <div id="mount-canvas-group" style="display:none; flex-direction:column; align-items:center; width:100%;">
+                <div class="harvest-field" id="flower-field"></div>
+                <div class="basket-zone"><div class="basket-counter" id="basket-count">In Basket: 0</div></div>
             </div>
-            <h2 id="final-score-report" style="color: #d84315; text-align: center; margin-bottom: 30px; font-size: 1.8rem;">Total Points Earned: 0 / 20</h2>
-            <button class="cta-btn" style="margin: 0 auto; display: block;" onclick="reinitializeSimulation()">Plan Another Garden 🔄</button>
+
+            <button class="cta-btn" style="margin-top: 15px;" id="action-submit-btn" onclick="validateCurrentTactileEntry()">Verify Layout Check ⚔️</button>
+            <div class="feedback-msg" id="feedback-lbl"></div>
         </div>
 
+        <div class="screen" id="scr-end">
+            <h1 style="color: var(--garden-green); font-size: 2.5rem; margin-bottom: 15px;">Harvest Festival Achieved! 🏆</h1>
+            <p style="font-size: 1.2rem; margin-bottom: 20px;" id="final-report">You successfully resolved every single modular field configuration layout!</p>
+            <button class="cta-btn" onclick="location.reload()">Plan New Map 🔄</button>
+        </div>
     </div>
 
     <script>
-        let currentScore = 0;
-        let activeTurnIndex = 0;
-        let attemptCount = 0;
-        let isProcessing = false;
-        let activeSimulationPool = [];
-        
-        // 10-Question Master Database Mapping to Core Grade 3 Standards
-        const masterSimulationPool = [
-            { 
-                type: "choice", 
-                level: "🥕 Bed 1: Carrots Bed", 
-                color: "#ff9800", icon: "🥕", 
-                question: "A rectangular vegetable bed is split into 3 equal sections. 1 section has carrots planted. What fraction of the bed is carrots?", 
-                options: ["1/2", "1/3", "2/3", "1/4"], 
-                answer: "1/3", 
-                visual: "rect-3-1",
-                hint: "Count how many sections have carrots for the top number, and look at the total number of identical sections for the bottom number!",
-                feedback: "1 section out of 3 total matching regions is denoted mathematically as 1/3. Keep an eye on the total equal pieces!"
-            },
-            { 
-                type: "choice", 
-                level: "🌹 Bed 2: Rose Quadrants", 
-                color: "#e91e63", icon: "🌹", 
-                question: "A square flower bed is split into 4 equal quadrants. 3 quadrants are full of blooming red roses. What fraction has roses?", 
-                options: ["1/4", "2/4", "3/4", "4/4"], 
-                answer: "3/4", 
-                visual: "square-4-3",
-                hint: "3 out of 4 matching boxes are covered with flowers. Look for 3 over 4.",
-                feedback: "When 3 areas out of 4 total pieces are filled, the fraction is three-fourths, written as 3/4."
-            },
-            { 
-                type: "input-fraction", 
-                level: "🌿 Bed 3: Herb Wheel", 
-                color: "#4caf50", icon: "🌿", 
-                question: "A circular herb wheel is split into 2 equal halves. 1 half is planted with aromatic basil. Enter the fraction representing the basil section.", 
-                numAns: "1", denAns: "2",
-                visual: "circle-2-1",
-                hint: "Type the active colored part into the top box (numerator) and the total slices into the bottom box (denominator).",
-                feedback: "1 half equals 1 part out of 2 total pieces, forming the classic unit fraction 1/2."
-            },
-            { 
-                type: "input-fraction", 
-                level: "🌽 Bed 4: Corn Tracks", 
-                color: "#ffeb3b", icon: "🌽", 
-                question: "A long rectangular crop grid track has 6 equal rows. 5 of these rows are planted with sweet corn. Type the numeric fraction.", 
-                numAns: "5", denAns: "6",
-                visual: "rect-6-5",
-                hint: "Put the number of corn rows on top and the total number of rows on the bottom.",
-                feedback: "5 out of 6 rows active gives us 5/6, where 5 is our numerator and 6 is our denominator."
-            },
-            { 
-                type: "choice", 
-                level: "🌻 Bed 5: Flower Pots Group", 
-                color: "#ffc107", icon: "🌻", 
-                question: "Look at your transport wagon! There are 4 separate flower pots. 2 pots have blooming sunflowers and 2 pots are empty. What fraction of the pots have sunflowers?", 
-                options: ["1/4", "2/4", "3/4", "4/4"], 
-                answer: "2/4", 
-                visual: "pots-4-2",
-                hint: "This is a part of a group! Count the individual sunflower pots out of the total pots in the set.",
-                feedback: "2 out of 4 item units in a collection group gives us a fraction value of 2/4."
-            },
-            { 
-                type: "choice", 
-                level: "🍅 Bed 6: Tomato Saplings", 
-                color: "#f44336", icon: "🍅", 
-                question: "A gardener's tray holds a set of 8 individual tomato saplings. 3 of them are cherry tomatoes. What fraction of the group represents cherry tomatoes?", 
-                options: ["3/8", "5/8", "1/8", "3/5"], 
-                answer: "3/8", 
-                visual: "pots-8-3",
-                hint: "The group has 8 total items. 3 match the condition. Combine them into a fraction!",
-                feedback: "Since 3 out of the total 8 separate pots are cherry tomatoes, the matching fraction is 3/8."
-            },
-            { 
-                type: "input-fraction", 
-                level: "💦 Bed 7: Watering Cans", 
-                color: "#2196f3", icon: "💦", 
-                question: "There are 5 individual watering cans sitting by the shed toolset. 4 of them are bright green. Type the fraction of cans that are green.", 
-                numAns: "4", denAns: "5",
-                visual: "cans-5-4",
-                hint: "Count the active colored cans for the numerator and the absolute total cans for the denominator.",
-                feedback: "4 items chosen out of an asset set of 5 equals four-fifths, or 4/5."
-            },
-            { 
-                type: "choice", 
-                level: "🥬 Bed 8: Crop Comparison", 
-                color: "#009688", icon: "🥬", 
-                question: "Farmer Ben plants 2/4 of Bed A with crisp lettuce. Farmer Sarah plants 3/4 of an identical Bed A with lettuce. Which expression correctly compares their crops?", 
-                options: ["3/4 > 2/4", "3/4 < 2/4", "3/4 = 2/4"], 
-                answer: "3/4 > 2/4", 
-                visual: "compare-lettuce",
-                hint: "The pieces are the same size because the bottom numbers match. Is 3 pieces more (>) or less (<) than 2 pieces?",
-                feedback: "When denominators match, look at the numerators. Since 3 is larger than 2, 3/4 > 2/4 is true."
-            },
-            { 
-                type: "choice", 
-                level: "🎃 Bed 9: Pumpkin Patch Sizes", 
-                color: "#ff5722", icon: "🎃", 
-                question: "You look at two patch models of pumpkin fields: 1/2 and 1/4. If the field sizes are identical, which fraction takes up a physically larger single area?", 
-                options: ["1/2", "1/4", "They are identical spaces"], 
-                answer: "1/2", 
-                visual: "compare-shapes",
-                hint: "Imagine sharing a whole field with 2 people vs 4 people. Which piece would be bigger?",
-                feedback: "When denominators are smaller, the whole is broken into fewer pieces, meaning each piece is larger! So, 1/2 is greater than 1/4."
-            },
-            { 
-                type: "input-fraction", 
-                level: "🍓 Bed 10: Complete Strawberries", 
-                color: "#e91e63", icon: "🍓", 
-                question: "An entire wooden raised bed is split into 4 equal sections, and all 4 sections are completely full of strawberries. Type the fraction that represents this full bed.", 
-                numAns: "4", denAns: "4",
-                visual: "square-4-4",
-                hint: "How many sections are full? Put that on top. How many total sections exist? Put that on bottom.",
-                feedback: "When all sections of a shape are full, it forms 4/4, which is equivalent to 1 whole garden bed!"
-            }
+        let currentLevelIndex = 0;
+        let scoreCounter = 0;
+        let activeLevelData = null;
+        let blockInteraction = false;
+
+        // Current user responses states for verification
+        let currentSlicesCount = 2;
+        let activePlantedArray = [];
+        let groupHarvestedCount = 0;
+
+        // 10 Tactile Curriculum Blueprints using Whole and Group configurations
+        const levelPipeline = [
+            { id: 1, type: "whole", targetNum: 1, targetDen: 3, task: "Slice the garden bed into 3 equal pieces, then click to plant exactly 1 section of carrots!" },
+            { id: 2, type: "whole", targetNum: 3, targetDen: 4, task: "Slice the garden bed into 4 equal quadrants, then click to plant 3 sections of tomatoes!" },
+            { id: 3, type: "group", totalItems: 4, targetNum: 2, task: "Tap exactly 2 sunflowers from the field patch to pack them inside your harvest basket!" },
+            { id: 4, type: "whole", targetNum: 1, targetDen: 2, task: "Slice your soil box into 2 equal halves, then click to seed exactly 1 section!" },
+            { id: 5, type: "whole", targetNum: 5, targetDen: 6, task: "Slice the long grid layout into 6 equal rows, then click to seed 5 of those rows!" },
+            { id: 6, type: "group", totalItems: 6, targetNum: 3, task: "The local market wants a crop basket of exactly 3/6 of our current sunflower set. Pick 3 sunflowers!" },
+            { id: 7, type: "whole", targetNum: 2, targetDen: 3, task: "Configure the field layout container into 3 equal tracks, then plant 2 tracks!" },
+            { id: 8, type: "group", totalItems: 5, targetNum: 4, task: "Collect 4 out of the 5 sunflowers inside the field patch into your basket!" },
+            { id: 9, type: "whole", targetNum: 4, targetDen: 4, task: "Slice the grid bed into 4 zones, then plant all 4 sections to model 1 complete whole!" },
+            { id: 10, type: "group", totalItems: 8, targetNum: 5, task: "Harvest a fraction equal to 5/8 from this patch. Pick exactly 5 sunflowers!" }
         ];
 
-        const TOTAL_TURNS_MAX = masterSimulationPool.length;
-
-        function shuffleQuestions() {
-            // Fisher-Yates shuffle implementation
-            activeSimulationPool = [...masterSimulationPool];
-            for (let i = activeSimulationPool.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [activeSimulationPool[i], activeSimulationPool[j]] = [activeSimulationPool[j], activeSimulationPool[i]];
-            }
+        function triggerAudioFeedback(isCorrect) {
+            const player = document.getElementById(isCorrect ? 'snd-correct' : 'snd-wrong');
+            if(player) { player.currentTime = 0; player.play().catch(()=>{}); }
         }
 
-        function playSound(type) {
-            const track = document.getElementById(type === 'success' ? 'audio-correct' : (type === 'victory' ? 'audio-victory' : 'audio-wrong'));
-            if (track) { track.currentTime = 0; track.play().catch(() => {}); }
+        function startAppGameplay() {
+            document.getElementById('scr-intro').classList.remove('active');
+            document.getElementById('scr-play').classList.add('active');
+            loadLevelBlueprint();
         }
 
-        function triggerSproutShower() {
-            let spawnDuration = 1000; let intervalTime = 100;
-            let timerId = setInterval(() => {
-                let token = document.createElement('div');
-                token.className = 'sprout-pop';
-                token.innerText = '🌱';
-                token.style.left = Math.random() * 90 + 'vw';
-                token.style.setProperty('--deviation', (Math.random() - 0.5) * 160 + 'px');
-                token.style.setProperty('--dur', (Math.random() * 0.8 + 1.2) + 's');
-                document.body.appendChild(token);
-                setTimeout(() => token.remove(), 2000);
-            }, intervalTime);
-            setTimeout(() => clearInterval(timerId), spawnDuration);
-        }
-
-        function switchActiveLayer(screenId) {
-            document.querySelectorAll('.screen-layer').forEach(layer => layer.classList.remove('active'));
-            document.getElementById(screenId).classList.add('active');
-            if (screenId === 'screen-play') {
-                shuffleQuestions();
-                activeTurnIndex = 0;
-                currentScore = 0;
-                attemptCount = 0;
-                buildActiveAssessmentItem();
-            }
-        }
-
-        function buildActiveAssessmentItem() {
-            if (activeTurnIndex >= TOTAL_TURNS_MAX) {
-                concludeSimulationWorkflow();
-                return;
-            }
-
-            isProcessing = false;
-            document.getElementById('element-status-feedback').innerText = "";
-            document.getElementById('element-hint-feedback').innerText = "";
+        function loadLevelBlueprint() {
+            blockInteraction = false;
+            document.getElementById('feedback-lbl').innerText = "";
+            document.getElementById('feedback-lbl').style.color = "initial";
             
-            let data = activeSimulationPool[activeTurnIndex];
+            activeLevelData = levelPipeline[currentLevelIndex];
+            document.getElementById('hud-level').innerText = `Task: ${currentLevelIndex + 1} / 10`;
+            document.getElementById('game-prompt').innerText = activeLevelData.task;
 
-            document.getElementById('label-turn-val').innerText = `${activeTurnIndex + 1} / ${TOTAL_TURNS_MAX}`;
-            document.getElementById('progress-fill').style.width = `${(activeTurnIndex / TOTAL_TURNS_MAX) * 100}%`;
-            document.getElementById('label-score-val').innerText = currentScore;
-            
-            let badge = document.getElementById('label-level-badge');
-            badge.innerText = data.level;
-            badge.style.background = data.color;
-
-            document.getElementById('element-stage-icon').innerText = data.icon;
-            document.getElementById('element-stage-question').innerText = data.question;
-
-            let visualBox = document.getElementById('element-stage-visualizer');
-            visualBox.innerHTML = "";
-            
-            // --- VECTOR GRAPHICS DYNAMIC RENDERER ENGINE ---
-            let svgContent = "";
-            if (data.visual === "rect-3-1") {
-                svgContent = `<svg class="svg-visualizer" width="180" height="90">
-                    <rect x="5" y="5" width="170" height="80" rx="6" fill="#8d6e63" stroke="#5c4033" stroke-width="4"/>
-                    <rect x="5" y="5" width="56" height="80" fill="#ffb74d" opacity="0.9"/>
-                    <line x1="61" y1="5" x2="61" y2="85" stroke="#5c4033" stroke-width="3"/>
-                    <line x1="118" y1="5" x2="118" y2="85" stroke="#5c4033" stroke-width="3"/>
-                    <text x="25" y="48" font-size="22">🥕</text>
-                </svg>`;
-            } else if (data.visual === "square-4-3") {
-                svgContent = `<svg class="svg-visualizer" width="120" height="120">
-                    <rect x="5" y="5" width="110" height="110" fill="#a1887f" stroke="#5c4033" stroke-width="4"/>
-                    <rect x="5" y="5" width="55" height="55" fill="#f06292"/>
-                    <rect x="60" y="5" width="55" height="55" fill="#f06292"/>
-                    <rect x="5" y="60" width="55" height="55" fill="#f06292"/>
-                    <line x1="60" y1="5" x2="60" y2="115" stroke="#5c4033" stroke-width="2"/>
-                    <line x1="5" y1="60" x2="115" y2="60" stroke="#5c4033" stroke-width="2"/>
-                    <text x="18" y="38" font-size="20">🌹</text><text x="74" y="38" font-size="20">🌹</text><text x="18" y="94" font-size="20">🌹</text>
-                </svg>`;
-            } else if (data.visual === "square-4-4") {
-                svgContent = `<svg class="svg-visualizer" width="120" height="120">
-                    <rect x="5" y="5" width="110" height="110" fill="#ff8a80" stroke="#5c4033" stroke-width="4"/>
-                    <line x1="60" y1="5" x2="60" y2="115" stroke="#5c4033" stroke-width="2"/>
-                    <line x1="5" y1="60" x2="115" y2="60" stroke="#5c4033" stroke-width="2"/>
-                    <text x="18" y="38" font-size="20">🍓</text><text x="74" y="38" font-size="20">🍓</text><text x="18" y="94" font-size="20">🍓</text><text x="74" y="94" font-size="20">🍓</text>
-                </svg>`;
-            } else if (data.visual === "circle-2-1") {
-                svgContent = `<svg class="svg-visualizer" width="120" height="120">
-                    <circle cx="60" cy="60" r="50" fill="#fff" stroke="#5c4033" stroke-width="4"/>
-                    <path d="M 60,10 A 50,50 0 0,1 60,110 Z" fill="#81c784" opacity="0.9"/>
-                    <line x1="60" y1="10" x2="60" y2="110" stroke="#5c4033" stroke-width="3"/>
-                    <text x="72" y="66" font-size="22">🌿</text>
-                </svg>`;
-            } else if (data.visual === "rect-6-5") {
-                svgContent = `<svg class="svg-visualizer" width="200" height="80">
-                    <rect x="5" y="5" width="190" height="70" fill="#a1887f" stroke="#5c4033" stroke-width="4"/>
-                    <rect x="5" y="5" width="158" height="70" fill="#fff59d"/>
-                    <line x1="36" y1="5" x2="36" y2="75" stroke="#5c4033" stroke-width="2"/>
-                    <line x1="68" y1="5" x2="68" y2="75" stroke="#5c4033" stroke-width="2"/>
-                    <line x1="100" y1="5" x2="100" y2="75" stroke="#5c4033" stroke-width="2"/>
-                    <line x1="131" y1="5" x2="131" y2="75" stroke="#5c4033" stroke-width="2"/>
-                    <line x1="163" y1="5" x2="163" y2="75" stroke="#5c4033" stroke-width="2"/>
-                    <text x="10" y="44" font-size="16">🌽</text><text x="42" y="44" font-size="16">🌽</text><text x="74" y="44" font-size="16">🌽</text><text x="105" y="44" font-size="16">🌽</text><text x="136" y="44" font-size="16">🌽</text>
-                </svg>`;
-            } else if (data.visual === "pots-4-2") {
-                svgContent = `<svg class="svg-visualizer" width="240" height="70">
-                    <rect x="5" y="5" width="230" height="60" fill="#dfbb9d" rx="8" stroke="#8d6e63" stroke-width="2"/>
-                    <circle cx="35" cy="35" r="22" fill="#ffeb3b" stroke="#f57f17" stroke-width="2"/>
-                    <circle cx="92" cy="35" r="22" fill="#ffeb3b" stroke="#f57f17" stroke-width="2"/>
-                    <circle cx="149" cy="35" r="22" fill="#eceff1" stroke="#b0bec5" stroke-width="2"/>
-                    <circle cx="205" cy="35" r="22" fill="#eceff1" stroke="#b0bec5" stroke-width="2"/>
-                    <text x="24" y="42" font-size="16">🌻</text><text x="81" y="42" font-size="16">🌻</text>
-                </svg>`;
-            } else if (data.visual === "pots-8-3") {
-                svgContent = `<svg class="svg-visualizer" width="280" height="80">
-                    <rect x="2" y="2" width="276" height="76" fill="#eee" rx="4"/>
-                    <circle cx="20" cy="40" r="14" fill="#ff8a80"/><circle cx="55" cy="40" r="14" fill="#ff8a80"/><circle cx="90" cy="40" r="14" fill="#ff8a80"/>
-                    <circle cx="125" cy="40" r="14" fill="#fff" stroke="#999"/><circle cx="160" cy="40" r="14" fill="#fff" stroke="#999"/><circle cx="195" cy="40" r="14" fill="#fff" stroke="#999"/><circle cx="230" cy="40" r="14" fill="#fff" stroke="#999"/><circle cx="265" cy="40" r="14" fill="#fff" stroke="#999"/>
-                    <text x="11" y="46" font-size="14">🍅</text><text x="46" y="46" font-size="14">🍅</text><text x="81" y="46" font-size="14">🍅</text>
-                </svg>`;
-            } else if (data.visual === "cans-5-4") {
-                svgContent = `<svg class="svg-visualizer" width="220" height="60">
-                    <circle cx="25" cy="30" r="16" fill="#81c784"/><circle cx="65" cy="30" r="16" fill="#81c784"/><circle cx="105" cy="30" r="16" fill="#81c784"/><circle cx="145" cy="30" r="16" fill="#81c784"/>
-                    <circle cx="185" cy="30" r="16" fill="#fff" stroke="#aaa"/>
-                    <text x="16" y="36" font-size="14">💦</text><text x="56" y="36" font-size="14">💦</text><text x="96" y="36" font-size="14">💦</text><text x="136" y="36" font-size="14">💦</text>
-                </svg>`;
-            } else if (data.visual === "compare-lettuce") {
-                svgContent = `<div style="display:flex; gap:20px; justify-content:center;">
-                    <svg width="100" height="60"><rect width="100" height="60" fill="#eceff1" stroke="#333" stroke-width="2"/><rect width="50" height="60" fill="#4caf50"/><line x1="25" y1="0" x2="25" y2="60" stroke="#333"/><line x1="50" y1="0" x2="50" y2="60" stroke="#333"/><line x1="75" y1="0" x2="75" y2="60" stroke="#333"/><text x="35" y="35" font-size="14">2/4</text></svg>
-                    <svg width="100" height="60"><rect width="100" height="60" fill="#eceff1" stroke="#333" stroke-width="2"/><rect width="75" height="60" fill="#4caf50"/><line x1="25" y1="0" x2="25" y2="60" stroke="#333"/><line x1="50" y1="0" x2="50" y2="60" stroke="#333"/><line x1="75" y1="0" x2="75" y2="60" stroke="#333"/><text x="35" y="35" font-size="14">3/4</text></svg>
-                </div>`;
-            } else if (data.visual === "compare-shapes") {
-                svgContent = `<div style="display:flex; gap:20px; justify-content:center;">
-                    <svg width="80" height="80"><circle cx="40" cy="40" r="35" fill="#fff" stroke="#333" stroke-width="2"/><path d="M 40,5 A 35,35 0 0,1 40,75 Z" fill="#ff9800"/><text x="32" y="45" font-size="14">1/2</text></svg>
-                    <svg width="80" height="80"><circle cx="40" cy="40" r="35" fill="#fff" stroke="#333" stroke-width="2"/><path d="M 40,5 A 35,35 0 0,1 75,40 Z" fill="#ff9800"/><line x1="40" y1="5" x2="40" y2="75" stroke="#333"/><line x1="5" y1="40" x2="75" y2="40" stroke="#333"/><text x="32" y="45" font-size="14">1/4</text></svg>
-                </div>`;
-            }
-
-            if (svgContent !== "") {
-                visualBox.innerHTML = svgContent;
-            }
-
-            let mechanistZone = document.getElementById('wrapper-input-mechanisms');
-            mechanistZone.innerHTML = "";
-
-            // INPUT LAYOUT GENERATOR FACTORY
-            if (data.type === "choice") {
-                let matrix = document.createElement('div');
-                matrix.className = "options-matrix";
-                const prefixes = ["A", "B", "C", "D"];
-                data.options.forEach((opt, idx) => {
-                    let btn = document.createElement('button');
-                    btn.className = "option-card-btn";
-                    btn.id = "opt-btn-" + idx;
-                    btn.innerHTML = `<span class="prefix">${prefixes[idx]}</span> <span class="txt-lbl">${opt}</span>`;
-                    btn.onclick = function() { evaluateChoiceResponse(btn, opt, data.answer); };
-                    matrix.appendChild(btn);
-                });
-                mechanistZone.appendChild(matrix);
-            } else if (data.type === "input-fraction") {
-                let wrap = document.createElement('div');
-                wrap.style.textAlign = "center";
+            if (activeLevelData.type === "whole") {
+                document.getElementById('mount-canvas-group').style.display = "none";
+                document.getElementById('mount-canvas-whole').style.display = "flex";
                 
-                let numIn = document.createElement('input');
-                numIn.id = "num-input-field";
-                numIn.type = "number"; numIn.className = "text-input-field"; numIn.placeholder = "Top";
-                
-                let divisionLine = document.createElement('hr');
-                divisionLine.style.width = "120px"; divisionLine.style.margin = "6px auto 12px auto"; divisionLine.style.border = "2px solid var(--soil-brown)";
-                
-                let denIn = document.createElement('input');
-                denIn.id = "den-input-field";
-                denIn.type = "number"; denIn.className = "text-input-field"; denIn.placeholder = "Bot";
-                
-                let sBtn = document.createElement('button');
-                sBtn.id = "submit-blueprint-btn";
-                sBtn.className = "cta-btn"; sBtn.style.padding = "10px 30px"; sBtn.style.marginTop = "15px"; sBtn.innerText = "Sow Seeds 🌱";
-                sBtn.onclick = function() { evaluateFractionInput(numIn, denIn, data.numAns, data.denAns); };
-
-                wrap.appendChild(numIn);
-                wrap.appendChild(divisionLine);
-                wrap.appendChild(denIn);
-                wrap.appendChild(document.createElement('br'));
-                wrap.appendChild(sBtn);
-                mechanistZone.appendChild(wrap);
-                numIn.focus();
-            }
-        }
-
-        function evaluateChoiceResponse(selectedButton, chosenVal, exactAnswer) {
-            if (isProcessing) return;
-            let data = activeSimulationPool[activeTurnIndex];
-            let feedbackNode = document.getElementById('element-status-feedback');
-            let hintNode = document.getElementById('element-hint-feedback');
-
-            if (chosenVal === exactAnswer) {
-                isProcessing = true;
-                document.querySelectorAll('.option-card-btn').forEach(b => b.disabled = true);
-                selectedButton.classList.add('correct');
-                feedbackNode.style.color = "var(--garden-dark)";
-                feedbackNode.innerText = "Perfect planting alignment! ⭐🌻";
-                
-                currentScore += (attemptCount === 0) ? 2 : 1;
-                playSound('success'); triggerSproutShower();
-                
-                attemptCount = 0;
-                activeTurnIndex++; 
-                setTimeout(buildActiveAssessmentItem, 2000);
+                // Reset whole sliders and container values
+                currentSlicesCount = 2;
+                document.getElementById('field-slider').value = 2;
+                handleSliceChange(2);
             } else {
-                playSound('wrong');
-                if (attemptCount === 0) {
-                    attemptCount = 1;
-                    selectedButton.classList.add('wrong');
-                    selectedButton.disabled = true;
-                    feedbackNode.style.color = "#e65100";
-                    feedbackNode.innerText = "Oh! The seed counts don't quite match.";
-                    hintNode.innerText = "💡 Hint: " + data.hint;
-                } else {
-                    isProcessing = true;
-                    document.querySelectorAll('.option-card-btn').forEach(b => b.disabled = true);
-                    selectedButton.classList.add('wrong');
-                    
-                    feedbackNode.style.color = "var(--tomato-red)";
-                    feedbackNode.innerText = "Bed locked. Let's look at the correct layout guide.";
-                    hintNode.style.color = "var(--tomato-red)";
-                    hintNode.innerText = data.feedback;
-
-                    document.querySelectorAll('.option-card-btn').forEach(b => {
-                        if (b.querySelector('.txt-lbl').innerText === exactAnswer) b.classList.add('correct');
-                    });
-
-                    attemptCount = 0;
-                    activeTurnIndex++; 
-                    setTimeout(() => {
-                        hintNode.style.color = "#e65100";
-                        buildActiveAssessmentItem();
-                    }, 4500);
+                document.getElementById('mount-canvas-whole').style.display = "none";
+                document.getElementById('mount-canvas-group').style.display = "flex";
+                
+                // Rebuild active group items
+                groupHarvestedCount = 0;
+                document.getElementById('basket-count').innerText = "In Basket: 0";
+                
+                const fieldNode = document.getElementById('flower-field');
+                fieldNode.innerHTML = "";
+                for(let i=0; i < activeLevelData.totalItems; i++) {
+                    let flwr = document.createElement('div');
+                    flwr.className = "item-flower";
+                    flwr.onclick = () => {
+                        if(blockInteraction) return;
+                        flwr.classList.add('harvested');
+                        groupHarvestedCount++;
+                        document.getElementById('basket-count').innerText = `In Basket: ${groupHarvestedCount}`;
+                    };
+                    fieldNode.appendChild(flwr);
                 }
             }
         }
 
-        function evaluateFractionInput(nField, dField, correctNum, correctDen) {
-            if (isProcessing) return;
-            if (!nField.value || !dField.value) return;
+        function handleSliceChange(val) {
+            if(blockInteraction) return;
+            currentSlicesCount = parseInt(val);
+            document.getElementById('slider-label').innerText = `Slice field into: ${currentSlicesCount} Equal Parts`;
             
-            let data = activeSimulationPool[activeTurnIndex];
-            let feedbackNode = document.getElementById('element-status-feedback');
-            let hintNode = document.getElementById('element-hint-feedback');
+            const bedNode = document.getElementById('soil-bed');
+            bedNode.innerHTML = "";
+            activePlantedArray = new Array(currentSlicesCount).fill(false);
 
-            let numVal = nField.value.trim();
-            let denVal = dField.value.trim();
-
-            if (numVal === correctNum && denVal === correctDen) {
-                isProcessing = true;
-                nField.disabled = true; dField.disabled = true;
-                document.getElementById('submit-blueprint-btn').disabled = true;
-                
-                nField.style.background = "#e8f5e9"; dField.style.background = "#e8f5e9";
-                feedbackNode.style.color = "var(--garden-dark)";
-                feedbackNode.innerText = "Fraction logged successfully! ⭐🌽";
-                
-                currentScore += (attemptCount === 0) ? 2 : 1;
-                playSound('success'); triggerSproutShower();
-                
-                attemptCount = 0;
-                activeTurnIndex++; 
-                setTimeout(buildActiveAssessmentItem, 2000);
-            } else {
-                playSound('wrong');
-                if (attemptCount === 0) {
-                    attemptCount = 1;
-                    nField.value = ""; dField.value = "";
-                    feedbackNode.style.color = "#e65100";
-                    feedbackNode.innerText = "Coordinates misaligned. Recounting the crop patches...";
-                    hintNode.innerText = "💡 Hint: " + data.hint;
-                    nField.focus();
-                } else {
-                    isProcessing = true;
-                    nField.disabled = true; dField.disabled = true;
-                    document.getElementById('submit-blueprint-btn').disabled = true;
-                    
-                    nField.style.background = "#ffebee"; dField.style.background = "#ffebee";
-                    nField.value = correctNum;
-                    dField.value = correctDen;
-                    
-                    feedbackNode.style.color = "var(--tomato-red)";
-                    feedbackNode.innerText = `Setting layout automatically to target: ${correctNum}/${correctDen}`;
-                    hintNode.style.color = "var(--tomato-red)";
-                    hintNode.innerText = data.feedback;
-
-                    attemptCount = 0;
-                    activeTurnIndex++; 
-                    setTimeout(() => {
-                        hintNode.style.color = "#e65100";
-                        buildActiveAssessmentItem();
-                    }, 5000);
-                }
+            for(let i=0; i<currentSlicesCount; i++) {
+                let slice = document.createElement('div');
+                slice.className = "soil-slice";
+                slice.onclick = () => {
+                    if(blockInteraction) return;
+                    activePlantedArray[i] = !activePlantedArray[i];
+                    slice.classList.toggle('planted', activePlantedArray[i]);
+                };
+                bedNode.appendChild(slice);
             }
         }
 
-        function concludeSimulationWorkflow() {
-            document.getElementById('progress-fill').style.width = "100%";
-            document.getElementById('screen-play').classList.remove('active');
-            document.getElementById('screen-end').classList.add('active');
-            
-            const totalMaxScore = TOTAL_TURNS_MAX * 2;
-            document.getElementById('final-score-report').innerText = `Total Score: ${currentScore} / ${totalMaxScore} Points`;
-            playSound('victory');
-        }
+        function validateCurrentTactileEntry() {
+            if(blockInteraction) return;
+            let checkPassed = false;
+            let lbl = document.getElementById('feedback-lbl');
 
-        function reinitializeSimulation() {
-            activeTurnIndex = 0; 
-            currentScore = 0;
-            attemptCount = 0;
-            switchActiveLayer('screen-intro');
-        }
+            if (activeLevelData.type === "whole") {
+                let totalPlantedCount = activePlantedArray.filter(v => v).length;
+                if (currentSlicesCount === activeLevelData.targetDen && totalPlantedCount === activeLevelData.targetNum) {
+                    checkPassed = true;
+                }
+            } else {
+                if (groupHarvestedCount === activeLevelData.targetNum) {
+                    checkPassed = true;
+                }
+            }
 
-        // Native Loader Screen Auto-Fade
-        window.addEventListener('load', function() {
-            const splash = document.getElementById('screen-splash');
-            if (splash) {
+            blockInteraction = true;
+            if (checkPassed) {
+                scoreCounter += 10;
+                document.getElementById('hud-score').innerText = `Points: ${scoreCounter}`;
+                lbl.style.color = "var(--garden-green)";
+                lbl.innerText = "Incredible fraction match! Sprouting seeds now... 🌱✨";
+                triggerAudioFeedback(true);
+                
+                currentLevelIndex++;
                 setTimeout(() => {
-                    splash.style.opacity = '0';
-                    setTimeout(() => splash.remove(), 500);
-                }, 1200);
+                    if(currentLevelIndex < levelPipeline.length) {
+                        loadLevelBlueprint();
+                    } else {
+                        document.getElementById('scr-play').classList.remove('active');
+                        document.getElementById('scr-end').classList.add('active');
+                        document.getElementById('final-report').innerText = `Phenomenal work! You unlocked all layouts and harvested a grand total score of ${scoreCounter} points!`;
+                    }
+                }, 2200);
+            } else {
+                lbl.style.color = "#d32f2f";
+                lbl.innerText = "Layout mapping incorrect. Let's dig over and fix it! 🔄";
+                triggerAudioFeedback(false);
+                setTimeout(() => {
+                    loadLevelBlueprint();
+                }, 2200);
             }
-        });
+        }
     </script>
 </body>
 </html>
-
