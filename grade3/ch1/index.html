@@ -126,16 +126,25 @@
             cursor: pointer;
             user-select: none;
             transition: all 0.4s ease;
-            background: transparent !important; /* 🌟 TRANSPARENCY FIX */
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
         }
+        
         .turtle-img {
             width: 100%;
             height: 100%;
             object-fit: contain;
-            filter: brightness(1.02) contrast(1.02);
             position: absolute;
-            top: 0; left: 0;
-            background-color: transparent !important; /* 🌟 TRANSPARENCY FIX */
+            top: 0; 
+            left: 0;
+            background: transparent !important;
+            background-color: transparent !important;
+            
+            /* 🌟 GLOBAL BACKGROUND REMOVAL FIX 🌟 */
+            /* If the image loaded still contains an accidental white canvas background, */
+            /* multiply will instantly blend the white away into the ocean reef background! */
+            mix-blend-mode: multiply; 
         }
         
         .turtle-interactive.pulse { animation: seaGlowPulse 1.5s infinite alternate; }
@@ -304,7 +313,7 @@
 
     <div id="game-container">
         <div id="intro-card">
-            <img src="assets/turtle-happy.png" style="height: 120px; width: auto; margin-bottom: 15px; animation: float 3s infinite ease-in-out;" alt="Happy Turtle">
+            <img src="assets/turtle-happy.png" style="height: 120px; width: auto; margin-bottom: 15px; animation: float 3s infinite ease-in-out;" alt="Happy Turtle" onerror="this.src='assets/turtle-happy.png';">
             <h2 style="color: var(--primary-teal); font-size: 2.4rem; margin-bottom: 15px;">Mission: Code Cracker Rescue!</h2>
             <p class="mission-text">
                 Litter items and marine traps have system locks protection grids. 
@@ -546,7 +555,9 @@
                 const tImg = document.createElement('img');
                 tImg.className = 'turtle-img';
                 tImg.id = 'turtle-img-' + t.id;
-                tImg.src = 'assets/turtle-sad.png';
+                
+                /* Adding a cache buster query parameter to force modern updates */
+                tImg.src = 'assets/turtle-sad.png?v=' + Date.now();
 
                 container.appendChild(tImg);
                 
@@ -599,7 +610,7 @@
                 if (currentPhase === 2 && activeTurtleId !== null) {
                     const turtleImgEl = document.getElementById('turtle-img-' + activeTurtleId);
                     if (turtleImgEl) {
-                        turtleImgEl.src = 'assets/turtle-happy.png';
+                        turtleImgEl.src = 'assets/turtle-happy.png?v=' + Date.now();
                     }
                 }
 
