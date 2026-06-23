@@ -114,7 +114,6 @@
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease;
         }
         
-        /* Forces the element to stay scaled at 0 and hidden permanently */
         .trash-item.cleared {
             animation: shrinkAway 0.6s forwards !important; 
         }
@@ -593,7 +592,6 @@
                         }
                         poolIndex++;
                         
-                        // Added a tiny visual buffer delay so the last item finishes shrinking before shifting environments
                         setTimeout(() => {
                             if (poolIndex < phase1Pool.length) {
                                 loadChallenge();
@@ -615,6 +613,10 @@
                         activeTurtleId = null;
                         poolIndex++;
                         
+                        // FIXED: Adjusted timeout value logic.
+                        // If it's the last turtle, wait 2600ms to let the 2.5s swimAway animation completely finish.
+                        const finalSceneDelay = (poolIndex < phase2Pool.length) ? 800 : 2600;
+
                         setTimeout(() => {
                             if (poolIndex < phase2Pool.length) {
                                 reefTurtles.forEach(t => {
@@ -625,7 +627,7 @@
                             } else {
                                 concludeSimulation();
                             }
-                        }, 800);
+                        }, finalSceneDelay);
                     }
                 }, 1400);
 
@@ -663,10 +665,12 @@
                                 if (node) node.classList.add('pulse');
                                 activeTurtleId = null;
                                 poolIndex++;
+                                
+                                const finalSceneDelay = (poolIndex < phase2Pool.length) ? 600 : 2600;
                                 setTimeout(() => {
                                     if (poolIndex < phase2Pool.length) loadChallenge();
                                     else concludeSimulation();
-                                }, 600);
+                                }, finalSceneDelay);
                             }
                         }, 1500);
                     }
