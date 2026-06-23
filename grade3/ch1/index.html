@@ -114,9 +114,9 @@
             transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease;
         }
         
-        /* Fixed animation fill mode ensures the item stays cleared */
+        /* Forces the element to stay scaled at 0 and hidden permanently */
         .trash-item.cleared {
-            animation: shrinkAway 0.7s forwards; 
+            animation: shrinkAway 0.6s forwards !important; 
         }
 
         /* --- TURTLE & TRAP INTERACTIVE NODES --- */
@@ -288,8 +288,8 @@
             100% { transform: scale(0.4) translateX(600px) translateY(-50px); opacity: 0; } 
         }
         @keyframes shrinkAway {
-            0% { transform: scale(1) translateY(0); opacity: 1; }
-            100% { transform: scale(0) translateY(-120px); opacity: 0; }
+            0% { transform: scale(1.4) translateY(0); opacity: 1; }
+            100% { transform: scale(0) translateY(-100px); opacity: 0; }
         }
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
@@ -430,7 +430,6 @@
         let isProcessing = false;
         let activeTurtleId = null;
 
-        /* --- MIXED IN WRAPPERS DIRECTLY ONTO SCREEN 1 --- */
         const beachLitter = [
             { src: "assets/bottle1.png", top: "160px", left: "40px" },
             { src: "assets/wrapper-purple.png", top: "210px", left: "140px" },
@@ -487,9 +486,13 @@
 
             if (currentPhase === 1) {
                 document.getElementById('field-question').innerText = phase1Pool[poolIndex].question;
-                document.querySelectorAll('.trash-item').forEach(el => el.style.transform = "scale(1)");
+                document.querySelectorAll('.trash-item').forEach(el => {
+                    if(!el.classList.contains('cleared')) el.style.transform = "scale(1)";
+                });
                 const activeTrash = document.getElementById('litter-' + poolIndex);
-                if (activeTrash) activeTrash.style.transform = "scale(1.4) rotate(12deg)";
+                if (activeTrash && !activeTrash.classList.contains('cleared')) {
+                    activeTrash.style.transform = "scale(1.4) rotate(12deg)";
+                }
             } else {
                 if (activeTurtleId === null) {
                     document.getElementById('field-question').innerText = "🐢 Click any trapped turtle in the reef to connect the breaker device link!";
@@ -586,14 +589,18 @@
                     if (currentPhase === 1) {
                         const trashEl = document.getElementById('litter-' + poolIndex);
                         if (trashEl) {
-                            trashEl.classList.add('cleared'); // Fixed: Uses specific class with fill-mode: forwards
+                            trashEl.classList.add('cleared'); 
                         }
                         poolIndex++;
-                        if (poolIndex < phase1Pool.length) {
-                            loadChallenge();
-                        } else {
-                            initReefPhase();
-                        }
+                        
+                        // Added a tiny visual buffer delay so the last item finishes shrinking before shifting environments
+                        setTimeout(() => {
+                            if (poolIndex < phase1Pool.length) {
+                                loadChallenge();
+                            } else {
+                                initReefPhase();
+                            }
+                        }, 600);
                     } else {
                         const net = document.getElementById('net-overlay-' + activeTurtleId);
                         if(net) net.style.display = 'none';
@@ -608,17 +615,19 @@
                         activeTurtleId = null;
                         poolIndex++;
                         
-                        if (poolIndex < phase2Pool.length) {
-                            reefTurtles.forEach(t => {
-                                const n = document.getElementById('turtle-node-' + t.id);
-                                if (n && !t.solved) n.classList.add('pulse');
-                            });
-                            loadChallenge();
-                        } else {
-                            concludeSimulation();
-                        }
+                        setTimeout(() => {
+                            if (poolIndex < phase2Pool.length) {
+                                reefTurtles.forEach(t => {
+                                    const n = document.getElementById('turtle-node-' + t.id);
+                                    if (n && !t.solved) n.classList.add('pulse');
+                                });
+                                loadChallenge();
+                            } else {
+                                concludeSimulation();
+                            }
+                        }, 800);
                     }
-                }, 2000);
+                }, 1400);
 
             } else {
                 displayEl.classList.add('shake');
@@ -642,16 +651,22 @@
                         setTimeout(() => {
                             document.getElementById('field-hint').style.color = "#E65100";
                             if (currentPhase === 1) {
+                                const trashEl = document.getElementById('litter-' + poolIndex);
+                                if (trashEl) trashEl.classList.add('cleared');
                                 poolIndex++;
-                                if (poolIndex < phase1Pool.length) loadChallenge();
-                                else initReefPhase();
+                                setTimeout(() => {
+                                    if (poolIndex < phase1Pool.length) loadChallenge();
+                                    else initReefPhase();
+                                }, 600);
                             } else {
                                 const node = document.getElementById('turtle-node-' + activeTurtleId);
                                 if (node) node.classList.add('pulse');
                                 activeTurtleId = null;
                                 poolIndex++;
-                                if (poolIndex < phase2Pool.length) loadChallenge();
-                                else concludeSimulation();
+                                setTimeout(() => {
+                                    if (poolIndex < phase2Pool.length) loadChallenge();
+                                    else concludeSimulation();
+                                }, 600);
                             }
                         }, 1500);
                     }
