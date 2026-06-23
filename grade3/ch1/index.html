@@ -270,7 +270,6 @@
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
         @keyframes seaGlowPulse { 0% { filter: drop-shadow(0 0 2px #FFEB3B); } 100% { filter: drop-shadow(0 0 12px #FFEB3B); } }
         
-        /* Updates movement parameter to pull turtles smoothly towards the left */
         @keyframes swimAway { 
             0% { transform: scale(1) translateX(0); opacity: 1; } 
             30% { transform: scale(1.1) translateY(-15px); opacity: 1; } 
@@ -352,6 +351,16 @@
             </div>
         </div>
 
+        <div id="transition-card" style="display: none;">
+            <h2 style="color: var(--accent-green); font-size: 2.2rem; margin-bottom: 15px;">🏖️ Coastline Secured!</h2>
+            <p class="mission-text">
+                Awesome work! You successfully cleaned up the entire beach grid! 
+                <br><br>
+                <strong>Up Next:</strong> The coral reefs deep below are calling for help. Multiple sea turtles are cornered in plastic traps. Let's head underwater!
+            </p>
+            <button class="start-btn" onclick="engagePhase2()">Dive Into Coral Reef 🐠</button>
+        </div>
+
         <div id="victory-card" style="display: none;">
             <img src="assets/turtle-happy.png" style="height: 130px; margin-bottom: 10px; animation: float 2.5s infinite ease-in-out;" alt="Winner">
             <h1 style="color: var(--accent-green); font-size: 2.6rem; margin: 20px 0;">Code Breaker Verified!</h1>
@@ -395,7 +404,7 @@
         }
 
         /* --- CBSE MATH CHALLENGE QUESTION POOLS --- */
-        const phase1Pool = [
+        let phase1Pool = [
             { question: "Write the numeral for:\nFour thousand two hundred six.", correct: "4206", hint: "Check your digits! There are no tens mentioned, so use a zero." },
             { question: "Find the place value of the digit 7 in the number 7482.", correct: "7000", hint: "The digit 7 is sitting in the thousands house." },
             { question: "What is the face value of the digit 8 in the number 3854?", correct: "8", hint: "The face value of any digit is always just the digit itself!" },
@@ -404,12 +413,20 @@
             { question: "Write the successor of the number 8499.", correct: "8500", hint: "Successor means the number that comes just after (Number + 1)." }
         ];
 
-        const phase2Pool = [
+        let phase2Pool = [
             { question: "Form the greatest 4-digit number using the digits 1, 4, 6, and 8 without repeating any digit.", correct: "8641", hint: "Arrange the given digits in descending order (largest to smallest)." },
             { question: "Round off 6520 to the nearest thousands.", correct: "7000", hint: "Look at the hundreds digit. If it is 5 or more, round up to the next thousand." },
             { question: "Complete the skip-counting pattern: 100, 200, 300, 400, _____.", correct: "500", hint: "Identify the rule. Here, the values increase by adding 100." },
             { question: "Write the Hindu-Arabic numeral for the Roman Numeral: XL", correct: "40", hint: "When a smaller numeral comes before a larger one (X before L), subtract it (50 - 10)." }
         ];
+
+        // Randomization Function (Fisher-Yates Shuffle)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
 
         let currentPhase = 1;
         let poolIndex = 0;
@@ -436,6 +453,8 @@
         ];
 
         function engageMission() {
+            shuffleArray(phase1Pool);
+            shuffleArray(phase2Pool);
             document.getElementById('intro-card').style.display = 'none';
             document.getElementById('active-playfield').style.display = 'block';
             initBeachPhase();
@@ -491,6 +510,17 @@
                     document.getElementById('field-question').innerText = phase2Pool[poolIndex].question;
                 }
             }
+        }
+
+        function showTransitionScreen() {
+            document.getElementById('active-playfield').style.display = 'none';
+            document.getElementById('transition-card').style.display = 'block';
+        }
+
+        function engagePhase2() {
+            document.getElementById('transition-card').style.display = 'none';
+            document.getElementById('active-playfield').style.display = 'block';
+            initReefPhase();
         }
 
         function initReefPhase() {
@@ -565,7 +595,6 @@
                 gameScore += (attemptCount === 0) ? 2 : 1;
                 document.getElementById('label-score').innerText = gameScore;
 
-                // INSTANT IMAGE CHANGE: Swaps the asset file immediately when the correct code matches
                 if (currentPhase === 2 && activeTurtleId !== null) {
                     const turtleImgEl = document.getElementById('turtle-img-' + activeTurtleId);
                     if (turtleImgEl) {
@@ -588,7 +617,7 @@
                             if (poolIndex < phase1Pool.length) {
                                 loadChallenge();
                             } else {
-                                initReefPhase();
+                                showTransitionScreen();
                             }
                         }, 600);
                     } else {
@@ -630,9 +659,10 @@
                         isProcessing = false;
                         toggleKeypad(true);
                     } else {
+                        // ADJUSTED FOR HONEST FEEDBACK: Instead of jumping ahead automatically, tells student to pause and revise.
                         attemptCount = 0;
                         document.getElementById('field-hint').style.color = "var(--accent-red)";
-                        document.getElementById('field-hint').innerText = "System Bypass Failed. Jumping to next node...";
+                        document.getElementById('field-hint').innerText = "Looks like this concept is a bit tricky! Please revise your Place Value lesson and try this game again.";
                         
                         setTimeout(() => {
                             document.getElementById('field-hint').style.color = "#E65100";
@@ -642,7 +672,7 @@
                                 poolIndex++;
                                 setTimeout(() => {
                                     if (poolIndex < phase1Pool.length) loadChallenge();
-                                    else initReefPhase();
+                                    else showTransitionScreen();
                                 }, 600);
                             } else {
                                 const node = document.getElementById('turtle-node-' + activeTurtleId);
@@ -656,7 +686,7 @@
                                     else concludeSimulation();
                                 }, finalSceneDelay);
                             }
-                        }, 1500);
+                        }, 3500); // Expanded text timeout reading windows for the children
                     }
                 }, 500);
             }
