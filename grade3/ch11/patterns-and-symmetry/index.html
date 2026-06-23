@@ -139,6 +139,13 @@
             align-items: center;
             gap: 12px;
             flex-wrap: wrap;
+            transition: background-color 0.2s;
+        }
+
+        /* Drag over visual effect */
+        .display-zone.drag-over {
+            background-color: #E3F2FD;
+            border-color: var(--primary-color);
         }
 
         .game-item {
@@ -150,7 +157,7 @@
             font-size: 1.8rem;
             font-weight: bold;
             transition: transform 0.2s;
-            cursor: pointer;
+            pointer-events: none; /* Prevents children interfering with dragging inside options */
         }
 
         .item-circle {
@@ -173,7 +180,7 @@
             border-bottom: 55px solid #FFC857;
         }
 
-        .item-num {
+        .item-num, .shape-num {
             background: #E0FF4F;
             border: 3px solid var(--dark-color);
             border-radius: 12px;
@@ -221,27 +228,29 @@
             gap: 15px;
         }
 
-        .btn-choice {
+        /* Remade buttons as Draggable Option Items */
+        .choice-card {
             background: #FFFFFF;
             border: 3px solid var(--dark-color);
             border-radius: 18px;
             padding: 15px;
             font-size: 1.3rem;
             font-weight: bold;
-            cursor: pointer;
+            cursor: grab;
             box-shadow: 0 5px 0px var(--dark-color);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 70px;
+            user-select: none;
+            touch-action: none; /* Helps with mobile setups or pointer interactions */
         }
 
-        .btn-choice:active {
-            transform: translateY(4px);
-            box-shadow: 0 1px 0px var(--dark-color);
+        .choice-card:active {
+            cursor: grabbing;
         }
 
-        .btn-choice .item-triangle {
+        .choice-card .item-triangle {
             transform: scale(0.8);
         }
 
@@ -306,7 +315,7 @@
                 </div>
             </div>
 
-            <p class="instruction-text" id="promptText">Complete the repeating sequence:</p>
+            <p class="instruction-text" id="promptText">Drag your choice into the box below:</p>
 
             <div class="display-zone" id="renderArea"></div>
             <div class="options-box" id="optionsArea"></div>
@@ -362,16 +371,16 @@
         let lockingMechanism = true;
 
         const masterQuestionPool = [
-            { mission: "Mission 1: Missing Piece", text: "Complete the repeating sequence:", type: "missing", layout: ['circle', 'square', 'circle', 'square', 'blank'], target: "circle", choices: ['circle', 'square', 'triangle', 'number-3'] },
-            { mission: "Mission 1: Missing Piece", text: "Complete the growing pattern:", type: "missing", layout: ['number-2', 'number-4', 'number-6', 'number-8', 'blank'], target: "10", choices: ['9', '10', '12', '14'] },
-            { mission: "Mission 1: Missing Piece", text: "Complete the repeating pattern:", type: "missing", layout: ['triangle', 'triangle', 'circle', 'triangle', 'triangle', 'blank'], target: "circle", choices: ['circle', 'square', 'triangle', 'number-5'] },
-            { mission: "Mission 1: Missing Piece", text: "Complete the growing pattern:", type: "missing", layout: ['number-5', 'number-10', 'number-15', 'blank'], target: "20", choices: ['16', '25', '20', '30'] },
-            { mission: "Mission 2: Rule Detective", text: "What is the core rule of this number pattern?", type: "rule", layout: ['number-3', 'number-6', 'number-9', 'number-12'], target: "Count by 3s (+3)", choices: ["Count by 2s (+2)", "Count by 3s (+3)", "Count by 5s (+5)", "Pattern subtracts"] },
-            { mission: "Mission 2: Rule Detective", text: "What is the pattern rule here?", type: "rule", layout: ['number-10', 'number-20', 'number-30', 'number-40'], target: "Count by 10s (+10)", choices: ["Count by 5s (+5)", "Count by 10s (+10)", "Count by 2s (+2)", "Count by 4s (+4)"] },
-            { mission: "Mission 2: Rule Detective", text: "What repeats in this shape sequence?", type: "rule", layout: ['circle', 'square', 'square', 'circle', 'square', 'square'], target: "1 Circle, 2 Squares", choices: ["1 Circle, 1 Square", "1 Circle, 2 Squares", "2 Circles, 1 Square", "Triangle repeats"] },
-            { mission: "Mission 3: Symmetry Patrol", text: "Is the line a perfect line of symmetry?", type: "symmetry", subType: "vertical", target: "Yes! Perfect Match", choices: ["Yes! Perfect Match", "No! Not Equal"] },
-            { mission: "Mission 3: Symmetry Patrol", text: "Is the line dividing the shape into mirror-image halves?", type: "symmetry", subType: "crooked", target: "No! Not Equal", choices: ["Yes! Perfect Match", "No! Not Equal"] },
-            { mission: "Mission 3: Symmetry Patrol", text: "Is this dotted line an accurate line of symmetry?", type: "symmetry", subType: "vertical", target: "Yes! Perfect Match", choices: ["Yes! Perfect Match", "No! Not Equal"] }
+            { mission: "Mission 1: Missing Piece", text: "Drag the missing item to complete the repeating sequence:", type: "missing", layout: ['circle', 'square', 'circle', 'square', 'blank'], target: "circle", choices: ['circle', 'square', 'triangle', 'number-3'] },
+            { mission: "Mission 1: Missing Piece", text: "Drag the missing item to complete the growing pattern:", type: "missing", layout: ['number-2', 'number-4', 'number-6', 'number-8', 'blank'], target: "10", choices: ['9', '10', '12', '14'] },
+            { mission: "Mission 1: Missing Piece", text: "Drag the missing item to complete the repeating pattern:", type: "missing", layout: ['triangle', 'triangle', 'circle', 'triangle', 'triangle', 'blank'], target: "circle", choices: ['circle', 'square', 'triangle', 'number-5'] },
+            { mission: "Mission 1: Missing Piece", text: "Drag the missing item to complete the growing pattern:", type: "missing", layout: ['number-5', 'number-10', 'number-15', 'blank'], target: "20", choices: ['16', '25', '20', '30'] },
+            { mission: "Mission 2: Rule Detective", text: "What is the core rule? Drag the answer into the detective zone:", type: "rule", layout: ['number-3', 'number-6', 'number-9', 'number-12'], target: "Count by 3s (+3)", choices: ["Count by 2s (+2)", "Count by 3s (+3)", "Count by 5s (+5)", "Pattern subtracts"] },
+            { mission: "Mission 2: Rule Detective", text: "What is the pattern rule here? Drag the correct rule up:", type: "rule", layout: ['number-10', 'number-20', 'number-30', 'number-40'], target: "Count by 10s (+10)", choices: ["Count by 5s (+5)", "Count by 10s (+10)", "Count by 2s (+2)", "Count by 4s (+4)"] },
+            { mission: "Mission 2: Rule Detective", text: "What repeats in this shape sequence? Drag the correct descriptor up:", type: "rule", layout: ['circle', 'square', 'square', 'circle', 'square', 'square'], target: "1 Circle, 2 Squares", choices: ["1 Circle, 1 Square", "1 Circle, 2 Squares", "2 Circles, 1 Square", "Triangle repeats"] },
+            { mission: "Mission 3: Symmetry Patrol", text: "Is the line a perfect line of symmetry? Drag your answer up:", type: "symmetry", subType: "vertical", target: "Yes! Perfect Match", choices: ["Yes! Perfect Match", "No! Not Equal"] },
+            { mission: "Mission 3: Symmetry Patrol", text: "Is the line dividing the shape into mirror halves? Drag your answer up:", type: "symmetry", subType: "crooked", target: "No! Not Equal", choices: ["Yes! Perfect Match", "No! Not Equal"] },
+            { mission: "Mission 3: Symmetry Patrol", text: "Is this dotted line an accurate line of symmetry? Drag your answer up:", type: "symmetry", subType: "vertical", target: "Yes! Perfect Match", choices: ["Yes! Perfect Match", "No! Not Equal"] }
         ];
 
         let activelyShuffledPool = [];
@@ -386,7 +395,36 @@
             }, 5000);
 
             activelyShuffledPool = [...masterQuestionPool].sort(() => Math.random() - 0.5);
+            setupDropZone();
             buildQuestion();
+        }
+
+        // Configure drop zone event handling
+        function setupDropZone() {
+            const renderArea = document.getElementById('renderArea');
+            
+            renderArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                if (lockingMechanism) {
+                    renderArea.classList.add('drag-over');
+                }
+            });
+
+            renderArea.addEventListener('dragleave', () => {
+                renderArea.classList.remove('drag-over');
+            });
+
+            renderArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                renderArea.classList.remove('drag-over');
+                
+                if (!lockingMechanism) return;
+                
+                const chosenString = e.dataTransfer.getData('text/plain');
+                if (chosenString) {
+                    verifySelectedAnswer(chosenString);
+                }
+            });
         }
 
         function spawnVisualElement(itemStr) {
@@ -440,20 +478,27 @@
             }
 
             liveQuestion.choices.forEach(choice => {
-                const btn = document.createElement('button');
-                btn.className = 'btn-choice';
+                const optionCard = document.createElement('div');
+                optionCard.className = 'choice-card';
+                optionCard.setAttribute('draggable', 'true');
+                
+                // Attach option value to HTML5 drag data payload
+                optionCard.addEventListener('dragstart', (e) => {
+                    if(!lockingMechanism) {
+                        e.preventDefault();
+                        return;
+                    }
+                    e.dataTransfer.setData('text/plain', choice);
+                });
                 
                 if (liveQuestion.type === "missing" && !choice.startsWith('number-') && choice !== 'circle' && choice !== 'square' && choice !== 'triangle') {
-                    btn.innerText = choice;
-                    btn.onclick = () => verifySelectedAnswer(choice);
+                    optionCard.innerText = choice;
                 } else if (liveQuestion.type === "missing" && (choice === 'circle' || choice === 'square' || choice === 'triangle')) {
-                    btn.appendChild(spawnVisualElement(choice));
-                    btn.onclick = () => verifySelectedAnswer(choice);
+                    optionCard.appendChild(spawnVisualElement(choice));
                 } else {
-                    btn.innerText = choice;
-                    btn.onclick = () => verifySelectedAnswer(choice);
+                    optionCard.innerText = choice;
                 }
-                optionsArea.appendChild(btn);
+                optionsArea.appendChild(optionCard);
             });
         }
 
