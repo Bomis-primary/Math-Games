@@ -1,1 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 3: Mission Save the Sea Creatures!</title>
+    <style>
+        :root {
+            --text-main: #0D47A1;
+            --primary-teal: #00838F;
+            --accent-green: #2E7D32;
+            --accent-red: #C62828;
+            --surface-white: #FFFFFF;
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(180deg, #E0F7FA 0%, #80DEEA 100%);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+            overflow-x: hidden;
+        }
+
+        /* --- SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #FFFFFF;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+        .splash-logo { width: 120px; height: auto; animation: float 2s infinite ease-in-out; }
+        .splash-text { font-size: 1.5rem; color: var(--primary-teal); font-weight: bold; margin-top: 15px; }
+
+        /* --- MAIN CONTAINER --- */
+        #game-container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--surface-white);
+            padding: 30px;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px rgba(13, 71, 161, 0.2);
+            border: 6px solid var(--primary-teal);
+            text-align: center;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease-in;
+            position: relative;
+        }
+
+        .mission-text {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            margin: 25px 0;
+            background: #E0F2F1;
+            padding: 20px;
+            border-radius: 20px;
+            border: 3px dashed #00ACC1;
+            color: #006064;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #00ACC1, #00796B);
+            color: white;
+            border: none;
+            padding: 16px 48px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #004D40;
+            transition: all 0.1s ease;
+        }
+        .start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
+
+        /* --- DYNAMIC ENVIRONMENT STAGE --- */
+        #eco-stage {
+            width: 100%;
+            height: 280px;
+            border-radius: 24px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            border: 4px solid var(--primary-teal);
+            background-size: cover;
+            background-position: center;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+            transition: background 0.5s ease-in-out;
+        }
+
+        .trash-item {
+            position: absolute;
+            width: 55px;
+            height: 55px;
+            object-fit: contain;
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.2));
+        }
+
+        /* --- TURTLE & WRAPPER COMPLEX CONTAINER --- */
+        .turtle-interactive {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.4s ease;
+        }
+        .turtle-img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .trap-overlay {
+            position: absolute;
+            top: -5px; left: -5px;
+            width: 90px; height: 90px;
+            object-fit: contain;
+            animation: struggle 1.5s infinite ease-in-out;
+        }
+        
+        .turtle-interactive.pulse { animation: seaGlowPulse 1.5s infinite alternate; }
+        .turtle-interactive.saved { pointer-events: none; animation: swimAway 2.5s forwards ease-in-out; }
+
+        /* --- HUD --- */
+        .hud-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .phase-badge {
+            background: #FFECB3;
+            padding: 6px 16px;
+            border-radius: 12px;
+            color: #E65100;
+            font-weight: bold;
+        }
+
+        .progress-track {
+            width: 100%; height: 16px; background: #ECEFF1; border-radius: 10px;
+            overflow: hidden; margin-bottom: 20px; border: 2px solid #CFD8DC;
+        }
+        #progress-bar {
+            height: 100%; width: 0%; background: linear-gradient(90deg, #00BCD4, #00E5FF);
+            transition: width 0.4s ease-out;
+        }
+
+        /* --- CRACKER INTERFACE LAYOUT --- */
+        .interactive-split {
+            display: flex;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .left-panel {
+            flex: 1.2;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .equation-box {
+            font-size: 1.35rem;
+            font-weight: bold;
+            color: #004D40;
+            background: #F5F5F5;
+            padding: 20px;
+            border-radius: 20px;
+            border-bottom: 5px solid #B0BEC5;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.5;
+        }
+
+        .input-display-container {
+            margin-top: 15px;
+        }
+
+        .code-display {
+            width: 100%;
+            height: 60px;
+            background: #263238;
+            border-radius: 15px;
+            border: 3px solid #37474F;
+            color: #00E676;
+            font-family: 'Courier New', monospace;
+            font-size: 2.2rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            letter-spacing: 4px;
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.5);
+        }
+        .code-display.shake { animation: shake 0.4s ease-in-out; border-color: var(--accent-red); color: #FF5252; }
+        .code-display.success-flash { background: #1B5E20; color: #FFFFFF; border-color: #4CAF50; }
+
+        .hint-text {
+            font-size: 1rem;
+            color: #E65100;
+            font-weight: bold;
+            margin-top: 8px;
+            min-height: 24px;
+        }
+
+        /* --- KEYPAD MATRIX --- */
+        .keypad-panel {
+            flex: 0.8;
+            background: #ECEFF1;
+            padding: 15px;
+            border-radius: 24px;
+            border: 3px solid #CFD8DC;
+        }
+
+        .keypad-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .key-btn {
+            background: #FFFFFF;
+            border: none;
+            border-bottom: 4px solid #B0BEC5;
+            border-radius: 14px;
+            padding: 16px 0;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #37474F;
+            cursor: pointer;
+            transition: all 0.05s ease;
+        }
+        .key-btn:active:not(:disabled) { transform: translateY(3px); border-bottom-width: 1px; }
+        .key-btn.action-clear { background: #FFCDD2; color: #B71C1C; border-color: #E57373; }
+        .key-btn.action-enter { background: #C8E6C9; color: #1B5E20; border-color: #81C784; grid-column: span 2; }
+        .key-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .confetti-element {
+            position: absolute; width: 10px; height: 10px; top: 50%; left: 50%;
+            opacity: 0; pointer-events: none; z-index: 99; border-radius: 2px;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+        @keyframes struggle { 0%, 100% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(3deg) scale(1.02); } }
+        @keyframes seaGlowPulse { 0% { filter: drop-shadow(0 0 2px #FFEB3B); } 100% { filter: drop-shadow(0 0 12px #FFEB3B); } }
+        @keyframes swimAway { 
+            0% { transform: scale(1) translateX(0); opacity: 1; } 
+            30% { transform: scale(1.1) translateY(-15px); opacity: 1; } 
+            100% { transform: scale(0.4) translateX(600px) translateY(-50px); opacity: 0; } 
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        @media (max-width: 600px) {
+            .interactive-split { flex-direction: column; }
+            .key-btn { padding: 12px 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="audio-success" src="assets/claps.mp3" preload="auto"></audio>
+    <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+    <div id="splash-screen">
+        <img class="splash-logo" src="assets/logo.png" alt="Logo" onerror="this.style.display='none';">
+        <div class="splash-text">Loading Assets & Modules...</div>
+    </div>
+
+    <div id="game-container">
+        <div id="intro-card">
+            <img src="assets/turtle-happy.png" style="height: 120px; width: auto; margin-bottom: 15px; animation: float 3s infinite ease-in-out;" alt="Happy Turtle">
+            <h2 style="color: var(--primary-teal); font-size: 2.4rem; margin-bottom: 15px;">Mission: Code Cracker Rescue!</h2>
+            <p class="mission-text">
+                Litter items and marine traps have system locks protection grids. 
+                <br><br>
+                <strong>Your Mission:</strong> Decipher the place-value problems, type the secret values into the digital keypad link, and unlock safety for our ocean ecosystem!
+            </p>
+            <button class="start-btn" onclick="engageMission()">Accept Mission! 🚀</button>
+        </div>
+
+        <div id="active-playfield" style="display: none;">
+            <div class="hud-header">
+                <span id="label-task">System Code: 1 / 10</span>
+                <span class="phase-badge" id="label-phase">Phase 1: Beach Clean</span>
+                <span>Score: <span id="label-score" style="color:var(--accent-green)">0</span></span>
+            </div>
+
+            <div class="progress-track"><div id="progress-bar"></div></div>
+
+            <div id="eco-stage"></div>
+
+            <div class="interactive-split">
+                <div class="left-panel">
+                    <div class="equation-box" id="field-question">Loading puzzle data...</div>
+                    <div class="input-display-container">
+                        <div class="code-display" id="field-code"></div>
+                        <div class="hint-text" id="field-hint"></div>
+                    </div>
+                </div>
+
+                <div class="keypad-panel">
+                    <div class="keypad-grid">
+                        <button class="key-btn" onclick="pressKey('1')">1</button>
+                        <button class="key-btn" onclick="pressKey('2')">2</button>
+                        <button class="key-btn" onclick="pressKey('3')">3</button>
+                        <button class="key-btn" onclick="pressKey('4')">4</button>
+                        <button class="key-btn" onclick="pressKey('5')">5</button>
+                        <button class="key-btn" onclick="pressKey('6')">6</button>
+                        <button class="key-btn" onclick="pressKey('7')">7</button>
+                        <button class="key-btn" onclick="pressKey('8')">8</button>
+                        <button class="key-btn" onclick="pressKey('9')">9</button>
+                        <button class="key-btn action-clear" onclick="pressKey('clear')">C</button>
+                        <button class="key-btn" onclick="pressKey('0')">0</button>
+                        <button class="key-btn action-enter" id="btn-enter" onclick="submitCode()">ENTER 🔓</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="victory-card" style="display: none;">
+            <img src="assets/turtle-happy.png" style="height: 130px; margin-bottom: 10px; animation: float 2.5s infinite ease-in-out;" alt="Winner">
+            <h1 style="color: var(--accent-green); font-size: 2.6rem; margin: 20px 0;">Code Breaker Verified!</h1>
+            <p style="font-size: 1.35rem; margin-bottom: 30px; color: #37474F;">
+                Incredible computation speed! Every trap has been bypassed and all environmental wildlife are swimming free.
+            </p>
+            <h2 id="final-stats" style="color: #EF6C00; margin-bottom: 25px; font-size: 1.8rem;"></h2>
+            <button class="start-btn" onclick="resetSimulator()">Play Challenge Again 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        // Custom Audio Player helper utilizing asset resources safely
+        function playSfx(type) {
+            try {
+                let track = (type === 'correct') ? document.getElementById('audio-success') : document.getElementById('audio-wrong');
+                if (track) {
+                    track.currentTime = 0;
+                    track.play();
+                }
+            } catch (e) { console.log("Audio playback error handled gracefully."); }
+        }
+
+        function deployConfettiEngine() {
+            try {
+                const frame = document.getElementById('game-container');
+                const palettes = ['#00E5FF', '#FFEA00', '#00E676', '#FF3D00', '#FFFFFF'];
+                for (let i = 0; i < 30; i++) {
+                    const atom = document.createElement('div');
+                    atom.className = 'confetti-element';
+                    atom.style.backgroundColor = palettes[Math.floor(Math.random() * palettes.length)];
+                    frame.appendChild(atom);
+                    const angle = Math.random() * Math.PI * 2;
+                    const force = Math.random() * 150 + 60;
+                    atom.animate([
+                        { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
+                        { transform: 'translate(calc(-50% + ' + Math.cos(angle) * force + 'px), calc(-50% + ' + Math.sin(angle) * force + 'px)) scale(0.2)', opacity: 0 }
+                    ], { duration: Math.random() * 400 + 600, easing: 'ease-out', fill: 'forwards' });
+                    setTimeout(() => atom.remove(), 1100);
+                }
+            } catch(e){}
+        }
+
+        const phase1Pool = [
+            { question: "What is the missing standard number value for: Four thousand two hundred six?", correct: "4206", hint: "Check your hundreds and ones placeholders!" },
+            { question: "What is the number value written inside the thousands place inside 7482?", correct: "7000", hint: "Count the digits needed for thousands!" },
+            { question: "What is the single-digit face value of the number 8 in 3854?", correct: "8", hint: "Face value is always just the digit itself!" },
+            { question: "Combine this expanded form into a single number: 6000 + 200 + 40 + 5", correct: "6245", hint: "Line the places up neatly from left to right." },
+            { question: "What is the predecessor (number that comes right before) of 3000?", correct: "2999", hint: "Subtract exactly 1 from 3000." },
+            { question: "What is the successor (number that comes right after) of 8499?", correct: "8500", hint: "Add exactly 1 to 8499." }
+        ];
+
+        const phase2Pool = [
+            { question: "What is the greatest 4-digit number you can build using digits 1, 4, 6, and 8 exactly once?", correct: "8641", hint: "Arrange the digits from biggest to smallest!" },
+            { question: "Round the number 6520 to the nearest 1000 place.", correct: "7000", hint: "Since the hundreds digit is 5, round up!" },
+            { question: "Complete the step pattern tracking string: 100, 200, 300, 400, [?]", correct: "500", hint: "The sequence increases by 100 each time." },
+            { question: "What system base number does the Roman Numeral combination XL stand for?", correct: "40", hint: "Think of 10 subtracted from 50." }
+        ];
+
+        let currentPhase = 1;
+        let poolIndex = 0;
+        let gameScore = 0;
+        let currentInput = "";
+        let attemptCount = 0;
+        let isProcessing = false;
+        let activeTurtleId = null;
+
+        // Maps to bottle1.png, bottle2.png and tetra.png assets
+        const beachLitter = [
+            { src: "assets/bottle1.png", top: "160px", left: "40px" },
+            { src: "assets/bottle2.png", top: "205px", left: "150px" },
+            { src: "assets/tetra.png", top: "145px", left: "270px" },
+            { src: "assets/bottle1.png", top: "195px", left: "390px" },
+            { src: "assets/bottle2.png", top: "155px", left: "510px" },
+            { src: "assets/tetra.png", top: "190px", left: "620px" }
+        ];
+
+        // Maps to turtle-happy.png and wrapper colors
+        const reefTurtles = [
+            { id: 0, trap: "assets/wrapper-purple.png", top: "55px", left: "65px", solved: false },
+            { id: 1, trap: "assets/wrapper-red.png", top: "150px", left: "210px", solved: false },
+            { id: 2, trap: "assets/wrapper-yellow.png", top: "50px", left: "360px", solved: false },
+            { id: 3, trap: "assets/wrapper-purple.png", top: "145px", left: "510px", solved: false }
+        ];
+
+        function engageMission() {
+            document.getElementById('intro-card').style.display = 'none';
+            document.getElementById('active-playfield').style.display = 'block';
+            initBeachPhase();
+        }
+
+        function initBeachPhase() {
+            currentPhase = 1;
+            poolIndex = 0;
+            const stage = document.getElementById('eco-stage');
+            stage.style.backgroundImage = "url('assets/beach-bg.png')";
+            stage.innerHTML = '';
+
+            beachLitter.forEach(function(item, idx) {
+                const img = document.createElement('img');
+                img.className = 'trash-item';
+                img.id = 'litter-' + idx;
+                img.src = item.src;
+                img.style.top = item.top;
+                img.style.left = item.left;
+                stage.appendChild(img);
+            });
+            loadChallenge();
+        }
+
+        function loadChallenge() {
+            isProcessing = false;
+            currentInput = "";
+            document.getElementById('field-code').innerText = "----";
+            document.getElementById('field-hint').innerText = "";
+            toggleKeypad(true);
+
+            const totalQ = phase1Pool.length + phase2Pool.length;
+            const absoluteProgress = (currentPhase === 1) ? poolIndex : phase1Pool.length + poolIndex;
+            
+            document.getElementById('label-task').innerText = "System Code: " + (absoluteProgress + 1) + " / " + totalQ;
+            document.getElementById('progress-bar').style.width = ((absoluteProgress / totalQ) * 100) + "%";
+
+            if (currentPhase === 1) {
+                document.getElementById('field-question').innerText = phase1Pool[poolIndex].question;
+                document.querySelectorAll('.trash-item').forEach(el => el.style.transform = "scale(1)");
+                const activeTrash = document.getElementById('litter-' + poolIndex);
+                if (activeTrash) activeTrash.style.transform = "scale(1.4) rotate(12deg)";
+            } else {
+                if (activeTurtleId === null) {
+                    document.getElementById('field-question').innerText = "🐢 Click any trapped turtle in the reef to connect the breaker device link!";
+                    document.getElementById('field-code').innerText = "LOCK";
+                    toggleKeypad(false);
+                } else {
+                    document.getElementById('field-question').innerText = phase2Pool[poolIndex].question;
+                }
+            }
+        }
+
+        function initReefPhase() {
+            currentPhase = 2;
+            poolIndex = 0;
+            activeTurtleId = null;
+            const stage = document.getElementById('eco-stage');
+            stage.style.backgroundImage = "url('assets/reef.png')";
+            stage.innerHTML = '';
+
+            document.getElementById('label-phase').innerText = "Phase 2: Coral Rescue";
+            document.getElementById('label-phase').style.background = "#B2DFDB";
+            document.getElementById('label-phase').style.color = "#004D40";
+
+            reefTurtles.forEach(function(t) {
+                const container = document.createElement('div');
+                container.className = 'turtle-interactive pulse';
+                container.id = 'turtle-node-' + t.id;
+                container.style.top = t.top;
+                container.style.left = t.left;
+                
+                const tImg = document.createElement('img');
+                tImg.className = 'turtle-img';
+                tImg.src = 'assets/turtle-happy.png';
+                
+                const netImg = document.createElement('img');
+                netImg.className = 'trap-overlay';
+                netImg.id = 'net-overlay-' + t.id;
+                netImg.src = t.trap;
+
+                container.appendChild(tImg);
+                container.appendChild(netImg);
+                
+                container.onclick = function() { selectTurtle(t.id); };
+                stage.appendChild(container);
+            });
+
+            loadChallenge();
+        }
+
+        function selectTurtle(id) {
+            if (currentPhase !== 2 || activeTurtleId !== null || reefTurtles[id].solved) return;
+            
+            activeTurtleId = id;
+            reefTurtles.forEach(t => {
+                const node = document.getElementById('turtle-node-' + t.id);
+                if (node) node.classList.remove('pulse');
+            });
+            
+            loadChallenge();
+        }
+
+        function pressKey(val) {
+            if (isProcessing) return;
+            
+            if (val === 'clear') {
+                currentInput = "";
+            } else {
+                if (currentInput.length >= 6) return;
+                currentInput += val;
+            }
+            document.getElementById('field-code').innerText = currentInput || "----";
+        }
+
+        function submitCode() {
+            if (isProcessing || !currentInput) return;
+            
+            const currentPool = (currentPhase === 1) ? phase1Pool : phase2Pool;
+            const targetData = currentPool[poolIndex];
+            const displayEl = document.getElementById('field-code');
+            
+            isProcessing = true;
+            toggleKeypad(false);
+
+            if (currentInput === targetData.correct) {
+                displayEl.classList.add('success-flash');
+                playSfx('correct');
+                deployConfettiEngine();
+                
+                gameScore += (attemptCount === 0) ? 2 : 1;
+                document.getElementById('label-score').innerText = gameScore;
+
+                setTimeout(() => {
+                    displayEl.classList.remove('success-flash');
+                    attemptCount = 0;
+
+                    if (currentPhase === 1) {
+                        const trashEl = document.getElementById('litter-' + poolIndex);
+                        if (trashEl) {
+                            trashEl.style.transform = "translateY(-120px) scale(0)";
+                            trashEl.style.opacity = "0";
+                        }
+                        poolIndex++;
+                        if (poolIndex < phase1Pool.length) {
+                            loadChallenge();
+                        } else {
+                            initReefPhase();
+                        }
+                    } else {
+                        // Dissolve net trap overlay and animate turtle
+                        const net = document.getElementById('net-overlay-' + activeTurtleId);
+                        if(net) net.style.display = 'none';
+                        
+                        const node = document.getElementById('turtle-node-' + activeTurtleId);
+                        if (node) node.classList.add('saved');
+                        
+                        reefTurtles[activeTurtleId].solved = true;
+                        activeTurtleId = null;
+                        poolIndex++;
+                        
+                        if (poolIndex < phase2Pool.length) {
+                            reefTurtles.forEach(t => {
+                                const n = document.getElementById('turtle-node-' + t.id);
+                                if (n && !t.solved) n.classList.add('pulse');
+                            });
+                            loadChallenge();
+                        } else {
+                            concludeSimulation();
+                        }
+                    }
+                }, 2000);
+
+            } else {
+                displayEl.classList.add('shake');
+                playSfx('wrong');
+
+                setTimeout(() => {
+                    displayEl.classList.remove('shake');
+                    
+                    if (attemptCount === 0) {
+                        attemptCount = 1;
+                        document.getElementById('field-hint').innerText = "💡 Second Chance Hint: " + targetData.hint;
+                        currentInput = "";
+                        displayEl.innerText = "----";
+                        isProcessing = false;
+                        toggleKeypad(true);
+                    } else {
+                        attemptCount = 0;
+                        document.getElementById('field-hint').style.color = "var(--accent-red)";
+                        document.getElementById('field-hint').innerText = "Lock Locked. Moving to next grid segment...";
+                        
+                        setTimeout(() => {
+                            document.getElementById('field-hint').style.color = "#E65100";
+                            if (currentPhase === 1) {
+                                poolIndex++;
+                                if (poolIndex < phase1Pool.length) loadChallenge();
+                                else initReefPhase();
+                            } else {
+                                const node = document.getElementById('turtle-node-' + activeTurtleId);
+                                if (node) node.classList.add('pulse');
+                                activeTurtleId = null;
+                                poolIndex++;
+                                if (poolIndex < phase2Pool.length) loadChallenge();
+                                else concludeSimulation();
+                            }
+                        }, 1500);
+                    }
+                }, 500);
+            }
+        }
+
+        function toggleKeypad(enable) {
+            document.querySelectorAll('.key-btn').forEach(btn => btn.disabled = !enable);
+        }
+
+        function concludeSimulation() {
+            document.getElementById('active-playfield').style.display = 'none';
+            document.getElementById('victory-card').style.display = 'block';
+            const totalMaxScore = (phase1Pool.length + phase2Pool.length) * 2;
+            document.getElementById('final-stats').innerText = "Total Score: " + gameScore + " / " + totalMaxScore + " Points";
+        }
+
+        function resetSimulator() {
+            location.reload();
+        }
+
+        window.addEventListener('load', function() {
+            setTimeout(function() { 
+                const splash = document.getElementById('splash-screen');
+                const mainContainer = document.getElementById('game-container');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    if (mainContainer) {
+                        mainContainer.style.display = 'block';
+                        setTimeout(() => { 
+                            mainContainer.style.opacity = '1'; 
+                            splash.remove();
+                        }, 500);
+                    }
+                }
+            }, 1200);
+        });
+    </script>
+</body>
+</html>
