@@ -103,22 +103,21 @@
             transition: background 0.5s ease-in-out;
         }
 
-        /* --- WHITE BACKGROUND REMOVAL FILTERS --- */
+        /* --- LITTER BLENDING --- */
         .trash-item {
             position: absolute;
             width: 55px;
             height: 55px;
             object-fit: contain;
-            mix-blend-mode: multiply; /* Removes white backgrounds */
+            mix-blend-mode: multiply;
             transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            filter: drop-shadow(2px 4px 4px rgba(0,0,0,0.2));
         }
 
-        /* --- TURTLE & WRAPPER CONTAINERS --- */
+        /* --- TURTLE & TRAP INTERACTIVE NODES --- */
         .turtle-interactive {
             position: absolute;
-            width: 80px;
-            height: 80px;
+            width: 85px;
+            height: 85px;
             cursor: pointer;
             user-select: none;
             transition: all 0.4s ease;
@@ -127,15 +126,18 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            mix-blend-mode: multiply; /* Removes white backgrounds */
+            mix-blend-mode: multiply;
+            position: absolute;
+            top: 0; left: 0;
         }
         .trap-overlay {
             position: absolute;
-            top: -5px; left: -5px;
-            width: 90px; height: 90px;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             object-fit: contain;
-            mix-blend-mode: multiply; /* Removes white backgrounds */
+            mix-blend-mode: multiply;
             animation: struggle 1.5s infinite ease-in-out;
+            z-index: 2;
         }
         
         .turtle-interactive.pulse { animation: seaGlowPulse 1.5s infinite alternate; }
@@ -266,7 +268,7 @@
 
         /* --- ANIMATIONS --- */
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-        @keyframes struggle { 0%, 100% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(3deg) scale(1.02); } }
+        @keyframes struggle { 0%, 100% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(4deg) scale(1.02); } }
         @keyframes seaGlowPulse { 0% { filter: drop-shadow(0 0 2px #FFEB3B); } 100% { filter: drop-shadow(0 0 12px #FFEB3B); } }
         @keyframes swimAway { 
             0% { transform: scale(1) translateX(0); opacity: 1; } 
@@ -290,11 +292,13 @@
     <audio id="audio-success" src="assets/claps.mp3" preload="auto"></audio>
     <audio id="audio-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
+    <!-- CLEAN SPLASH SCREEN (LOGO ONLY) -->
     <div id="splash-screen">
         <img class="splash-logo" src="assets/logo.png" alt="Innovine Logo" onerror="this.style.display='none';">
     </div>
 
     <div id="game-container">
+        <!-- Introduction Screen -->
         <div id="intro-card">
             <img src="assets/turtle-happy.png" style="height: 120px; width: auto; margin-bottom: 15px; animation: float 3s infinite ease-in-out; mix-blend-mode: multiply;" alt="Happy Turtle">
             <h2 style="color: var(--primary-teal); font-size: 2.4rem; margin-bottom: 15px;">Mission: Code Cracker Rescue!</h2>
@@ -306,6 +310,7 @@
             <button class="start-btn" onclick="engageMission()">Accept Mission! 🚀</button>
         </div>
 
+        <!-- Playfield Screen -->
         <div id="active-playfield" style="display: none;">
             <div class="hud-header">
                 <span id="label-task">System Code: 1 / 10</span>
@@ -345,6 +350,7 @@
             </div>
         </div>
 
+        <!-- Victory Screen -->
         <div id="victory-card" style="display: none;">
             <img src="assets/turtle-happy.png" style="height: 130px; margin-bottom: 10px; animation: float 2.5s infinite ease-in-out; mix-blend-mode: multiply;" alt="Winner">
             <h1 style="color: var(--accent-green); font-size: 2.6rem; margin: 20px 0;">Code Breaker Verified!</h1>
@@ -387,20 +393,21 @@
             } catch(e){}
         }
 
+        /* --- REFRAMED TO MATCH EXACT CBSE MATH TEXTBOOK FORMULATIONS --- */
         const phase1Pool = [
-            { question: "What is the missing standard number value for: Four thousand two hundred six?", correct: "4206", hint: "Check your hundreds and ones placeholders!" },
-            { question: "What is the number value written inside the thousands place inside 7482?", correct: "7000", hint: "Count the digits needed for thousands!" },
-            { question: "What is the single-digit face value of the number 8 in 3854?", correct: "8", hint: "Face value is always just the digit itself!" },
-            { question: "Combine this expanded form into a single number: 6000 + 200 + 40 + 5", correct: "6245", hint: "Line the places up neatly from left to right." },
-            { question: "What is the predecessor (number that comes right before) of 3000?", correct: "2999", hint: "Subtract exactly 1 from 3000." },
-            { question: "What is the successor (number that comes right after) of 8499?", correct: "8500", hint: "Add exactly 1 to 8499." }
+            { question: "Write the numeral for: Four thousand two hundred six.", correct: "4206", hint: "Check your digits! There are no tens mentioned, so use a zero." },
+            { question: "Find the place value of the digit 7 in the number 7482.", correct: "7000", hint: "The digit 7 is sitting in the thousands house." },
+            { question: "What is the face value of the digit 8 in the number 3854?", correct: "8", hint: "The face value of any digit is always just the digit itself!" },
+            { question: "Write the short form of the following expanded numbers:\n6000 + 200 + 40 + 5", correct: "6245", hint: "Combine the place holdings from thousands down to ones." },
+            { question: "Write the predecessor of the number 3000.", correct: "2999", hint: "Predecessor means the number that comes just before (Number - 1)." },
+            { question: "Write the successor of the number 8499.", correct: "8500", hint: "Successor means the number that comes just after (Number + 1)." }
         ];
 
         const phase2Pool = [
-            { question: "What is the greatest 4-digit number you can build using digits 1, 4, 6, and 8 exactly once?", correct: "8641", hint: "Arrange the digits from biggest to smallest!" },
-            { question: "Round the number 6520 to the nearest 1000 place.", correct: "7000", hint: "Since the hundreds digit is 5, round up!" },
-            { question: "Complete the step pattern tracking string: 100, 200, 300, 400, [?]", correct: "500", hint: "The sequence increases by 100 each time." },
-            { question: "What system base number does the Roman Numeral combination XL stand for?", correct: "40", hint: "Think of 10 subtracted from 50." }
+            { question: "Form the greatest 4-digit number using the digits 1, 4, 6, and 8 without repeating any digit.", correct: "8641", hint: "Arrange the given digits in descending order (largest to smallest)." },
+            { question: "Round off 6520 to the nearest thousands.", correct: "7000", hint: "Look at the hundreds digit. If it is 5 or more, round up to the next thousand." },
+            { question: "Complete the skip-counting pattern: 100, 200, 300, 400, _____.", correct: "500", hint: "Identify the rule. Here, the values increase by adding 100." },
+            { question: "Write the Hindu-Arabic numeral for the Roman Numeral: XL", correct: "40", hint: "When a smaller numeral comes before a larger one (X before L), subtract it (50 - 10)." }
         ];
 
         let currentPhase = 1;
@@ -502,7 +509,8 @@
                 
                 const tImg = document.createElement('img');
                 tImg.className = 'turtle-img';
-                tImg.src = 'assets/turtle-happy.png';
+                tImg.id = 'turtle-img-' + t.id;
+                tImg.src = 'assets/turtle-sad.png';
                 
                 const netImg = document.createElement('img');
                 netImg.className = 'trap-overlay';
@@ -578,6 +586,9 @@
                         const net = document.getElementById('net-overlay-' + activeTurtleId);
                         if(net) net.style.display = 'none';
                         
+                        const turtleImgEl = document.getElementById('turtle-img-' + activeTurtleId);
+                        if(turtleImgEl) turtleImgEl.src = 'assets/turtle-happy.png';
+                        
                         const node = document.getElementById('turtle-node-' + activeTurtleId);
                         if (node) node.classList.add('saved');
                         
@@ -606,7 +617,7 @@
                     
                     if (attemptCount === 0) {
                         attemptCount = 1;
-                        document.getElementById('field-hint').innerText = "💡 Second Chance Hint: " + targetData.hint;
+                        document.getElementById('field-hint').innerText = "💡 Hint: " + targetData.hint;
                         currentInput = "";
                         displayEl.innerText = "----";
                         isProcessing = false;
@@ -614,7 +625,7 @@
                     } else {
                         attemptCount = 0;
                         document.getElementById('field-hint').style.color = "var(--accent-red)";
-                        document.getElementById('field-hint').innerText = "Lock Locked. Moving to next grid segment...";
+                        document.getElementById('field-hint').innerText = "System Bypass Failed. Jumping to next node...";
                         
                         setTimeout(() => {
                             document.getElementById('field-hint').style.color = "#E65100";
