@@ -118,11 +118,11 @@
             animation: shrinkAway 0.6s forwards !important; 
         }
 
-        /* --- TURTLE & TRAP INTERACTIVE NODES --- */
+        /* --- TURTLE INTERACTIVE NODES --- */
         .turtle-interactive {
             position: absolute;
-            width: 85px;
-            height: 85px;
+            width: 95px;
+            height: 95px;
             cursor: pointer;
             user-select: none;
             transition: all 0.4s ease;
@@ -131,20 +131,9 @@
             width: 100%;
             height: 100%;
             object-fit: contain;
-            mix-blend-mode: multiply;
-            filter: brightness(1.05) contrast(1.1);
+            filter: brightness(1.02) contrast(1.02);
             position: absolute;
             top: 0; left: 0;
-        }
-        .trap-overlay {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            object-fit: contain;
-            mix-blend-mode: multiply;
-            filter: brightness(1.05) contrast(1.1);
-            animation: struggle 1.5s infinite ease-in-out;
-            z-index: 2;
         }
         
         .turtle-interactive.pulse { animation: seaGlowPulse 1.5s infinite alternate; }
@@ -279,12 +268,13 @@
 
         /* --- ANIMATIONS --- */
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-        @keyframes struggle { 0%, 100% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(4deg) scale(1.02); } }
         @keyframes seaGlowPulse { 0% { filter: drop-shadow(0 0 2px #FFEB3B); } 100% { filter: drop-shadow(0 0 12px #FFEB3B); } }
+        
+        /* Updates movement parameter to pull turtles smoothly towards the left */
         @keyframes swimAway { 
             0% { transform: scale(1) translateX(0); opacity: 1; } 
             30% { transform: scale(1.1) translateY(-15px); opacity: 1; } 
-            100% { transform: scale(0.4) translateX(600px) translateY(-50px); opacity: 0; } 
+            100% { transform: scale(0.4) translateX(-600px) translateY(-50px); opacity: 0; } 
         }
         @keyframes shrinkAway {
             0% { transform: scale(1.4) translateY(0); opacity: 1; }
@@ -313,7 +303,7 @@
 
     <div id="game-container">
         <div id="intro-card">
-            <img src="assets/turtle-happy.png" style="height: 120px; width: auto; margin-bottom: 15px; animation: float 3s infinite ease-in-out; mix-blend-mode: multiply; filter: brightness(1.05) contrast(1.1);" alt="Happy Turtle">
+            <img src="assets/turtle-happy.png" style="height: 120px; width: auto; margin-bottom: 15px; animation: float 3s infinite ease-in-out;" alt="Happy Turtle">
             <h2 style="color: var(--primary-teal); font-size: 2.4rem; margin-bottom: 15px;">Mission: Code Cracker Rescue!</h2>
             <p class="mission-text">
                 Litter items and marine traps have system locks protection grids. 
@@ -363,7 +353,7 @@
         </div>
 
         <div id="victory-card" style="display: none;">
-            <img src="assets/turtle-happy.png" style="height: 130px; margin-bottom: 10px; animation: float 2.5s infinite ease-in-out; mix-blend-mode: multiply; filter: brightness(1.05) contrast(1.1);" alt="Winner">
+            <img src="assets/turtle-happy.png" style="height: 130px; margin-bottom: 10px; animation: float 2.5s infinite ease-in-out;" alt="Winner">
             <h1 style="color: var(--accent-green); font-size: 2.6rem; margin: 20px 0;">Code Breaker Verified!</h1>
             <p style="font-size: 1.35rem; margin-bottom: 30px; color: #37474F;">
                 Incredible computation speed! Every trap has been bypassed and all environmental wildlife are swimming free.
@@ -439,10 +429,10 @@
         ];
 
         const reefTurtles = [
-            { id: 0, trap: "assets/wrapper-purple.png", top: "55px", left: "65px", solved: false },
-            { id: 1, trap: "assets/wrapper-red.png", top: "150px", left: "210px", solved: false },
-            { id: 2, trap: "assets/wrapper-yellow.png", top: "50px", left: "360px", solved: false },
-            { id: 3, trap: "assets/wrapper-purple.png", top: "145px", left: "510px", solved: false }
+            { id: 0, top: "55px", left: "65px", solved: false },
+            { id: 1, top: "150px", left: "210px", solved: false },
+            { id: 2, top: "50px", left: "360px", solved: false },
+            { id: 3, top: "145px", left: "510px", solved: false }
         ];
 
         function engageMission() {
@@ -526,14 +516,8 @@
                 tImg.className = 'turtle-img';
                 tImg.id = 'turtle-img-' + t.id;
                 tImg.src = 'assets/turtle-sad.png';
-                
-                const netImg = document.createElement('img');
-                netImg.className = 'trap-overlay';
-                netImg.id = 'net-overlay-' + t.id;
-                netImg.src = t.trap;
 
                 container.appendChild(tImg);
-                container.appendChild(netImg);
                 
                 container.onclick = function() { selectTurtle(t.id); };
                 stage.appendChild(container);
@@ -581,6 +565,14 @@
                 gameScore += (attemptCount === 0) ? 2 : 1;
                 document.getElementById('label-score').innerText = gameScore;
 
+                // INSTANT IMAGE CHANGE: Swaps the asset file immediately when the correct code matches
+                if (currentPhase === 2 && activeTurtleId !== null) {
+                    const turtleImgEl = document.getElementById('turtle-img-' + activeTurtleId);
+                    if (turtleImgEl) {
+                        turtleImgEl.src = 'assets/turtle-happy.png';
+                    }
+                }
+
                 setTimeout(() => {
                     displayEl.classList.remove('success-flash');
                     attemptCount = 0;
@@ -600,12 +592,6 @@
                             }
                         }, 600);
                     } else {
-                        const net = document.getElementById('net-overlay-' + activeTurtleId);
-                        if(net) net.style.display = 'none';
-                        
-                        const turtleImgEl = document.getElementById('turtle-img-' + activeTurtleId);
-                        if(turtleImgEl) turtleImgEl.src = 'assets/turtle-happy.png';
-                        
                         const node = document.getElementById('turtle-node-' + activeTurtleId);
                         if (node) node.classList.add('saved');
                         
@@ -613,8 +599,6 @@
                         activeTurtleId = null;
                         poolIndex++;
                         
-                        // FIXED: Adjusted timeout value logic.
-                        // If it's the last turtle, wait 2600ms to let the 2.5s swimAway animation completely finish.
                         const finalSceneDelay = (poolIndex < phase2Pool.length) ? 800 : 2600;
 
                         setTimeout(() => {
