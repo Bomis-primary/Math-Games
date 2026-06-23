@@ -15,94 +15,133 @@
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
 
         body {
-            background: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1)), url('assets/garden-bg.png') no-repeat center center fixed;
+            background: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1)), url('../assets/garden-bg.png') no-repeat center center fixed;
             background-size: cover;
             min-height: 100vh;
             display: flex; justify-content: center; align-items: center; padding: 15px;
+            overflow-x: hidden;
         }
 
         .game-container {
             width: 100%; max-width: 850px; background: var(--card-white);
             border-radius: 24px; border: 4px solid var(--garden-green);
             box-shadow: 0 12px 35px rgba(0,0,0,0.15); display: flex; flex-direction: column; overflow: hidden;
+            position: relative; min-height: 520px;
         }
 
-        .screen { display: none; padding: 30px; flex-direction: column; align-items: center; text-align: center; }
+        .screen { display: none; padding: 30px; flex-direction: column; align-items: center; text-align: center; justify-content: center; flex-grow: 1; }
         .screen.active { display: flex; }
 
-        .logo-img { max-width: 220px; height: auto; margin-bottom: 15px; }
+        /* --- SPLASH SCREEN ANIMATIONS --- */
+        #scr-splash {
+            background: #ffffff;
+            position: absolute; top:0; left:0; width:100%; height:100%; z-index: 999;
+        }
+        .splash-logo {
+            max-width: 320px; height: auto;
+            animation: fadeInScale 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0; transform: scale(0.8);
+        }
+
+        @keyframes fadeInScale { to { opacity: 1; transform: scale(1); } }
+
+        .logo-img { max-width: 260px; height: auto; margin-bottom: 20px; }
+        
         .cta-btn {
             background: linear-gradient(135deg, #4caf50, var(--garden-green));
             color: white; border: none; font-size: 1.25rem; font-weight: bold;
-            padding: 12px 35px; border-radius: 50px; cursor: pointer; transition: transform 0.1s;
+            padding: 14px 45px; border-radius: 50px; cursor: pointer; transition: transform 0.1s;
+            box-shadow: 0 4px 10px rgba(46,125,50,0.3);
         }
         .cta-btn:hover { transform: scale(1.03); }
+        .cta-btn:disabled { background: #bbb; cursor: not-allowed; transform: none; }
 
         /* HUD Tracker Row */
         .hud-row {
-            display: flex; justify-content: space-between; width: 100%; font-size: 1.2rem;
+            width: 100%; display: flex; justify-content: space-between; font-size: 1.2rem;
             font-weight: bold; color: var(--garden-green); border-bottom: 2px dashed #c8e6c9; padding-bottom: 10px; margin-bottom: 15px;
         }
 
         /* --- TACTILE MECHANIC 1: PARTS OF A WHOLE --- */
         .soil-bed-container {
             position: relative; width: 100%; max-width: 480px; height: 180px;
-            background: url('assets/dirt-bed.png') no-repeat center center; background-size: 100% 100%;
+            background: url('../assets/dirt-bed.png') no-repeat center center; background-size: 100% 100%;
             border-radius: 12px; overflow: hidden; display: flex; box-shadow: inset 0 0 20px rgba(0,0,0,0.4);
+            border: 3px solid var(--soil-brown);
         }
         .soil-slice {
-            flex: 1; border-right: 4px dashed rgba(255,255,255,0.65); height: 100%;
+            flex: 1; border-right: 4px dashed rgba(255,255,255,0.7); height: 100%;
             position: relative; cursor: pointer; transition: background 0.2s;
             display: flex; justify-content: center; align-items: center;
         }
         .soil-slice:last-child { border-right: none; }
-        .soil-slice.planted { background: rgba(76, 175, 80, 0.25); }
+        .soil-slice.planted { background: rgba(76, 175, 80, 0.2); }
         .soil-slice.planted::after {
-            content: ''; width: 65px; height: 65px;
-            background: url('assets/seed-pack.png') no-repeat center center; background-size: contain;
+            content: ''; width: 70px; height: 70px;
+            background: url('../assets/seed-pack.png') no-repeat center center; background-size: contain;
+            animation: sproutPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
         }
+
+        @keyframes sproutPop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
 
         /* --- TACTILE MECHANIC 2: PARTS OF A GROUP --- */
         .harvest-field {
-            display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;
-            width: 100%; max-width: 500px; min-height: 100px; margin-bottom: 20px;
+            display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;
+            width: 100%; max-width: 550px; min-height: 110px; margin-bottom: 25px; margin-top: 15px;
         }
         .item-flower {
-            width: 65px; height: 65px; cursor: pointer; transition: transform 0.2s, opacity 0.3s;
-            background: url('assets/sunflower.png') no-repeat center center; background-size: contain;
+            width: 70px; height: 70px; cursor: pointer; transition: transform 0.2s, opacity 0.2s;
+            background: url('../assets/sunflower.png') no-repeat center center; background-size: contain;
         }
+        .item-flower:hover { transform: scale(1.1); }
         .item-flower.harvested { transform: scale(0); opacity: 0; pointer-events: none; }
         
         .basket-zone {
-            width: 160px; height: 120px; margin-top: 10px;
-            background: url('assets/basket-empty.png') no-repeat center center; background-size: contain;
+            width: 180px; height: 130px; margin-top: 10px;
+            background: url('../assets/basket-empty.png') no-repeat center center; background-size: contain;
             display: flex; justify-content: center; align-items: center; position: relative;
         }
         .basket-counter {
-            position: absolute; bottom: -10px; background: #ff9800; color: white;
-            padding: 3px 12px; border-radius: 20px; font-weight: bold; font-size: 0.9rem;
+            position: absolute; bottom: -5px; background: #ff9800; color: white;
+            padding: 4px 16px; border-radius: 20px; font-weight: bold; font-size: 1rem;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.16);
         }
 
         /* Controls UI Layout */
         .slider-control-box { margin: 20px 0; width: 100%; max-width: 400px; }
-        .slider-control-box label { font-weight: bold; display: block; margin-bottom: 8px; }
-        .fraction-slider { width: 100%; accent-color: var(--garden-green); cursor: pointer; }
+        .slider-control-box label { font-weight: bold; display: block; margin-bottom: 10px; font-size: 1.1rem; color: #444; }
+        .fraction-slider { width: 100%; accent-color: var(--garden-green); cursor: pointer; height: 8px; border-radius: 4px; }
 
-        .prompt-text { font-size: 1.3rem; font-weight: bold; margin-bottom: 15px; color: #333; line-height: 1.4; }
-        .feedback-msg { font-size: 1.2rem; font-weight: bold; min-height: 28px; margin-top: 15px; }
+        .prompt-text { font-size: 1.35rem; font-weight: bold; margin-bottom: 15px; color: #222; line-height: 1.5; max-width: 700px; }
+        .feedback-msg { font-size: 1.25rem; font-weight: bold; min-height: 30px; margin-top: 15px; }
+
+        /* Dynamic Sprout Particle FX */
+        .sprout-particle {
+            position: absolute; width: 40px; height: 40px;
+            background: url('../assets/sprout.png') no-repeat center center; background-size: contain;
+            pointer-events: none; z-index: 99; animation: floatUpParticle 1.2s ease-out forwards;
+        }
+        @keyframes floatUpParticle {
+            0% { transform: translateY(0) scale(0.5) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-100px) scale(1.3) rotate(15deg); opacity: 0; }
+        }
     </style>
 </head>
 <body>
 
-    <audio id="snd-correct" src="assets/claps.mp3" preload="auto"></audio>
-    <audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+    <audio id="snd-correct" src="../assets/claps.mp3" preload="auto"></audio>
+    <audio id="snd-wrong" src="../assets/wrong.mp3" preload="auto"></audio>
 
     <div class="game-container">
-        <div class="screen active" id="scr-intro">
-            <img src="assets/logo.png" class="logo-img" alt="Logo" onerror="this.style.display='none'">
-            <h1 style="color: var(--garden-green); margin-bottom: 10px;">The Interactive Garden Planner</h1>
-            <p style="font-size: 1.1rem; max-width: 600px; margin-bottom: 25px; color: #555;">
-                Welcome to a real tactile experience! Become a master farmer by manually slicing soil patches, sowing seeds, and collecting groups of beautiful sunflowers into your harvest baskets.
+        <div class="screen active" id="scr-splash">
+            <img src="../assets/logo.png" class="splash-logo" alt="Innovine Solutions">
+        </div>
+
+        <div class="screen" id="scr-intro">
+            <img src="../assets/logo.png" class="logo-img" alt="Innovine Solutions Logo">
+            <h1 style="color: var(--garden-green); margin-bottom: 12px; font-size: 2.2rem;">The Interactive Garden Planner</h1>
+            <p style="font-size: 1.15rem; max-width: 650px; margin-bottom: 30px; color: #555; line-height: 1.6;">
+                Become a master farmer by manually slicing soil patches, sowing seeds, and collecting groups of beautiful sunflowers into your harvest baskets.
             </p>
             <button class="cta-btn" onclick="startAppGameplay()">Start Designing 🌻</button>
         </div>
@@ -113,7 +152,7 @@
                 <div id="hud-score">Points: 0</div>
             </div>
 
-            <div class="prompt-text" id="game-prompt">Loading puzzle coordinate blueprints...</div>
+            <div class="prompt-text" id="game-prompt">Loading curriculum matrices...</div>
 
             <div id="mount-canvas-whole" style="display:none; flex-direction:column; align-items:center; width:100%;">
                 <div class="soil-bed-container" id="soil-bed"></div>
@@ -128,13 +167,13 @@
                 <div class="basket-zone"><div class="basket-counter" id="basket-count">In Basket: 0</div></div>
             </div>
 
-            <button class="cta-btn" style="margin-top: 15px;" id="action-submit-btn" onclick="validateCurrentTactileEntry()">Verify Layout Check ⚔️</button>
+            <button class="cta-btn" style="margin-top: 20px;" id="action-submit-btn" onclick="validateCurrentTactileEntry()">Verify Layout Check ⚔️</button>
             <div class="feedback-msg" id="feedback-lbl"></div>
         </div>
 
         <div class="screen" id="scr-end">
-            <h1 style="color: var(--garden-green); font-size: 2.5rem; margin-bottom: 15px;">Harvest Festival Achieved! 🏆</h1>
-            <p style="font-size: 1.2rem; margin-bottom: 20px;" id="final-report">You successfully resolved every single modular field configuration layout!</p>
+            <h1 style="color: var(--garden-green); font-size: 2.6rem; margin-bottom: 15px;">Harvest Festival Achieved! 🏆</h1>
+            <p style="font-size: 1.3rem; margin-bottom: 25px;" id="final-report">You successfully resolved every single modular field configuration layout!</p>
             <button class="cta-btn" onclick="location.reload()">Plan New Map 🔄</button>
         </div>
     </div>
@@ -145,28 +184,52 @@
         let activeLevelData = null;
         let blockInteraction = false;
 
-        // Current user responses states for verification
         let currentSlicesCount = 2;
         let activePlantedArray = [];
         let groupHarvestedCount = 0;
 
-        // 10 Tactile Curriculum Blueprints using Whole and Group configurations
+        // 10 Tactile Blueprints engineered precisely to target every standard Chapter Learning Outcome (LO)
         const levelPipeline = [
-            { id: 1, type: "whole", targetNum: 1, targetDen: 3, task: "Slice the garden bed into 3 equal pieces, then click to plant exactly 1 section of carrots!" },
-            { id: 2, type: "whole", targetNum: 3, targetDen: 4, task: "Slice the garden bed into 4 equal quadrants, then click to plant 3 sections of tomatoes!" },
-            { id: 3, type: "group", totalItems: 4, targetNum: 2, task: "Tap exactly 2 sunflowers from the field patch to pack them inside your harvest basket!" },
-            { id: 4, type: "whole", targetNum: 1, targetDen: 2, task: "Slice your soil box into 2 equal halves, then click to seed exactly 1 section!" },
-            { id: 5, type: "whole", targetNum: 5, targetDen: 6, task: "Slice the long grid layout into 6 equal rows, then click to seed 5 of those rows!" },
-            { id: 6, type: "group", totalItems: 6, targetNum: 3, task: "The local market wants a crop basket of exactly 3/6 of our current sunflower set. Pick 3 sunflowers!" },
-            { id: 7, type: "whole", targetNum: 2, targetDen: 3, task: "Configure the field layout container into 3 equal tracks, then plant 2 tracks!" },
-            { id: 8, type: "group", totalItems: 5, targetNum: 4, task: "Collect 4 out of the 5 sunflowers inside the field patch into your basket!" },
-            { id: 9, type: "whole", targetNum: 4, targetDen: 4, task: "Slice the grid bed into 4 zones, then plant all 4 sections to model 1 complete whole!" },
-            { id: 10, type: "group", totalItems: 8, targetNum: 5, task: "Harvest a fraction equal to 5/8 from this patch. Pick exactly 5 sunflowers!" }
+            { id: 1, type: "whole", targetNum: 1, targetDen: 2, task: "LO 1 & 2: Understand the concept of a half. Slice the soil bed into 2 equal parts, then click to plant 1 section." },
+            { id: 2, type: "whole", targetNum: 1, targetDen: 4, task: "LO 1 & 3: Interpret one-fourth using a 2D grid shape. Slice the field layout into 4 sections, then plant 1 section." },
+            { id: 3, type: "whole", targetNum: 3, targetDen: 4, task: "LO 1 & 3: Model three-fourths on a spatial grid layout. Slice the soil bed into 4 equal tracks, then plant 3 of them." },
+            { id: 4, type: "group", totalItems: 4, targetNum: 2, task: "LO 4: Use fractions in real-life examples by dividing a group into halves. Tap exactly 2 of the 4 flowers to pick half." },
+            { id: 5, type: "group", totalItems: 8, targetNum: 2, task: "LO 4 & 5: Solve a real-life story sum. A florist buys one-fourth (1/4) of your 8 sunflowers. Collect exactly 2 into your basket." },
+            { id: 6, type: "whole", targetNum: 2, targetDen: 5, task: "LO 6: Learn about 'Like Fractions' (same denominators). Your friend planted 3/5 of a field. Plant a smaller like fraction of 2/5." },
+            { id: 7, type: "whole", targetNum: 2, targetDen: 3, task: "LO 6: Learn about 'Unlike Fractions' (different denominators). Model the unlike fraction 2/3 by slicing into 3 sections and seeding 2." },
+            { id: 8, type: "whole", targetNum: 4, targetDen: 6, task: "LO 8: Compare fractions with the same denominator. Which is larger, 3/6 or 4/6? Build the larger option by slicing into 6 and planting 4." },
+            { id: 9, type: "whole", targetNum: 2, targetDen: 3, task: "LO 8: Compare fractions with the same numerator. Smaller denominators mean larger pieces! Model the greater fraction between 2/3 and 2/6." },
+            { id: 10, type: "group", totalItems: 6, targetNum: 3, task: "LO 7 & 8: Justify equal fractions using a collection. Prove that 3/6 is equal to 1/2 by harvesting exactly 3 out of the 6 sunflowers." }
         ];
+
+        // Strict 5-Second Splash Controller
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('scr-splash');
+                splash.style.transition = "opacity 0.5s ease-out";
+                splash.style.opacity = 0;
+                setTimeout(() => {
+                    splash.classList.remove('active');
+                    document.getElementById('scr-intro').classList.add('active');
+                }, 5000);
+            }, 5000);
+        });
 
         function triggerAudioFeedback(isCorrect) {
             const player = document.getElementById(isCorrect ? 'snd-correct' : 'snd-wrong');
             if(player) { player.currentTime = 0; player.play().catch(()=>{}); }
+        }
+
+        function spawnSproutBurst() {
+            const container = document.getElementById('scr-play');
+            for (let i = 0; i < 8; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'sprout-particle';
+                particle.style.left = (Math.random() * 60 + 20) + '%';
+                particle.style.top = (Math.random() * 40 + 30) + '%';
+                container.appendChild(particle);
+                setTimeout(() => particle.remove(), 1200);
+            }
         }
 
         function startAppGameplay() {
@@ -177,8 +240,8 @@
 
         function loadLevelBlueprint() {
             blockInteraction = false;
+            document.getElementById('action-submit-btn').disabled = false;
             document.getElementById('feedback-lbl').innerText = "";
-            document.getElementById('feedback-lbl').style.color = "initial";
             
             activeLevelData = levelPipeline[currentLevelIndex];
             document.getElementById('hud-level').innerText = `Task: ${currentLevelIndex + 1} / 10`;
@@ -188,7 +251,6 @@
                 document.getElementById('mount-canvas-group').style.display = "none";
                 document.getElementById('mount-canvas-whole').style.display = "flex";
                 
-                // Reset whole sliders and container values
                 currentSlicesCount = 2;
                 document.getElementById('field-slider').value = 2;
                 handleSliceChange(2);
@@ -196,7 +258,6 @@
                 document.getElementById('mount-canvas-whole').style.display = "none";
                 document.getElementById('mount-canvas-group').style.display = "flex";
                 
-                // Rebuild active group items
                 groupHarvestedCount = 0;
                 document.getElementById('basket-count').innerText = "In Basket: 0";
                 
@@ -207,9 +268,11 @@
                     flwr.className = "item-flower";
                     flwr.onclick = () => {
                         if(blockInteraction) return;
-                        flwr.classList.add('harvested');
-                        groupHarvestedCount++;
-                        document.getElementById('basket-count').innerText = `In Basket: ${groupHarvestedCount}`;
+                        if(!flwr.classList.contains('harvested')) {
+                            flwr.classList.add('harvested');
+                            groupHarvestedCount++;
+                            document.getElementById('basket-count').innerText = `In Basket: ${groupHarvestedCount}`;
+                        }
                     };
                     fieldNode.appendChild(flwr);
                 }
@@ -254,12 +317,15 @@
             }
 
             blockInteraction = true;
+            document.getElementById('action-submit-btn').disabled = true;
+
             if (checkPassed) {
                 scoreCounter += 10;
                 document.getElementById('hud-score').innerText = `Points: ${scoreCounter}`;
                 lbl.style.color = "var(--garden-green)";
-                lbl.innerText = "Incredible fraction match! Sprouting seeds now... 🌱✨";
+                lbl.innerText = "Incredible fraction match! Sprouting crops... 🌱✨";
                 triggerAudioFeedback(true);
+                spawnSproutBurst();
                 
                 currentLevelIndex++;
                 setTimeout(() => {
@@ -273,7 +339,7 @@
                 }, 2200);
             } else {
                 lbl.style.color = "#d32f2f";
-                lbl.innerText = "Layout mapping incorrect. Let's dig over and fix it! 🔄";
+                lbl.innerText = "Layout mapping incorrect. Let's try again! 🔄";
                 triggerAudioFeedback(false);
                 setTimeout(() => {
                     loadLevelBlueprint();
