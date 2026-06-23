@@ -59,57 +59,59 @@
             font-weight: bold; color: var(--garden-green); border-bottom: 2px dashed #c8e6c9; padding-bottom: 10px; margin-bottom: 15px;
         }
 
-        /* --- FIXED: MATHEMATICALLY CORRECT DIRT BED --- */
+        /* --- FIXED: UNIFIED, SINGLE SOIL BED WHOLE CONTAINER --- */
         .soil-bed-container {
             position: relative; 
             width: 100%; 
             max-width: 520px; 
-            height: 180px;
-            background: #d7ccc8; /* Soft neutral backing */
+            height: 220px;
+            /* The asset is now applied ONLY once here, forming a single unbroken bed */
+            background: url('assets/dirt-bed.png') no-repeat center center;
+            background-size: 100% 100%;
             border-radius: 16px; 
             overflow: hidden; 
             display: flex; 
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-            border: 4px solid var(--garden-green);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
         
+        /* Transparent logical slices layout on top of the unified asset background */
         .soil-slice {
             flex: 1; 
             height: 100%;
             position: relative; 
             cursor: pointer; 
-            transition: transform 0.2s, filter 0.2s;
-            border-right: 3px dashed rgba(255,255,255,0.75);
-            /* Injecting dirt-bed graphic background per slice ensures equal allocation across screen coordinates */
-            background: url('assets/dirt-bed.png') no-repeat center center;
-            background-size: cover;
+            transition: background 0.2s;
+            /* Bright clear mathematical fractional dividers */
+            border-right: 4px dashed rgba(255, 255, 255, 0.85);
+            z-index: 5;
         }
         .soil-slice:last-child { border-right: none; }
         
-        /* Shading overlay to represent an unselected piece */
+        /* Darker tint over unplanted segments to make them look distinct */
         .soil-slice::before {
             content: '';
-            position: absolute; top:0; left:0; width:100%; height:100%;
-            background: rgba(0, 0, 0, 0.25);
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.15);
             transition: background 0.2s;
-            z-index: 1;
+            pointer-events: none;
         }
         
-        /* Active planted fraction state overrides color masking */
+        /* Clear highlights when a section is targeted/planted */
         .soil-slice.planted::before {
-            background: rgba(76, 175, 80, 0.15); /* Light green tint overlay */
+            background: rgba(76, 175, 80, 0.25); /* Highlights the chosen fraction cleanly */
         }
         
+        /* Absolute positioned crop rendering directly inside the specific section coordinates */
         .soil-slice.planted::after {
             content: ''; 
             position: absolute;
-            width: 75px; height: 75px;
-            z-index: 2;
+            width: 65px; height: 65px;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             background: url('assets/seed-pack.png') no-repeat center center; 
             background-size: contain;
             animation: sproutPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            pointer-events: none;
         }
 
         @keyframes sproutPop { 0% { transform: translate(-50%, -50%) scale(0); } 100% { transform: translate(-50%, -50%) scale(1); } }
