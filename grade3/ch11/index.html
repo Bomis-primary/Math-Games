@@ -565,4 +565,307 @@
             const startX = 230, centerY = 230, spacing = 190;
             this.ctx.font = 'bold 38px system-ui'; this.ctx.textAlign = 'center'; this.ctx.textBaseline = 'middle';
 
-            q.numbers.forEach((val, i
+            q.numbers.forEach((val, i) => {
+                const cx = startX + i * spacing;
+                this.ctx.save();
+                this.ctx.fillStyle = 'rgba(15, 23, 42, 0.8)'; this.ctx.strokeStyle = 'rgba(59, 130, 246, 0.4)'; this.ctx.lineWidth = 3;
+                this.ctx.beginPath(); this.ctx.roundRect(cx - 55, centerY - 55, 110, 110, 22); this.ctx.fill(); this.ctx.stroke();
+                this.ctx.fillStyle = '#ffffff'; this.ctx.fillText(val === 'blank' ? '?' : val, cx, centerY);
+                this.ctx.restore();
+            });
+        },
+
+        drawSymmetry(q) {
+            const cx = 512, cy = 230, size = 180;
+            this.drawItemShape(q.shape, cx, cy, size);
+
+            this.ctx.save();
+            this.ctx.strokeStyle = '#a855f7'; this.ctx.lineWidth = 5; this.ctx.setLineDash([12, 6]);
+            this.ctx.shadowBlur = 15; this.ctx.shadowColor = '#a855f7';
+            this.ctx.beginPath();
+            if (q.type === 'horizontal-valid') {
+                this.ctx.moveTo(cx - 150, cy); this.ctx.lineTo(cx + 150, cy);
+            } else if (q.type === 'invalid-cut') {
+                this.ctx.moveTo(cx - 100, cy - 100); this.ctx.lineTo(cx + 100, cy + 100);
+            } else {
+                this.ctx.moveTo(cx, cy - 130); this.ctx.lineTo(cx, cy + 130);
+            }
+            this.ctx.stroke(); this.ctx.restore();
+        }
+    };
+
+    // --- ACCELERATED PARTICLE SHOCKWAVE FX PIPELINE ---
+    const FXEngine = {
+        canvas: document.getElementById('fx-canvas'),
+        ctx: document.getElementById('fx-canvas').getContext('2d'),
+        particles: [], snapGuides: [], loopRef: null,
+
+        boom(x, y) {
+            const palette = ['#3b82f6', '#a855f7', '#10b981', '#ffffff'];
+            for (let i = 0; i < 40; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                const thrust = Math.random() * 6 + 4;
+                this.particles.push({
+                    x, y, r: Math.random() * 4 + 2.5,
+                    c: palette[Math.floor(Math.random() * palette.length)],
+                    vX: Math.cos(angle) * thrust, vY: Math.sin(angle) * thrust,
+                    alpha: 1, decay: Math.random() * 0.02 + 0.015
+                });
+            }
+            if (!this.loopRef) this.run();
+        },
+
+        setSnapLine(tx, ty, kx, ky) {
+            this.snapGuides = [{ tx, ty, kx, ky }];
+            if (!this.loopRef) this.run();
+        },
+
+        clearSnapLine() { this.snapGuides = []; },
+
+        run() {
+            const self = FXEngine;
+            self.ctx.clearRect(0, 0, self.canvas.width, self.canvas.height);
+            let active = false;
+
+            if (self.snapGuides.length > 0) {
+                active = true;
+                const s = self.snapGuides[0];
+                self.ctx.save();
+                self.ctx.strokeStyle = 'rgba(59, 130, 246, 0.5)'; self.ctx.lineWidth = 3; self.ctx.setLineDash([6, 4]);
+                self.ctx.beginPath(); self.ctx.moveTo(s.tx, s.ty); self.ctx.lineTo(s.kx, s.ky); self.ctx.stroke();
+                self.ctx.restore();
+            }
+
+            self.particles.forEach((p, idx) => {
+                p.x += p.vX; p.y += p.vY; p.vY += 0.02; p.alpha -= p.decay;
+                if (p.alpha > 0) {
+                    active = true;
+                    self.ctx.save(); self.ctx.globalAlpha = p.alpha;
+                    self.ctx.beginPath(); self.ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                    self.ctx.fillStyle = p.c; self.ctx.fill(); self.ctx.restore();
+                } else {
+                    self.particles.splice(idx, 1);
+                }
+            });
+
+            if (active) self.loopRef = requestAnimationFrame(self.run);
+            else { cancelAnimationFrame(self.loopRef); self.loopRef = null; }
+        }
+    };
+
+    // --- ACCELERATED DRAG-AND-DROP INTERACTION SYSTEM ---
+    const Interaction = {
+        layer: document.getElementById('interaction-layer'),
+        activeNode: null, offX: 0, offY: 0, origX: 0, origY: 0,
+
+        build() {
+            this.layer.innerHTML = '';
+            const q = GameState.current;
+            const options = GameState.shuffle([...q.options]);
+
+            if (q.mode !== 'symmetry') {
+                const target = document.createElement('div');
+                target.className = 'drop-target';
+                if (q.mode === 'repeating') {
+                    const blankIdx = q.sequence.indexOf('blank');
+                    target.style.left = `${162 + blankIdx * 140 - 52}px`;
+                    target.style.top = '188px'; target.style.width = '104px'; target.style.height = '104px';
+                } else {
+                    target.style.left = '742px'; target.style.top = '165px'; target.style.width = '124px'; target.style.height = '124px';
+                }
+                this.layer.appendChild(target);
+            }
+
+            const tWidth = 1024, nodeW = 115;
+            const gap = (tWidth - (options.length * nodeW)) / (options.length + 1);
+
+            options.forEach((choice, idx) => {
+                const el = document.createElement('div');
+                el.style.left = `${gap + idx * (nodeW + gap)}px`;
+                el.style.top = '425px'; el.style.width = `${nodeW}px`; el.style.height = `${nodeW}px`;
+                el.dataset.val = choice;
+
+                if (q.mode === 'symmetry') {
+                    el.className = 'draggable-token clickable-token'; el.innerText = choice;
+                    el.style.color = '#fff'; el.style.fontSize = '28px'; el.style.fontWeight = '900';
+                    
+                    el.addEventListener('click', () => {
+                        if (choice === q.target) {
+                            AudioEngine.play('success'); View.animateMascot('win');
+                            View.toast('✨ Coordinate Lock Verified! +10 Cosmic Stars ✨', true);
+                            GameState.score++; GameState.stars += 10;
+                            setTimeout(() => CoreEngine.next(), 1400);
+                        } else {
+                            AudioEngine.play('fail'); GameState.attempts++; View.animateMascot('lose');
+                            View.toast('Telemetry mismatch. Recalibrate sensor cut.', false); CoreEngine.refreshUI();
+                        }
+                    });
+                } else {
+                    el.className = 'draggable-token';
+                    if (q.mode === 'repeating') {
+                        const img = AssetManager.images[choice];
+                        if (img && img.complete && img.naturalWidth !== 0) {
+                            const tokenImg = document.createElement('img');
+                            tokenImg.className = 'token-img'; tokenImg.src = img.src; el.appendChild(tokenImg);
+                        } else {
+                            el.innerText = choice.substring(0,3).toUpperCase();
+                            el.style.color = '#fff'; el.style.fontWeight = '700';
+                        }
+                    } else {
+                        el.innerText = choice; el.style.color = '#fff'; el.style.fontSize = '32px'; el.style.fontWeight = '900';
+                    }
+                    this.bindDragSystems(el);
+                }
+                this.layer.appendChild(el);
+            });
+        },
+
+        bindDragSystems(el) {
+            const moveHandler = (e) => {
+                if (!this.activeNode) return;
+                e.preventDefault();
+                const rect = this.layer.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                const scaleX = 1024 / rect.width; const scaleY = 576 / rect.height;
+                const x = (clientX - rect.left) * scaleX - this.offX;
+                const y = (clientY - rect.top) * scaleY - this.offY;
+
+                this.activeNode.style.left = `${x}px`; this.activeNode.style.top = `${y}px`;
+
+                const drop = document.querySelector('.drop-target');
+                const tCX = x + parseFloat(this.activeNode.style.width)/2;
+                const tCY = y + parseFloat(this.activeNode.style.height)/2;
+                const dCX = parseFloat(drop.style.left) + parseFloat(drop.style.width)/2;
+                const dCY = parseFloat(drop.style.top) + parseFloat(drop.style.height)/2;
+
+                if (Math.hypot(tCX - dCX, tCY - dCY) < 110) {
+                    drop.classList.add('hovered');
+                    FXEngine.setSnapLine(dCX, dCY, tCX, tCY);
+                } else {
+                    drop.classList.remove('hovered');
+                    FXEngine.clearSnapLine();
+                }
+            };
+
+            const endHandler = () => {
+                if (!this.activeNode) return;
+                this.activeNode.classList.remove('dragging');
+                const drop = document.querySelector('.drop-target');
+                const targetLocked = drop.classList.contains('hovered');
+                drop.classList.remove('hovered');
+                FXEngine.clearSnapLine();
+
+                document.removeEventListener('mousemove', moveHandler); document.removeEventListener('mouseup', endHandler);
+                document.removeEventListener('touchmove', moveHandler); document.removeEventListener('touchend', endHandler);
+
+                if (targetLocked) this.validate(this.activeNode, drop); else this.snapBack(this.activeNode);
+                this.activeNode = null;
+            };
+
+            const startHandler = (e) => {
+                this.activeNode = el; el.classList.add('dragging');
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const r = el.getBoundingClientRect(); const lR = this.layer.getBoundingClientRect();
+                this.offX = (clientX - r.left) * (1024 / lR.width); this.offY = (clientY - r.top) * (576 / lR.height);
+                this.origX = parseFloat(el.style.left); this.origY = parseFloat(el.style.top);
+                el.style.zIndex = 100;
+
+                if (e.type === 'touchstart') {
+                    document.addEventListener('touchmove', moveHandler, {passive: false}); document.addEventListener('touchend', endHandler);
+                } else {
+                    document.addEventListener('mousemove', moveHandler); document.addEventListener('mouseup', endHandler);
+                }
+            };
+
+            el.addEventListener('mousedown', startHandler);
+            el.addEventListener('touchstart', startHandler, {passive: true});
+        },
+
+        snapBack(el) {
+            el.style.transition = 'all 0.35s cubic-bezier(0.25, 1, 0.5, 1)';
+            el.style.left = `${this.origX}px`; el.style.top = `${this.origY}px`;
+            setTimeout(() => { el.style.transition = 'none'; el.style.zIndex = ''; }, 350);
+        },
+
+        validate(el, drop) {
+            if (el.dataset.val === GameState.current.target) {
+                el.style.left = drop.style.left; el.style.top = drop.style.top; el.style.pointerEvents = 'none';
+                const x = parseFloat(drop.style.left) + parseFloat(drop.style.width)/2;
+                const y = parseFloat(drop.style.top) + parseFloat(drop.style.height)/2;
+                
+                AudioEngine.play('success'); FXEngine.boom(x, y); View.animateMascot('win');
+                View.toast('✨ Vector Matrix Stable! +10 Cosmic Stars ✨', true);
+                GameState.score++; GameState.stars += 10;
+                setTimeout(() => CoreEngine.next(), 1400);
+            } else {
+                this.snapBack(el); AudioEngine.play('fail'); GameState.attempts++; View.animateMascot('lose');
+                View.toast('Deflector shields failing! Recalibrate code data array.', false);
+                if (GameState.attempts >= 2) drop.classList.add('hint-flash');
+                CoreEngine.refreshUI();
+            }
+        }
+    };
+
+    // --- SYSTEM COORDINATION ENGINE HUB ---
+    const CoreEngine = {
+        init() {
+            document.getElementById('start-btn').addEventListener('click', () => {
+                document.getElementById('instruction-screen').classList.add('hidden');
+                document.getElementById('hud').classList.remove('hidden');
+                document.getElementById('mascot-widget').classList.remove('hidden');
+                this.start();
+            });
+
+            document.getElementById('restart-btn').addEventListener('click', () => {
+                document.getElementById('end-screen').classList.add('hidden');
+                document.getElementById('hud').classList.remove('hidden');
+                document.getElementById('mascot-widget').classList.remove('hidden');
+                GameState.score = 0; GameState.stars = 0; this.start();
+            });
+
+            document.getElementById('volume-control').addEventListener('input', (e) => {
+                AudioEngine.volume = parseFloat(e.target.value);
+            });
+
+            AssetManager.loadAll(() => {
+                document.getElementById('splash-screen').classList.add('hidden');
+                document.getElementById('instruction-screen').classList.remove('hidden');
+            });
+        },
+
+        start() {
+            GameState.index = 0;
+            GameState.questions = GameState.shuffle([...QuestionPool]);
+            this.step();
+        },
+
+        step() {
+            GameState.attempts = 0; GameState.current = GameState.questions[GameState.index];
+            this.refreshUI();
+        },
+
+        refreshUI() {
+            View.updateHUD(); Render.draw(); Interaction.build();
+        },
+
+        next() {
+            GameState.index++; if (GameState.index < 10) this.step(); else this.over();
+        },
+
+        over() {
+            Interaction.layer.innerHTML = '';
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('mascot-widget').classList.add('hidden');
+            document.getElementById('hint-overlay').classList.add('hidden');
+            document.getElementById('end-evaluation').innerText = `Sensational Jump Complete! You bypassed ${GameState.score} out of 10 dimensional blockades and harvested ${GameState.stars} galactic hyper-stars!`;
+            document.getElementById('end-screen').classList.remove('hidden');
+        }
+    };
+
+    window.onload = () => CoreEngine.init();
+</script>
+</body>
+</html>
