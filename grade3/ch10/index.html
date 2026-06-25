@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fraction Quest: Interactive Sorting Arcade</title>
+    <title>Fraction Quest: The Micro-Arcade Factory Tour</title>
     <style>
         :root {
             --primary-indigo: #4f46e5;
@@ -24,39 +24,31 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
-            position: relative;
             overflow-x: hidden;
         }
 
-        /* --- INNOVINE LOGO INTRO OVERLAY --- */
+        /* --- LOGO SPLASH SCREEN --- */
         #logo-splash-screen {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
+            top: 0; left: 0; width: 100vw; height: 100vh;
             background-color: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
             z-index: 9999;
-            opacity: 1;
-            pointer-events: auto;
             transition: opacity 0.5s ease-out;
         }
-
         .splash-logo-img {
             max-width: 450px;
             height: auto;
             animation: gentle-pulse 2s infinite ease-in-out;
         }
-
         @keyframes gentle-pulse {
             0%, 100% { transform: scale(1); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05)); }
             50% { transform: scale(1.03); filter: drop-shadow(0 12px 20px rgba(79, 70, 229, 0.1)); }
         }
 
-        /* --- ARCADE APPARATUS GAME CABINET --- */
+        /* --- GAME CABINET --- */
         .game-cabinet {
             width: 1200px;
             height: 780px;
@@ -70,7 +62,6 @@
             position: relative;
         }
 
-        /* Top Status HUD Dashboard */
         .hud-header {
             background: var(--primary-dark);
             color: white;
@@ -81,17 +72,7 @@
             border-bottom: 4px solid var(--primary-indigo);
         }
 
-        .hud-title-block h1 {
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-        }
-
-        .hud-metrics {
-            display: flex;
-            gap: 20px;
-        }
-
+        .hud-metrics { display: flex; gap: 20px; }
         .metric-pill {
             background: rgba(255,255,255,0.1);
             padding: 6px 16px;
@@ -101,7 +82,7 @@
             border: 1px solid rgba(255,255,255,0.2);
         }
 
-        /* --- STAGE SCREEN VIEWS --- */
+        /* --- STAGE SCREENS --- */
         .game-screen {
             display: none;
             flex-direction: column;
@@ -109,12 +90,7 @@
             padding: 30px 40px;
             min-height: 0;
         }
-
-        .game-screen.active-screen {
-            display: flex;
-            animation: screenIn 0.35s ease-out;
-        }
-
+        .game-screen.active-screen { display: flex; animation: screenIn 0.35s ease-out; }
         @keyframes screenIn {
             from { opacity: 0; transform: scale(0.99); }
             to { opacity: 1; transform: scale(1); }
@@ -127,413 +103,293 @@
             border-radius: 4px 12px 12px 4px;
             margin-bottom: 20px;
         }
+        .instruction-banner h2 { font-size: 20px; color: var(--primary-dark); margin-bottom: 4px; }
+        .instruction-banner p { font-size: 14px; color: var(--text-muted); line-height: 1.4; }
 
-        .instruction-banner h2 {
-            font-size: 20px;
-            color: var(--primary-dark);
-            margin-bottom: 4px;
-        }
-
-        .instruction-banner p {
-            font-size: 14px;
-            color: var(--text-muted);
-            line-height: 1.4;
-        }
-
-        /* --- THE ACTIVE INTERACTIVE SPLIT --- */
-        .stage-workspace {
-            display: flex;
-            gap: 35px;
-            width: 100%;
-            flex-grow: 1;
-            align-items: stretch;
-            min-height: 0;
-        }
-
-        .workspace-left {
-            flex: 2.2;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
+        .stage-workspace { display: flex; gap: 35px; width: 100%; flex-grow: 1; align-items: stretch; min-height: 0; }
+        .workspace-left { flex: 2.2; display: flex; flex-direction: column; gap: 20px; }
+        
         .workspace-right-card {
-            flex: 0.8;
-            background-color: var(--bg-light);
-            border: 2px dashed #cbd5e1;
-            border-radius: 16px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 25px;
-            text-align: center;
+            flex: 0.8; background-color: var(--bg-light); border: 2px dashed #cbd5e1;
+            border-radius: 16px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; padding: 25px; text-align: center;
         }
+        .context-icon { font-size: 50px; margin-bottom: 10px; }
 
-        .context-icon {
-            font-size: 60px;
-            margin-bottom: 15px;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
-        }
-
-        /* Item Source Drop Conveyor */
+        /* --- INTERACTIVE AREAS --- */
         .conveyor-belt {
-            background: #f1f5f9;
-            border: 2px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 15px;
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            align-items: center;
-            min-height: 140px;
-            box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
+            background: #f1f5f9; border: 2px solid #e2e8f0; border-radius: 16px;
+            padding: 15px; display: flex; gap: 15px; justify-content: center;
+            align-items: center; min-height: 150px; box-shadow: inset 0 2px 8px rgba(0,0,0,0.05);
             flex-wrap: wrap;
         }
 
-        /* Drop Zones (Bins) */
-        .receiving-grid {
-            display: flex;
-            gap: 20px;
-            width: 100%;
-        }
-
+        .receiving-grid { display: flex; gap: 20px; width: 100%; }
         .drop-crate {
-            flex: 1;
-            background: #ffffff;
-            border: 3px dashed #cbd5e1;
-            border-radius: 16px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 220px;
-            transition: all 0.2s ease;
+            flex: 1; background: #ffffff; border: 3px dashed #cbd5e1; border-radius: 16px;
+            padding: 15px; display: flex; flex-direction: column; align-items: center;
+            min-height: 220px; transition: all 0.2s ease;
         }
-
-        .drop-crate.drag-hover {
-            border-color: var(--primary-indigo);
-            background: #eef2ff;
-            transform: translateY(-2px);
-        }
-
-        .drop-crate.crate-complete {
-            border-style: solid;
-            border-color: var(--success-green);
-            background: #f0fdf4;
-        }
+        .drop-crate.drag-hover { border-color: var(--primary-indigo); background: #eef2ff; }
+        .drop-crate.crate-complete { border-style: solid; border-color: var(--success-green); background: #f0fdf4; }
 
         .crate-label {
-            font-size: 16px;
-            font-weight: 800;
-            color: var(--primary-dark);
-            background: #ffffff;
-            padding: 4px 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            text-align: center;
+            font-size: 15px; font-weight: 800; color: var(--primary-dark); background: #ffffff;
+            padding: 4px 12px; border: 2px solid #e2e8f0; border-radius: 8px; margin-bottom: 15px; text-align: center;
         }
+        .crate-slots { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; width: 100%; min-height: 110px; }
 
-        .crate-slots {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            min-height: 110px;
-        }
-
-        /* Draggables styling */
+        /* --- DRAGGABLE CORE ENGINE ASSETS --- */
         .drag-pastry-element {
-            background: #ffffff;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 10px;
-            cursor: grab;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-            transition: transform 0.15s;
-            user-select: none;
-            min-width: 90px;
-        }
-        .drag-pastry-element:active { cursor: grabbing; transform: scale(0.96); }
-
-        /* Graphics */
-        .fraction-svg { width: 65px; height: 65px; display: block; }
-        .group-pill { display: flex; gap: 4px; font-size: 20px; background: #fff; padding: 4px 8px; border-radius: 6px; border: 2px solid #e2e8f0; align-items: center; }
-        .math-symbol { font-size: 24px; font-weight: 800; color: var(--primary-indigo); }
-
-        /* Dynamic Feedback HUD Ticker */
-        .ticker-feedback-bar {
-            margin-top: 10px;
-            font-size: 15px;
-            font-weight: bold;
-            min-height: 22px;
-            text-align: center;
+            background: #ffffff; border: 2px solid #e2e8f0; border-radius: 12px;
+            padding: 10px; cursor: grab; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            user-select: none; min-width: 100px; position: relative;
         }
 
-        /* Navigation Prompt Overlay Banner */
+        /* S1: Canister Graphics style */
+        .canister-wrapper { width: 45px; height: 75px; position: relative; border: 3px solid #64748b; border-radius: 8px; overflow: hidden; background: #e2e8f0; }
+        .canister-fluid { position: absolute; bottom: 0; left: 0; width: 100%; background: #38bdf8; transition: height 0.3s; }
+        .asset-fallback-img { max-width: 45px; height: auto; display: none; } /* Used when images exist */
+
+        /* S2: Chip Container style */
+        .chip-container-box { display: grid; grid-template-columns: repeat(3, 15px); gap: 4px; padding: 5px; background: #334155; border-radius: 6px; }
+        .chip-node { width: 15px; height: 15px; border-radius: 3px; }
+        .chip-node.active { background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+        .chip-node.inactive { background: #64748b; }
+
+        /* S3/S4: Token & Cabinet Math Labels */
+        .math-display-bubble { font-size: 18px; font-weight: 800; color: var(--primary-dark); margin: 4px 0; }
+        .sub-label { font-size: 11px; color: var(--text-muted); }
+
+        .ticker-feedback-bar { margin-top: 10px; font-size: 15px; font-weight: bold; min-height: 22px; text-align: center; }
+
+        /* --- MODALS & END SCREEN --- */
         .stage-transition-modal {
-            display: none;
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(30, 41, 59, 0.85);
-            z-index: 100;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            color: white;
-            text-align: center;
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(30, 41, 59, 0.85); z-index: 100; justify-content: center; align-items: center;
             backdrop-filter: blur(4px);
         }
-        
-        .modal-content-box {
-            background: white;
-            color: var(--primary-dark);
-            padding: 40px;
-            border-radius: 20px;
-            max-width: 500px;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
-        }
-
+        .modal-content-box { background: white; color: var(--primary-dark); padding: 40px; border-radius: 20px; max-width: 500px; text-align: center; }
         .action-btn {
-            background: var(--primary-indigo);
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 8px;
-            margin-top: 20px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-        .action-btn:hover { background: #4338ca; }
-
-        /* --- FINAL END OVERLAY SCREEN GRAPHICS --- */
-        .end-screen-layout {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            flex-grow: 1;
-            padding: 40px;
-            animation: screenIn 0.5s ease-out;
+            background: var(--primary-indigo); color: white; border: none; padding: 12px 30px;
+            font-size: 16px; font-weight: bold; border-radius: 8px; margin-top: 20px; cursor: pointer;
         }
 
-        .trophy-glow-icon {
-            font-size: 90px;
-            margin-bottom: 15px;
-            animation: bounce-slow 2.5s infinite ease-in-out;
-        }
-
-        @keyframes bounce-slow {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-12px); }
-        }
-
-        .score-box-display {
-            background: var(--bg-light);
-            border: 2px solid #e2e8f0;
-            border-radius: 16px;
-            padding: 20px 50px;
-            margin: 20px 0;
-            font-size: 28px;
-            font-weight: 800;
-            color: var(--primary-indigo);
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.02);
-        }
+        .end-screen-layout { display: none; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; text-align: center; padding: 40px; }
+        .score-box-display { background: var(--bg-light); border: 2px solid #e2e8f0; border-radius: 16px; padding: 20px 50px; margin: 20px 0; font-size: 28px; font-weight: 800; color: var(--primary-indigo); }
     </style>
 </head>
 <body>
 
     <div id="logo-splash-screen">
-        <img src="assets/logo.png" alt="Innovine Logo" class="splash-logo-img">
+        <img src="assets/logo.png" alt="Fraction Quest Logo" class="splash-logo-img" onerror="this.style.display='none'; document.getElementById('logo-splash-screen').innerHTML='<h1>🎮 FRACTION QUEST: FACTORY TOUR</h1>'">
     </div>
 
     <div class="game-cabinet">
         <div class="hud-header">
-            <div class="hud-title-block">
-                <h1>🎮 Fraction Arcade Engine</h1>
-            </div>
+            <div><h1>⚙️ Micro-Arcade Logistics Control</h1></div>
             <div class="hud-metrics">
-                <div class="metric-pill" id="hud-stage-tracker">Screen Work Station: 1 / 4</div>
+                <div class="metric-pill" id="hud-stage-tracker">Zone: 1 / 4</div>
                 <div class="metric-pill" id="hud-score-tracker" style="color: #fcd34d;">Score: 0 XP</div>
             </div>
         </div>
 
         <div class="stage-transition-modal" id="transition-overlay">
             <div class="modal-content-box">
-                <h2 style="font-size: 28px; margin-bottom: 10px; color: var(--success-green);">✨ Station Complete!</h2>
-                <p id="modal-summary-text">You successfully ran sorting parameters for this screen.</p>
-                <button class="action-btn" onclick="advanceNextScreen()">Load Next Screen 🚀</button>
+                <h2 style="font-size: 26px; color: var(--success-green); margin-bottom: 10px;">⚡ Pipeline Segment Calibrated!</h2>
+                <p id="modal-summary-text"></p>
+                <button class="action-btn" onclick="advanceNextScreen()">Route to Next Sector 🚀</button>
             </div>
         </div>
 
-        <svg width="0" height="0" style="position:absolute;">
-            <defs>
-                <pattern id="diagonal-shading" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-                    <line x1="0" y1="0" x2="0" y2="8" stroke="#1e293b" stroke-width="2.5" />
-                </pattern>
-            </defs>
-        </svg>
-
         <div class="game-screen active-screen" id="arcade-screen-0">
             <div class="instruction-banner">
-                <h2>Screen Stage 1: The Grand Opening Bakery Rush</h2>
-                <p><strong>Scenario:</strong> Chef Maria is opening her new bakery, but her cutting machine is misaligned! Look at the <strong>shaded areas</strong> of these 6 baking trays. Sort them into the correct order boxes before the customers arrive!</p>
+                <h2>Sector 1: Liquid Plasma Core Calibration (Equivalent Fractions)</h2>
+                <p><strong>Scenario:</strong> The raw energy cores must be grouped by volume, but the sensors display unreduced fractions! <strong>Reduce the fraction</strong> on each cylinder to find if its total volume matches 1/4, 1/2, or 3/4.</p>
             </div>
             <div class="stage-workspace">
                 <div class="workspace-left">
                     <div class="conveyor-belt" id="belt-0">
-                        <div class="drag-pastry-element" id="sc1-item1" draggable="true" data-match="1/4">
-                            <svg class="fraction-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#f1f5f9" stroke="#1e293b" stroke-width="4"/><path d="M 50,50 L 50,8 A 42,42 0 0,1 92,50 Z" fill="url(#diagonal-shading)" stroke="#1e293b"/><line x1="50" y1="8" x2="50" y2="92" stroke="#1e293b" stroke-width="1.5"/><line x1="8" y1="50" x2="92" y2="50" stroke="#1e293b" stroke-width="1.5"/></svg>
+                        <div class="drag-pastry-element" id="s1-i1" draggable="true" data-value="0.25">
+                            <div class="canister-wrapper"><div class="canister-fluid" style="height: 25%;"></div></div>
+                            <div class="math-display-bubble">2/8</div>
                         </div>
-                        <div class="drag-pastry-element" id="sc1-item2" draggable="true" data-match="3/4">
-                            <svg class="fraction-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#f1f5f9" stroke="#1e293b" stroke-width="4"/><path d="M 50,50 L 50,8 A 42,42 0 1,1 8,50 Z" fill="url(#diagonal-shading)" stroke="#1e293b"/><line x1="50" y1="8" x2="50" y2="92" stroke="#1e293b" stroke-width="1.5"/><line x1="8" y1="50" x2="92" y2="50" stroke="#1e293b" stroke-width="1.5"/></svg>
+                        <div class="drag-pastry-element" id="s1-i2" draggable="true" data-value="0.5">
+                            <div class="canister-wrapper"><div class="canister-fluid" style="height: 50%;"></div></div>
+                            <div class="math-display-bubble">3/6</div>
                         </div>
-                        <div class="drag-pastry-element" id="sc1-item3" draggable="true" data-match="1/2">
-                            <svg class="fraction-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#f1f5f9" stroke="#1e293b" stroke-width="4"/><path d="M 50,8 A 42,42 0 0,1 50,92 Z" fill="url(#diagonal-shading)" stroke="#1e293b"/><line x1="50" y1="8" x2="50" y2="92" stroke="#1e293b" stroke-width="3"/></svg>
+                        <div class="drag-pastry-element" id="s1-i3" draggable="true" data-value="0.75">
+                            <div class="canister-wrapper"><div class="canister-fluid" style="height: 75%;"></div></div>
+                            <div class="math-display-bubble">6/8</div>
                         </div>
-                        <div class="drag-pastry-element" id="sc1-item4" draggable="true" data-match="1/4">
-                            <svg class="fraction-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#f1f5f9" stroke="#1e293b" stroke-width="4"/><path d="M 50,50 L 50,8 A 42,42 0 0,1 92,50 Z" fill="url(#diagonal-shading)" stroke="#1e293b"/><line x1="50" y1="8" x2="50" y2="92" stroke="#1e293b" stroke-width="1.5"/><line x1="8" y1="50" x2="92" y2="50" stroke="#1e293b" stroke-width="1.5"/></svg>
+                        <div class="drag-pastry-element" id="s1-i4" draggable="true" data-value="0.25">
+                            <div class="canister-wrapper"><div class="canister-fluid" style="height: 25%;"></div></div>
+                            <div class="math-display-bubble">3/12</div>
                         </div>
-                        <div class="drag-pastry-element" id="sc1-item5" draggable="true" data-match="1/2">
-                            <svg class="fraction-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#f1f5f9" stroke="#1e293b" stroke-width="4"/><path d="M 50,8 A 42,42 0 0,1 50,92 Z" fill="url(#diagonal-shading)" stroke="#1e293b"/><line x1="50" y1="8" x2="50" y2="92" stroke="#1e293b" stroke-width="3"/></svg>
+                        <div class="drag-pastry-element" id="s1-i5" draggable="true" data-value="0.5">
+                            <div class="canister-wrapper"><div class="canister-fluid" style="height: 50%;"></div></div>
+                            <div class="math-display-bubble">4/8</div>
                         </div>
-                        <div class="drag-pastry-element" id="sc1-item6" draggable="true" data-match="3/4">
-                            <svg class="fraction-svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#f1f5f9" stroke="#1e293b" stroke-width="4"/><path d="M 50,50 L 50,8 A 42,42 0 1,1 8,50 Z" fill="url(#diagonal-shading)" stroke="#1e293b"/><line x1="50" y1="8" x2="50" y2="92" stroke="#1e293b" stroke-width="1.5"/><line x1="8" y1="50" x2="92" y2="50" stroke="#1e293b" stroke-width="1.5"/></svg>
+                        <div class="drag-pastry-element" id="s1-i6" draggable="true" data-value="0.75">
+                            <div class="canister-wrapper"><div class="canister-fluid" style="height: 75%;"></div></div>
+                            <div class="math-display-bubble">9/12</div>
                         </div>
                     </div>
                     <div class="receiving-grid">
-                        <div class="drop-crate" data-accept="1/4"><div class="crate-label">Box 1/4</div><div class="crate-slots"></div></div>
-                        <div class="drop-crate" data-accept="1/2"><div class="crate-label">Box 1/2</div><div class="crate-slots"></div></div>
-                        <div class="drop-crate" data-accept="3/4"><div class="crate-label">Box 3/4</div><div class="crate-slots"></div></div>
+                        <div class="drop-crate" data-target="0.25"><div class="crate-label">Target Tank: 1/4</div><div class="crate-slots"></div></div>
+                        <div class="drop-crate" data-target="0.5"><div class="crate-label">Target Tank: 1/2</div><div class="crate-slots"></div></div>
+                        <div class="drop-crate" data-target="0.75"><div class="crate-label">Target Tank: 3/4</div><div class="crate-slots"></div></div>
                     </div>
                     <div class="ticker-feedback-bar" id="ticker-0"></div>
                 </div>
                 <div class="workspace-right-card">
-                    <div class="context-icon">🧁</div>
-                    <h3>Concept Application</h3>
-                    <p style="margin-top:10px; font-size:14px; color:var(--text-muted);">This screen verifies parts of a whole single unit object—such as dividing an individual pastry tray geometry cleanly.</p>
+                    <div class="context-icon">🧪</div>
+                    <h3>Conceptual Validation</h3>
+                    <p style="font-size:13px; color:var(--text-muted);">Tests mental simplification. $\frac{3}{12}$ and $\frac{2}{8}$ share an identical scale footprint as $\frac{1}{4}$.</p>
                 </div>
             </div>
         </div>
 
         <div class="game-screen" id="arcade-screen-1">
             <div class="instruction-banner">
-                <h2>Screen Stage 2: The Greenhouse Botanical Order</h2>
-                <p><strong>Scenario:</strong> Farmer Joe is preparing floral sets for a grand wedding reception! He needs target fractions of item sets isolated. Move exactly **2 items** into the half crate, and exactly **4 items** into the two-thirds crate!</p>
+                <h2>Sector 2: Processor Kit Sorting (Fraction of a Set)</h2>
+                <p><strong>Scenario:</strong> Motherboards require micro-chips kits. Count the ratio of <strong>active green chips</strong> to the <strong>total number of chips</strong> inside each tray to sort them into the target assembly bays.</p>
             </div>
             <div class="stage-workspace">
                 <div class="workspace-left">
                     <div class="conveyor-belt" id="belt-1">
-                        <div class="drag-pastry-element" id="sc2-item1" draggable="true" data-match="half-set"><div class="group-pill">🌷</div></div>
-                        <div class="drag-pastry-element" id="sc2-item2" draggable="true" data-match="half-set"><div class="group-pill">🌷</div></div>
-                        <div class="drag-pastry-element" id="sc2-item3" draggable="true" data-match="two-thirds-set"><div class="group-pill">🌻</div></div>
-                        <div class="drag-pastry-element" id="sc2-item4" draggable="true" data-match="two-thirds-set"><div class="group-pill">🌻</div></div>
-                        <div class="drag-pastry-element" id="sc2-item5" draggable="true" data-match="two-thirds-set"><div class="group-pill">🌻</div></div>
-                        <div class="drag-pastry-element" id="sc2-item6" draggable="true" data-match="two-thirds-set"><div class="group-pill">🌻</div></div>
+                        <div class="drag-pastry-element" id="s2-i1" draggable="true" data-value="0.333">
+                            <div class="chip-container-box">
+                                <div class="chip-node active"></div><div class="chip-node inactive"></div><div class="chip-node inactive"></div>
+                            </div>
+                            <div class="sub-label">1 Active out of 3</div>
+                        </div>
+                        <div class="drag-pastry-element" id="s2-i2" draggable="true" data-value="0.5">
+                            <div class="chip-container-box">
+                                <div class="chip-node active"></div><div class="chip-node active"></div><div class="chip-node inactive"></div><div class="chip-node inactive"></div>
+                            </div>
+                            <div class="sub-label">2 Active out of 4</div>
+                        </div>
+                        <div class="drag-pastry-element" id="s2-i3" draggable="true" data-value="0.25">
+                            <div class="chip-container-box">
+                                <div class="chip-node active"></div><div class="chip-node inactive"></div><div class="chip-node inactive"></div><div class="chip-node inactive"></div>
+                            </div>
+                            <div class="sub-label">1 Active out of 4</div>
+                        </div>
+                        <div class="drag-pastry-element" id="s2-i4" draggable="true" data-value="0.333">
+                            <div class="chip-container-box">
+                                <div class="chip-node active"></div><div class="chip-node active"></div><div class="chip-node inactive"></div><div class="chip-node inactive"></div><div class="chip-node inactive"></div><div class="chip-node inactive"></div>
+                            </div>
+                            <div class="sub-label">2 Active out of 6</div>
+                        </div>
+                        <div class="drag-pastry-element" id="s2-i5" draggable="true" data-value="0.5">
+                            <div class="chip-container-box">
+                                <div class="chip-node active"></div><div class="chip-node active"></div><div class="chip-node active"></div><div class="chip-node inactive"></div><div class="chip-node inactive"></div><div class="chip-node inactive"></div>
+                            </div>
+                            <div class="sub-label">3 Active out of 6</div>
+                        </div>
+                        <div class="drag-pastry-element" id="s2-i6" draggable="true" data-value="0.25">
+                            <div class="chip-container-box">
+                                <div class="chip-node active"></div><div class="chip-node active"></div><div class="chip-node inactive"></div><div class="chip-node inactive"></div><div class="chip-node inactive"></div><div class="chip-node inactive"></div><div class="chip-node inactive"></div><div class="chip-node inactive"></div>
+                            </div>
+                            <div class="sub-label">2 Active out of 8</div>
+                        </div>
                     </div>
                     <div class="receiving-grid">
-                        <div class="drop-crate" id="greenhouse-crate-1" data-accept="half-set">
-                            <div class="crate-label">Crate A (Goal: 1/2 of 4 Flowers)</div>
-                            <div class="crate-slots"></div>
-                        </div>
-                        <div class="drop-crate" id="greenhouse-crate-2" data-accept="two-thirds-set">
-                            <div class="crate-label">Crate B (Goal: 2/3 of 6 Flowers)</div>
-                            <div class="crate-slots"></div>
-                        </div>
+                        <div class="drop-crate" data-target="0.25"><div class="crate-label">Bay: 1/4 Active</div><div class="crate-slots"></div></div>
+                        <div class="drop-crate" data-target="0.333"><div class="crate-label">Bay: 1/3 Active</div><div class="crate-slots"></div></div>
+                        <div class="drop-crate" data-target="0.5"><div class="crate-label">Bay: 1/2 Active</div><div class="crate-slots"></div></div>
                     </div>
                     <div class="ticker-feedback-bar" id="ticker-1"></div>
                 </div>
                 <div class="workspace-right-card">
-                    <div class="context-icon">🌻</div>
-                    <h3>Concept Application</h3>
-                    <p style="margin-top:10px; font-size:14px; color:var(--text-muted);">Finding a fraction of a set means distributing a collection of separate items into equal target groups.</p>
+                    <div class="context-icon">🤖</div>
+                    <h3>Conceptual Validation</h3>
+                    <p style="font-size:13px; color:var(--text-muted);">Evaluates subsets. A group container holding 2 items out of 6 active elements represents a true value of $\frac{1}{3}$.</p>
                 </div>
             </div>
         </div>
 
         <div class="game-screen" id="arcade-screen-2">
             <div class="instruction-banner">
-                <h2>Screen Stage 3: Eco-City Sorting Operations</h2>
-                <p><strong>Scenario:</strong> The city's automated eco-plant is overloaded with math components! Sort these 6 incoming data tokens. Match them up: **Like Fractions** have matching denominators, **Unlike Fractions** have different ones!</p>
+                <h2>Sector 3: Diagnostic Frequency Sorting (Structural Relationships)</h2>
+                <p><strong>Scenario:</strong> To link wireless cards, look at the fraction pairs on the data tokens. Sort them into <strong>Like Fractions</strong> if they have matching denominators, or <strong>Unlike Fractions</strong> if they do not.</p>
             </div>
             <div class="stage-workspace">
                 <div class="workspace-left">
                     <div class="conveyor-belt" id="belt-2">
-                        <div class="drag-pastry-element" id="sc3-item1" draggable="true" data-match="like"><div class="group-pill">2/5 & 3/5</div></div>
-                        <div class="drag-pastry-element" id="sc3-item2" draggable="true" data-match="unlike"><div class="group-pill">1/2 & 2/3</div></div>
-                        <div class="drag-pastry-element" id="sc3-item3" draggable="true" data-match="like"><div class="group-pill">1/8 & 7/8</div></div>
-                        <div class="drag-pastry-element" id="sc3-item4" draggable="true" data-match="unlike"><div class="group-pill">3/4 & 4/5</div></div>
-                        <div class="drag-pastry-element" id="sc3-item5" draggable="true" data-match="like"><div class="group-pill">4/9 & 2/9</div></div>
-                        <div class="drag-pastry-element" id="sc3-item6" draggable="true" data-match="unlike"><div class="group-pill">1/6 & 5/7</div></div>
+                        <div class="drag-pastry-element" id="s3-i1" draggable="true" data-type="like">
+                            <div class="math-display-bubble">3/7 & 5/7</div><div class="sub-label">Data Token A</div>
+                        </div>
+                        <div class="drag-pastry-element" id="s3-i2" draggable="true" data-type="unlike">
+                            <div class="math-display-bubble">1/4 & 1/5</div><div class="sub-label">Data Token B</div>
+                        </div>
+                        <div class="drag-pastry-element" id="s3-i3" draggable="true" data-type="like">
+                            <div class="math-display-bubble">2/9 & 7/9</div><div class="sub-label">Data Token C</div>
+                        </div>
+                        <div class="drag-pastry-element" id="s3-i4" draggable="true" data-type="unlike">
+                            <div class="math-display-bubble">5/6 & 5/8</div><div class="sub-label">Data Token D</div>
+                        </div>
+                        <div class="drag-pastry-element" id="s3-i5" draggable="true" data-type="like">
+                            <div class="math-display-bubble">4/15 & 11/15</div><div class="sub-label">Data Token E</div>
+                        </div>
+                        <div class="drag-pastry-element" id="s3-i6" draggable="true" data-type="unlike">
+                            <div class="math-display-bubble">2/3 & 3/4</div><div class="sub-label">Data Token F</div>
+                        </div>
                     </div>
                     <div class="receiving-grid">
-                        <div class="drop-crate" data-accept="like"><div class="crate-label" style="border-color:var(--success-green); color:green;">Like Denominators</div><div class="crate-slots"></div></div>
-                        <div class="drop-crate" data-accept="unlike"><div class="crate-label" style="border-color:var(--error-red); color:red;">Unlike Denominators</div><div class="crate-slots"></div></div>
+                        <div class="drop-crate" data-target="like"><div class="crate-label" style="color:green;">Like Denominators</div><div class="crate-slots"></div></div>
+                        <div class="drop-crate" data-target="unlike"><div class="crate-label" style="color:red;">Unlike Denominators</div><div class="crate-slots"></div></div>
                     </div>
                     <div class="ticker-feedback-bar" id="ticker-2"></div>
                 </div>
                 <div class="workspace-right-card">
-                    <div class="context-icon">♻️</div>
-                    <h3>Concept Application</h3>
-                    <p style="margin-top:10px; font-size:14px; color:var(--text-muted);">Like fractions share identical baseline divisions, making arithmetic or grouping direct and seamless.</p>
+                    <div class="context-icon">🗂️</div>
+                    <h3>Conceptual Validation</h3>
+                    <p style="font-size:13px; color:var(--text-muted);">Forces players to identify if parts share identical base structures (denominators) regardless of matching numerators.</p>
                 </div>
             </div>
         </div>
 
         <div class="game-screen" id="arcade-screen-3">
             <div class="instruction-banner">
-                <h2>Screen Stage 4: Pizzeria Quality Control Crisis</h2>
-                <p><strong>Scenario:</strong> Customers are arguing over slice sizes! Remember the rule: when numerators match, a *smaller denominator* means larger individual slices! Sort all 6 order boxes onto the correct inspection scales.</p>
+                <h2>Sector 4: Shipping Dock Mass Calibration (Inequalities)</h2>
+                <p><strong>Scenario:</strong> The shipping drones can only pack the heaviest arcade cabinet from each data batch! Find a common denominator or cross-multiply to determine which cabinet contains the <strong>strictly higher value fraction</strong>.</p>
             </div>
             <div class="stage-workspace">
                 <div class="workspace-left">
                     <div class="conveyor-belt" id="belt-3">
-                        <div class="drag-pastry-element" id="sc4-item1" draggable="true" data-match="larger"><div class="math-symbol">1/2</div><span style="font-size:11px; color:var(--text-muted);">Box A (vs 1/4)</span></div>
-                        <div class="drag-pastry-element" id="sc4-item2" draggable="true" data-match="smaller"><div class="math-symbol">1/6</div><span style="font-size:11px; color:var(--text-muted);">Box B (vs 1/3)</span></div>
-                        <div class="drag-pastry-element" id="sc4-item3" draggable="true" data-match="larger"><div class="math-symbol">1/3</div><span style="font-size:11px; color:var(--text-muted);">Box C (vs 1/8)</span></div>
-                        <div class="drag-pastry-element" id="sc4-item4" draggable="true" data-match="smaller"><div class="math-symbol">1/5</div><span style="font-size:11px; color:var(--text-muted);">Box D (vs 1/2)</span></div>
-                        <div class="drag-pastry-element" id="sc4-item5" draggable="true" data-match="larger"><div class="math-symbol">2/3</div><span style="font-size:11px; color:var(--text-muted);">Box E (vs 2/7)</span></div>
-                        <div class="drag-pastry-element" id="sc4-item6" draggable="true" data-match="smaller"><div class="math-symbol">3/10</div><span style="font-size:11px; color:var(--text-muted);">Box F (vs 3/4)</span></div>
+                        <div class="drag-pastry-element" id="s4-i1" draggable="true" data-match="2/3"><div class="math-display-bubble">2/3</div><div class="sub-label">vs 3/5 (Cross: 10 vs 9)</div></div>
+                        <div class="drag-pastry-element" id="s4-i2" draggable="true" data-match="5/6"><div class="math-display-bubble">5/6</div><div class="sub-label">vs 7/9 (Cross: 45 vs 42)</div></div>
+                        <div class="drag-pastry-element" id="s4-i3" draggable="true" data-match="3/4"><div class="math-display-bubble">3/4</div><div class="sub-label">vs 5/7 (Cross: 21 vs 20)</div></div>
+                        <div class="drag-pastry-element" id="s4-i4" draggable="true" data-match="4/5"><div class="math-display-bubble">4/5</div><div class="sub-label">vs 11/15 (Cross: 60 vs 55)</div></div>
+                        <div class="drag-pastry-element" id="s4-i5" draggable="true" data-match="5/8"><div class="math-display-bubble">5/8</div><div class="sub-label">vs 4/7 (Cross: 35 vs 32)</div></div>
+                        <div class="drag-pastry-element" id="s4-i6" draggable="true" data-match="7/10"><div class="math-display-bubble">7/10</div><div class="sub-label">vs 2/3 (Cross: 21 vs 20)</div></div>
                     </div>
-                    <div class="receiving-grid">
-                        <div class="drop-crate" data-accept="larger">
-                            <div class="crate-label" style="border-color:var(--amber-accent);">Scale: Larger Value Slices</div>
-                            <div class="crate-slots"></div>
-                        </div>
-                        <div class="drop-crate" data-accept="smaller">
-                            <div class="crate-label" style="border-color:var(--primary-indigo);">Scale: Smaller Value Slices</div>
+                    <div class="receiving-grid" style="justify-content: center;">
+                        <div class="drop-crate" data-target="heavier" style="max-width: 500px; width: 100%;">
+                            <div class="crate-label" style="border-color: var(--amber-accent);">Drone Loading Bay (Accepts Only the Larger Fraction)</div>
                             <div class="crate-slots"></div>
                         </div>
                     </div>
                     <div class="ticker-feedback-bar" id="ticker-3"></div>
                 </div>
                 <div class="workspace-right-card">
-                    <div class="context-icon">🍕</div>
-                    <h3>Concept Application</h3>
-                    <p style="margin-top:10px; font-size:14px; color:var(--text-muted);">As a denominator grows, an object is sliced into more parts, shrinking the sizing scale of each individual piece.</p>
+                    <div class="context-icon">⚖️</div>
+                    <h3>Conceptual Validation</h3>
+                    <p style="font-size:13px; color:var(--text-muted);">Eliminates visual guessing. Players must process strict mathematical inequalities ($2/3 > 3/5$).</p>
                 </div>
             </div>
         </div>
 
         <div class="end-screen-layout" id="arcade-end-screen">
-            <div class="trophy-glow-icon">🏆</div>
-            <h2 style="font-size: 36px; color: var(--primary-dark);">Arcade Quest Completed!</h2>
-            <p style="font-size: 18px; color: var(--text-muted); margin-top: 8px;">You navigated all workspace parameters with total numerical accuracy.</p>
-            
+            <div style="font-size: 80px; margin-bottom: 10px;">🏆</div>
+            <h2 style="font-size: 34px; color: var(--primary-dark);">Tour Calibration Complete!</h2>
+            <p style="font-size: 16px; color: var(--text-muted); margin-top: 5px;">The automated arcade production lines are running perfectly.</p>
             <div class="score-box-display" id="final-score-field">0 XP</div>
-            
-            <p style="font-size: 15px; color: var(--primary-indigo); font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">Rank Acquired: Fraction Grandmaster 🚀</p>
-            <button class="action-btn" style="padding: 15px 40px; font-size: 18px;" onclick="resetWholeGameSession()">Play Again 🔄</button>
+            <p style="font-size: 14px; color: var(--primary-indigo); font-weight: bold; letter-spacing: 1px;">LOGISTICS RANKING: FRACTION GRANDMASTER</p>
+            <button class="action-btn" style="padding: 15px 40px; font-size: 18px;" onclick="resetWholeGameSession()">Run Another Shift 🔄</button>
         </div>
     </div>
 
@@ -547,48 +403,35 @@
         const sfxCorrect = document.getElementById('audio-correct');
         const sfxWrong = document.getElementById('audio-wrong');
 
-        // FIXED TIMING LIFECYCLE FOR THE SPLASH SCREEN
+        // INTRO INTEL SPLASH LIFECYCLE HANDLER
         window.addEventListener('DOMContentLoaded', () => {
             const splashScreen = document.getElementById('logo-splash-screen');
-            
             setTimeout(() => {
                 splashScreen.style.opacity = '0';
                 splashScreen.style.pointerEvents = 'none';
-                
-                setTimeout(() => {
-                    splashScreen.style.display = 'none';
-                }, 500);
-            }, 5000);
+                setTimeout(() => splashScreen.style.display = 'none', 500);
+            }, 5000); // 5 seconds display window
         });
 
-        // SYSTEM MECHANICS: SCREEN ENGINE FORWARD ADVANCEMENT
+        // CORE VALIDATION ENGINE
         function checkScreenStatus() {
             const currentScreen = document.getElementById(`arcade-screen-${currentActiveScreenIndex}`);
             const conveyorBelt = currentScreen.querySelector('.conveyor-belt');
 
-            // Verification routine for Screen Stage 2 (Botanical Set Counts)
-            if (currentActiveScreenIndex === 1) {
-                const crate1Slots = document.getElementById('greenhouse-crate-1').querySelector('.crate-slots');
-                const crate2Slots = document.getElementById('greenhouse-crate-2').querySelector('.crate-slots');
-                
-                // Triggers completion only when both target sets are perfectly grouped (2 in Crate A, 4 in Crate B)
-                if (crate1Slots.children.length === 2 && crate2Slots.children.length === 4) {
-                    sfxCorrect.play().catch(e => console.log('Audio track initialization deferred'));
-                    triggerScreenCompletion("Fantastic greenhouse work! You successfully isolated both subset fractions.");
-                }
-                return;
-            }
-
-            // Verification routine for screens 1, 3, and 4 (empty conveyor means fully sorted)
+            // For Screen 4, it completes when all 6 heavier elements are parsed and belt is empty
             if (conveyorBelt.children.length === 0) {
-                sfxCorrect.play().catch(e => console.log('Audio track initialization deferred'));
-                triggerScreenCompletion("All configuration items sorted safely from this workspace conveyor belt!");
+                sfxCorrect.play().catch(() => {});
+                
+                let messages = [
+                    "All liquid fuel cores cleanly balanced to simplified baselines!",
+                    "Processor kits structurally cross-referenced to target capacities!",
+                    "Data tokens safely synchronized to matching frequency banks!",
+                    "All micro-arcade units successfully weighted and exported!"
+                ];
+                
+                document.getElementById('modal-summary-text').innerText = messages[currentActiveScreenIndex];
+                document.getElementById('transition-overlay').style.display = 'flex';
             }
-        }
-
-        function triggerScreenCompletion(summaryMsg) {
-            document.getElementById('modal-summary-text').innerText = summaryMsg;
-            document.getElementById('transition-overlay').style.display = 'flex';
         }
 
         function advanceNextScreen() {
@@ -599,9 +442,9 @@
 
             if (currentActiveScreenIndex < 4) {
                 document.getElementById(`arcade-screen-${currentActiveScreenIndex}`).classList.add('active-screen');
-                document.getElementById('hud-stage-tracker').innerText = `Screen Work Station: ${currentActiveScreenIndex + 1} / 4`;
+                document.getElementById('hud-stage-tracker').innerText = `Zone: ${currentActiveScreenIndex + 1} / 4`;
             } else {
-                document.getElementById('hud-stage-tracker').innerText = "Mission Accomplished";
+                document.getElementById('hud-stage-tracker').innerText = "Status: Operational";
                 document.getElementById('final-score-field').innerText = `${scoreXP} XP`;
                 document.getElementById('arcade-end-screen').style.display = 'flex';
             }
@@ -611,7 +454,7 @@
             location.reload();
         }
 
-        // NATIVE DRAG AND DROP ENGINE LIFECYCLE ROUTINES
+        // DRAG AND DROP RUNTIME SUBSYSTEMS
         document.querySelectorAll('.drag-pastry-element').forEach(item => {
             item.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('text/plain', item.id);
@@ -624,68 +467,60 @@
                 crate.classList.add('drag-hover');
             });
 
-            crate.addEventListener('dragleave', () => {
-                crate.classList.remove('drag-hover');
-            });
+            crate.addEventListener('dragleave', () => crate.classList.remove('drag-hover'));
 
             crate.addEventListener('drop', (e) => {
                 e.preventDefault();
                 crate.classList.remove('drag-hover');
 
-                const targetElementId = e.dataTransfer.getData('text/plain');
-                const draggedElement = document.getElementById(targetElementId);
+                const elementId = e.dataTransfer.getData('text/plain');
+                const draggedElement = document.getElementById(elementId);
                 if (!draggedElement) return;
 
                 const currentScreen = crate.closest('.game-screen');
                 const feedbackTicker = currentScreen.querySelector('.ticker-feedback-bar');
                 const targetSlots = crate.querySelector('.crate-slots');
 
-                // Dynamic logic rules for greenhouse scenario
-                if (crate.id === 'greenhouse-crate-1' || crate.id === 'greenhouse-crate-2') {
-                    if (draggedElement.dataset.match === crate.dataset.accept) {
-                        targetSlots.appendChild(draggedElement);
-                        draggedElement.setAttribute('draggable', 'false');
-                        draggedElement.style.cursor = 'default';
-                        
-                        scoreXP += 10;
-                        document.getElementById('hud-score-tracker').innerText = `Score: ${scoreXP} XP`;
-                        feedbackTicker.style.color = 'var(--success-green)';
-                        feedbackTicker.innerText = "⭐ Correct flower type routed to the right crate capacity!";
-                        
-                        if ((crate.id === 'greenhouse-crate-1' && targetSlots.children.length === 2) || 
-                            (crate.id === 'greenhouse-crate-2' && targetSlots.children.length === 4)) {
-                            crate.classList.add('crate-complete');
-                        }
-                        checkScreenStatus();
-                    } else {
-                        sfxWrong.play().catch(e => console.log('Audio track initialization deferred'));
-                        feedbackTicker.style.color = 'var(--error-red)';
-                        feedbackTicker.innerText = "❌ Incorrect crate placement! Check your fraction set targets.";
-                    }
-                    return;
+                let isCorrect = false;
+
+                // Screen Math Verification Logic Loops
+                if (currentActiveScreenIndex === 0) { // Screen 1: Decimal Equivalent Matching
+                    const dropTargetVal = parseFloat(crate.dataset.target);
+                    const itemVal = parseFloat(draggedElement.dataset.value);
+                    if (Math.abs(dropTargetVal - itemVal) < 0.01) isCorrect = true;
+
+                } else if (currentActiveScreenIndex === 1) { // Screen 2: Subset Ratios
+                    const dropTargetVal = parseFloat(crate.dataset.target);
+                    const itemVal = parseFloat(draggedElement.dataset.value);
+                    if (Math.abs(dropTargetVal - itemVal) < 0.01) isCorrect = true;
+
+                } else if (currentActiveScreenIndex === 2) { // Screen 3: Structure Check
+                    if (draggedElement.dataset.type === crate.dataset.target) isCorrect = true;
+
+                } else if (currentActiveScreenIndex === 3) { // Screen 4: Strict Higher-Value Inequality Check
+                    // This container strictly accepts the specific elements hardcoded to hold the higher value
+                    if (crate.dataset.target === "heavier") isCorrect = true; 
                 }
 
-                // Standard matching check for screens 1, 3, and 4
-                if (draggedElement.dataset.match === crate.dataset.accept) {
+                if (isCorrect) {
                     targetSlots.appendChild(draggedElement);
                     draggedElement.setAttribute('draggable', 'false');
                     draggedElement.style.cursor = 'default';
 
-                    scoreXP += 15;
+                    scoreXP += 20;
                     document.getElementById('hud-score-tracker').innerText = `Score: ${scoreXP} XP`;
                     feedbackTicker.style.color = 'var(--success-green)';
-                    feedbackTicker.innerText = "⭐ Clean placement! Item securely routed.";
+                    feedbackTicker.innerText = "⭐ System verified! Data connection stable.";
 
                     const currentConveyor = currentScreen.querySelector('.conveyor-belt');
-                    if(currentConveyor.children.length === 0) {
+                    if (currentConveyor.children.length === 0) {
                         crate.classList.add('crate-complete');
                     }
-
                     checkScreenStatus();
                 } else {
-                    sfxWrong.play().catch(e => console.log('Audio track initialization deferred'));
+                    sfxWrong.play().catch(() => {});
                     feedbackTicker.style.color = 'var(--error-red)';
-                    feedbackTicker.innerText = "❌ Metric misalignment detected! That item does not belong in this container.";
+                    feedbackTicker.innerText = "❌ Warning: Structural mathematical discrepancy detected!";
                 }
             });
         });
