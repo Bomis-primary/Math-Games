@@ -2,595 +2,772 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Data Detective - Grade 3 Data Handling</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Rangers: The Great Zoo Census</title>
     <style>
-        :root {
-            --primary: #4A90E2;
-            --secondary: #FFD43B;
-            --success: #2ECC71;
-            --danger: #E74C3C;
-            --background: #F0F8FF;
-            --text: #2C3E50;
-        }
-
         * {
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
         }
-
-        body {
+        body, html {
             margin: 0;
             padding: 0;
-            background-color: var(--background);
-            color: var(--text);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        .game-container {
             width: 100%;
-            max-width: 600px;
-            background: white;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0fdf4;
+            color: #1e293b;
+            overflow: hidden;
         }
-
-        @media (min-width: 601px) {
-            .game-container {
-                min-height: 85vh;
-                border-radius: 20px;
-                overflow: hidden;
-            }
-        }
-
-        /* Screen Styles */
         .screen {
-            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            flex: 1;
             padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease-in-out;
+        }
+        .screen.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        /* Splash Screen */
+        #splash-screen {
+            background: #ffffff;
+        }
+        #splash-screen img {
+            max-width: 250px;
+            height: auto;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Intro Screen */
+        #intro-screen {
+            background: linear-gradient(135deg, #bbf7d0, #86efac);
             text-align: center;
         }
-
-        .screen.active {
-            display: flex;
-        }
-
-        /* Intro Screen with Logo Branding */
-        #logo-screen {
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-            color: white;
-        }
-
-        .brand-logo {
-            font-size: 3rem;
-            font-weight: bold;
-            letter-spacing: 2px;
-            color: var(--secondary);
-            animation: pulse 1.5s infinite alternate;
-        }
-
-        .brand-sub {
-            font-size: 1.2rem;
-            opacity: 0.8;
-            margin-top: 10px;
-        }
-
-        /* Instructions Screen */
-        #instruction-screen {
-            background: #FFF;
-        }
-
-        /* Header / Scoreboard */
-        .game-header {
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 600px;
             width: 100%;
-            padding: 15px;
-            background: var(--primary);
-            color: white;
+        }
+        h1 { color: #166534; margin-top: 0; font-size: 2rem; }
+        p { font-size: 1.1rem; line-height: 1.6; color: #334155; }
+        
+        /* Gameplay Layout */
+        #game-screen {
+            background: #f8fafc;
+            justify-content: flex-start;
+        }
+        .header {
+            width: 100%;
+            max-width: 800px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-weight: bold;
+            padding: 10px 0;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .stats {
             font-size: 1.1rem;
-        }
-
-        /* Game Area styling */
-        #game-screen {
-            justify-content: flex-start;
-        }
-
-        .progress-bar-container {
-            width: 100%;
-            height: 10px;
-            background: #E0E0E0;
-            margin-bottom: 15px;
-        }
-
-        .progress-bar {
-            height: 100%;
-            width: 0%;
-            background: var(--success);
-            transition: width 0.3s ease;
-        }
-
-        .question-box {
-            font-size: 1.2rem;
             font-weight: bold;
-            margin: 15px 0;
-            padding: 0 10px;
+            color: #475569;
+            background: #e2e8f0;
+            padding: 6px 15px;
+            border-radius: 20px;
         }
-
-        /* Visual Assets (Tally Charts / Graphs) */
-        .visual-display {
-            background: #F9F9F9;
-            border: 2px dashed #CCD1D1;
-            border-radius: 10px;
+        .main-container {
+            flex: 1;
             width: 100%;
-            padding: 15px;
-            margin-bottom: 20px;
+            max-width: 800px;
             display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 140px;
-        }
-
-        /* Styled Tally Marks rendering */
-        .tally-group {
-            display: inline-block;
-            font-size: 1.8rem;
-            letter-spacing: 2px;
-            font-family: monospace;
-            margin: 0 5px;
-            font-weight: bold;
-            color: #2c3e50;
-        }
-
-        /* Interactive Bar Graph Mockup */
-        .graph-container {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-around;
-            width: 100%;
-            height: 120px;
-            padding-top: 20px;
-            border-left: 3px solid #333;
-            border-bottom: 3px solid #333;
-            margin: 10px 0;
-        }
-
-        .graph-bar {
-            width: 40px;
-            background: var(--primary);
-            color: white;
-            font-weight: bold;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: flex-end;
-            justify-content: center;
-            padding-bottom: 5px;
-            border-top-left-radius: 4px;
-            border-top-right-radius: 4px;
-            transition: height 0.5s ease;
-            position: relative;
-        }
-
-        .graph-label {
-            position: absolute;
-            bottom: -25px;
-            font-size: 0.75rem;
-            color: #333;
-            white-space: nowrap;
-        }
-
-        /* Options Grid */
-        .options-grid {
-            width: 100%;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
-            margin-top: auto;
-            margin-bottom: 15px;
-        }
-
-        .btn {
-            background: white;
-            border: 2px solid var(--primary);
-            border-radius: 12px;
-            padding: 15px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text);
-            cursor: pointer;
-            transition: all 0.2s ease;
-            outline: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-        }
-
-        .btn:active {
-            transform: scale(0.98);
-        }
-
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            border: none;
-        }
-
-        .btn-correct {
-            background: var(--success) !important;
-            border-color: var(--success) !important;
-            color: white !important;
-        }
-
-        .btn-wrong {
-            background: var(--danger) !important;
-            border-color: var(--danger) !important;
-            color: white !important;
-        }
-
-        /* Feedback Popups */
-        .feedback-overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(255,255,255,0.9);
-            display: none;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
-            font-weight: bold;
-            z-index: 10;
+            margin-top: 15px;
+            gap: 15px;
+        }
+        .question-box {
+            background: #ffffff;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            width: 100%;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #0f172a;
+            border-left: 5px solid #22c55e;
         }
 
-        /* Volume adjustments wrapper */
-        .volume-control {
-            margin-top: 15px;
-            font-size: 0.9rem;
+        /* Interactive Workspaces */
+        .workspace {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            width: 100%;
+            flex: 1;
+            max-height: 340px;
             display: flex;
             align-items: center;
-            gap: 8px;
+            justify-content: center;
+            padding: 15px;
+            position: relative;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            100% { transform: scale(1.05); }
+        /* Tally Area */
+        .tally-container {
+            display: flex;
+            gap: 25px;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+        .tally-card {
+            background: #f0fdf4;
+            border: 2px dashed #86efac;
+            border-radius: 12px;
+            padding: 15px;
+            text-align: center;
+            min-width: 130px;
+        }
+        .tally-img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            margin-bottom: 8px;
+        }
+        .tally-marks {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+            min-height: 40px;
+            align-items: center;
+        }
+        .tally-stick {
+            width: 4px;
+            height: 35px;
+            background: #15803d;
+            border-radius: 2px;
+        }
+        .tally-stick.diagonal {
+            transform: rotate(-60deg) translate(-10px, 0px);
+            position: absolute;
+            height: 40px;
+        }
+        .tally-group {
+            position: relative;
+            display: flex;
+            gap: 4px;
+            width: 32px;
+            margin-right: 8px;
+        }
+
+        /* Pictograph Area */
+        .picto-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: 100%;
+            max-width: 500px;
+        }
+        .picto-row {
+            display: flex;
+            align-items: center;
+            background: #f8fafc;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .picto-label {
+            width: 100px;
+            font-weight: bold;
+            color: #334155;
+        }
+        .picto-items {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+        .picto-icon {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+        }
+        .picto-key {
+            position: absolute;
+            bottom: 8px;
+            right: 15px;
+            background: #f1f5f9;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        /* Bar Graph Area */
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            gap: 40px;
+            height: 90%;
+            width: 100%;
+            padding-bottom: 25px;
+            border-bottom: 2px solid #64748b;
+            position: relative;
+        }
+        .bar-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100%;
+            justify-content: flex-end;
+            position: relative;
+            width: 60px;
+        }
+        .bar {
+            width: 100%;
+            background: linear-gradient(to top, #3b82f6, #60a5fa);
+            border-radius: 6px 6px 0 0;
+            transition: height 0.3s ease;
+            position: relative;
+        }
+        .bar-value {
+            position: absolute;
+            top: -22px;
+            width: 100%;
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .bar-label {
+            position: absolute;
+            bottom: -25px;
+            font-weight: bold;
+            font-size: 0.85rem;
+            color: #475569;
+            white-space: nowrap;
+        }
+        .y-axis-label {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: rotate(-90deg) translate(-50%, 0);
+            transform-origin: left top;
+            font-size: 0.8rem;
+            font-weight: bold;
+            color: #64748b;
+        }
+
+        /* Controls / Options Group */
+        .options-container {
+            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(2, 100%);
+            gap: 12px;
+        }
+        .btn-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+        }
+        .btn {
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            text-align: center;
+        }
+        .btn:active {
+            transform: scale(0.98);
+        }
+        .btn.selected {
+            border-color: #22c55e;
+            background: #f0fdf4;
+            color: #166534;
+        }
+        .btn-primary {
+            background: #22c55e;
+            color: white;
+            border: none;
+            box-shadow: 0 4px 10px rgba(34, 197, 94, 0.3);
+        }
+        .btn-primary:hover { background: #16a34a; }
+        
+        /* Feedback Popup modal */
+        .modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 10;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popUp {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .feedback-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .feedback-title.correct { color: #166534; }
+        .feedback-title.wrong { color: #991b1b; }
+        .explanation {
+            font-size: 1rem;
+            color: #475569;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        /* End Screen */
+        #end-screen {
+            background: linear-gradient(135deg, #fef08a, #fef9c3);
+            text-align: center;
+        }
+        .score-badge {
+            font-size: 3rem;
+            font-weight: 800;
+            color: #a16207;
+            margin: 20px 0;
         }
     </style>
 </head>
 <body>
 
-    <div class="game-container">
+    <audio id="snd-correct" src="assets/claps.mp3" preload="auto"></audio>
+    <audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
-        <div id="logo-screen" class="screen active">
-            <div class="brand-logo">INNOVINE</div>
-            <div class="brand-sub">Interactive Learning Labs</div>
+    <div id="splash-screen" class="screen active">
+        <img src="assets/logo.png" alt="Innovine Logo" onerror="this.src='https://placehold.co/250x100?text=Innovine'">
+    </div>
+
+    <div id="intro-screen" class="screen">
+        <div class="card">
+            <h1>🐾 The Great Zoo Census!</h1>
+            <p>Welcome, Junior Data Ranger! The Wildlands Zoo just welcomed a brand new bunch of playful animals, but the charts are a total mess. The Zookeeper needs your expert skills to collect data, organize tally counters, and build smart graphs!</p>
+            <p>Complete all 12 missions to earn your official <strong>Master Data Ranger Badge</strong>!</p>
+            <button class="btn btn-primary" style="width:100%; margin-top:20px;" onclick="startGame()">Start Mission</button>
+        </div>
+    </div>
+
+    <div id="game-screen" class="screen">
+        <div class="header">
+            <div class="stats" id="level-indicator">Level: Recall</div>
+            <div class="stats" id="progress-tracker">Task: 1/12</div>
+            <div class="stats" id="score-tracker">Score: 0</div>
         </div>
 
-        <div id="instruction-screen" class="screen">
-            <h2 style="color: var(--primary);">Data Detective! 🕵️‍♂️</h2>
-            <p style="font-size: 1.1rem; line-height: 1.5; padding: 0 10px;">
-                Welcome, Detective! Your mission is to analyze charts, examine tallies, and unlock the case of the hidden data facts. Answer correctly to crack the mystery!
-            </p>
-            <button class="btn btn-primary" style="width: 80%; margin-top: 20px;" onclick="startGame()">Start Mission</button>
-            
-            <div class="volume-control">
-                🔊 Audio Level: <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5">
+        <div class="main-container">
+            <div class="question-box" id="question-text">Loading task context...</div>
+
+            <div class="workspace" id="game-workspace"></div>
+
+            <div class="options-container btn-grid" id="options-box"></div>
+        </div>
+
+        <div class="modal" id="feedback-modal">
+            <div class="modal-content">
+                <div class="feedback-title" id="feedback-title">Correct!</div>
+                <div class="explanation" id="explanation-text">Explanation goes here.</div>
+                <button class="btn btn-primary" style="width: 100%" id="modal-next-btn" onclick="closeModal()">Continue</button>
             </div>
         </div>
+    </div>
 
-        <div id="game-screen" class="screen">
-            <div class="game-header">
-                <span id="question-number">Question 1/10</span>
-                <span id="score-display">Score: 0</span>
-            </div>
-            <div class="progress-bar-container">
-                <div id="game-progress" class="progress-bar"></div>
-            </div>
-
-            <div id="question-text" class="question-box">Loading case data...</div>
-
-            <div id="visual-area" class="visual-display"></div>
-
-            <div id="options-box" class="options-grid"></div>
-
-            <div id="feedback-layer" class="feedback-overlay"></div>
+    <div id="end-screen" class="screen">
+        <div class="card">
+            <h1>🏆 Mission Accomplished!</h1>
+            <p>Fantastic job, Data Ranger! You organized the zoo beautifully. The animals and the Zookeeper are thrilled!</p>
+            <div class="score-badge" id="final-score">0/12</div>
+            <p id="final-feedback">Keep practice data strategies!</p>
+            <button class="btn btn-primary" style="width:100%; margin-top:20px;" onclick="restartGame()">Play Again</button>
         </div>
-
-        <div id="end-screen" class="screen">
-            <h2 style="color: var(--success);">Mission Accomplished! 🏆</h2>
-            <p id="final-score-text" style="font-size: 1.3rem; font-weight: bold;"></p>
-            <p style="padding: 0 20px; color: #666;">Fantastic work! You have successfully mastered sorting, matching, and decoding data configurations like a true professional.</p>
-            <button class="btn btn-primary" style="width: 80%; margin-top: 20px;" onclick="restartGame()">Play Again</button>
-        </div>
-
     </div>
 
     <script>
-        // Synthesizer Audio Engine
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        
-        function getVolume() {
-            return parseFloat(document.getElementById('volumeSlider').value);
-        }
-
-        function playSound(type) {
-            const volume = getVolume();
-            if (volume === 0) return;
-
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-
-            if (type === 'correct') {
-                // Happy high note chime
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
-                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
-                gain.gain.setValueAtTime(volume * 0.3, audioCtx.currentTime);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.3);
-            } else if (type === 'wrong') {
-                // Low buzzer tone
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(130.81, audioCtx.currentTime); // C3
-                gain.gain.setValueAtTime(volume * 0.4, audioCtx.currentTime);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.25);
-            } else if (type === 'clapping') {
-                // Game completion sweep
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.5);
-                gain.gain.setValueAtTime(volume * 0.3, audioCtx.currentTime);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.5);
-            }
-        }
-
-        // 10 Distinct, Randomised, Concept-aligned Multiple Choice Application Questions
-        const questionsDatabase = [
+        // Game Dataset containing 12 progressive questions matching specified CBQ levels
+        const database = [
+            // LEVEL 1: RECALL (Tally Counter basics, reading single direct data point)
             {
-                text: "Detective Mia collected data on favorite pets. How many marks are shown here?",
+                level: "Level 1: Recall",
+                question: "Look at the tally marks. How many playful Monkeys did the rangers record?",
                 type: "tally",
-                data: "||||\u0336 |||", 
-                answer: 8,
-                options: [5, 7, 8, 9]
+                data: [ { label: "Monkeys", count: 7, img: "monkey.png" }, { label: "Lions", count: 3, img: "lion.png" } ],
+                options: ["3", "5", "7", "8"],
+                answer: "7",
+                explanation: "Each bundle with a diagonal line across represents 5. So, 5 + 2 single lines equals 7 monkeys!"
             },
             {
-                text: "If one 🌟 icon stands for 2 books read, how many books does 4 🌟 icons stand for?",
-                type: "text-only",
-                data: "🌟 = 2 books",
-                answer: 8,
-                options: [4, 6, 8, 10]
-            },
-            {
-                text: "Look at the chart: Red group has 12 points, Blue group has 7. How many more points does Red have than Blue?",
-                type: "text-only",
-                data: "Red: 12 | Blue: 7",
-                answer: 5,
-                options: [4, 5, 6, 19]
-            },
-            {
-                text: "Analyze the graph. Which item won the highest number of votes?",
-                type: "graph",
-                data: { Apple: 80, Banana: 40, Grapes: 60 },
-                answer: "Apple",
-                options: ["Apple", "Banana", "Grapes"]
-            },
-            {
-                text: "A graph shows 5 apples, 3 oranges, and 6 bananas. What is the total number of items recorded?",
-                type: "text-only",
-                data: "🍎: 5 | 🍊: 3 | 🍌: 6",
-                answer: 14,
-                options: [11, 13, 14, 15]
-            },
-            {
-                text: "How do you represent the number 5 using standard tally marks?",
-                type: "text-only",
-                data: "Choose representation",
-                answer: "||||\u0336",
-                options: ["|||||", "|||", "||||\u0336", "||||"]
-            },
-            {
-                text: "Examine the graph. Which item received exactly 40 response indicators?",
-                type: "graph",
-                data: { Milk: 30, Juice: 40, Water: 90 },
-                answer: "Juice",
-                options: ["Milk", "Juice", "Water"]
-            },
-            {
-                text: "If each 🎨 icon means 3 art kits, how many icons are required to show 9 art kits?",
-                type: "text-only",
-                data: "🎨 = 3 kits",
-                answer: 3,
-                options: [2, 3, 6, 9]
-            },
-            {
-                text: "How many elements are combined in this tally dataset?",
+                level: "Level 1: Recall",
+                question: "Identify which group of tally marks represents exactly 5 Toucans.",
                 type: "tally",
-                data: "||||\u0336 ||||\u0336 ||",
-                answer: 12,
-                options: [10, 11, 12, 14]
+                data: [ { label: "Toucans", count: 5, img: "toucan.png" } ],
+                options: ["IIII", "V", "IIII-slash", "IIIII"],
+                answer: "IIII-slash",
+                explanation: "In standard tallying, a group of 4 straight vertical lines closed off with 1 diagonal cross line represents exactly 5 items."
             },
             {
-                text: "Look at the graph. How many votes did Banana get?",
-                type: "graph",
-                data: { Apple: 50, Banana: 70, Cherry: 30 },
-                answer: 70,
-                options: [50, 70, 30, 100]
+                level: "Level 1: Recall",
+                question: "Read this Pictograph. If each banana icon stands for 1 banana, how many bananas did the elephants eat?",
+                type: "picto",
+                key: 1,
+                data: [ { label: "Elephants", count: 4, img: "banana.png" }, { label: "Giraﬀes", count: 2, img: "banana.png" } ],
+                options: ["2", "4", "6", "1"],
+                answer: "4",
+                explanation: "Count the banana icons in the Elephants row. There are 4 icons, and since each icon represents 1, the answer is 4."
+            },
+            {
+                level: "Level 1: Recall",
+                question: "Look at the Bar Graph. What is the recorded height of the bar indicating Zebras?",
+                type: "bar",
+                data: [ { label: "Zebras", count: 8 }, { label: "Pandas", count: 5 } ],
+                options: ["5", "6", "8", "10"],
+                answer: "8",
+                explanation: "Follow the peak of the Zebra bar straight over to the vertical axis line; it perfectly aligns with the number 8."
+            },
+
+            // LEVEL 2: UNDERSTANDING (Interpreting relationships, reading scale factors, basic totaling)
+            {
+                level: "Level 2: Understanding",
+                question: "CRITICAL KEY CHANGE: In this Pictograph, each paw icon represents 2 Bears. How many total Bears live in the forest zone?",
+                type: "picto",
+                key: 2,
+                data: [ { label: "Bears", count: 6, img: "paw.png" } ], 
+                options: ["3", "5", "6", "8"],
+                answer: "6",
+                explanation: "Look closely at the key! Each icon counts for 2. Since there are 3 icons displayed, we skip-count: 2, 4, 6!"
+            },
+            {
+                level: "Level 2: Understanding",
+                question: "Compare the counts! How many MORE Parrots than Koalas are recorded via these tally sets?",
+                type: "tally",
+                data: [ { label: "Parrots", count: 9, img: "parrot.png" }, { label: "Koalas", count: 4, img: "koala.png" } ],
+                options: ["3", "4", "5", "9"],
+                answer: "5",
+                explanation: "Parrots have 9 tallies and Koalas have 4 tallies. To find how many more, subtract: 9 - 4 = 5."
+            },
+            {
+                level: "Level 2: Understanding",
+                question: "The Zookeeper wants to know which animal type has the FEWEST representatives according to this Bar Graph?",
+                type: "bar",
+                data: [ { label: "Snakes", count: 3 }, { label: "Tigers", count: 9 }, { label: "Hippos", count: 6 } ],
+                options: ["Snakes", "Tigers", "Hippos", "None"],
+                answer: "Snakes",
+                explanation: "The shortest bar in the graph belongs to the Snakes, showing a value of only 3."
+            },
+            {
+                level: "Level 2: Understanding",
+                question: "Calculate total stock: If each fish icon means 3 items, how many total fish are stored for the penguins?",
+                type: "picto",
+                key: 3,
+                data: [ { label: "Fish Stack", count: 12, img: "fish.png" } ], 
+                options: ["4", "7", "9", "12"],
+                answer: "12",
+                explanation: "With 4 fish icons present and a key value of 3 units per icon, we calculate 4 times 3, which equals 12 fish."
+            },
+
+            // LEVEL 3: APPLICATION & REASONING (Combining data, error checks, solving contextual problems)
+            {
+                level: "Level 3: Application",
+                question: "The Zookeeper lost a notebook entry! If the total count of Tigers and Lions combined is 11, how many Lions must be added?",
+                type: "bar",
+                data: [ { label: "Tigers", count: 7 }, { label: "Lions (Missing)", count: 4 } ],
+                options: ["3", "4", "5", "11"],
+                answer: "4",
+                explanation: "The bar shows there are 7 Tigers. If the combined total is 11, then the missing Lions count is 11 - 7 = 4."
+            },
+            {
+                level: "Level 3: Application",
+                question: "Ranger Lily says this pictograph represents 10 Kangaroos. Is her data statement accurate?",
+                type: "picto",
+                key: 2,
+                data: [ { label: "Kangaroos", count: 8, img: "kangaroo.png" } ], 
+                options: ["Yes, completely correct", "No, it represents 4", "No, it represents 8", "No, it represents 12"],
+                answer: "No, it represents 8",
+                explanation: "There are 4 icons and each icon equals 2. 4 times 2 is 8, not 10. Lily made an evaluation error!"
+            },
+            {
+                level: "Level 3: Application",
+                question: "A delivery truck arrives with 3 new Foxes. If we add them to the bar chart, what will the new Foxes total value be?",
+                type: "bar",
+                data: [ { label: "Current Foxes", count: 4 }, { label: "Deer", count: 6 } ],
+                options: ["3", "4", "7", "10"],
+                answer: "7",
+                explanation: "The graph shows 4 current Foxes. Adding the 3 newcomers means the new total bar height will reach 4 + 3 = 7."
+            },
+            {
+                level: "Level 3: Application",
+                question: "Final Challenge! Look at the tally marks below. Can you compute the combined total of Foxes and Owls together?",
+                type: "tally",
+                data: [ { label: "Foxes", count: 6, img: "fox.png" }, { label: "Owls", count: 8, img: "owl.png" } ],
+                options: ["12", "14", "15", "16"],
+                answer: "14",
+                explanation: "Foxes have 6 tallies and Owls have 8 tallies. Combined together, 6 + 8 equals 14 total animals!"
             }
         ];
 
-        let activeQuestions = [];
-        let currentQuestionIndex = 0;
-        let userScore = 0;
-        let responseAttempts = 0;
+        let currentIndex = 0;
+        let score = 0;
+        let wrongAttempts = 0;
+        let selectedOption = null;
 
-        // Auto-transition Branding Screen to Instruction Page on countdown expiration
+        function playSound(type) {
+            const el = document.getElementById(type === 'correct' ? 'snd-correct' : 'snd-wrong');
+            if(el) {
+                el.play().catch(() => {
+                    console.log(`Sound clip played: ${type}`);
+                });
+            }
+        }
+
         window.addEventListener('DOMContentLoaded', () => {
             setTimeout(() => {
-                document.getElementById('logo-screen').classList.remove('active');
-                document.getElementById('instruction-screen').classList.add('active');
+                switchScreen('intro-screen');
             }, 5000);
         });
 
-        function startGame() {
-            // Shuffle database array to randomize layout across executions
-            activeQuestions = [...questionsDatabase].sort(() => Math.random() - 0.5);
-            currentQuestionIndex = 0;
-            userScore = 0;
-            document.getElementById('instruction-screen').classList.remove('active');
-            document.getElementById('game-screen').classList.add('active');
-            displayQuestion();
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
         }
 
-        function displayQuestion() {
-            responseAttempts = 0;
-            const feedbackLayer = document.getElementById('feedback-layer');
-            feedbackLayer.style.display = 'none';
+        function startGame() {
+            currentIndex = 0;
+            score = 0;
+            wrongAttempts = 0;
+            switchScreen('game-screen');
+            loadTask();
+        }
 
-            const currentQuestion = activeQuestions[currentQuestionIndex];
-            
-            // Header stats synchronization
-            document.getElementById('question-number').innerText = `Question ${currentQuestionIndex + 1}/${activeQuestions.length}`;
-            document.getElementById('score-display').innerText = `Score: ${userScore}`;
-            
-            // Track progressive bar visual length metrics
-            const progressPercentage = ((currentQuestionIndex) / activeQuestions.length) * 100;
-            document.getElementById('game-progress').style.width = `${progressPercentage}%`;
+        function loadTask() {
+            wrongAttempts = 0;
+            selectedOption = null;
+            const item = database[currentIndex];
 
-            document.getElementById('question-text').innerText = currentQuestion.text;
+            document.getElementById('level-indicator').innerText = item.level;
+            document.getElementById('progress-tracker').innerText = `Task: ${currentIndex + 1}/${database.length}`;
+            document.getElementById('score-tracker').innerText = `Score: ${score}`;
+            document.getElementById('question-text').innerText = item.question;
 
-            // Visual Graphic asset rendering based on dataset context
-            const visualArea = document.getElementById('visual-area');
-            visualArea.innerHTML = '';
+            const workspace = document.getElementById('game-workspace');
+            const optionsBox = document.getElementById('options-box');
+            workspace.innerHTML = "";
+            optionsBox.innerHTML = "";
 
-            if (currentQuestion.type === 'tally') {
-                const group = document.createElement('div');
-                group.className = 'tally-group';
-                group.innerText = currentQuestion.data;
-                visualArea.appendChild(group);
-            } else if (currentQuestion.type === 'graph') {
-                const graphContainer = document.createElement('div');
-                graphContainer.className = 'graph-container';
+            if (item.type === 'tally') {
+                const container = document.createElement('div');
+                container.className = 'tally-container';
+                item.data.forEach(d => {
+                    const card = document.createElement('div');
+                    card.className = 'tally-card';
+                    card.innerHTML = `
+                        <img class="tally-img" src="assets/${d.img}" onerror="this.src='https://placehold.co/50?text=🐾'">
+                        <div style="font-weight:bold; font-size:0.9rem; margin-bottom:5px;">${d.label}</div>
+                        <div class="tally-marks">${generateTallyHTML(d.count)}</div>
+                    `;
+                    container.appendChild(card);
+                });
+                workspace.appendChild(container);
+
+            } else if (item.type === 'picto') {
+                const grid = document.createElement('div');
+                grid.className = 'picto-grid';
+                item.data.forEach(d => {
+                    const row = document.createElement('div');
+                    row.className = 'picto-row';
+                    
+                    let iconCount = item.key === 1 ? d.count : Math.floor(d.count / item.key);
+                    if(item.question.includes("Lily")) iconCount = 4;
+
+                    let iconsHTML = '';
+                    for(let i=0; i<iconCount; i++) {
+                        iconsHTML += `<img class="picto-icon" src="assets/${d.img}" onerror="this.src='https://placehold.co/30?text=⭐'">`;
+                    }
+
+                    row.innerHTML = `
+                        <div class="picto-label">${d.label}</div>
+                        <div class="picto-items">${iconsHTML}</div>
+                    `;
+                    grid.appendChild(row);
+                });
+                const keyTag = document.createElement('div');
+                keyTag.className = 'picto-key';
+                keyTag.innerText = `Key: Each Icon = ${item.key} Animal(s)`;
+                workspace.appendChild(grid);
+                workspace.appendChild(keyTag);
+
+            } else if (item.type === 'bar') {
+                const chart = document.createElement('div');
+                chart.className = 'bar-chart';
+                chart.innerHTML = `<div class="y-axis-label">Number of Animals ➔</div>`;
                 
-                for (const [label, val] of Object.entries(currentQuestion.data)) {
-                    const bar = document.createElement('div');
-                    bar.className = 'graph-bar';
-                    // Calculate relative height metric dynamically
-                    bar.style.height = `${val}%`;
-                    bar.innerHTML = `${val}<span class="graph-label">${label}</span>`;
-                    graphContainer.appendChild(bar);
-                }
-                visualArea.appendChild(graphContainer);
-            } else {
-                // Fallback rendering formatting context safely
-                const textInfo = document.createElement('div');
-                textInfo.style.fontSize = '1.4rem';
-                textInfo.style.fontWeight = 'bold';
-                textInfo.style.color = 'var(--primary)';
-                textInfo.innerText = currentQuestion.data;
-                visualArea.appendChild(textInfo);
+                item.data.forEach(d => {
+                    const pct = (d.count / 12) * 100;
+                    const container = document.createElement('div');
+                    container.className = 'bar-container';
+                    
+                    const valueDisplay = d.label.includes('Missing') ? '?' : d.count;
+
+                    container.innerHTML = `
+                        <div class="bar" style="height: ${pct}%">
+                            <div class="bar-value">${valueDisplay}</div>
+                        </div>
+                        <div class="bar-label">${d.label.split(' ')[0]}</div>
+                    `;
+                    chart.appendChild(container);
+                });
+                workspace.appendChild(chart);
             }
 
-            // Options selection structure assembly block
-            const optionsBox = document.getElementById('options-box');
-            optionsBox.innerHTML = '';
-            
-            currentQuestion.options.forEach(opt => {
-                const button = document.createElement('button');
-                button.className = 'btn';
-                button.innerText = opt;
-                button.onclick = () => verifyUserAnswer(button, opt, currentQuestion.answer);
-                optionsBox.appendChild(button);
+            item.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.innerText = opt;
+                btn.onclick = () => selectOption(btn, opt);
+                optionsBox.appendChild(btn);
             });
         }
 
-        function verifyUserAnswer(clickedBtn, selectedVal, correctVal) {
-            responseAttempts++;
-            const feedbackLayer = document.getElementById('feedback-layer');
+        function generateTallyHTML(count) {
+            let html = '';
+            let groups = Math.floor(count / 5);
+            let remainder = count % 5;
 
-            if (selectedVal == correctVal) {
-                clickedBtn.classList.add('btn-correct');
+            for (let g = 0; g < groups; g++) {
+                html += `<div class="tally-group">
+                    <div class="tally-stick"></div>
+                    <div class="tally-stick"></div>
+                    <div class="tally-stick"></div>
+                    <div class="tally-stick"></div>
+                    <div class="tally-stick diagonal"></div>
+                </div>`;
+            }
+            if (remainder > 0) {
+                html += `<div class="tally-group" style="width:auto;">`;
+                for (let r = 0; r < remainder; r++) {
+                    html += `<div class="tally-stick" style="position:static; margin-right:2px;"></div>`;
+                }
+                html += `</div>`;
+            }
+            return html;
+        }
+
+        function selectOption(btn, value) {
+            document.querySelectorAll('#options-box .btn').forEach(b => b.classList.remove('selected'));
+            btn.classList.add('selected');
+            selectedOption = value;
+            checkAnswer();
+        }
+
+        function checkAnswer() {
+            const item = database[currentIndex];
+            const titleEl = document.getElementById('feedback-title');
+            const explanationEl = document.getElementById('explanation-text');
+            const nextBtn = document.getElementById('modal-next-btn');
+
+            if (selectedOption === item.answer) {
                 playSound('correct');
-                
-                // Active configuration increment metrics tracking
-                if (responseAttempts === 1) {
-                    userScore += 10;
-                } else if (responseAttempts === 2) {
-                    userScore += 5;
-                }
-
-                // Celebrate immediately with canvas particles
-                confetti({
-                    particleCount: 100,
-                    spread: 70,
-                    origin: { y: 0.6 }
-                });
-
-                feedbackLayer.innerHTML = "✨ Correct! Awesome ✨";
-                feedbackLayer.style.color = "var(--success)";
-                feedbackLayer.style.display = "flex";
-
-                setTimeout(() => {
-                    advanceGameFlow();
-                }, 1500);
-
+                score++;
+                titleEl.innerText = "🌟 Outstanding job!";
+                titleEl.className = "feedback-title correct";
+                explanationEl.innerText = item.explanation;
+                nextBtn.innerText = "Next Task";
+                showModal();
             } else {
-                clickedBtn.classList.add('btn-wrong');
-                clickedBtn.disabled = true;
                 playSound('wrong');
-
-                if (responseAttempts === 1) {
-                    // Give a second opportunity to think cleanly
-                    feedbackLayer.innerHTML = "❌ Try Again, Detective!";
-                    feedbackLayer.style.color = "var(--danger)";
-                    feedbackLayer.style.display = "flex";
-                    setTimeout(() => {
-                        feedbackLayer.style.display = "none";
-                    }, 1200);
+                wrongAttempts++;
+                if (wrongAttempts >= 2) {
+                    titleEl.innerText = "Let's review this together!";
+                    titleEl.className = "feedback-title wrong";
+                    explanationEl.innerHTML = `Not quite right. <br><strong>Correct Answer: ${item.answer}</strong><br><br>${item.explanation}`;
+                    nextBtn.innerText = "I understand";
+                    showModal();
                 } else {
-                    // Advance to next question after 2 sequential erroneous attempts
-                    feedbackLayer.innerHTML = `The correct answer was: ${correctVal}`;
-                    feedbackLayer.style.color = "var(--text)";
-                    feedbackLayer.style.display = "flex";
-                    setTimeout(() => {
-                        advanceGameFlow();
-                    }, 2000);
+                    titleEl.innerText = "❌ Try Again!";
+                    titleEl.className = "feedback-title wrong";
+                    explanationEl.innerText = "That wasn't correct. Check your count parameters and try one more time!";
+                    nextBtn.innerText = "Retry Challenge";
+                    showModal();
                 }
             }
         }
 
-        function advanceGameFlow() {
-            currentQuestionIndex++;
-            if (currentQuestionIndex < activeQuestions.length) {
-                displayQuestion();
+        function showModal() {
+            document.getElementById('feedback-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('feedback-modal').style.display = 'none';
+            
+            if (wrongAttempts === 1 && document.getElementById('feedback-title').innerText.includes("Try Again")) {
+                document.querySelectorAll('#options-box .btn').forEach(b => b.classList.remove('selected'));
+                return;
+            }
+
+            currentIndex++;
+            if (currentIndex < database.length) {
+                loadTask();
             } else {
-                displayEndScreen();
+                showEndScreen();
             }
         }
 
-        function displayEndScreen() {
-            document.getElementById('game-screen').classList.remove('active');
-            document.getElementById('end-screen').classList.add('active');
-            document.getElementById('final-score-text').innerText = `Your Final Score: ${userScore} / ${activeQuestions.length * 10}`;
-            playSound('clapping');
+        function showEndScreen() {
+            switchScreen('end-screen');
+            document.getElementById('final-score').innerText = `${score} / ${database.length}`;
+            
+            let message = "";
+            if(score === database.length) {
+                message = "Incredible! A perfect data set. You are officially an Honorary Zoo Chief!";
+            } else if(score >= 8) {
+                message = "Splendid job! You organized the system very efficiently.";
+            } else {
+                message = "Good try! Let's do a fast replay loop review to secure that badge.";
+            }
+            document.getElementById('final-feedback').innerText = message;
         }
 
         function restartGame() {
-            document.getElementById('end-screen').classList.remove('active');
             startGame();
         }
     </script>
