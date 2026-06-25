@@ -313,7 +313,7 @@
             background: rgba(59, 130, 246, 0.05);
             transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
         }
-        .drop-target.hovered { border-color: var(--success); background: rgba(16, 185, 129, 0.12); transform: scale(1.05); box-shadow: 0 0 25px rgba(16, 185, 129, 0.3); }
+        .drop-target.hovered { border-color: var(--success); background: rgba(16, 185, 129, 0.12); transform: scale(1.05); box-shadow: 0 0px 25px rgba(16, 185, 129, 0.3); }
         .drop-target.hint-flash { animation: targetGlow 1.4s infinite alternate; }
 
         @keyframes targetGlow {
@@ -437,7 +437,7 @@
         }
     };
 
-    // --- REAL SPACE ASSET FILENAME MAPPING ---
+    // --- ASSET PATH CONFIGURATION WITH TIMEOUT PROTECTION ---
     const AssetManager = {
         images: {},
         manifest: {
@@ -451,17 +451,27 @@
         loadAll(callback) {
             let loaded = 0;
             const entries = Object.entries(this.manifest);
+            
+            // Safety Backup: Forces loading closure if folders or logo graphics are missing locally
+            const safetyTimeout = setTimeout(() => {
+                console.warn("Asset pipeline handshake timed out. Initializing vector framework engine.");
+                callback();
+            }, 1500);
+
             entries.forEach(([key, src]) => {
                 this.images[key] = new Image();
                 this.images[key].src = src;
-                this.images[key].onload = () => {
+                
+                const processCompletion = () => {
                     loaded++;
-                    if (loaded === entries.length) callback();
+                    if (loaded === entries.length) {
+                        clearTimeout(safetyTimeout);
+                        callback();
+                    }
                 };
-                this.images[key].onerror = () => {
-                    loaded++;
-                    if (loaded === entries.length) callback();
-                };
+
+                this.images[key].onload = processCompletion;
+                this.images[key].onerror = processCompletion; // Safely process if custom assets are dropped
             });
         }
     };
@@ -470,3 +480,89 @@
         updateHUD() {
             document.getElementById('hud-score').innerText = `${GameState.index}/10`;
             document.getElementById('hud-stars').innerText = GameState.stars;
+            document.getElementById('hud-prompt').innerText = GameState.current.prompt;
+            document.getElementById('progress-fill').style.width = `${(GameState.index / 10) * 100}%`;
+            
+            const hintPanel = document.getElementById('hint-overlay');
+            if (GameState.attempts >= 2) {
+                hintPanel.innerText = GameState.current.hint;
+                hintPanel.classList.remove('hidden');
+            } else {
+                hintPanel.classList.add('hidden');
+            }
+        },
+        animateMascot(state) {
+            const el = document.getElementById('mascot-widget');
+            if(state === 'win') el.style.transform = 'scale(1.2) rotate(8deg)';
+            else if(state === 'lose') el.style.transform = 'scale(0.85) cubic-bezier(.36,.07,.19,.97) translate3d(2px, 0, 0)';
+            setTimeout(() => el.style.transform = 'scale(1) rotate(0deg)', 600);
+        },
+        toast(text, isSuccess) {
+            document.querySelectorAll('.feedback-toast').forEach(t => t.remove());
+            const el = document.createElement('div');
+            el.className = `feedback-toast ${isSuccess ? 'success-toast' : 'error-toast'}`;
+            el.innerText = text; document.getElementById('game-container').appendChild(el);
+            setTimeout(() => el.remove(), 2000);
+        }
+    };
+
+    // --- PIPELINE RENDERING CANVAS SYSTEM ---
+    const Render = {
+        canvas: document.getElementById('game-canvas'),
+        ctx: document.getElementById('game-canvas').getContext('2d'),
+
+        draw() {
+            this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            const q = GameState.current;
+            if (!q) return;
+
+            // Draw Space Background Environment
+            if (AssetManager.images.bg && AssetManager.images.bg.complete && AssetManager.images.bg.naturalWidth !== 0) {
+                this.ctx.drawImage(AssetManager.images.bg, 0, 0, this.canvas.width, this.canvas.height);
+            } else {
+                this.ctx.fillStyle = '#020617'; this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            }
+
+            if (q.mode === 'repeating') this.drawRepeating(q);
+            else if (q.mode === 'growing') this.drawGrowing(q);
+            else if (q.mode === 'symmetry') this.drawSymmetry(q);
+        },
+
+        drawItemShape(type, x, y, size) {
+            const img = AssetManager.images[type];
+            if (img && img.complete && img.naturalWidth !== 0) {
+                this.ctx.drawImage(img, x - size/2, y - size/2, size, size);
+            } else {
+                this.ctx.save();
+                this.ctx.fillStyle = '#3b82f6'; this.ctx.strokeStyle = '#fff'; this.ctx.lineWidth = 3;
+                this.ctx.shadowBlur = 10; this.ctx.shadowColor = '#3b82f6';
+                this.ctx.beginPath();
+                if (type === 'circle') this.ctx.arc(x, y, size/2, 0, Math.PI*2);
+                else if (type === 'square') this.ctx.roundRect(x - size/2, y - size/2, size, size, 12);
+                else if (type === 'triangle') { this.ctx.moveTo(x, y - size/2); this.ctx.lineTo(x + size/2, y + size/2); this.ctx.lineTo(x - size/2, y + size/2); this.ctx.closePath(); }
+                else if (type === 'star-token') { this.ctx.arc(x, y, size/2, 0, Math.PI*2); this.ctx.fillStyle = '#a855f7'; }
+                this.ctx.fill(); this.ctx.stroke(); this.ctx.restore();
+            }
+        },
+
+        drawRepeating(q) {
+            const startX = 162, centerY = 240, spacing = 140;
+            q.sequence.forEach((shape, i) => {
+                const cx = startX + i * spacing;
+                if (shape !== 'blank') {
+                    this.drawItemShape(shape, cx, centerY, 80);
+                } else {
+                    this.ctx.save();
+                    this.ctx.strokeStyle = 'rgba(59, 130, 246, 0.5)'; this.ctx.lineWidth = 4;
+                    this.ctx.setLineDash([8, 4]); this.ctx.beginPath();
+                    this.ctx.roundRect(cx - 45, centerY - 45, 90, 90, 20); this.ctx.stroke();
+                    this.ctx.restore();
+                }
+            });
+        },
+
+        drawGrowing(q) {
+            const startX = 230, centerY = 230, spacing = 190;
+            this.ctx.font = 'bold 38px system-ui'; this.ctx.textAlign = 'center'; this.ctx.textBaseline = 'middle';
+
+            q.numbers.forEach((val, i
