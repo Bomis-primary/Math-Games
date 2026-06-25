@@ -44,7 +44,6 @@
             aspect-ratio: 16/9;
         }
 
-        /* Fluid scale optimizations for classroom displays and devices */
         @media (max-width: 1050px), (max-height: 600px) { #game-container { transform: scale(0.9); } }
         @media (max-width: 930px), (max-height: 540px) { #game-container { transform: scale(0.75); } }
         @media (max-width: 780px), (max-height: 440px) { #game-container { transform: scale(0.6); } }
@@ -70,7 +69,7 @@
             pointer-events: none;
         }
 
-        /* 1. Mandatory Splash Screen Branding */
+        /* 1. Innovine Splash Screen Branding */
         #splash-screen {
             background-color: #ffffff;
             z-index: 100;
@@ -112,7 +111,6 @@
             -webkit-text-fill-color: transparent;
         }
 
-        /* 2. Rule & Context Pre-play Screen */
         #instruction-screen { background: rgba(15, 23, 42, 0.98); }
         
         .panel {
@@ -156,7 +154,7 @@
         .btn:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6); }
         .btn:active { transform: scale(0.95); }
 
-        /* 3. Global HUD Control Deck */
+        /* HUD Navigation Dashboard */
         #hud {
             position: absolute;
             top: 0;
@@ -195,7 +193,7 @@
         }
         .volume-slider { width: 70px; cursor: pointer; accent-color: var(--accent); }
 
-        /* 4. Layer Architecture */
+        /* Graphics Planes */
         #game-canvas, #fx-canvas {
             position: absolute;
             top: 0;
@@ -216,7 +214,7 @@
             pointer-events: none;
         }
 
-        /* 5. Drag and Drop Interactive Elements */
+        /* Interactive Tokens & Targets */
         .draggable-token {
             position: absolute;
             width: 95px;
@@ -230,9 +228,17 @@
             cursor: grab;
             box-shadow: 0 8px 15px rgba(0,0,0,0.5);
             pointer-events: auto;
-            transform-origin: center center;
         }
-        .draggable-token:active { cursor: grabbing; box-shadow: 0 15px 25px rgba(0,0,0,0.7); }
+        
+        /* Clickable variations for YES/NO tokens */
+        .clickable-token {
+            cursor: pointer !important;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .clickable-token:hover {
+            transform: scale(1.08);
+            border-color: var(--secondary);
+        }
 
         .drop-target {
             position: absolute;
@@ -289,7 +295,7 @@
     <div id="instruction-screen" class="screen hidden">
         <div class="panel">
             <h2>Shape Shifter Safari</h2>
-            <p>The Shadow Sprite has broken the symmetry and pattern arrays of Geometrica! Assist Captain Polygon by drag-matching missing pattern blocks, tracking growing sets, and verifying lines of symmetry.</p>
+            <p>The Shadow Sprite has scrambled the geometric arrays of Geometrica! Drag missing shapes into sequence slots, track numerical growth, and tap answers instantly on lines of symmetry.</p>
             <button class="btn" id="start-btn">START SAFARI</button>
         </div>
     </div>
@@ -311,14 +317,14 @@
         <div class="panel">
             <div style="font-size:60px; margin-bottom:15px;">💎</div>
             <h2>SAFARI COMPLETE!</h2>
-            <p id="end-evaluation">Fantastic work! Order, scale sequencing, and mirror balance are restored to Geometrica!</p>
+            <p id="end-evaluation">Symmetry and sequence parameters have been securely balanced!</p>
             <button class="btn" id="restart-btn">PLAY AGAIN</button>
         </div>
     </div>
 </div>
 
 <script>
-    // --- NATIVE SYSTEM WEB AUDIO SYNTHESIZER ENGINE ---
+    // --- NATIVE SOUND RE-SYNTH ENGINE ---
     const AudioEngine = {
         ctx: null, volume: 0.5,
         init() { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
@@ -334,10 +340,10 @@
             
             if (type === 'success') {
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(523.25, now);     // C5
-                osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
-                osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
-                osc.frequency.setValueAtTime(1046.50, now + 0.24); // C6
+                osc.frequency.setValueAtTime(523.25, now);
+                osc.frequency.setValueAtTime(659.25, now + 0.08);
+                osc.frequency.setValueAtTime(783.99, now + 0.16);
+                osc.frequency.setValueAtTime(1046.50, now + 0.24);
                 gain.gain.linearRampToValueAtTime(this.volume, now + 0.05);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
                 osc.start(now); osc.stop(now + 0.6);
@@ -362,29 +368,27 @@
             const buffer = this.ctx.createBuffer(1, size, this.ctx.sampleRate);
             const data = buffer.getChannelData(0);
             for (let i = 0; i < size; i++) data[i] = Math.random() * 2 - 1;
-            
             const src = this.ctx.createBufferSource(); src.buffer = buffer;
             const filter = this.ctx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.value = 1000;
             const g = this.ctx.createGain(); g.gain.setValueAtTime(this.volume * 0.4, this.ctx.currentTime);
             g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
-            
             src.connect(filter); filter.connect(g); g.connect(this.ctx.destination);
             src.start();
         }
     };
 
-    // --- CURATED APPLICATION QUESTION POOL (10 TEXTBOOK OUTCOME MATCHES) ---
+    // --- RANDOMIZED APPLICATION CONFIGURATION ---
     const QuestionPool = [
         { id: 1, mode: 'repeating', sequence: ['circle', 'square', 'circle', 'square', 'blank'], target: 'circle', options: ['circle', 'triangle', 'square'], prompt: 'Identify the next shape in this repeating sequence.' },
         { id: 2, mode: 'repeating', sequence: ['triangle', 'triangle', 'circle', 'triangle', 'triangle', 'blank'], target: 'circle', options: ['square', 'circle', 'triangle'], prompt: 'Find the core repeating unit shape.' },
         { id: 3, mode: 'growing', numbers: [2, 4, 6, 'blank'], target: '8', options: ['7', '8', '10'], prompt: 'Extend this growing numerical pattern.' },
         { id: 4, mode: 'growing', numbers: [5, 10, 15, 'blank'], target: '20', options: ['16', '20', '25'], prompt: 'Find the rule and complete the growth steps.' },
-        { id: 5, mode: 'symmetry', type: 'vertical-valid', shape: 'butterfly', target: 'YES', options: ['YES', 'NO'], prompt: 'Does the dashed line divide this item into mirror-image halves?' },
-        { id: 6, mode: 'symmetry', type: 'invalid-cut', shape: 'triangle-skew', target: 'NO', options: ['YES', 'NO'], prompt: 'Is this line a valid line of symmetry?' },
-        { id: 7, mode: 'repeating', sequence: ['square', 'triangle', 'circle', 'square', 'blank', 'circle'], target: 'triangle', options: ['circle', 'triangle', 'square'], prompt: 'Analyze the sequence to find the missing center tile.' },
+        { id: 5, mode: 'symmetry', type: 'vertical-valid', shape: 'hex-star', target: 'YES', options: ['YES', 'NO'], prompt: 'Does the vertical line divide this star into exact mirror halves? (Tap Answer)' },
+        { id: 6, mode: 'symmetry', type: 'invalid-cut', shape: 'triangle-skew', target: 'NO', options: ['YES', 'NO'], prompt: 'Is this line a valid line of symmetry? (Tap Answer)' },
+        { id: 7, mode: 'repeating', sequence: ['square', 'triangle', 'circle', 'square', 'blank', 'circle'], target: 'triangle', options: ['circle', 'triangle', 'square'], prompt: 'Analyze the sequence to find the missing tile.' },
         { id: 8, mode: 'growing', numbers: [1, 3, 5, 'blank'], target: '7', options: ['6', '7', '9'], prompt: 'Determine the next odd step in this sequence.' },
-        { id: 9, mode: 'symmetry', type: 'horizontal-valid', shape: 'rectangle', target: 'YES', options: ['YES', 'NO'], prompt: 'Does this horizontal line show true mirror balance?' },
-        { id: 10, mode: 'repeating', sequence: ['circle', 'circle', 'square', 'circle', 'circle', 'blank'], target: 'square', options: ['triangle', 'square', 'circle'], prompt: 'Complete the loop boundary pattern.' }
+        { id: 9, mode: 'symmetry', type: 'horizontal-valid', shape: 'rectangle', target: 'YES', options: ['YES', 'NO'], prompt: 'Does this horizontal line show true mirror balance? (Tap Answer)' },
+        { id: 10, mode: 'growing', numbers: [10, 20, 30, 'blank'], target: '40', options: ['35', '40', '50'], prompt: 'Predict the next base value in this multi-tiered growth track.' }
     ];
 
     const GameState = {
@@ -412,7 +416,7 @@
         }
     };
 
-    // --- HIGH FIDELITY GRAPHICS ENGINE ---
+    // --- VECTOR GRAPHICS DRAW ENGINE ---
     const Render = {
         canvas: document.getElementById('game-canvas'),
         ctx: document.getElementById('game-canvas').getContext('2d'),
@@ -424,13 +428,9 @@
             const q = GameState.current;
             if(!q) return;
 
-            if (q.mode === 'repeating') {
-                this.drawRepeating(q);
-            } else if (q.mode === 'growing') {
-                this.drawGrowing(q);
-            } else if (q.mode === 'symmetry') {
-                this.drawSymmetry(q);
-            }
+            if (q.mode === 'repeating') this.drawRepeating(q);
+            else if (q.mode === 'growing') this.drawGrowing(q);
+            else if (q.mode === 'symmetry') this.drawSymmetry(q);
         },
 
         drawVectorShape(type, x, y, size) {
@@ -470,15 +470,12 @@
 
         drawGrowing(q) {
             const startX = 230, centerY = 210, spacing = 190;
-            this.ctx.fillStyle = '#ffffff';
             this.ctx.font = 'bold 44px sans-serif';
             this.ctx.textAlign = 'center';
             this.ctx.textBaseline = 'middle';
 
             q.numbers.forEach((val, i) => {
                 const cx = startX + i * spacing;
-                
-                // Draw custom structural stone blocks for numerical patterns
                 this.ctx.fillStyle = '#3b82f6';
                 this.ctx.strokeStyle = '#fff';
                 this.ctx.lineWidth = 3;
@@ -497,47 +494,48 @@
             this.ctx.strokeStyle = '#ffffff';
             this.ctx.lineWidth = 4;
 
-            if (q.shape === 'butterfly') {
-                // Symmetrical wing pairs
+            if (q.shape === 'hex-star') {
                 this.ctx.beginPath();
-                this.ctx.arc(cx - 40, cy, 50, 0, Math.PI * 2);
-                this.ctx.arc(cx + 40, cy, 50, 0, Math.PI * 2);
-                this.ctx.fill(); this.ctx.stroke();
+                for (let i = 0; i < 12; i++) {
+                    const angle = (Math.PI / 6) * i - Math.PI / 2;
+                    const r = (i % 2 === 0) ? 75 : 35;
+                    const px = cx + Math.cos(angle) * r;
+                    const py = cy + Math.sin(angle) * r;
+                    if (i === 0) this.ctx.moveTo(px, py); else this.ctx.lineTo(px, py);
+                }
+                this.ctx.closePath(); this.ctx.fill(); this.ctx.stroke();
             } else if (q.shape === 'rectangle') {
                 this.ctx.beginPath();
-                this.ctx.roundRect(cx - 100, cy - 60, 200, 120, 8);
+                this.ctx.roundRect(cx - 110, cy - 65, 220, 130, 8);
                 this.ctx.fill(); this.ctx.stroke();
             } else if (q.shape === 'triangle-skew') {
-                // Asymmetrical triangle element layout
                 this.ctx.beginPath();
-                this.ctx.moveTo(cx - 80, cy + 60);
-                this.ctx.lineTo(cx + 120, cy + 60);
-                this.ctx.lineTo(cx - 20, cy - 60);
+                this.ctx.moveTo(cx - 90, cy + 65);
+                this.ctx.lineTo(cx + 130, cy + 65);
+                this.ctx.lineTo(cx - 35, cy - 65);
                 this.ctx.closePath();
                 this.ctx.fill(); this.ctx.stroke();
             }
 
-            // Draw interactive dividing line of symmetry
             this.ctx.strokeStyle = '#f59e0b';
             this.ctx.lineWidth = 5;
             this.ctx.setLineDash([8, 6]);
             this.ctx.beginPath();
             if (q.type === 'horizontal-valid') {
-                this.ctx.moveTo(cx - 150, cy); this.ctx.lineTo(cx + 150, cy);
+                this.ctx.moveTo(cx - 160, cy); this.ctx.lineTo(cx + 160, cy);
             } else {
-                this.ctx.moveTo(cx, cy - 100); this.ctx.lineTo(cx, cy + 100);
+                this.ctx.moveTo(cx, cy - 110); this.ctx.lineTo(cx, cy + 110);
             }
             this.ctx.stroke();
             this.ctx.setLineDash([]);
         }
     };
 
-    // --- RENDER VISUAL PARTICLES FX ENGINE ---
+    // --- FX SYSTEM BLAST PLANE ---
     const FXEngine = {
         canvas: document.getElementById('fx-canvas'),
         ctx: document.getElementById('fx-canvas').getContext('2d'),
         items: [], loopRef: null,
-        
         boom() {
             this.items = [];
             for (let i = 0; i < 80; i++) {
@@ -566,7 +564,7 @@
         }
     };
 
-    // --- DRAG AND DROP HITBOX CALIBRATOR INTERACTION DECK ---
+    // --- INTERACTION HANDLING LOGIC MATRIX ---
     const Interaction = {
         layer: document.getElementById('interaction-layer'),
         activeNode: null, offX: 0, offY: 0, origX: 0, origY: 0,
@@ -575,52 +573,73 @@
             this.layer.innerHTML = '';
             const q = GameState.current;
 
-            const target = document.createElement('div');
-            target.className = 'drop-target';
-            
-            // Layout alignment bounds matching structural matrix modes
-            if (q.mode === 'repeating') {
-                const idx = q.sequence.indexOf('blank');
-                target.style.left = `${162 + idx * 140 - 48}px`;
-                target.style.top = '172px'; target.style.width = '96px'; target.style.height = '96px';
-            } else if (q.mode === 'growing') {
-                target.style.left = '752px'; target.style.top = '152px'; target.style.width = '116px'; target.style.height = '116px';
-            } else if (q.mode === 'symmetry') {
-                target.style.left = '464px'; target.style.top = '162px'; target.style.width = '96px'; target.style.height = '96px';
+            // Handle Option Randomization
+            const shuffledOptions = GameState.shuffle([...q.options]);
+
+            if (q.mode !== 'symmetry') {
+                const target = document.createElement('div');
+                target.className = 'drop-target';
+                if (q.mode === 'repeating') {
+                    const idx = q.sequence.indexOf('blank');
+                    target.style.left = `${162 + idx * 140 - 48}px`;
+                    target.style.top = '172px'; target.style.width = '96px'; target.height = '96px';
+                } else if (q.mode === 'growing') {
+                    target.style.left = '752px'; target.style.top = '152px'; target.style.width = '116px'; target.style.height = '116px';
+                }
+                this.layer.appendChild(target);
             }
-            this.layer.appendChild(target);
 
             const tWidth = 1024, nodeW = 100;
-            const separation = (tWidth - (q.options.length * nodeW)) / (q.options.length + 1);
+            const separation = (tWidth - (shuffledOptions.length * nodeW)) / (shuffledOptions.length + 1);
 
-            q.options.forEach((choice, idx) => {
+            shuffledOptions.forEach((choice, idx) => {
                 const el = document.createElement('div');
-                el.className = 'draggable-token';
                 el.style.left = `${separation + idx * (nodeW + separation)}px`;
                 el.style.top = '440px'; el.dataset.val = choice;
 
-                if (q.mode === 'repeating') {
-                    const icon = document.createElement('canvas');
-                    icon.width = 80; icon.height = 80;
-                    const cctx = icon.getContext('2d');
-                    cctx.fillStyle = '#f59e0b'; cctx.strokeStyle = '#fff'; cctx.lineWidth = 2;
-                    cctx.beginPath();
-                    if(choice === 'circle') cctx.arc(40, 40, 22, 0, Math.PI*2);
-                    else if(choice === 'square') cctx.rect(20, 20, 40, 40);
-                    else if(choice === 'triangle') { cctx.moveTo(40,18); cctx.lineTo(62,58); cctx.lineTo(18,58); cctx.closePath(); }
-                    cctx.fill(); cctx.stroke();
-                    el.appendChild(icon);
-                } else {
+                if (q.mode === 'symmetry') {
+                    // Click-based YES/NO logic processing pathway
+                    el.className = 'draggable-token clickable-token';
                     el.innerText = choice;
-                    el.style.color = '#fff'; el.style.fontSize = '28px'; el.style.fontWeight = 'bold';
+                    el.style.color = '#fff'; el.style.fontSize = '32px'; el.style.fontWeight = 'bold';
+                    
+                    const processClick = () => {
+                        if(choice === q.target) {
+                            AudioEngine.play('success'); FXEngine.boom();
+                            View.toast('✨ Perfect Symmetry Identified! ✨', true);
+                            GameState.score++; GameState.attempts = 0;
+                            setTimeout(() => CoreEngine.next(), 1400);
+                        } else {
+                            AudioEngine.play('fail'); GameState.attempts++;
+                            View.toast('Symmetry mismatch! Re-evaluate mirror lines.', false);
+                        }
+                    };
+                    el.addEventListener('click', processClick);
+                    el.addEventListener('touchstart', (e) => { e.preventDefault(); processClick(); });
+                } else {
+                    // Drag and Drop framework handling for sequences
+                    el.className = 'draggable-token';
+                    if (q.mode === 'repeating') {
+                        const icon = document.createElement('canvas');
+                        icon.width = 80; icon.height = 80;
+                        const cctx = icon.getContext('2d');
+                        cctx.fillStyle = '#f59e0b'; cctx.strokeStyle = '#fff'; cctx.lineWidth = 2;
+                        cctx.beginPath();
+                        if(choice === 'circle') cctx.arc(40, 40, 22, 0, Math.PI*2);
+                        else if(choice === 'square') cctx.rect(20, 20, 40, 40);
+                        else if(choice === 'triangle') { cctx.moveTo(40,18); cctx.lineTo(62,58); cctx.lineTo(18,58); cctx.closePath(); }
+                        cctx.fill(); cctx.stroke(); el.appendChild(icon);
+                    } else {
+                        el.innerText = choice;
+                        el.style.color = '#fff'; el.style.fontSize = '28px'; el.style.fontWeight = 'bold';
+                    }
+                    this.bindDrag(el);
                 }
-
-                this.bind(el);
                 this.layer.appendChild(el);
             });
         },
 
-        bind(el) {
+        bindDrag(el) {
             const track = (e) => {
                 if(!this.activeNode) return;
                 e.preventDefault();
@@ -650,7 +669,7 @@
                 document.removeEventListener('mousemove', track); document.removeEventListener('mouseup', drop);
                 document.removeEventListener('touchmove', track); document.removeEventListener('touchend', drop);
 
-                if (inside) this.check(this.activeNode, target); else this.reset(this.activeNode);
+                if (inside) this.checkDrag(this.activeNode, target); else this.reset(this.activeNode);
                 this.activeNode = null;
             };
 
@@ -680,9 +699,9 @@
             setTimeout(() => { el.style.transition = 'none'; el.style.zIndex = ''; }, 400);
         },
 
-        check(el, target) {
+        checkDrag(el, target) {
             const given = el.dataset.val;
-            const valid = GameState.current.mode === 'repeating' ? GameState.current.target : GameState.current.target;
+            const valid = GameState.current.target;
 
             if (given === valid) {
                 el.style.left = target.style.left; el.style.top = target.style.top; el.style.pointerEvents = 'none';
@@ -698,7 +717,7 @@
         }
     };
 
-    // --- CENTRAL CONTEXT STATE CORE CONTROL DECK ---
+    // --- CENTRAL COORDINATION SYSTEM ---
     const CoreEngine = {
         init() {
             document.getElementById('start-btn').addEventListener('click', () => {
@@ -719,7 +738,6 @@
                 AudioEngine.volume = parseFloat(e.target.value);
             });
 
-            // Branding constraints loop initialization
             setTimeout(() => {
                 document.getElementById('splash-screen').classList.add('hidden');
                 document.getElementById('instruction-screen').classList.remove('hidden');
