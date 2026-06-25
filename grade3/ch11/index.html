@@ -1,1 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Shape Shifter Safari: Patterns & Symmetry</title>
+    <style>
+        :root {
+            --primary: #ec4899;
+            --secondary: #3b82f6;
+            --accent: #f59e0b;
+            --success: #10b981;
+            --bg: #0f172a;
+            --panel-bg: #1e293b;
+        }
 
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        #game-container {
+            position: relative;
+            width: 1024px;
+            height: 576px;
+            background: radial-gradient(circle, #1e1b4b 0%, #020617 100%);
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+            overflow: hidden;
+            aspect-ratio: 16/9;
+        }
+
+        /* Fluid scale optimizations for classroom displays and devices */
+        @media (max-width: 1050px), (max-height: 600px) { #game-container { transform: scale(0.9); } }
+        @media (max-width: 930px), (max-height: 540px) { #game-container { transform: scale(0.75); } }
+        @media (max-width: 780px), (max-height: 440px) { #game-container { transform: scale(0.6); } }
+        @media (max-width: 620px), (max-height: 350px) { #game-container { transform: scale(0.45); } }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+
+        .hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        /* 1. Mandatory Splash Screen Branding */
+        #splash-screen {
+            background-color: #ffffff;
+            z-index: 100;
+        }
+
+        .logo-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            animation: pulseLogo 2s infinite ease-in-out;
+        }
+
+        .innovine-logo {
+            width: 180px;
+            height: 180px;
+            background: linear-gradient(135deg, #ff1f5a, #4a00e0);
+            border-radius: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(74,0,224,0.3);
+        }
+
+        .innovine-logo::before {
+            content: 'I';
+            font-size: 110px;
+            font-weight: 900;
+            color: #ffffff;
+            font-family: 'Arial Black', sans-serif;
+        }
+
+        .brand-text {
+            margin-top: 20px;
+            font-size: 38px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            background: linear-gradient(45deg, #111111, #444444);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* 2. Rule & Context Pre-play Screen */
+        #instruction-screen { background: rgba(15, 23, 42, 0.98); }
+        
+        .panel {
+            background: var(--panel-bg);
+            border: 2px solid var(--secondary);
+            border-radius: 20px;
+            padding: 35px;
+            max-width: 650px;
+            text-align: center;
+            box-shadow: 0 0 30px rgba(59, 130, 246, 0.2);
+        }
+
+        h2 {
+            color: var(--accent);
+            font-size: 34px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        p {
+            color: #cbd5e1;
+            font-size: 18px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--secondary), #1d4ed8);
+            color: white;
+            border: none;
+            padding: 14px 45px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+            transition: transform 0.1s, box-shadow 0.2s;
+        }
+
+        .btn:hover { transform: scale(1.05); box-shadow: 0 8px 25px rgba(59, 130, 246, 0.6); }
+        .btn:active { transform: scale(0.95); }
+
+        /* 3. Global HUD Control Deck */
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 75px;
+            padding: 0 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .hud-element {
+            background: rgba(15, 23, 42, 0.85);
+            padding: 8px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #fff;
+            font-weight: bold;
+            font-size: 16px;
+            pointer-events: auto;
+        }
+
+        .score-tag { color: var(--success); }
+
+        .volume-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(15, 23, 42, 0.85);
+            padding: 8px 15px;
+            border-radius: 30px;
+            pointer-events: auto;
+        }
+        .volume-slider { width: 70px; cursor: pointer; accent-color: var(--accent); }
+
+        /* 4. Layer Architecture */
+        #game-canvas, #fx-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        #game-canvas { z-index: 1; }
+        #fx-canvas { z-index: 15; pointer-events: none; }
+
+        #interaction-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        /* 5. Drag and Drop Interactive Elements */
+        .draggable-token {
+            position: absolute;
+            width: 95px;
+            height: 95px;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            border: 3px solid var(--accent);
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: grab;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.5);
+            pointer-events: auto;
+            transform-origin: center center;
+        }
+        .draggable-token:active { cursor: grabbing; box-shadow: 0 15px 25px rgba(0,0,0,0.7); }
+
+        .drop-target {
+            position: absolute;
+            border: 3px dashed rgba(245, 158, 11, 0.4);
+            border-radius: 20px;
+            background: rgba(245, 158, 11, 0.03);
+            transition: all 0.2s ease;
+        }
+        .drop-target.hovered {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.2);
+            transform: scale(1.03);
+        }
+        .drop-target.hint-flash { animation: targetGlow 1.5s infinite alternate; }
+
+        @keyframes targetGlow {
+            0% { border-color: rgba(245, 158, 11, 0.4); box-shadow: 0 0 0px rgba(0,0,0,0); }
+            100% { border-color: var(--primary); box-shadow: 0 0 25px rgba(236, 72, 153, 0.7); }
+        }
+
+        .feedback-toast {
+            position: absolute;
+            top: 95px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 28px;
+            border-radius: 30px;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            z-index: 25;
+            animation: toastPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .success-toast { background: var(--success); }
+        .error-toast { background: var(--primary); }
+
+        @keyframes toastPop {
+            0% { top: 65px; opacity: 0; }
+            100% { top: 95px; opacity: 1; }
+        }
+        @keyframes pulseLogo { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <div id="splash-screen" class="screen">
+        <div class="logo-wrapper">
+            <div class="innovine-logo"></div>
+            <div class="brand-text">INNOVINE</div>
+        </div>
+    </div>
+
+    <div id="instruction-screen" class="screen hidden">
+        <div class="panel">
+            <h2>Shape Shifter Safari</h2>
+            <p>The Shadow Sprite has broken the symmetry and pattern arrays of Geometrica! Assist Captain Polygon by drag-matching missing pattern blocks, tracking growing sets, and verifying lines of symmetry.</p>
+            <button class="btn" id="start-btn">START SAFARI</button>
+        </div>
+    </div>
+
+    <div id="hud" class="hidden">
+        <div class="hud-element" id="hud-prompt">Analyze the Pattern!</div>
+        <div class="hud-element">Score: &nbsp;<span class="score-tag" id="hud-score">0 / 10</span></div>
+        <div class="volume-controls">
+            <span style="color:#fff; font-size:14px;">🔊</span>
+            <input type="range" min="0" max="1" step="0.1" value="0.5" class="volume-slider" id="volume-control">
+        </div>
+    </div>
+
+    <canvas id="game-canvas" width="1024" height="576"></canvas>
+    <div id="interaction-layer"></div>
+    <canvas id="fx-canvas" width="1024" height="576"></canvas>
+
+    <div id="end-screen" class="screen hidden">
+        <div class="panel">
+            <div style="font-size:60px; margin-bottom:15px;">💎</div>
+            <h2>SAFARI COMPLETE!</h2>
+            <p id="end-evaluation">Fantastic work! Order, scale sequencing, and mirror balance are restored to Geometrica!</p>
+            <button class="btn" id="restart-btn">PLAY AGAIN</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- NATIVE SYSTEM WEB AUDIO SYNTHESIZER ENGINE ---
+    const AudioEngine = {
+        ctx: null, volume: 0.5,
+        init() { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
+        play(type) {
+            if (!this.ctx) this.init();
+            if (this.ctx.state === 'suspended') this.ctx.resume();
+            
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.connect(gain); gain.connect(this.ctx.destination);
+            const now = this.ctx.currentTime;
+            gain.gain.setValueAtTime(0, now);
+            
+            if (type === 'success') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now);     // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.08); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.16); // G5
+                osc.frequency.setValueAtTime(1046.50, now + 0.24); // C6
+                gain.gain.linearRampToValueAtTime(this.volume, now + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+                osc.start(now); osc.stop(now + 0.6);
+                setTimeout(() => this.playApplause(), 60);
+            } else if (type === 'fail') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(120.00, now);
+                osc.frequency.linearRampToValueAtTime(85.00, now + 0.25);
+                gain.gain.linearRampToValueAtTime(this.volume * 0.8, now + 0.04);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'click') {
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(500, now);
+                gain.gain.linearRampToValueAtTime(this.volume * 0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                osc.start(now); osc.stop(now + 0.05);
+            }
+        },
+        playApplause() {
+            if (!this.ctx) return;
+            const size = this.ctx.sampleRate * 0.2;
+            const buffer = this.ctx.createBuffer(1, size, this.ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < size; i++) data[i] = Math.random() * 2 - 1;
+            
+            const src = this.ctx.createBufferSource(); src.buffer = buffer;
+            const filter = this.ctx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.value = 1000;
+            const g = this.ctx.createGain(); g.gain.setValueAtTime(this.volume * 0.4, this.ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.2);
+            
+            src.connect(filter); filter.connect(g); g.connect(this.ctx.destination);
+            src.start();
+        }
+    };
+
+    // --- CURATED APPLICATION QUESTION POOL (10 TEXTBOOK OUTCOME MATCHES) ---
+    const QuestionPool = [
+        { id: 1, mode: 'repeating', sequence: ['circle', 'square', 'circle', 'square', 'blank'], target: 'circle', options: ['circle', 'triangle', 'square'], prompt: 'Identify the next shape in this repeating sequence.' },
+        { id: 2, mode: 'repeating', sequence: ['triangle', 'triangle', 'circle', 'triangle', 'triangle', 'blank'], target: 'circle', options: ['square', 'circle', 'triangle'], prompt: 'Find the core repeating unit shape.' },
+        { id: 3, mode: 'growing', numbers: [2, 4, 6, 'blank'], target: '8', options: ['7', '8', '10'], prompt: 'Extend this growing numerical pattern.' },
+        { id: 4, mode: 'growing', numbers: [5, 10, 15, 'blank'], target: '20', options: ['16', '20', '25'], prompt: 'Find the rule and complete the growth steps.' },
+        { id: 5, mode: 'symmetry', type: 'vertical-valid', shape: 'butterfly', target: 'YES', options: ['YES', 'NO'], prompt: 'Does the dashed line divide this item into mirror-image halves?' },
+        { id: 6, mode: 'symmetry', type: 'invalid-cut', shape: 'triangle-skew', target: 'NO', options: ['YES', 'NO'], prompt: 'Is this line a valid line of symmetry?' },
+        { id: 7, mode: 'repeating', sequence: ['square', 'triangle', 'circle', 'square', 'blank', 'circle'], target: 'triangle', options: ['circle', 'triangle', 'square'], prompt: 'Analyze the sequence to find the missing center tile.' },
+        { id: 8, mode: 'growing', numbers: [1, 3, 5, 'blank'], target: '7', options: ['6', '7', '9'], prompt: 'Determine the next odd step in this sequence.' },
+        { id: 9, mode: 'symmetry', type: 'horizontal-valid', shape: 'rectangle', target: 'YES', options: ['YES', 'NO'], prompt: 'Does this horizontal line show true mirror balance?' },
+        { id: 10, mode: 'repeating', sequence: ['circle', 'circle', 'square', 'circle', 'circle', 'blank'], target: 'square', options: ['triangle', 'square', 'circle'], prompt: 'Complete the loop boundary pattern.' }
+    ];
+
+    const GameState = {
+        score: 0, index: 0, attempts: 0, questions: [], current: null,
+        shuffle(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+    };
+
+    const View = {
+        updateHUD() {
+            document.getElementById('hud-score').innerText = `${GameState.score} / 10`;
+            document.getElementById('hud-prompt').innerText = GameState.current.prompt;
+        },
+        toast(text, isGood) {
+            const container = document.getElementById('game-container');
+            const el = document.createElement('div');
+            el.className = `feedback-toast ${isGood ? 'success-toast' : 'error-toast'}`;
+            el.innerText = text; container.appendChild(el);
+            setTimeout(() => el.remove(), 1600);
+        }
+    };
+
+    // --- HIGH FIDELITY GRAPHICS ENGINE ---
+    const Render = {
+        canvas: document.getElementById('game-canvas'),
+        ctx: document.getElementById('game-canvas').getContext('2d'),
+
+        clear() { this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height); },
+        
+        draw() {
+            this.clear();
+            const q = GameState.current;
+            if(!q) return;
+
+            if (q.mode === 'repeating') {
+                this.drawRepeating(q);
+            } else if (q.mode === 'growing') {
+                this.drawGrowing(q);
+            } else if (q.mode === 'symmetry') {
+                this.drawSymmetry(q);
+            }
+        },
+
+        drawVectorShape(type, x, y, size) {
+            this.ctx.fillStyle = '#60a5fa';
+            this.ctx.strokeStyle = '#ffffff';
+            this.ctx.lineWidth = 4;
+            this.ctx.beginPath();
+            
+            if (type === 'circle') {
+                this.ctx.arc(x, y, size / 2, 0, Math.PI * 2);
+            } else if (type === 'square') {
+                this.ctx.rect(x - size / 2, y - size / 2, size, size);
+            } else if (type === 'triangle') {
+                this.ctx.moveTo(x, y - size / 2);
+                this.ctx.lineTo(x + size / 2, y + size / 2);
+                this.ctx.lineTo(x - size / 2, y + size / 2);
+                this.ctx.closePath();
+            }
+            this.ctx.fill(); this.ctx.stroke();
+        },
+
+        drawRepeating(q) {
+            const startX = 162, centerY = 220, spacing = 140;
+            q.sequence.forEach((shape, i) => {
+                const cx = startX + i * spacing;
+                if (shape !== 'blank') {
+                    this.drawVectorShape(shape, cx, centerY, 70);
+                } else {
+                    this.ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+                    this.ctx.lineWidth = 3;
+                    this.ctx.setLineDash([6, 4]);
+                    this.ctx.strokeRect(cx - 35, centerY - 35, 70, 70);
+                    this.ctx.setLineDash([]);
+                }
+            });
+        },
+
+        drawGrowing(q) {
+            const startX = 230, centerY = 210, spacing = 190;
+            this.ctx.fillStyle = '#ffffff';
+            this.ctx.font = 'bold 44px sans-serif';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+
+            q.numbers.forEach((val, i) => {
+                const cx = startX + i * spacing;
+                
+                // Draw custom structural stone blocks for numerical patterns
+                this.ctx.fillStyle = '#3b82f6';
+                this.ctx.strokeStyle = '#fff';
+                this.ctx.lineWidth = 3;
+                this.ctx.beginPath();
+                this.ctx.roundRect(cx - 50, centerY - 50, 100, 100, 12);
+                this.ctx.fill(); this.ctx.stroke();
+
+                this.ctx.fillStyle = '#ffffff';
+                this.ctx.fillText(val === 'blank' ? '?' : val, cx, centerY);
+            });
+        },
+
+        drawSymmetry(q) {
+            const cx = 512, cy = 210;
+            this.ctx.fillStyle = '#ec4899';
+            this.ctx.strokeStyle = '#ffffff';
+            this.ctx.lineWidth = 4;
+
+            if (q.shape === 'butterfly') {
+                // Symmetrical wing pairs
+                this.ctx.beginPath();
+                this.ctx.arc(cx - 40, cy, 50, 0, Math.PI * 2);
+                this.ctx.arc(cx + 40, cy, 50, 0, Math.PI * 2);
+                this.ctx.fill(); this.ctx.stroke();
+            } else if (q.shape === 'rectangle') {
+                this.ctx.beginPath();
+                this.ctx.roundRect(cx - 100, cy - 60, 200, 120, 8);
+                this.ctx.fill(); this.ctx.stroke();
+            } else if (q.shape === 'triangle-skew') {
+                // Asymmetrical triangle element layout
+                this.ctx.beginPath();
+                this.ctx.moveTo(cx - 80, cy + 60);
+                this.ctx.lineTo(cx + 120, cy + 60);
+                this.ctx.lineTo(cx - 20, cy - 60);
+                this.ctx.closePath();
+                this.ctx.fill(); this.ctx.stroke();
+            }
+
+            // Draw interactive dividing line of symmetry
+            this.ctx.strokeStyle = '#f59e0b';
+            this.ctx.lineWidth = 5;
+            this.ctx.setLineDash([8, 6]);
+            this.ctx.beginPath();
+            if (q.type === 'horizontal-valid') {
+                this.ctx.moveTo(cx - 150, cy); this.ctx.lineTo(cx + 150, cy);
+            } else {
+                this.ctx.moveTo(cx, cy - 100); this.ctx.lineTo(cx, cy + 100);
+            }
+            this.ctx.stroke();
+            this.ctx.setLineDash([]);
+        }
+    };
+
+    // --- RENDER VISUAL PARTICLES FX ENGINE ---
+    const FXEngine = {
+        canvas: document.getElementById('fx-canvas'),
+        ctx: document.getElementById('fx-canvas').getContext('2d'),
+        items: [], loopRef: null,
+        
+        boom() {
+            this.items = [];
+            for (let i = 0; i < 80; i++) {
+                this.items.push({
+                    x: Math.random() * this.canvas.width, y: Math.random() * this.canvas.height - 150,
+                    r: Math.random() * 6 + 4, c: `hsl(${Math.random() * 360}, 95%, 65%)`,
+                    vX: Math.random() * 4 - 2, vY: Math.random() * 4 + 4
+                });
+            }
+            if(!this.loopRef) this.run();
+        },
+        run() {
+            const self = FXEngine;
+            self.ctx.clearRect(0, 0, self.canvas.width, self.canvas.height);
+            let check = false;
+            self.items.forEach(p => {
+                p.x += p.vX; p.y += p.vY;
+                if (p.y < self.canvas.height) {
+                    check = true;
+                    self.ctx.beginPath(); self.ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                    self.ctx.fillStyle = p.c; self.ctx.fill();
+                }
+            });
+            if(check) self.loopRef = requestAnimationFrame(self.run);
+            else { cancelAnimationFrame(self.loopRef); self.loopRef = null; }
+        }
+    };
+
+    // --- DRAG AND DROP HITBOX CALIBRATOR INTERACTION DECK ---
+    const Interaction = {
+        layer: document.getElementById('interaction-layer'),
+        activeNode: null, offX: 0, offY: 0, origX: 0, origY: 0,
+
+        build() {
+            this.layer.innerHTML = '';
+            const q = GameState.current;
+
+            const target = document.createElement('div');
+            target.className = 'drop-target';
+            
+            // Layout alignment bounds matching structural matrix modes
+            if (q.mode === 'repeating') {
+                const idx = q.sequence.indexOf('blank');
+                target.style.left = `${162 + idx * 140 - 48}px`;
+                target.style.top = '172px'; target.style.width = '96px'; target.style.height = '96px';
+            } else if (q.mode === 'growing') {
+                target.style.left = '752px'; target.style.top = '152px'; target.style.width = '116px'; target.style.height = '116px';
+            } else if (q.mode === 'symmetry') {
+                target.style.left = '464px'; target.style.top = '162px'; target.style.width = '96px'; target.style.height = '96px';
+            }
+            this.layer.appendChild(target);
+
+            const tWidth = 1024, nodeW = 100;
+            const separation = (tWidth - (q.options.length * nodeW)) / (q.options.length + 1);
+
+            q.options.forEach((choice, idx) => {
+                const el = document.createElement('div');
+                el.className = 'draggable-token';
+                el.style.left = `${separation + idx * (nodeW + separation)}px`;
+                el.style.top = '440px'; el.dataset.val = choice;
+
+                if (q.mode === 'repeating') {
+                    const icon = document.createElement('canvas');
+                    icon.width = 80; icon.height = 80;
+                    const cctx = icon.getContext('2d');
+                    cctx.fillStyle = '#f59e0b'; cctx.strokeStyle = '#fff'; cctx.lineWidth = 2;
+                    cctx.beginPath();
+                    if(choice === 'circle') cctx.arc(40, 40, 22, 0, Math.PI*2);
+                    else if(choice === 'square') cctx.rect(20, 20, 40, 40);
+                    else if(choice === 'triangle') { cctx.moveTo(40,18); cctx.lineTo(62,58); cctx.lineTo(18,58); cctx.closePath(); }
+                    cctx.fill(); cctx.stroke();
+                    el.appendChild(icon);
+                } else {
+                    el.innerText = choice;
+                    el.style.color = '#fff'; el.style.fontSize = '28px'; el.style.fontWeight = 'bold';
+                }
+
+                this.bind(el);
+                this.layer.appendChild(el);
+            });
+        },
+
+        bind(el) {
+            const track = (e) => {
+                if(!this.activeNode) return;
+                e.preventDefault();
+                const rect = this.layer.getBoundingClientRect();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+                const sX = 1024 / rect.width; const sY = 576 / rect.height;
+                let x = (clientX - rect.left) * sX - this.offX;
+                let y = (clientY - rect.top) * sY - this.offY;
+
+                this.activeNode.style.left = `${x}px`; this.activeNode.style.top = `${y}px`;
+
+                const drop = document.querySelector('.drop-target');
+                const dR = drop.getBoundingClientRect();
+                if(clientX >= dR.left && clientX <= dR.right && clientY >= dR.top && clientY <= dR.bottom) {
+                    drop.classList.add('hovered');
+                } else drop.classList.remove('hovered');
+            };
+
+            const drop = () => {
+                if(!this.activeNode) return;
+                const target = document.querySelector('.drop-target');
+                const inside = target.classList.contains('hovered');
+                target.classList.remove('hovered');
+
+                document.removeEventListener('mousemove', track); document.removeEventListener('mouseup', drop);
+                document.removeEventListener('touchmove', track); document.removeEventListener('touchend', drop);
+
+                if (inside) this.check(this.activeNode, target); else this.reset(this.activeNode);
+                this.activeNode = null;
+            };
+
+            const engage = (e) => {
+                AudioEngine.play('click'); this.activeNode = el;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const r = el.getBoundingClientRect(); const lR = this.layer.getBoundingClientRect();
+                this.offX = (clientX - r.left) * (1024 / lR.width); this.offY = (clientY - r.top) * (576 / lR.height);
+                this.origX = parseFloat(el.style.left); this.origY = parseFloat(el.style.top);
+                el.style.zIndex = 100;
+                
+                if (e.type === 'touchstart') {
+                    document.addEventListener('touchmove', track, {passive:false}); document.addEventListener('touchend', drop);
+                } else {
+                    document.addEventListener('mousemove', track); document.addEventListener('mouseup', drop);
+                }
+            };
+
+            el.addEventListener('mousedown', engage);
+            el.addEventListener('touchstart', engage, {passive:true});
+        },
+
+        reset(el) {
+            el.style.transition = 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+            el.style.left = `${this.origX}px`; el.style.top = `${this.origY}px`;
+            setTimeout(() => { el.style.transition = 'none'; el.style.zIndex = ''; }, 400);
+        },
+
+        check(el, target) {
+            const given = el.dataset.val;
+            const valid = GameState.current.mode === 'repeating' ? GameState.current.target : GameState.current.target;
+
+            if (given === valid) {
+                el.style.left = target.style.left; el.style.top = target.style.top; el.style.pointerEvents = 'none';
+                AudioEngine.play('success'); FXEngine.boom();
+                View.toast('✨ Perfect Alignment! ✨', true);
+                GameState.score++; GameState.attempts = 0;
+                setTimeout(() => CoreEngine.next(), 1400);
+            } else {
+                this.reset(el); AudioEngine.play('fail'); GameState.attempts++;
+                View.toast('Mismatch detected. Check pattern parameters!', false);
+                if(GameState.attempts >= 2) target.classList.add('hint-flash');
+            }
+        }
+    };
+
+    // --- CENTRAL CONTEXT STATE CORE CONTROL DECK ---
+    const CoreEngine = {
+        init() {
+            document.getElementById('start-btn').addEventListener('click', () => {
+                AudioEngine.play('click');
+                document.getElementById('instruction-screen').classList.add('hidden');
+                document.getElementById('hud').classList.remove('hidden');
+                this.start();
+            });
+
+            document.getElementById('restart-btn').addEventListener('click', () => {
+                AudioEngine.play('click');
+                document.getElementById('end-screen').classList.add('hidden');
+                document.getElementById('hud').classList.remove('hidden');
+                GameState.score = 0; this.start();
+            });
+
+            document.getElementById('volume-control').addEventListener('input', (e) => {
+                AudioEngine.volume = parseFloat(e.target.value);
+            });
+
+            // Branding constraints loop initialization
+            setTimeout(() => {
+                document.getElementById('splash-screen').classList.add('hidden');
+                document.getElementById('instruction-screen').classList.remove('hidden');
+            }, 5000);
+        },
+
+        start() {
+            GameState.index = 0; GameState.attempts = 0;
+            GameState.questions = GameState.shuffle([...QuestionPool]);
+            this.step();
+        },
+
+        step() {
+            GameState.attempts = 0;
+            GameState.current = GameState.questions[GameState.index];
+            View.updateHUD(); Render.draw(); Interaction.build();
+        },
+
+        next() {
+            GameState.index++;
+            if(GameState.index < 10) this.step(); else this.over();
+        },
+
+        over() {
+            Interaction.layer.innerHTML = ''; Render.clear();
+            document.getElementById('hud').classList.add('hidden');
+            document.getElementById('end-evaluation').innerText = `Amazing Safari! You scored ${GameState.score} out of 10 points. Geometrica's patterns and symmetries are complete!`;
+            document.getElementById('end-screen').classList.remove('hidden');
+        }
+    };
+
+    window.onload = () => CoreEngine.init();
+</script>
+</body>
+</html>
