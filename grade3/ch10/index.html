@@ -3,99 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fraction Bakery: Delivery Match</title>
+    <title>Fraction Bakery: Master Chef Match</title>
     <style>
         :root {
-            --bakery-pink: #ffb7b2;
-            --bakery-cream: #fff1e6;
-            --bakery-brown: #6d4c41;
-            --success-green: #4caf50;
-            --error-red: #f44336;
+            --bakery-pink: #ff8a80;
+            --bakery-light-pink: #ffebee;
+            --bakery-cream: #fff8e1;
+            --bakery-brown: #5d4037;
+            --accent-blue: #4fc3f7;
+            --success-green: #66bb6a;
+            --error-red: #ef5350;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Comic Sans MS', 'Chalkboard SE', 'Segoe UI', sans-serif; }
 
         body {
-            background: linear-gradient(135deg, #ffdee9 0%, #b5fffc 100%);
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
             min-height: 100vh;
             display: flex; justify-content: center; align-items: center; padding: 20px;
         }
 
         .game-wrapper {
-            width: 100%; max-width: 900px; background: white; border-radius: 24px;
-            border: 5px solid var(--bakery-brown); box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-            overflow: hidden; display: flex; flex-direction: column; min-height: 600px;
+            width: 100%; max-width: 950px; background: #ffffff; border-radius: 32px;
+            border: 6px solid var(--bakery-brown); box-shadow: 0 20px 40px rgba(93,64,55,0.25);
+            overflow: hidden; display: flex; flex-direction: column; min-height: 650px;
             position: relative;
         }
 
-        .screen { display: none; padding: 30px; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; text-align: center; }
-        .screen.active { display: flex; }
+        .screen { display: none; padding: 35px; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; text-align: center; }
+        .screen.active { display: flex; animation: fadeIn 0.4s ease-out; }
 
-        /* Splash Screen */
-        #scr-intro h1 { color: var(--bakery-brown); font-size: 2.8rem; margin-bottom: 15px; text-shadow: 2px 2px #fff; }
-        #scr-intro p { font-size: 1.2rem; color: #555; max-width: 600px; margin-bottom: 30px; line-height: 1.6; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+
+        /* --- SPLASH SCREEN --- */
+        #scr-splash {
+            background: #ffffff;
+            position: absolute; top:0; left:0; width:100%; height:100%; z-index: 999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 1; transition: opacity 0.5s ease-in-out;
+        }
+        .splash-logo { max-width: 280px; height: auto; animation: pulse 1.5s infinite alternate; }
+        @keyframes pulse { from { transform: scale(0.95); } to { transform: scale(1.05); } }
+
+        /* Intro Screen */
+        #scr-intro h1 { color: var(--bakery-brown); font-size: 3.2rem; margin-bottom: 15px; text-shadow: 3px 3px 0px #fff8e1; }
+        #scr-intro p { font-size: 1.4rem; color: #5d4037; max-width: 650px; margin-bottom: 35px; line-height: 1.6; font-weight: bold; }
 
         .btn-main {
-            background: linear-gradient(135deg, #ff8a80, #e53935); color: white; border: none;
-            font-size: 1.3rem; font-weight: bold; padding: 15px 40px; border-radius: 50px;
-            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 5px 15px rgba(229,57,53,0.3);
+            background: linear-gradient(135deg, #ff5252, #ff1744); color: white; border: none;
+            font-size: 1.5rem; font-weight: bold; padding: 18px 50px; border-radius: 50px;
+            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 8px 20px rgba(255,23,68,0.4);
+            border-bottom: 5px solid #b71c1c;
         }
-        .btn-main:hover { transform: scale(1.05); }
+        .btn-main:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 12px 24px rgba(255,23,68,0.5); }
+        .btn-main:active { transform: translateY(1px); border-bottom-width: 2px; }
 
         /* HUD */
         .hud-top {
-            width: 100%; display: flex; justify-content: space-between; font-size: 1.2rem;
-            font-weight: bold; color: var(--bakery-brown); border-bottom: 3px dashed var(--bakery-pink);
-            padding-bottom: 12px; margin-bottom: 20px;
+            width: 100%; display: flex; justify-content: space-between; font-size: 1.4rem;
+            font-weight: 900; color: var(--bakery-brown); border-bottom: 4px dashed var(--bakery-pink);
+            padding-bottom: 15px; margin-bottom: 20px;
         }
+        .hud-bubble { background: var(--bakery-light-pink); padding: 6px 20px; border-radius: 20px; border: 2px solid var(--bakery-brown); }
 
-        .instruction-prompt { font-size: 1.3rem; font-weight: bold; color: #333; margin-bottom: 25px; }
+        .instruction-prompt { font-size: 1.5rem; font-weight: bold; color: #4e342e; margin-bottom: 25px; background: #fff3e0; padding: 10px 25px; border-radius: 15px; border-left: 5px solid #ffb74d; }
 
-        /* Matching Layout Area */
-        .matching-container {
-            display: flex; width: 100%; gap: 40px; justify-content: space-between; margin-bottom: 20px;
-        }
-
-        .column {
-            flex: 1; display: flex; flex-direction: column; gap: 15px;
-        }
+        /* Matching Interactive Grid Layout */
+        .matching-container { display: flex; width: 100%; gap: 30px; justify-content: space-between; margin-bottom: 15px; }
+        .column { flex: 1; display: flex; flex-direction: column; gap: 15px; }
 
         .match-card {
-            background: var(--bakery-cream); border: 3px solid #d7ccc8; border-radius: 16px;
-            padding: 15px; min-height: 100px; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: all 0.2s ease; position: relative; font-size: 1.1rem;
-            font-weight: 600; color: #4e342e; user-select: none;
+            background: var(--bakery-cream); border: 3px solid #ffe082; border-radius: 20px;
+            padding: 20px; min-height: 110px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275); position: relative; font-size: 1.2rem;
+            font-weight: bold; color: var(--bakery-brown); user-select: none; box-shadow: 0 6px 0px #ffe082;
         }
-        .match-card:hover { transform: translateY(-3px); box-shadow: 0 5px 10px rgba(0,0,0,0.08); border-color: var(--bakery-brown); }
-        .match-card.selected { background: #ffe082; border-color: #ffb300; transform: scale(1.02); }
-        .match-card.matched { background: #c8e6c9; border-color: #4caf50; color: #2e7d32; cursor: default; pointer-events: none; transform: none; box-shadow: none; }
+        .match-card:hover { transform: translateY(-5px); box-shadow: 0 11px 0px #ffd54f; border-color: #ffd54f; }
+        .match-card.selected { background: #e0f7fa; border-color: var(--accent-blue); box-shadow: 0 6px 0px var(--accent-blue); transform: scale(1.03); }
+        .match-card.matched { background: #e8f5e9; border-color: var(--success-green); color: #2e7d32; cursor: default; pointer-events: none; transform: none; box-shadow: none; }
 
-        /* Visual Content Helpers */
-        .svg-shape { width: 80px; height: 80px; }
-        .group-items { font-size: 1.8rem; letter-spacing: 3px; }
+        /* Visual Graphic Presenters */
+        .svg-shape { width: 85px; height: 85px; filter: drop-shadow(0px 3px 2px rgba(0,0,0,0.15)); }
+        .group-container { display: flex; gap: 8px; font-size: 2.2rem; background: white; padding: 8px 16px; border-radius: 12px; border: 2px dashed #bcaaa4; margin-bottom: 5px; }
+        .large-fraction { font-size: 2rem; font-weight: 900; color: #ff3d00; background: white; padding: 5px 15px; border-radius: 10px; border: 2px solid #ff3d00; }
 
-        /* Feedback Elements */
-        .feedback-box { font-size: 1.3rem; font-weight: bold; min-height: 35px; margin-top: 10px; }
+        /* Rich CSS Interactive Fraction Wall Rows */
+        .fraction-wall-showcase { display: flex; flex-direction: column; width: 100%; max-width: 180px; gap: 4px; background: white; padding: 6px; border-radius: 8px; border: 2px solid var(--bakery-brown); }
+        .wall-strip { display: flex; width: 100%; height: 20px; border-radius: 4px; overflow: hidden; }
+        .wall-piece { flex: 1; border-right: 1px solid #fff; height: 100%; }
+        .wall-piece:last-child { border-right: none; }
+        .wall-piece.active-color { background: #ff8a80; }
+        .wall-piece.inactive-color { background: #e0e0e0; }
+
+        /* Feedback Area */
+        .feedback-box { font-size: 1.5rem; font-weight: 900; min-height: 40px; margin-top: 10px; text-shadow: 1px 1px 0px #fff; }
 
         /* End Screen */
-        #scr-end h1 { color: #2e7d32; font-size: 2.8rem; margin-bottom: 15px; }
+        #scr-end h1 { color: #2e7d32; font-size: 3.4rem; margin-bottom: 15px; text-shadow: 2px 2px 0px #e8f5e9; }
     </style>
 </head>
 <body>
 
     <div class="game-wrapper">
-        <div class="screen active" id="scr-intro">
-            <h1>🍰 Fraction Bakery Match</h1>
-            <p>Welcome, Head Pastry Chef! Help match our dynamic baking trays, real-world customer orders, and special fraction walls to their ideal shipping box delivery slots!</p>
-            <button class="btn-main" onclick="startBakeryGame()">Open Bakery 🍩</button>
+        <div id="scr-splash">
+            <img src="assets/logo.png" class="splash-logo" alt="Innovine Solutions">
+        </div>
+
+        <div class="screen" id="scr-intro">
+            <h1>🧁 Fraction Bakery: Arcade Match!</h1>
+            <p>Ready to run the coolest bakery in town? Match bright pastry trays, package up groups of treats, and stack fraction walls to complete the delivery slots!</p>
+            <button class="btn-main" onclick="startBakeryGame()">Start Baking! 🍩</button>
         </div>
 
         <div class="screen" id="scr-play">
             <div class="hud-top">
-                <div id="hud-level">Stage: 1 / 4</div>
-                <div id="hud-score">Score: 0</div>
+                <div class="hud-bubble" id="hud-level">Stage: 1 / 4</div>
+                <div class="hud-bubble" id="hud-score">Score: 0</div>
             </div>
-            <div class="instruction-prompt" id="game-instructions">Match the representation to its matching numerical expression!</div>
+            <div class="instruction-prompt" id="game-instructions">Load the matching pairs into the delivery truck!</div>
 
             <div class="matching-container">
                 <div class="column" id="left-col"></div>
@@ -106,9 +131,9 @@
         </div>
 
         <div class="screen" id="scr-end">
-            <h1>🏆 Master Baker Certification!</h1>
-            <p style="font-size: 1.3rem; margin-bottom: 30px;" id="final-report">Exceptional work! You successfully packaged every fractional order perfectly!</p>
-            <button class="btn-main" onclick="location.reload()">Bake Another Batch 🔄</button>
+            <h1>🏆 Master Pastry Chef!</h1>
+            <p style="font-size: 1.5rem; color: #4e342e; margin-bottom: 35px; font-weight: bold;" id="final-report">Awesome job! You completely sorted every tray perfectly!</p>
+            <button class="btn-main" onclick="location.reload()">Play Again! 🔄</button>
         </div>
     </div>
 
@@ -119,41 +144,51 @@
         let selectedRightId = null;
         let matchesFoundThisRound = 0;
 
-        // Custom curated rounds targeting specific groupings of the presented LOs
         const gameRounds = [
             {
-                instruction: "LO 1, 2 & 3: Match the 2D baking trays or terms to their numerical fractions!",
+                instruction: "🎨 Visual Trays: Match the colorful geometric pie layouts to their fractions!",
                 pairs: [
-                    { id: "r1_1", leftHtml: "One-Fourth of a cake", rightHtml: "1/4" },
-                    { id: "r1_2", leftHtml: "Three-Fourths of a tray", rightHtml: "3/4" },
-                    { id: "r1_3", leftHtml: `<svg class="svg-shape" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="#6d4c41" stroke-width="4"/><path d="M 50,5 A 45,45 0 0,1 50,95 Z" fill="#ffb7b2"/><line x1="50" y1="5" x2="50" y2="95" stroke="#6d4c41" stroke-width="4"/></svg>`, rightHtml: "1/2" }
+                    { id: "r1_1", leftHtml: `<svg class="svg-shape" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#e0e0e0" stroke="#5d4037" stroke-width="5"/><path d="M 50,50 L 50,8 A 42,42 0 0,1 92,50 Z" fill="#ff4081" stroke="#5d4037" stroke-width="2"/></svg><div>1 Quarter Selected</div>`, rightHtml: "<div class='large-fraction'>1/4</div>" },
+                    { id: "r1_2", leftHtml: `<svg class="svg-shape" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#e0e0e0" stroke="#5d4037" stroke-width="5"/><path d="M 50,50 L 50,8 A 42,42 0 1,1 8,50 Z" fill="#ffb74d" stroke="#5d4037" stroke-width="2"/></svg><div>3 Quarters Selected</div>`, rightHtml: "<div class='large-fraction'>3/4</div>" },
+                    { id: "r1_3", leftHtml: `<svg class="svg-shape" viewBox="0 0 100 100"><circle cx="50" cy="50" r="42" fill="#e0e0e0" stroke="#5d4037" stroke-width="5"/><path d="M 50,8 A 42,42 0 0,1 50,92 Z" fill="#4fc3f7" stroke="#5d4037" stroke-width="3"/><line x1="50" y1="8" x2="50" y2="92" stroke="#5d4037" stroke-width="4"/></svg><div>Exactly Half</div>`, rightHtml: "<div class='large-fraction'>1/2</div>" }
                 ]
             },
             {
-                instruction: "LO 4 & 5: Story sums and group sets! Match the collection or problem with the right value.",
+                instruction: "🧺 Pack the Cookie Bags: Match the fun group collections to their counts!",
                 pairs: [
-                    { id: "r2_1", leftHtml: `<div class="group-items">🍪🍪🍪🍪</div><div>Take half (1/2) of the cookies</div>`, rightHtml: "2 Cookies" },
-                    { id: "r2_2", leftHtml: `<div class="group-items">🧁🧁🧁🧁🧁🧁🧁🧁</div><div>A client buys 1/4 of these 8 cupcakes.</div>`, rightHtml: "2 Cupcakes" },
-                    { id: "r2_3", leftHtml: "A fraction where the parts are from a whole unit structure", rightHtml: "Part of a Whole" }
+                    { id: "r2_1", leftHtml: `<div class="group-container">🍪🍪🍪🍪</div><div>Find exactly half (1/2)</div>`, rightHtml: "✨ 2 Cookies" },
+                    { id: "r2_2", leftHtml: `<div class="group-container">🧁🧁🧁🧁🧁🧁🧁🧁</div><div>Find one-quarter (1/4)</div>`, rightHtml: "✨ 2 Cupcakes" },
+                    { id: "r2_3", leftHtml: `<div style="font-size: 1.3rem;">🍰</div><div style="margin-top:5px;">Slicing a single unit cake into equal parts</div>`, rightHtml: "✨ Part of a Whole" }
                 ]
             },
             {
-                instruction: "LO 6 & 7: Learn your definitions! Categorize these fraction pairings.",
+                instruction: "🏷️ Mix & Match Kitchen Tags: Link the trays together correctly!",
                 pairs: [
-                    { id: "r3_1", leftHtml: "Fractions with identical denominators: 2/5 and 3/5", rightHtml: "Like Fractions" },
-                    { id: "r3_2", leftHtml: "Fractions with alternate denominators: 2/3 and 2/6", rightHtml: "Unlike Fractions" },
-                    { id: "r3_3", leftHtml: "Fractions that are equal value: 3/6 and 1/2", rightHtml: "Equivalent Fractions" }
+                    { id: "r3_1", leftHtml: `<div style="font-size:1.15rem; color:#d84315;">Trays sliced into identical numbers of cuts<br><b>(2/5 and 3/5)</b></div>`, rightHtml: "🧁 Like Fractions" },
+                    { id: "r3_2", leftHtml: `<div style="font-size:1.15rem; color:#00838f;">Trays sliced into different shapes of cuts<br><b>(2/3 and 2/6)</b></div>`, rightHtml: "🧁 Unlike Fractions" },
+                    { id: "r3_3", leftHtml: `<div style="font-size:1.15rem; color:#2e7d32;">Trays with completely equal amounts of total space<br><b>(3/6 and 1/2)</b></div>`, rightHtml: "🧁 Equivalent Fractions" }
                 ]
             },
             {
-                instruction: "LO 8: Use fraction walls and logic to compare size boundaries!",
+                instruction: "🧱 Fraction Wall Challenge: Compare the visual layouts directly!",
                 pairs: [
-                    { id: "r4_1", leftHtml: "Compare same denominator: Which is larger, 3/6 or 4/6?", rightHtml: "4/6" },
-                    { id: "r4_2", leftHtml: "Compare same numerator: Which is larger, 2/3 or 2/6?", rightHtml: "2/3" },
-                    { id: "r4_3", leftHtml: "Smaller absolute size denominator length on a Fraction Wall", rightHtml: "Larger Pieces" }
+                    { id: "r4_1", leftHtml: `<div class="fraction-wall-showcase"><div class="wall-strip"><div class="wall-piece active-color"></div><div class="wall-piece active-color"></div><div class="wall-piece active-color"></div><div class="wall-piece inactive-color"></div><div class="wall-piece inactive-color"></div><div class="wall-piece inactive-color"></div></div><div class="wall-strip"><div class="wall-piece active-color"></div><div class="wall-piece active-color"></div><div class="wall-piece active-color"></div><div class="wall-piece active-color"></div><div class="wall-piece inactive-color"></div><div class="wall-piece inactive-color"></div></div></div><div style="margin-top:6px;">Compare same denominator: 3/6 vs 4/6?</div>`, rightHtml: "👉 4/6 is bigger" },
+                    { id: "r4_2", leftHtml: `<div class="fraction-wall-showcase"><div class="wall-strip"><div class="wall-piece active-color"></div><div class="wall-piece inactive-color"></div><div class="wall-piece inactive-color"></div></div><div class="wall-strip"><div class="wall-piece active-color"></div><div class="wall-piece inactive-color"></div><div class="wall-piece inactive-color"></div><div class="wall-piece inactive-color"></div><div class="wall-piece inactive-color"></div><div class="wall-piece inactive-color"></div></div></div><div style="margin-top:6px;">Compare single block cuts: 1/3 vs 1/6?</div>`, rightHtml: "👉 1/3 is bigger" },
+                    { id: "r4_3", leftHtml: `<div style="font-size: 1.1rem; line-height:1.4;">What happens to the blocks when the denominator number drops lower?</div>`, rightHtml: "👉 Individual pieces get LARGER!" }
                 ]
             }
         ];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const splashElement = document.getElementById('scr-splash');
+            setTimeout(() => {
+                splashElement.style.opacity = '0';
+                setTimeout(() => {
+                    splashElement.style.display = 'none';
+                    document.getElementById('scr-intro').classList.add('active');
+                }, 500);
+            }, 1500);
+        });
 
         function startBakeryGame() {
             document.getElementById('scr-intro').classList.remove('active');
@@ -171,7 +206,6 @@
             document.getElementById('hud-level').innerText = `Stage: ${currentRound + 1} / ${gameRounds.length}`;
             document.getElementById('game-instructions').innerText = roundData.instruction;
 
-            // Prepare Left and Right arrays separately to shuffle them independently
             let leftCards = roundData.pairs.map(p => ({ id: p.id, html: p.leftHtml }));
             let rightCards = roundData.pairs.map(p => ({ id: p.id, html: p.rightHtml }));
 
@@ -215,11 +249,9 @@
                 selectedRightId = element.dataset.id;
             }
 
-            // Verify when both items are picked
             if (selectedLeftId && selectedRightId) {
                 const fb = document.getElementById('feedback-txt');
                 if (selectedLeftId === selectedRightId) {
-                    // Correct Match
                     score += 10;
                     document.getElementById('hud-score').innerText = `Score: ${score}`;
                     
@@ -230,7 +262,7 @@
                     matchedRight.className = "match-card matched";
 
                     fb.style.color = "var(--success-green)";
-                    fb.innerText = "Deliciously Correct! 🧁✨";
+                    fb.innerText = "⭐ Perfect Match! Chef Level Up! ✨";
                     
                     matchesFoundThisRound++;
                     selectedLeftId = null;
@@ -244,12 +276,11 @@
                             } else {
                                 endBakeryGame();
                             }
-                        }, 1500);
+                        }, 1400);
                     }
                 } else {
-                    // Incorrect Match
                     fb.style.color = "var(--error-red)";
-                    fb.innerText = "Oops, wrong recipe combination! Try another pair. 🔄";
+                    fb.innerText = "❌ Not quite! Let's swap those trays and try again! 🔄";
                     
                     setTimeout(() => {
                         element.classList.remove('selected');
@@ -263,7 +294,7 @@
         function endBakeryGame() {
             document.getElementById('scr-play').classList.remove('active');
             document.getElementById('scr-end').classList.add('active');
-            document.getElementById('final-report').innerText = `Phenomenal cooking! You handled all configurations cleanly with a top score of ${score} points!`;
+            document.getElementById('final-report').innerText = `Sensational baking! You managed all deliveries seamlessly with a stellar score of ${score} points!`;
         }
     </script>
 </body>
