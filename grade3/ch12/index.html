@@ -1,1 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Data Detective - Grade 3 Data Handling</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #4A90E2;
+            --secondary: #FFD43B;
+            --success: #2ECC71;
+            --danger: #E74C3C;
+            --background: #F0F8FF;
+            --text: #2C3E50;
+        }
 
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--background);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        @media (min-width: 601px) {
+            .game-container {
+                min-height: 85vh;
+                border-radius: 20px;
+                overflow: hidden;
+            }
+        }
+
+        /* Screen Styles */
+        .screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Intro Screen with Logo Branding */
+        #logo-screen {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+        }
+
+        .brand-logo {
+            font-size: 3rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: var(--secondary);
+            animation: pulse 1.5s infinite alternate;
+        }
+
+        .brand-sub {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+
+        /* Instructions Screen */
+        #instruction-screen {
+            background: #FFF;
+        }
+
+        /* Header / Scoreboard */
+        .game-header {
+            width: 100%;
+            padding: 15px;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        /* Game Area styling */
+        #game-screen {
+            justify-content: flex-start;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 10px;
+            background: #E0E0E0;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--success);
+            transition: width 0.3s ease;
+        }
+
+        .question-box {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 0 10px;
+        }
+
+        /* Visual Assets (Tally Charts / Graphs) */
+        .visual-display {
+            background: #F9F9F9;
+            border: 2px dashed #CCD1D1;
+            border-radius: 10px;
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 140px;
+        }
+
+        /* Styled Tally Marks rendering */
+        .tally-group {
+            display: inline-block;
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            font-family: monospace;
+            margin: 0 5px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        /* Interactive Bar Graph Mockup */
+        .graph-container {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            width: 100%;
+            height: 120px;
+            padding-top: 20px;
+            border-left: 3px solid #333;
+            border-bottom: 3px solid #333;
+            margin: 10px 0;
+        }
+
+        .graph-bar {
+            width: 40px;
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 5px;
+            border-top-left-radius: 4px;
+            border-top-right-radius: 4px;
+            transition: height 0.5s ease;
+            position: relative;
+        }
+
+        .graph-label {
+            position: absolute;
+            bottom: -25px;
+            font-size: 0.75rem;
+            color: #333;
+            white-space: nowrap;
+        }
+
+        /* Options Grid */
+        .options-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: auto;
+            margin-bottom: 15px;
+        }
+
+        .btn {
+            background: white;
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+        }
+
+        .btn-correct {
+            background: var(--success) !important;
+            border-color: var(--success) !important;
+            color: white !important;
+        }
+
+        .btn-wrong {
+            background: var(--danger) !important;
+            border-color: var(--danger) !important;
+            color: white !important;
+        }
+
+        /* Feedback Popups */
+        .feedback-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            z-index: 10;
+        }
+
+        /* Volume adjustments wrapper */
+        .volume-control {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+
+        <div id="logo-screen" class="screen active">
+            <div class="brand-logo">INNOVINE</div>
+            <div class="brand-sub">Interactive Learning Labs</div>
+        </div>
+
+        <div id="instruction-screen" class="screen">
+            <h2 style="color: var(--primary);">Data Detective! 🕵️‍♂️</h2>
+            <p style="font-size: 1.1rem; line-height: 1.5; padding: 0 10px;">
+                Welcome, Detective! Your mission is to analyze charts, examine tallies, and unlock the case of the hidden data facts. Answer correctly to crack the mystery!
+            </p>
+            <button class="btn btn-primary" style="width: 80%; margin-top: 20px;" onclick="startGame()">Start Mission</button>
+            
+            <div class="volume-control">
+                🔊 Audio Level: <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5">
+            </div>
+        </div>
+
+        <div id="game-screen" class="screen">
+            <div class="game-header">
+                <span id="question-number">Question 1/10</span>
+                <span id="score-display">Score: 0</span>
+            </div>
+            <div class="progress-bar-container">
+                <div id="game-progress" class="progress-bar"></div>
+            </div>
+
+            <div id="question-text" class="question-box">Loading case data...</div>
+
+            <div id="visual-area" class="visual-display"></div>
+
+            <div id="options-box" class="options-grid"></div>
+
+            <div id="feedback-layer" class="feedback-overlay"></div>
+        </div>
+
+        <div id="end-screen" class="screen">
+            <h2 style="color: var(--success);">Mission Accomplished! 🏆</h2>
+            <p id="final-score-text" style="font-size: 1.3rem; font-weight: bold;"></p>
+            <p style="padding: 0 20px; color: #666;">Fantastic work! You have successfully mastered sorting, matching, and decoding data configurations like a true professional.</p>
+            <button class="btn btn-primary" style="width: 80%; margin-top: 20px;" onclick="restartGame()">Play Again</button>
+        </div>
+
+    </div>
+
+    <script>
+        // Synthesizer Audio Engine
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function getVolume() {
+            return parseFloat(document.getElementById('volumeSlider').value);
+        }
+
+        function playSound(type) {
+            const volume = getVolume();
+            if (volume === 0) return;
+
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                // Happy high note chime
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                gain.gain.setValueAtTime(volume * 0.3, audioCtx.currentTime);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'wrong') {
+                // Low buzzer tone
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(130.81, audioCtx.currentTime); // C3
+                gain.gain.setValueAtTime(volume * 0.4, audioCtx.currentTime);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.25);
+            } else if (type === 'clapping') {
+                // Game completion sweep
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.5);
+                gain.gain.setValueAtTime(volume * 0.3, audioCtx.currentTime);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            }
+        }
+
+        // 10 Distinct, Randomised, Concept-aligned Multiple Choice Application Questions
+        const questionsDatabase = [
+            {
+                text: "Detective Mia collected data on favorite pets. How many marks are shown here?",
+                type: "tally",
+                data: "||||\u0336 |||", 
+                answer: 8,
+                options: [5, 7, 8, 9]
+            },
+            {
+                text: "If one 🌟 icon stands for 2 books read, how many books does 4 🌟 icons stand for?",
+                type: "text-only",
+                data: "🌟 = 2 books",
+                answer: 8,
+                options: [4, 6, 8, 10]
+            },
+            {
+                text: "Look at the chart: Red group has 12 points, Blue group has 7. How many more points does Red have than Blue?",
+                type: "text-only",
+                data: "Red: 12 | Blue: 7",
+                answer: 5,
+                options: [4, 5, 6, 19]
+            },
+            {
+                text: "Analyze the graph. Which item won the highest number of votes?",
+                type: "graph",
+                data: { Apple: 80, Banana: 40, Grapes: 60 },
+                answer: "Apple",
+                options: ["Apple", "Banana", "Grapes"]
+            },
+            {
+                text: "A graph shows 5 apples, 3 oranges, and 6 bananas. What is the total number of items recorded?",
+                type: "text-only",
+                data: "🍎: 5 | 🍊: 3 | 🍌: 6",
+                answer: 14,
+                options: [11, 13, 14, 15]
+            },
+            {
+                text: "How do you represent the number 5 using standard tally marks?",
+                type: "text-only",
+                data: "Choose representation",
+                answer: "||||\u0336",
+                options: ["|||||", "|||", "||||\u0336", "||||"]
+            },
+            {
+                text: "Examine the graph. Which item received exactly 40 response indicators?",
+                type: "graph",
+                data: { Milk: 30, Juice: 40, Water: 90 },
+                answer: "Juice",
+                options: ["Milk", "Juice", "Water"]
+            },
+            {
+                text: "If each 🎨 icon means 3 art kits, how many icons are required to show 9 art kits?",
+                type: "text-only",
+                data: "🎨 = 3 kits",
+                answer: 3,
+                options: [2, 3, 6, 9]
+            },
+            {
+                text: "How many elements are combined in this tally dataset?",
+                type: "tally",
+                data: "||||\u0336 ||||\u0336 ||",
+                answer: 12,
+                options: [10, 11, 12, 14]
+            },
+            {
+                text: "Look at the graph. How many votes did Banana get?",
+                type: "graph",
+                data: { Apple: 50, Banana: 70, Cherry: 30 },
+                answer: 70,
+                options: [50, 70, 30, 100]
+            }
+        ];
+
+        let activeQuestions = [];
+        let currentQuestionIndex = 0;
+        let userScore = 0;
+        let responseAttempts = 0;
+
+        // Auto-transition Branding Screen to Instruction Page on countdown expiration
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                document.getElementById('logo-screen').classList.remove('active');
+                document.getElementById('instruction-screen').classList.add('active');
+            }, 5000);
+        });
+
+        function startGame() {
+            // Shuffle database array to randomize layout across executions
+            activeQuestions = [...questionsDatabase].sort(() => Math.random() - 0.5);
+            currentQuestionIndex = 0;
+            userScore = 0;
+            document.getElementById('instruction-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            displayQuestion();
+        }
+
+        function displayQuestion() {
+            responseAttempts = 0;
+            const feedbackLayer = document.getElementById('feedback-layer');
+            feedbackLayer.style.display = 'none';
+
+            const currentQuestion = activeQuestions[currentQuestionIndex];
+            
+            // Header stats synchronization
+            document.getElementById('question-number').innerText = `Question ${currentQuestionIndex + 1}/${activeQuestions.length}`;
+            document.getElementById('score-display').innerText = `Score: ${userScore}`;
+            
+            // Track progressive bar visual length metrics
+            const progressPercentage = ((currentQuestionIndex) / activeQuestions.length) * 100;
+            document.getElementById('game-progress').style.width = `${progressPercentage}%`;
+
+            document.getElementById('question-text').innerText = currentQuestion.text;
+
+            // Visual Graphic asset rendering based on dataset context
+            const visualArea = document.getElementById('visual-area');
+            visualArea.innerHTML = '';
+
+            if (currentQuestion.type === 'tally') {
+                const group = document.createElement('div');
+                group.className = 'tally-group';
+                group.innerText = currentQuestion.data;
+                visualArea.appendChild(group);
+            } else if (currentQuestion.type === 'graph') {
+                const graphContainer = document.createElement('div');
+                graphContainer.className = 'graph-container';
+                
+                for (const [label, val] of Object.entries(currentQuestion.data)) {
+                    const bar = document.createElement('div');
+                    bar.className = 'graph-bar';
+                    // Calculate relative height metric dynamically
+                    bar.style.height = `${val}%`;
+                    bar.innerHTML = `${val}<span class="graph-label">${label}</span>`;
+                    graphContainer.appendChild(bar);
+                }
+                visualArea.appendChild(graphContainer);
+            } else {
+                // Fallback rendering formatting context safely
+                const textInfo = document.createElement('div');
+                textInfo.style.fontSize = '1.4rem';
+                textInfo.style.fontWeight = 'bold';
+                textInfo.style.color = 'var(--primary)';
+                textInfo.innerText = currentQuestion.data;
+                visualArea.appendChild(textInfo);
+            }
+
+            // Options selection structure assembly block
+            const optionsBox = document.getElementById('options-box');
+            optionsBox.innerHTML = '';
+            
+            currentQuestion.options.forEach(opt => {
+                const button = document.createElement('button');
+                button.className = 'btn';
+                button.innerText = opt;
+                button.onclick = () => verifyUserAnswer(button, opt, currentQuestion.answer);
+                optionsBox.appendChild(button);
+            });
+        }
+
+        function verifyUserAnswer(clickedBtn, selectedVal, correctVal) {
+            responseAttempts++;
+            const feedbackLayer = document.getElementById('feedback-layer');
+
+            if (selectedVal == correctVal) {
+                clickedBtn.classList.add('btn-correct');
+                playSound('correct');
+                
+                // Active configuration increment metrics tracking
+                if (responseAttempts === 1) {
+                    userScore += 10;
+                } else if (responseAttempts === 2) {
+                    userScore += 5;
+                }
+
+                // Celebrate immediately with canvas particles
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+
+                feedbackLayer.innerHTML = "✨ Correct! Awesome ✨";
+                feedbackLayer.style.color = "var(--success)";
+                feedbackLayer.style.display = "flex";
+
+                setTimeout(() => {
+                    advanceGameFlow();
+                }, 1500);
+
+            } else {
+                clickedBtn.classList.add('btn-wrong');
+                clickedBtn.disabled = true;
+                playSound('wrong');
+
+                if (responseAttempts === 1) {
+                    // Give a second opportunity to think cleanly
+                    feedbackLayer.innerHTML = "❌ Try Again, Detective!";
+                    feedbackLayer.style.color = "var(--danger)";
+                    feedbackLayer.style.display = "flex";
+                    setTimeout(() => {
+                        feedbackLayer.style.display = "none";
+                    }, 1200);
+                } else {
+                    // Advance to next question after 2 sequential erroneous attempts
+                    feedbackLayer.innerHTML = `The correct answer was: ${correctVal}`;
+                    feedbackLayer.style.color = "var(--text)";
+                    feedbackLayer.style.display = "flex";
+                    setTimeout(() => {
+                        advanceGameFlow();
+                    }, 2000);
+                }
+            }
+        }
+
+        function advanceGameFlow() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < activeQuestions.length) {
+                displayQuestion();
+            } else {
+                displayEndScreen();
+            }
+        }
+
+        function displayEndScreen() {
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('end-screen').classList.add('active');
+            document.getElementById('final-score-text').innerText = `Your Final Score: ${userScore} / ${activeQuestions.length * 10}`;
+            playSound('clapping');
+        }
+
+        function restartGame() {
+            document.getElementById('end-screen').classList.remove('active');
+            startGame();
+        }
+    </script>
+</body>
+</html>
