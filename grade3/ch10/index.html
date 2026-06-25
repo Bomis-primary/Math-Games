@@ -3,376 +3,267 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Master Garden Planner</title>
+    <title>Fraction Bakery: Delivery Match</title>
     <style>
         :root {
-            --soil-brown: #5c4033;
-            --garden-green: #2e7d32;
-            --sky-blue: #0288d1;
-            --card-white: rgba(255, 255, 255, 0.95);
+            --bakery-pink: #ffb7b2;
+            --bakery-cream: #fff1e6;
+            --bakery-brown: #6d4c41;
+            --success-green: #4caf50;
+            --error-red: #f44336;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
         body {
-            background: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0.1)), url('assets/garden-bg.png') no-repeat center center fixed;
-            background-size: cover;
+            background: linear-gradient(135deg, #ffdee9 0%, #b5fffc 100%);
             min-height: 100vh;
-            display: flex; justify-content: center; align-items: center; padding: 15px;
-            overflow-x: hidden;
+            display: flex; justify-content: center; align-items: center; padding: 20px;
         }
 
-        .game-container {
-            width: 100%; max-width: 850px; background: var(--card-white);
-            border-radius: 24px; border: 4px solid var(--garden-green);
-            box-shadow: 0 12px 35px rgba(0,0,0,0.15); display: flex; flex-direction: column; overflow: hidden;
-            position: relative; min-height: 520px;
+        .game-wrapper {
+            width: 100%; max-width: 900px; background: white; border-radius: 24px;
+            border: 5px solid var(--bakery-brown); box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            overflow: hidden; display: flex; flex-direction: column; min-height: 600px;
+            position: relative;
         }
 
-        .screen { display: none; padding: 30px; flex-direction: column; align-items: center; text-align: center; justify-content: center; flex-grow: 1; }
+        .screen { display: none; padding: 30px; flex-direction: column; align-items: center; justify-content: center; flex-grow: 1; text-align: center; }
         .screen.active { display: flex; }
 
-        /* --- SPLASH SCREEN --- */
-        #scr-splash {
-            background: #ffffff;
-            position: absolute; top:0; left:0; width:100%; height:100%; z-index: 999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            opacity: 1; transition: opacity 0.6s ease-in-out;
-        }
-        .splash-logo {
-            max-width: 320px; height: auto;
-        }
-        
-        .cta-btn {
-            background: linear-gradient(135deg, #4caf50, var(--garden-green));
-            color: white; border: none; font-size: 1.25rem; font-weight: bold;
-            padding: 14px 45px; border-radius: 50px; cursor: pointer; transition: transform 0.1s;
-            box-shadow: 0 4px 10px rgba(46,125,50,0.3);
-            margin-top: 15px;
-        }
-        .cta-btn:hover { transform: scale(1.03); }
-        .cta-btn:disabled { background: #bbb; cursor: not-allowed; transform: none; }
+        /* Splash Screen */
+        #scr-intro h1 { color: var(--bakery-brown); font-size: 2.8rem; margin-bottom: 15px; text-shadow: 2px 2px #fff; }
+        #scr-intro p { font-size: 1.2rem; color: #555; max-width: 600px; margin-bottom: 30px; line-height: 1.6; }
 
-        /* HUD Tracker Row */
-        .hud-row {
+        .btn-main {
+            background: linear-gradient(135deg, #ff8a80, #e53935); color: white; border: none;
+            font-size: 1.3rem; font-weight: bold; padding: 15px 40px; border-radius: 50px;
+            cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; box-shadow: 0 5px 15px rgba(229,57,53,0.3);
+        }
+        .btn-main:hover { transform: scale(1.05); }
+
+        /* HUD */
+        .hud-top {
             width: 100%; display: flex; justify-content: space-between; font-size: 1.2rem;
-            font-weight: bold; color: var(--garden-green); border-bottom: 2px dashed #c8e6c9; padding-bottom: 10px; margin-bottom: 15px;
+            font-weight: bold; color: var(--bakery-brown); border-bottom: 3px dashed var(--bakery-pink);
+            padding-bottom: 12px; margin-bottom: 20px;
         }
 
-        /* --- FIXED: UNIFIED, SINGLE SOIL BED WHOLE CONTAINER --- */
-        .soil-bed-container {
-            position: relative; 
-            width: 100%; 
-            max-width: 520px; 
-            height: 220px;
-            /* The asset is now applied ONLY once here, forming a single unbroken bed */
-            background: url('assets/dirt-bed.png') no-repeat center center;
-            background-size: 100% 100%;
-            border-radius: 16px; 
-            overflow: hidden; 
-            display: flex; 
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-        
-        /* Transparent logical slices layout on top of the unified asset background */
-        .soil-slice {
-            flex: 1; 
-            height: 100%;
-            position: relative; 
-            cursor: pointer; 
-            transition: background 0.2s;
-            /* Bright clear mathematical fractional dividers */
-            border-right: 4px dashed rgba(255, 255, 255, 0.85);
-            z-index: 5;
-        }
-        .soil-slice:last-child { border-right: none; }
-        
-        /* Darker tint over unplanted segments to make them look distinct */
-        .soil-slice::before {
-            content: '';
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.15);
-            transition: background 0.2s;
-            pointer-events: none;
-        }
-        
-        /* Clear highlights when a section is targeted/planted */
-        .soil-slice.planted::before {
-            background: rgba(76, 175, 80, 0.25); /* Highlights the chosen fraction cleanly */
-        }
-        
-        /* Absolute positioned crop rendering directly inside the specific section coordinates */
-        .soil-slice.planted::after {
-            content: ''; 
-            position: absolute;
-            width: 65px; height: 65px;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: url('assets/seed-pack.png') no-repeat center center; 
-            background-size: contain;
-            animation: sproutPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-            pointer-events: none;
+        .instruction-prompt { font-size: 1.3rem; font-weight: bold; color: #333; margin-bottom: 25px; }
+
+        /* Matching Layout Area */
+        .matching-container {
+            display: flex; width: 100%; gap: 40px; justify-content: space-between; margin-bottom: 20px;
         }
 
-        @keyframes sproutPop { 0% { transform: translate(-50%, -50%) scale(0); } 100% { transform: translate(-50%, -50%) scale(1); } }
-
-        /* --- PARTS OF A GROUP --- */
-        .harvest-field {
-            display: flex; gap: 20px; flex-wrap: wrap; justify-content: center;
-            width: 100%; max-width: 550px; min-height: 110px; margin-bottom: 25px; margin-top: 15px;
-        }
-        .item-flower {
-            width: 70px; height: 70px; cursor: pointer; transition: transform 0.2s, opacity 0.2s;
-            background: url('assets/sunflower.png') no-repeat center center; background-size: contain;
-        }
-        .item-flower:hover { transform: scale(1.1); }
-        .item-flower.harvested { transform: scale(0); opacity: 0; pointer-events: none; }
-        
-        .basket-zone {
-            width: 180px; height: 130px; margin-top: 10px;
-            background: url('assets/basket-empty.png') no-repeat center center; background-size: contain;
-            display: flex; justify-content: center; align-items: center; position: relative;
-        }
-        .basket-counter {
-            position: absolute; bottom: -5px; background: #ff9800; color: white;
-            padding: 4px 16px; border-radius: 20px; font-weight: bold; font-size: 1rem;
-            box-shadow: 0 3px 6px rgba(0,0,0,0.16);
+        .column {
+            flex: 1; display: flex; flex-direction: column; gap: 15px;
         }
 
-        /* Controls UI Layout */
-        .slider-control-box { margin: 20px 0; width: 100%; max-width: 400px; }
-        .slider-control-box label { font-weight: bold; display: block; margin-bottom: 10px; font-size: 1.1rem; color: #444; }
-        .fraction-slider { width: 100%; accent-color: var(--garden-green); cursor: pointer; height: 8px; border-radius: 4px; }
-
-        .prompt-text { font-size: 1.35rem; font-weight: bold; margin-bottom: 15px; color: #222; line-height: 1.5; max-width: 700px; }
-        .feedback-msg { font-size: 1.25rem; font-weight: bold; min-height: 30px; margin-top: 15px; }
-
-        /* Dynamic Sprout Particle FX */
-        .sprout-particle {
-            position: absolute; width: 40px; height: 40px;
-            background: url('assets/sprout.png') no-repeat center center; background-size: contain;
-            pointer-events: none; z-index: 99; animation: floatUpParticle 1.2s ease-out forwards;
+        .match-card {
+            background: var(--bakery-cream); border: 3px solid #d7ccc8; border-radius: 16px;
+            padding: 15px; min-height: 100px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s ease; position: relative; font-size: 1.1rem;
+            font-weight: 600; color: #4e342e; user-select: none;
         }
-        @keyframes floatUpParticle {
-            0% { transform: translateY(0) scale(0.5) rotate(0deg); opacity: 1; }
-            100% { transform: translateY(-100px) scale(1.3) rotate(15deg); opacity: 0; }
-        }
+        .match-card:hover { transform: translateY(-3px); box-shadow: 0 5px 10px rgba(0,0,0,0.08); border-color: var(--bakery-brown); }
+        .match-card.selected { background: #ffe082; border-color: #ffb300; transform: scale(1.02); }
+        .match-card.matched { background: #c8e6c9; border-color: #4caf50; color: #2e7d32; cursor: default; pointer-events: none; transform: none; box-shadow: none; }
+
+        /* Visual Content Helpers */
+        .svg-shape { width: 80px; height: 80px; }
+        .group-items { font-size: 1.8rem; letter-spacing: 3px; }
+
+        /* Feedback Elements */
+        .feedback-box { font-size: 1.3rem; font-weight: bold; min-height: 35px; margin-top: 10px; }
+
+        /* End Screen */
+        #scr-end h1 { color: #2e7d32; font-size: 2.8rem; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
-    <audio id="snd-correct" src="assets/claps.mp3" preload="auto"></audio>
-    <audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
-
-    <div class="game-container">
-        <div id="scr-splash">
-            <img src="assets/logo.png" class="splash-logo" alt="Innovine Solutions">
-        </div>
-
-        <div class="screen" id="scr-intro">
-            <h1 style="color: var(--garden-green); margin-bottom: 16px; font-size: 2.5rem;">The Interactive Garden Planner</h1>
-            <p style="font-size: 1.2rem; max-width: 650px; margin-bottom: 35px; color: #555; line-height: 1.6;">
-                Become a master farmer by manually slicing soil patches, sowing seeds, and collecting groups of beautiful sunflowers into your harvest baskets.
-            </p>
-            <button class="cta-btn" onclick="startAppGameplay()">Start Designing 🌻</button>
+    <div class="game-wrapper">
+        <div class="screen active" id="scr-intro">
+            <h1>🍰 Fraction Bakery Match</h1>
+            <p>Welcome, Head Pastry Chef! Help match our dynamic baking trays, real-world customer orders, and special fraction walls to their ideal shipping box delivery slots!</p>
+            <button class="btn-main" onclick="startBakeryGame()">Open Bakery 🍩</button>
         </div>
 
         <div class="screen" id="scr-play">
-            <div class="hud-row">
-                <div id="hud-level">Task: 1 / 10</div>
-                <div id="hud-score">Points: 0</div>
+            <div class="hud-top">
+                <div id="hud-level">Stage: 1 / 4</div>
+                <div id="hud-score">Score: 0</div>
+            </div>
+            <div class="instruction-prompt" id="game-instructions">Match the representation to its matching numerical expression!</div>
+
+            <div class="matching-container">
+                <div class="column" id="left-col"></div>
+                <div class="column" id="right-col"></div>
             </div>
 
-            <div class="prompt-text" id="game-prompt">Loading curriculum...</div>
-
-            <div id="mount-canvas-whole" style="display:none; flex-direction:column; align-items:center; width:100%;">
-                <div class="soil-bed-container" id="soil-bed"></div>
-                <div class="slider-control-box">
-                    <label id="slider-label">Slice field into: 2 Equal Parts</label>
-                    <input type="range" min="2" max="6" value="2" class="fraction-slider" id="field-slider" oninput="handleSliceChange(this.value)">
-                </div>
-            </div>
-
-            <div id="mount-canvas-group" style="display:none; flex-direction:column; align-items:center; width:100%;">
-                <div class="harvest-field" id="flower-field"></div>
-                <div class="basket-zone"><div class="basket-counter" id="basket-count">In Basket: 0</div></div>
-            </div>
-
-            <button class="cta-btn" style="margin-top: 20px;" id="action-submit-btn" onclick="validateCurrentTactileEntry()">Verify Layout Check ⚔️</button>
-            <div class="feedback-msg" id="feedback-lbl"></div>
+            <div class="feedback-box" id="feedback-txt"></div>
         </div>
 
         <div class="screen" id="scr-end">
-            <h1 style="color: var(--garden-green); font-size: 2.6rem; margin-bottom: 15px;">Harvest Festival Achieved! 🏆</h1>
-            <p style="font-size: 1.3rem; margin-bottom: 25px;" id="final-report">You successfully resolved every single configuration layout!</p>
-            <button class="cta-btn" onclick="location.reload()">Plan New Map 🔄</button>
+            <h1>🏆 Master Baker Certification!</h1>
+            <p style="font-size: 1.3rem; margin-bottom: 30px;" id="final-report">Exceptional work! You successfully packaged every fractional order perfectly!</p>
+            <button class="btn-main" onclick="location.reload()">Bake Another Batch 🔄</button>
         </div>
     </div>
 
     <script>
-        let currentLevelIndex = 0;
-        let scoreCounter = 0;
-        let activeLevelData = null;
-        let blockInteraction = false;
+        let currentRound = 0;
+        let score = 0;
+        let selectedLeftId = null;
+        let selectedRightId = null;
+        let matchesFoundThisRound = 0;
 
-        let currentSlicesCount = 2;
-        let activePlantedArray = [];
-        let groupHarvestedCount = 0;
-
-        const levelPipeline = [
-            { id: 1, type: "whole", targetNum: 1, targetDen: 2, task: "LO 1 & 2: Understand the concept of a half. Slice the soil bed into 2 equal parts, then click to plant 1 section." },
-            { id: 2, type: "whole", targetNum: 1, targetDen: 4, task: "LO 1 & 3: Interpret one-fourth using a 2D grid shape. Slice the field layout into 4 sections, then plant 1 section." },
-            { id: 3, type: "whole", targetNum: 3, targetDen: 4, task: "LO 1 & 3: Model three-fourths on a spatial grid layout. Slice the soil bed into 4 equal tracks, then plant 3 of them." },
-            { id: 4, type: "group", totalItems: 4, targetNum: 2, task: "LO 4: Use fractions in real-life examples by dividing a group into halves. Tap exactly 2 of the 4 flowers to pick half." },
-            { id: 5, type: "group", totalItems: 8, targetNum: 2, task: "LO 4 & 5: Solve a real-life story sum. A florist buys one-fourth (1/4) of your 8 sunflowers. Collect exactly 2 into your basket." },
-            { id: 6, type: "whole", targetNum: 2, targetDen: 5, task: "LO 6: Learn about 'Like Fractions' (same denominators). Your friend planted 3/5 of a field. Plant a smaller like fraction of 2/5." },
-            { id: 7, type: "whole", targetNum: 2, targetDen: 3, task: "LO 6: Learn about 'Unlike Fractions' (different denominators). Model the unlike fraction 2/3 by slicing into 3 sections and seeding 2." },
-            { id: 8, type: "whole", targetNum: 4, targetDen: 6, task: "LO 8: Compare fractions with the same denominator. Which is larger, 3/6 or 4/6? Build the larger option by slicing into 6 and planting 4." },
-            { id: 9, type: "whole", targetNum: 2, targetDen: 3, task: "LO 8: Compare fractions with the same numerator. Smaller denominators mean larger pieces! Model the greater fraction between 2/3 and 2/6." },
-            { id: 10, type: "group", totalItems: 6, targetNum: 3, task: "LO 7 & 8: Justify equal fractions using a collection. Prove that 3/6 is equal to 1/2 by harvesting exactly 3 out of the 6 sunflowers." }
+        // Custom curated rounds targeting specific groupings of the presented LOs
+        const gameRounds = [
+            {
+                instruction: "LO 1, 2 & 3: Match the 2D baking trays or terms to their numerical fractions!",
+                pairs: [
+                    { id: "r1_1", leftHtml: "One-Fourth of a cake", rightHtml: "1/4" },
+                    { id: "r1_2", leftHtml: "Three-Fourths of a tray", rightHtml: "3/4" },
+                    { id: "r1_3", leftHtml: `<svg class="svg-shape" viewBox="0 0 100 100"><circle cx="50" cy="50" r="45" fill="none" stroke="#6d4c41" stroke-width="4"/><path d="M 50,5 A 45,45 0 0,1 50,95 Z" fill="#ffb7b2"/><line x1="50" y1="5" x2="50" y2="95" stroke="#6d4c41" stroke-width="4"/></svg>`, rightHtml: "1/2" }
+                ]
+            },
+            {
+                instruction: "LO 4 & 5: Story sums and group sets! Match the collection or problem with the right value.",
+                pairs: [
+                    { id: "r2_1", leftHtml: `<div class="group-items">🍪🍪🍪🍪</div><div>Take half (1/2) of the cookies</div>`, rightHtml: "2 Cookies" },
+                    { id: "r2_2", leftHtml: `<div class="group-items">🧁🧁🧁🧁🧁🧁🧁🧁</div><div>A client buys 1/4 of these 8 cupcakes.</div>`, rightHtml: "2 Cupcakes" },
+                    { id: "r2_3", leftHtml: "A fraction where the parts are from a whole unit structure", rightHtml: "Part of a Whole" }
+                ]
+            },
+            {
+                instruction: "LO 6 & 7: Learn your definitions! Categorize these fraction pairings.",
+                pairs: [
+                    { id: "r3_1", leftHtml: "Fractions with identical denominators: 2/5 and 3/5", rightHtml: "Like Fractions" },
+                    { id: "r3_2", leftHtml: "Fractions with alternate denominators: 2/3 and 2/6", rightHtml: "Unlike Fractions" },
+                    { id: "r3_3", leftHtml: "Fractions that are equal value: 3/6 and 1/2", rightHtml: "Equivalent Fractions" }
+                ]
+            },
+            {
+                instruction: "LO 8: Use fraction walls and logic to compare size boundaries!",
+                pairs: [
+                    { id: "r4_1", leftHtml: "Compare same denominator: Which is larger, 3/6 or 4/6?", rightHtml: "4/6" },
+                    { id: "r4_2", leftHtml: "Compare same numerator: Which is larger, 2/3 or 2/6?", rightHtml: "2/3" },
+                    { id: "r4_3", leftHtml: "Smaller absolute size denominator length on a Fraction Wall", rightHtml: "Larger Pieces" }
+                ]
+            }
         ];
 
-        window.addEventListener('DOMContentLoaded', () => {
-            const splashElement = document.getElementById('scr-splash');
-            setTimeout(() => {
-                splashElement.style.opacity = '0';
-                setTimeout(() => {
-                    splashElement.style.display = 'none';
-                    document.getElementById('scr-intro').classList.add('active');
-                }, 600);
-            }, 5000);
-        });
-
-        function triggerAudioFeedback(isCorrect) {
-            const player = document.getElementById(isCorrect ? 'snd-correct' : 'snd-wrong');
-            if(player) { player.currentTime = 0; player.play().catch(()=>{}); }
-        }
-
-        function spawnSproutBurst() {
-            const container = document.getElementById('scr-play');
-            for (let i = 0; i < 8; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'sprout-particle';
-                particle.style.left = (Math.random() * 60 + 20) + '%';
-                particle.style.top = (Math.random() * 40 + 30) + '%';
-                container.appendChild(particle);
-                setTimeout(() => particle.remove(), 1200);
-            }
-        }
-
-        function startAppGameplay() {
+        function startBakeryGame() {
             document.getElementById('scr-intro').classList.remove('active');
             document.getElementById('scr-play').classList.add('active');
-            loadLevelBlueprint();
+            setupRound();
         }
 
-        function loadLevelBlueprint() {
-            blockInteraction = false;
-            document.getElementById('action-submit-btn').disabled = false;
-            document.getElementById('feedback-lbl').innerText = "";
+        function setupRound() {
+            selectedLeftId = null;
+            selectedRightId = null;
+            matchesFoundThisRound = 0;
+            document.getElementById('feedback-txt').innerText = "";
             
-            activeLevelData = levelPipeline[currentLevelIndex];
-            document.getElementById('hud-level').innerText = `Task: ${currentLevelIndex + 1} / 10`;
-            document.getElementById('game-prompt').innerText = activeLevelData.task;
+            const roundData = gameRounds[currentRound];
+            document.getElementById('hud-level').innerText = `Stage: ${currentRound + 1} / ${gameRounds.length}`;
+            document.getElementById('game-instructions').innerText = roundData.instruction;
 
-            if (activeLevelData.type === "whole") {
-                document.getElementById('mount-canvas-group').style.display = "none";
-                document.getElementById('mount-canvas-whole').style.display = "flex";
-                
-                currentSlicesCount = 2;
-                document.getElementById('field-slider').value = 2;
-                handleSliceChange(2);
-            } else {
-                document.getElementById('mount-canvas-whole').style.display = "none";
-                document.getElementById('mount-canvas-group').style.display = "flex";
-                
-                groupHarvestedCount = 0;
-                document.getElementById('basket-count').innerText = "In Basket: 0";
-                
-                const fieldNode = document.getElementById('flower-field');
-                fieldNode.innerHTML = "";
-                for(let i=0; i < activeLevelData.totalItems; i++) {
-                    let flwr = document.createElement('div');
-                    flwr.className = "item-flower";
-                    flwr.onclick = () => {
-                        if(blockInteraction) return;
-                        if(!flwr.classList.contains('harvested')) {
-                            flwr.classList.add('harvested');
-                            groupHarvestedCount++;
-                            document.getElementById('basket-count').innerText = `In Basket: ${groupHarvestedCount}`;
-                        }
-                    };
-                    fieldNode.appendChild(flwr);
-                }
-            }
+            // Prepare Left and Right arrays separately to shuffle them independently
+            let leftCards = roundData.pairs.map(p => ({ id: p.id, html: p.leftHtml }));
+            let rightCards = roundData.pairs.map(p => ({ id: p.id, html: p.rightHtml }));
+
+            leftCards.sort(() => Math.random() - 0.5);
+            rightCards.sort(() => Math.random() - 0.5);
+
+            const leftCol = document.getElementById('left-col');
+            const rightCol = document.getElementById('right-col');
+            leftCol.innerHTML = "";
+            rightCol.innerHTML = "";
+
+            leftCards.forEach(c => {
+                let div = document.createElement('div');
+                div.className = "match-card";
+                div.innerHTML = c.html;
+                div.dataset.id = c.id;
+                div.onclick = () => selectCard(div, 'left');
+                leftCol.appendChild(div);
+            });
+
+            rightCards.forEach(c => {
+                let div = document.createElement('div');
+                div.className = "match-card";
+                div.innerHTML = c.html;
+                div.dataset.id = c.id;
+                div.onclick = () => selectCard(div, 'right');
+                rightCol.appendChild(div);
+            });
         }
 
-        function handleSliceChange(val) {
-            if(blockInteraction) return;
-            currentSlicesCount = parseInt(val);
-            document.getElementById('slider-label').innerText = `Slice field into: ${currentSlicesCount} Equal Parts`;
-            
-            const bedNode = document.getElementById('soil-bed');
-            bedNode.innerHTML = "";
-            activePlantedArray = new Array(currentSlicesCount).fill(false);
+        function selectCard(element, side) {
+            if (element.classList.contains('matched')) return;
 
-            for(let i=0; i<currentSlicesCount; i++) {
-                let slice = document.createElement('div');
-                slice.className = "soil-slice";
-                slice.onclick = () => {
-                    if(blockInteraction) return;
-                    activePlantedArray[i] = !activePlantedArray[i];
-                    slice.classList.toggle('planted', activePlantedArray[i]);
-                };
-                bedNode.appendChild(slice);
-            }
-        }
-
-        function validateCurrentTactileEntry() {
-            if(blockInteraction) return;
-            let checkPassed = false;
-            let lbl = document.getElementById('feedback-lbl');
-
-            if (activeLevelData.type === "whole") {
-                let totalPlantedCount = activePlantedArray.filter(v => v).length;
-                if (currentSlicesCount === activeLevelData.targetDen && totalPlantedCount === activeLevelData.targetNum) {
-                    checkPassed = true;
-                }
+            if (side === 'left') {
+                document.querySelectorAll('#left-col .match-card').forEach(c => c.classList.remove('selected'));
+                element.classList.add('selected');
+                selectedLeftId = element.dataset.id;
             } else {
-                if (groupHarvestedCount === activeLevelData.targetNum) {
-                    checkPassed = true;
-                }
+                document.querySelectorAll('#right-col .match-card').forEach(c => c.classList.remove('selected'));
+                element.classList.add('selected');
+                selectedRightId = element.dataset.id;
             }
 
-            blockInteraction = true;
-            document.getElementById('action-submit-btn').disabled = true;
+            // Verify when both items are picked
+            if (selectedLeftId && selectedRightId) {
+                const fb = document.getElementById('feedback-txt');
+                if (selectedLeftId === selectedRightId) {
+                    // Correct Match
+                    score += 10;
+                    document.getElementById('hud-score').innerText = `Score: ${score}`;
+                    
+                    let matchedLeft = document.querySelector(`#left-col .match-card[data-id="${selectedLeftId}"]`);
+                    let matchedRight = document.querySelector(`#right-col .match-card[data-id="${selectedRightId}"]`);
+                    
+                    matchedLeft.className = "match-card matched";
+                    matchedRight.className = "match-card matched";
 
-            if (checkPassed) {
-                scoreCounter += 10;
-                document.getElementById('hud-score').innerText = `Points: ${scoreCounter}`;
-                lbl.style.color = "var(--garden-green)";
-                lbl.innerText = "Incredible fraction match! Sprouting crops... 🌱✨";
-                triggerAudioFeedback(true);
-                spawnSproutBurst();
-                
-                currentLevelIndex++;
-                setTimeout(() => {
-                    if(currentLevelIndex < levelPipeline.length) {
-                        loadLevelBlueprint();
-                    } else {
-                        document.getElementById('scr-play').classList.remove('active');
-                        document.getElementById('scr-end').classList.add('active');
-                        document.getElementById('final-report').innerText = `Phenomenal work! You unlocked all layouts and harvested a grand total score of ${scoreCounter} points!`;
+                    fb.style.color = "var(--success-green)";
+                    fb.innerText = "Deliciously Correct! 🧁✨";
+                    
+                    matchesFoundThisRound++;
+                    selectedLeftId = null;
+                    selectedRightId = null;
+
+                    if (matchesFoundThisRound === gameRounds[currentRound].pairs.length) {
+                        setTimeout(() => {
+                            currentRound++;
+                            if (currentRound < gameRounds.length) {
+                                setupRound();
+                            } else {
+                                endBakeryGame();
+                            }
+                        }, 1500);
                     }
-                }, 2200);
-            } else {
-                lbl.style.color = "#d32f2f";
-                lbl.innerText = "Layout mapping incorrect. Let's try again! 🔄";
-                triggerAudioFeedback(false);
-                setTimeout(() => {
-                    loadLevelBlueprint();
-                }, 2200);
+                } else {
+                    // Incorrect Match
+                    fb.style.color = "var(--error-red)";
+                    fb.innerText = "Oops, wrong recipe combination! Try another pair. 🔄";
+                    
+                    setTimeout(() => {
+                        element.classList.remove('selected');
+                        if (side === 'left') selectedLeftId = null;
+                        else selectedRightId = null;
+                    }, 1000);
+                }
             }
+        }
+
+        function endBakeryGame() {
+            document.getElementById('scr-play').classList.remove('active');
+            document.getElementById('scr-end').classList.add('active');
+            document.getElementById('final-report').innerText = `Phenomenal cooking! You handled all configurations cleanly with a top score of ${score} points!`;
         }
     </script>
 </body>
