@@ -40,11 +40,11 @@
             padding: 10px;
         }
 
-        /* --- ARCADE CINEMATIC SPLASH SCREEN --- */
+        /* --- NEW BRIGHT WHITE SPLASH SCREEN --- */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: #07090E;
+            background: #FFFFFF; /* Pure White background */
             display: flex; 
             flex-direction: column;
             justify-content: center; 
@@ -61,23 +61,17 @@
         .splash-logo { 
             max-width: 280px; 
             height: auto; 
-            animation: warpGlow 2.5s infinite ease-in-out;
+            margin-bottom: 20px;
         }
 
         .space-loader {
             width: 50px;
             height: 50px;
-            border: 5px solid #1A2333;
-            border-top: 5px solid var(--neon-cyan);
+            border: 5px solid #E2E8F0;
+            border-top: 5px solid #1A2333; /* Dark spinner contrasting the white screen */
             border-radius: 50%;
             margin: 30px auto 0 auto;
             animation: orbitalSpin 1s linear infinite;
-            box-shadow: 0 0 15px var(--neon-cyan);
-        }
-
-        @keyframes warpGlow {
-            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 5px rgba(0, 240, 255, 0.2)); }
-            50% { transform: scale(1.05); filter: drop-shadow(0 0 25px var(--neon-cyan)); }
         }
 
         @keyframes orbitalSpin {
@@ -358,7 +352,7 @@
 
     <div id="splash-screen">
         <div class="splash-wrapper">
-            <img src="assets/logo.png" alt="Game Logo" class="splash-logo" onerror="this.style.display='none';">
+            <img src="assets/logo.png" alt="Game Logo" class="splash-logo" id="logo-img">
             <div class="space-loader"></div>
         </div>
     </div>
@@ -432,7 +426,6 @@
     <audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
     <script>
-        // CURRICULUM LEVEL QUESTIONS CODED AS FALLING ASTEROIDS
         const levelsData = {
             1: [
                 { targetValue: 120, formula: "30 &times; 4", options: ["30 &times; 4", "20 &times; 5", "40 &times; 2"] },
@@ -462,7 +455,6 @@
             asteroidInterval: null
         };
 
-        // Static Space Atmosphere Generator
         function buildStarfield() {
             const arena = document.getElementById('space-arena');
             for(let i=0; i<30; i++) {
@@ -513,6 +505,13 @@
                 const img = document.createElement('img');
                 img.className = 'shield-cell';
                 img.src = i < gameState.lives ? 'assets/heart.png' : 'assets/broken-heart.png';
+                // Direct fallback handling if image files aren't ready
+                img.onerror = function() {
+                    this.style.display = 'none';
+                    const txtHeart = document.createElement('span');
+                    txtHeart.innerText = i < gameState.lives ? '💙' : '🖤';
+                    tray.appendChild(txtHeart);
+                };
                 tray.appendChild(img);
             }
         }
@@ -575,4 +574,118 @@
             document.getElementById('game-progress').style.width = `${progressPercentage}%`;
 
             const currentData = levelsData[gameState.currentTier][gameState.arrayIndex];
-            document.getElementById('console-target').innerHTML = `TARGET MASS: <span style="color:var(--neon-cyan);">${currentData.target
+            document.getElementById('console-target').innerHTML = `TARGET MASS: <span style="color:var(--neon-cyan);">${currentData.targetValue}</span>`;
+
+            const arena = document.getElementById('space-arena');
+            const choices = [...currentData.options];
+            choices.sort(() => Math.random() - 0.5);
+
+            choices.forEach((expr, index) => {
+                const ast = document.createElement('div');
+                ast.className = 'asteroid-sprite';
+                ast.style.top = '-100px';
+                ast.style.left = `${15 + (index * 30)}%`;
+                
+                const label = document.createElement('span');
+                label.className = 'asteroid-text';
+                label.innerHTML = expr;
+                ast.appendChild(label);
+
+                ast.dataset.formula = expr;
+                ast.onclick = (e) => fireQuantumLaser(e.currentTarget);
+                arena.appendChild(ast);
+
+                setTimeout(() => {
+                    ast.style.top = `${25 + (Math.random() * 40)}px`;
+                }, index * 200);
+            });
+
+            let currentDrift = 40;
+            gameState.asteroidInterval = setInterval(() => {
+                if (gameState.transitionLock) return;
+                currentDrift += 1.5;
+                const activeRocks = document.querySelectorAll('.asteroid-sprite');
+                activeRocks.forEach(rock => {
+                    const parsedTop = parseFloat(rock.style.top);
+                    rock.style.top = `${parsedTop + 0.5}px`;
+
+                    if (parsedTop > 270) {
+                        triggerImpactBreach();
+                    }
+                });
+            }, 60);
+        }
+
+        function fireQuantumLaser(selectedAsteroid) {
+            if (gameState.transitionLock) return;
+            gameState.transitionLock = true;
+            clearInterval(gameState.asteroidInterval);
+
+            const arena = document.getElementById('space-arena');
+            const ship = document.getElementById('player-ship');
+            
+            const targetX = selectedAsteroid.offsetLeft + (selectedAsteroid.offsetWidth / 2);
+            const targetY = selectedAsteroid.offsetTop + (selectedAsteroid.offsetHeight / 2);
+            
+            const arenaWidth = arena.offsetWidth;
+            const percentageX = (targetX / arenaWidth) * 100;
+            ship.style.left = `${percentageX}%`;
+
+            setTimeout(() => {
+                const laser = document.createElement('div');
+                laser.className = 'laser-beam';
+                laser.style.left = `${percentageX}%`;
+                arena.appendChild(laser);
+
+                setTimeout(() => {
+                    evaluateImpactResult(selectedAsteroid, targetX, targetY);
+                    laser.remove();
+                }, 250);
+            }, 350);
+        }
+
+        function evaluateImpactResult(rock, x, top) {
+            const currentData = levelsData[gameState.currentTier][gameState.arrayIndex];
+            const chosenFormula = rock.dataset.formula;
+            const status = document.getElementById('status-log-txt');
+
+            if (chosenFormula === currentData.formula) {
+                rock.remove();
+                triggerDebrisBurst(rock.offsetLeft, rock.offsetTop);
+                gameState.streak++;
+                
+                let points = 200;
+                const combo = document.getElementById('combo-meter');
+                if (gameState.streak >= 2) {
+                    points *= gameState.streak;
+                    if (combo) {
+                        combo.innerText = `${gameState.streak}X STREAK 🔥`;
+                        combo.classList.add('show');
+                    }
+                }
+
+                gameState.score += points;
+                updateScoreTicker(gameState.score);
+                playAudioFeedback('correct');
+
+                if (status) {
+                    status.innerText = `DIRECT HIT! +${points} ENERGY SPECTRUM! ⚡`;
+                    status.style.color = "var(--neon-green)";
+                }
+
+                setTimeout(advanceLogisticsQueue, 1600);
+            } else {
+                gameState.streak = 0;
+                const combo = document.getElementById('combo-meter');
+                if (combo) combo.classList.remove('show');
+
+                gameState.lives--;
+                renderShieldTray();
+                playAudioFeedback('wrong');
+                document.getElementById('space-arena').classList.add('arena-flash');
+                setTimeout(() => document.getElementById('space-arena').classList.remove('arena-flash'), 450);
+
+                if (gameState.lives > 0) {
+                    if (status) {
+                        status.innerText = "Shield Deflected! Vector recalculating... 🛰️";
+                        status.style.color = "var(--laser-orange
