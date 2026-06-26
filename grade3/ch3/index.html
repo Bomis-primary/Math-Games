@@ -42,18 +42,54 @@
             padding: 15px;
         }
 
+        /* --- IMMERSIVE CHILL SPLASH SCREEN --- */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: #FFFFFF;
-            display: flex; justify-content: center; align-items: center;
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center;
             z-index: 9999;
             opacity: 1;
-            transition: opacity 0.5s ease-out;
+            transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1);
         }
-        .splash-logo { max-width: 240px; height: auto; }
+        
+        .splash-wrapper {
+            text-align: center;
+            position: relative;
+        }
 
-        /* --- THEME UPGRADE: JUICY CARDS --- */
+        .splash-logo { 
+            max-width: 260px; 
+            height: auto; 
+            animation: pulseLogo 2s infinite ease-in-out;
+        }
+
+        /* Loading Spinner below logo so the kid knows it's loading! */
+        .arcade-loader {
+            width: 50px;
+            height: 50px;
+            border: 6px solid #F3E1CE;
+            border-top: 6px solid var(--pastry-pink);
+            border-radius: 50%;
+            margin: 25px auto 0 auto;
+            animation: spinLoader 1s linear infinite;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        @keyframes pulseLogo {
+            0%, 100% { transform: scale(1); filter: drop-shadow(0 0 0px transparent); }
+            50% { transform: scale(1.04); filter: drop-shadow(0 10px 15px rgba(255,107,139,0.2)); }
+        }
+
+        @keyframes spinLoader {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- CARDS --- */
         .adventure-card {
             width: 100%;
             max-width: 620px;
@@ -99,7 +135,6 @@
             font-size: 2.6rem;
             color: var(--espresso);
             margin-bottom: 20px;
-            -webkit-text-stroke: 1px #fff;
         }
 
         .scroll-text {
@@ -114,7 +149,6 @@
             box-shadow: inset 0 6px 0 rgba(0,0,0,0.05);
         }
 
-        /* --- ARCADE BUTTONS --- */
         .action-btn {
             background: linear-gradient(135deg, var(--gold), #FF9F1C);
             color: var(--espresso);
@@ -131,7 +165,7 @@
             box-shadow: 0 2px 0 var(--espresso);
         }
 
-        /* --- MAIN CONSOLE GAMEPLAY --- */
+        /* --- GAME SCREEN --- */
         #game-container {
             width: 100%;
             max-width: 680px;
@@ -144,7 +178,6 @@
             position: relative;
         }
 
-        /* SCREEN SHAKE ANIMATION */
         .shake-game {
             animation: gameHurt 0.4s ease-in-out;
         }
@@ -226,7 +259,6 @@
             filter: brightness(1.5);
         }
 
-        /* --- THE ARCADE SCREEN DISPLAY --- */
         .puzzle-console {
             background: var(--chalkboard-bg);
             border-radius: 28px;
@@ -258,7 +290,6 @@
             text-shadow: 2px 2px 0px rgba(0,0,0,0.5);
         }
 
-        /* --- INPUTS AND COMBOS --- */
         .entry-deck {
             display: flex;
             justify-content: center;
@@ -310,7 +341,6 @@
             box-shadow: 0 0 0 transparent; 
         }
 
-        /* DYNAMIC COMBO BADGE */
         .combo-badge {
             position: absolute;
             right: -10px;
@@ -343,7 +373,6 @@
             text-shadow: 1px 1px 0 #FFF;
         }
 
-        /* PARTY CONFETTI EFFECT OVERLAY */
         #confetti-cannon {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -364,7 +393,10 @@
 <body>
 
     <div id="splash-screen">
-        <img src="assets/logo.png" alt="Café Logo" class="splash-logo" onerror="this.style.display='none';">
+        <div class="splash-wrapper">
+            <img src="assets/logo.png" alt="Café Logo" class="splash-logo" onerror="this.style.display='none';">
+            <div class="arcade-loader"></div>
+        </div>
     </div>
 
     <div id="confetti-cannon"></div>
@@ -577,7 +609,7 @@
         function startLevel(tierNumber) {
             gameState.currentTier = tierNumber;
             gameState.arrayIndex = 0;
-            gameState.lives = 3; // Reset lives per level room challenge
+            gameState.lives = 3; 
             renderHearts();
             
             const titleElement = document.getElementById('hud-tier-title');
@@ -656,3 +688,131 @@
 
             const solution = levelsData[gameState.currentTier][gameState.arrayIndex].ans;
             const submitBtn = document.getElementById('submit-btn');
+            const status = document.getElementById('status-log-txt');
+            const gameBox = document.getElementById('game-container');
+
+            if (userAns === solution) {
+                gameState.transitionLock = true;
+                inputElement.disabled = true;
+                submitBtn.disabled = true;
+                
+                inputElement.className = "stone-input correct";
+                gameState.streak++;
+                
+                let pointsEarned = 100;
+                const comboMeter = document.getElementById('combo-meter');
+                if (gameState.streak >= 2) {
+                    pointsEarned *= gameState.streak;
+                    if (comboMeter) {
+                        comboMeter.innerText = `${gameState.streak}x STREAK! 🔥`;
+                        comboMeter.classList.add('show');
+                    }
+                }
+                gameState.score += pointsEarned;
+                updateScoreTicker(gameState.score);
+
+                if (status) {
+                    status.innerText = `SWEET! +${pointsEarned} PTS! ⭐✨`;
+                    status.style.color = "#005A36";
+                }
+                
+                playAudioFeedback('correct');
+                triggerConfetti();
+                
+                const targetImgView = document.getElementById('vault-image-view');
+                if (targetImgView) targetImgView.classList.add('open');
+
+                setTimeout(proceedToNextTask, 1800);
+            } else {
+                gameState.streak = 0;
+                const comboMeter = document.getElementById('combo-meter');
+                if (comboMeter) comboMeter.classList.remove('show');
+
+                gameState.lives--;
+                renderHearts();
+                playAudioFeedback('wrong');
+
+                if (gameBox) {
+                    gameBox.classList.add('shake-game');
+                    setTimeout(() => gameBox.classList.remove('shake-game'), 400);
+                }
+                
+                if (gameState.lives > 0) {
+                    inputElement.className = "stone-input wrong";
+                    if (status) {
+                        status.innerText = "Oops! Try that calculation one more time! ☕";
+                        status.style.color = "var(--berry-red)";
+                    }
+                    setTimeout(() => {
+                        inputElement.className = "stone-input";
+                        inputElement.value = "";
+                        inputElement.focus();
+                    }, 1200);
+                } else {
+                    gameState.transitionLock = true;
+                    inputElement.disabled = true;
+                    submitBtn.disabled = true;
+                    
+                    inputElement.className = "stone-input wrong";
+                    if (status) {
+                        status.innerText = "Burnt! Correct count was: " + solution;
+                        status.style.color = "var(--berry-red)";
+                    }
+                    setTimeout(proceedToNextTask, 2200);
+                }
+            }
+        }
+
+        function proceedToNextTask() {
+            gameState.arrayIndex++;
+            if (gameState.arrayIndex < levelsData[gameState.currentTier].length) {
+                loadPuzzleCycle();
+            } else {
+                advanceTierGate();
+            }
+        }
+
+        function advanceTierGate() {
+            const comboMeter = document.getElementById('combo-meter');
+            if (comboMeter) comboMeter.classList.remove('show');
+
+            if (gameState.currentTier === 1) {
+                switchScreen('transition-card');
+            } else if (gameState.currentTier === 2) {
+                switchScreen('transition-card-two');
+            } else {
+                concludeAdventure();
+            }
+        }
+
+        function concludeAdventure() {
+            const progressBar = document.getElementById('game-progress');
+            if (progressBar) progressBar.style.width = "100%";
+            switchScreen('victory-card');
+            
+            const statsDisplay = document.getElementById('victory-stats');
+            if (statsDisplay) statsDisplay.innerText = `TOTAL SCORE: ${gameState.score}`;
+        }
+
+        function resetAdventureSystem() {
+            switchScreen('intro-card');
+        }
+
+        // --- HANDLES THE 5 SECOND LOGO TRANSITION SAFELY ---
+        window.addEventListener('DOMContentLoaded', () => {
+            // First clear out the card workflow behind the loading wall
+            switchScreen('intro-card');
+            
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => {
+                        splash.style.display = 'none';
+                    }, 600); // Wait for CSS transition to fade out completely
+                }
+            }, 5000); // Exact 5-second arcade cinematic duration!
+        });
+    </script>
+</body>
+</html>
