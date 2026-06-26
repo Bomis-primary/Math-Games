@@ -40,18 +40,18 @@
             padding: 10px;
         }
 
-        /* --- NEW BRIGHT WHITE SPLASH SCREEN --- */
+        /* --- IMMUNE WHITE SPLASH SCREEN --- */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: #FFFFFF; /* Pure White background */
+            background: #FFFFFF;
             display: flex; 
             flex-direction: column;
             justify-content: center; 
             align-items: center;
             z-index: 9999;
             opacity: 1;
-            transition: opacity 0.6s ease;
+            transition: opacity 0.5s ease, transform 0.5s ease;
         }
         
         .splash-wrapper {
@@ -68,7 +68,7 @@
             width: 50px;
             height: 50px;
             border: 5px solid #E2E8F0;
-            border-top: 5px solid #1A2333; /* Dark spinner contrasting the white screen */
+            border-top: 5px solid #1A2333;
             border-radius: 50%;
             margin: 30px auto 0 auto;
             animation: orbitalSpin 1s linear infinite;
@@ -92,6 +92,7 @@
             text-align: center;
             z-index: 10;
             position: relative;
+            display: none; /* Controlled explicitly via JS now */
         }
 
         .avatar-view {
@@ -179,6 +180,7 @@
             display: flex;
             align-items: center;
             gap: 5px;
+            min-width: 100px;
         }
         .shield-cell {
             width: 28px;
@@ -361,31 +363,31 @@
         <div class="avatar-view">🚀</div>
         <h2 class="card-title">COMMS TERMINAL ONLINE</h2>
         <p class="scroll-text">
-            "Welcome, Fleet Commander! A dense, chaotic cluster of **Mathematical Asteroids** has just dropped out of hyperspace and is heading directly toward Sector 3!
+            Welcome, Fleet Commander! A dense, chaotic cluster of <strong>Mathematical Asteroids</strong> has just dropped out of hyperspace and is heading directly toward our sector!
             <br><br>
-            Standard missiles won't work—our weapons system must tune its laser vectors. Look at the requested Target Value, compute the expressions on the falling rocks, and blast the correct matrix equations out of the sky!"
+            Standard missiles won't work—our weapons system must tune its laser vectors. Look at the requested Target Value, compute the expressions on the falling rocks, and blast the correct matrix equations out of the sky!
         </p>
         <button class="action-btn" onclick="startAdventure()">ENGAGE SHIELDS 🌌</button>
     </div>
 
-    <div id="transition-card" class="adventure-card" style="display: none;">
+    <div id="transition-card" class="adventure-card">
         <div class="avatar-view">🛸</div>
         <h2 class="card-title">SECTOR 1 CLEARED!</h2>
         <p class="scroll-text">
-            "Spectacular target tracking, Commander! The core perimeter is safe. However, long-range scans show an advanced rogue cluster passing through an energy vortex.
+            Spectacular target tracking, Commander! The core perimeter is safe. However, long-range scans show an advanced rogue cluster passing through an energy vortex.
             <br><br>
-            Prepare your computer circuits for larger multi-digit matrix sizes containing heavy mathematical **Carry-Over and Regrouping** configurations!"
+            Prepare your computer circuits for larger multi-digit matrix sizes containing heavy mathematical <strong>Carry-Over and Regrouping</strong> configurations!
         </p>
         <button class="action-btn" style="background: linear-gradient(135deg, var(--neon-green), #1E7E0A);" onclick="startLevel(2)">ENTER HYPERSPACE ➡️</button>
     </div>
 
-    <div id="transition-card-two" class="adventure-card" style="display: none;">
+    <div id="transition-card-two" class="adventure-card">
         <div class="avatar-view">📜</div>
         <h2 class="card-title">SECTOR 2 SECURED!</h2>
         <p class="scroll-text">
-            "Incredible laser calculations! The warp gates are holding steady. Finally, the fleet command center intercepted complex coordinate data streams from an uncharted planet.
+            Incredible laser calculations! The warp gates are holding steady. Finally, the fleet command center intercepted complex coordinate data streams from an uncharted planet.
             <br><br>
-            Deconstruct each deep-space story scenario carefully to scan for grid coordinate targets!"
+            Deconstruct each deep-space story scenario carefully to scan for grid coordinate targets!
         </p>
         <button class="action-btn" style="background: linear-gradient(135deg, var(--neon-cyan), #0066CC);" onclick="startLevel(3)">DECODE COURIER LOGS 🔍</button>
     </div>
@@ -412,11 +414,11 @@
         </div>
     </div>
 
-    <div id="victory-card" class="adventure-card" style="display: none;">
+    <div id="victory-card" class="adventure-card">
         <div class="avatar-view" style="background: radial-gradient(#141A29, var(--laser-orange));">🏆</div>
         <h2 class="card-title" style="color: var(--laser-orange);">GALAXY DEFENDER UNLOCKED!</h2>
         <p class="scroll-text" style="text-align: center; font-size: 1.25rem; font-weight: 700;">
-            "Sensational navigation skill! Every mathematical sector is clean, the asteroid storm is completely pulverized, and your tactical ship shield matrices held the line perfectly!"
+            Sensational navigation skill! Every mathematical sector is clean, the asteroid storm is completely pulverized, and your tactical ship shield matrices held the line perfectly!
         </p>
         <h3 id="victory-stats" style="color: var(--neon-cyan); font-size: 1.8rem; margin-bottom: 25px;">TOTAL SYSTEM ENERGY: 0</h3>
         <button class="action-btn" onclick="resetAdventureSystem()">RE-ENGAGE SYSTEM 🔄</button>
@@ -426,6 +428,20 @@
     <audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
     <script>
+        // CRITICAL UNCONDITIONAL BYPASS TIMER (Fires even if script throws structural errors later)
+        setTimeout(() => {
+            const splash = document.getElementById('splash-screen');
+            if (splash) {
+                splash.style.opacity = '0';
+                splash.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    splash.remove();
+                    switchScreen('intro-card');
+                }, 500);
+            }
+        }, 3000);
+
+        // CURRICULUM MATH ARRAY MATRIX (Derived directly from chapter learning outcomes)
         const levelsData = {
             1: [
                 { targetValue: 120, formula: "30 &times; 4", options: ["30 &times; 4", "20 &times; 5", "40 &times; 2"] },
@@ -456,20 +472,24 @@
         };
 
         function buildStarfield() {
-            const arena = document.getElementById('space-arena');
-            for(let i=0; i<30; i++) {
-                const star = document.createElement('div');
-                star.className = 'star';
-                star.style.width = star.style.height = `${Math.random() * 3 + 1}px`;
-                star.style.left = `${Math.random() * 100}%`;
-                star.style.top = `${Math.random() * 100}%`;
-                star.style.animationDuration = `${Math.random() * 4 + 2}s`;
-                arena.appendChild(star);
-            }
+            try {
+                const arena = document.getElementById('space-arena');
+                if(!arena) return;
+                for(let i=0; i<30; i++) {
+                    const star = document.createElement('div');
+                    star.className = 'star';
+                    star.style.width = star.style.height = `${Math.random() * 3 + 1}px`;
+                    star.style.left = `${Math.random() * 100}%`;
+                    star.style.top = `${Math.random() * 100}%`;
+                    star.style.animationDuration = `${Math.random() * 4 + 2}s`;
+                    arena.appendChild(star);
+                }
+            } catch(e) { console.log(e); }
         }
 
         function triggerDebrisBurst(left, top) {
             const arena = document.getElementById('space-arena');
+            if(!arena) return;
             for (let i = 0; i < 15; i++) {
                 const p = document.createElement('div');
                 p.className = 'debris';
@@ -485,7 +505,7 @@
         function updateScoreTicker(targetScore) {
             const display = document.getElementById('hud-score');
             if (!display) return;
-            let current = parseInt(display.innerText);
+            let current = parseInt(display.innerText) || 0;
             const interval = setInterval(() => {
                 if (current >= targetScore) {
                     clearInterval(interval);
@@ -505,10 +525,10 @@
                 const img = document.createElement('img');
                 img.className = 'shield-cell';
                 img.src = i < gameState.lives ? 'assets/heart.png' : 'assets/broken-heart.png';
-                // Direct fallback handling if image files aren't ready
                 img.onerror = function() {
                     this.style.display = 'none';
                     const txtHeart = document.createElement('span');
+                    txtHeart.style.fontSize = '1.4rem';
                     txtHeart.innerText = i < gameState.lives ? '💙' : '🖤';
                     tray.appendChild(txtHeart);
                 };
@@ -517,12 +537,14 @@
         }
 
         function playAudioFeedback(mode) {
-            const track = document.getElementById(mode === 'correct' ? 'snd-correct' : 'snd-wrong');
-            if (track) {
-                track.volume = 0.25;
-                track.currentTime = 0;
-                track.play().catch(() => {});
-            }
+            try {
+                const track = document.getElementById(mode === 'correct' ? 'snd-correct' : 'snd-wrong');
+                if (track) {
+                    track.volume = 0.25;
+                    track.currentTime = 0;
+                    track.play().catch(() => {});
+                }
+            } catch(e) { console.log(e); }
         }
 
         function switchScreen(targetId) {
@@ -539,7 +561,8 @@
             gameState.score = 0;
             gameState.streak = 0;
             gameState.lives = 3;
-            document.getElementById('hud-score').innerText = "0";
+            const scoreEl = document.getElementById('hud-score');
+            if(scoreEl) scoreEl.innerText = "0";
             renderShieldTray();
             startLevel(1);
         }
@@ -562,21 +585,29 @@
         function loadAsteroidWave() {
             gameState.transitionLock = false;
             cleanAsteroidsFromArena();
-            document.getElementById('status-log-txt').innerText = "";
+            const logTxt = document.getElementById('status-log-txt');
+            if(logTxt) logTxt.innerText = "";
 
             let absoluteIndex = gameState.arrayIndex;
             for (let i = 1; i < gameState.currentTier; i++) {
                 absoluteIndex += levelsData[i].length;
             }
             
-            document.getElementById('hud-index').innerText = `${absoluteIndex + 1} / ${gameState.totalCount}`;
-            const progressPercentage = (absoluteIndex / gameState.totalCount) * 100;
-            document.getElementById('game-progress').style.width = `${progressPercentage}%`;
+            const indexHUD = document.getElementById('hud-index');
+            if(indexHUD) indexHUD.innerText = `${absoluteIndex + 1} / ${gameState.totalCount}`;
+            
+            const progressBar = document.getElementById('game-progress');
+            if(progressBar) {
+                const progressPercentage = (absoluteIndex / gameState.totalCount) * 100;
+                progressBar.style.width = `${progressPercentage}%`;
+            }
 
             const currentData = levelsData[gameState.currentTier][gameState.arrayIndex];
-            document.getElementById('console-target').innerHTML = `TARGET MASS: <span style="color:var(--neon-cyan);">${currentData.targetValue}</span>`;
+            const targetHUD = document.getElementById('console-target');
+            if(targetHUD) targetHUD.innerHTML = `TARGET MASS: <span style="color:var(--neon-cyan);">${currentData.targetValue}</span>`;
 
             const arena = document.getElementById('space-arena');
+            if(!arena) return;
             const choices = [...currentData.options];
             choices.sort(() => Math.random() - 0.5);
 
@@ -623,6 +654,7 @@
 
             const arena = document.getElementById('space-arena');
             const ship = document.getElementById('player-ship');
+            if(!arena || !ship) return;
             
             const targetX = selectedAsteroid.offsetLeft + (selectedAsteroid.offsetWidth / 2);
             const targetY = selectedAsteroid.offsetTop + (selectedAsteroid.offsetHeight / 2);
@@ -682,10 +714,98 @@
                 gameState.lives--;
                 renderShieldTray();
                 playAudioFeedback('wrong');
-                document.getElementById('space-arena').classList.add('arena-flash');
-                setTimeout(() => document.getElementById('space-arena').classList.remove('arena-flash'), 450);
+                
+                const arena = document.getElementById('space-arena');
+                if(arena) {
+                    arena.classList.add('arena-flash');
+                    setTimeout(() => arena.classList.remove('arena-flash'), 450);
+                }
 
                 if (gameState.lives > 0) {
                     if (status) {
                         status.innerText = "Shield Deflected! Vector recalculating... 🛰️";
-                        status.style.color = "var(--laser-orange
+                        status.style.color = "var(--laser-orange)";
+                    }
+                    gameState.transitionLock = false;
+                    loadAsteroidWave();
+                } else {
+                    if (status) {
+                        status.innerText = "Hull Breached! Shifting to backup sector.";
+                        status.style.color = "var(--neon-pink)";
+                    }
+                    setTimeout(advanceLogisticsQueue, 2000);
+                }
+            }
+        }
+
+        function triggerImpactBreach() {
+            clearInterval(gameState.asteroidInterval);
+            gameState.transitionLock = true;
+            gameState.streak = 0;
+            const combo = document.getElementById('combo-meter');
+            if (combo) combo.classList.remove('show');
+
+            gameState.lives--;
+            renderShieldTray();
+            playAudioFeedback('wrong');
+
+            const arena = document.getElementById('space-arena');
+            if(arena) {
+                arena.classList.add('arena-flash');
+                setTimeout(() => arena.classList.remove('arena-flash'), 450);
+            }
+
+            const status = document.getElementById('status-log-txt');
+            if (gameState.lives > 0) {
+                if (status) status.innerText = "Asteroid impact! Matrix configuration reset.";
+                setTimeout(loadAsteroidWave, 1500);
+            } else {
+                if (status) status.innerText = "Shield Critical! Moving down queue channels.";
+                setTimeout(advanceLogisticsQueue, 1800);
+            }
+        }
+
+        function advanceLogisticsQueue() {
+            gameState.arrayIndex++;
+            if (gameState.arrayIndex < levelsData[gameState.currentTier].length) {
+                loadAsteroidWave();
+            } else {
+                processSectorGateways();
+            }
+        }
+
+        function processSectorGateways() {
+            const combo = document.getElementById('combo-meter');
+            if (combo) combo.classList.remove('show');
+            cleanAsteroidsFromArena();
+
+            if (gameState.currentTier === 1) {
+                switchScreen('transition-card');
+            } else if (gameState.currentTier === 2) {
+                switchScreen('transition-card-two');
+            } else {
+                triggerFinalConclution();
+            }
+        }
+
+        function triggerFinalConclution() {
+            switchScreen('victory-card');
+            const stats = document.getElementById('victory-stats');
+            if(stats) stats.innerText = `TOTAL SYSTEM ENERGY: ${gameState.score}`;
+        }
+
+        function resetAdventureSystem() {
+            switchScreen('intro-card');
+        }
+
+        // Initialize static components safely
+        buildStarfield();
+        const logo = document.getElementById('logo-img');
+        if(logo) {
+            logo.onerror = function() { 
+                this.style.display = 'none'; 
+            };
+        }
+    </script>
+</body>
+</html>
