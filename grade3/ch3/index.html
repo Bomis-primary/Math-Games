@@ -41,7 +41,6 @@
             padding: 15px;
         }
 
-        /* --- SPLASH SCREEN FIX --- */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -53,7 +52,6 @@
         }
         .splash-logo { max-width: 240px; height: auto; }
 
-        /* --- CARDS & DIALOGS --- */
         .adventure-card {
             width: 100%;
             max-width: 650px;
@@ -69,15 +67,14 @@
         }
 
         .avatar-view {
-            width: 120px;
-            height: 120px;
+            width: 130px;
+            height: 130px;
             margin: 0 auto 20px auto;
             background: #FAEDCD;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 4rem;
             border: 4px dashed var(--warm-caramel);
             animation: bounceChef 3s infinite alternate ease-in-out;
             overflow: hidden;
@@ -95,14 +92,14 @@
         }
 
         .card-title {
-            font-size: 2.4rem;
+            font-size: 2.2rem;
             color: var(--espresso);
             margin-bottom: 20px;
             text-shadow: 1px 1px 0px #FFF;
         }
 
         .scroll-text {
-            font-size: 1.2rem;
+            font-size: 1.15rem;
             line-height: 1.6;
             background: #FFF;
             padding: 25px;
@@ -129,7 +126,6 @@
             box-shadow: 0 0 0 transparent;
         }
 
-        /* --- GAME SCREEN --- */
         #game-container {
             width: 100%;
             max-width: 700px;
@@ -171,7 +167,7 @@
 
         #temple-wall {
             width: 100%;
-            height: 140px;
+            height: 150px;
             background: #F3E1CE;
             border-radius: 24px;
             border: 4px solid var(--espresso);
@@ -183,11 +179,13 @@
             box-shadow: inset 0 -12px 0 #E5C4A3;
         }
 
-        #vault-door {
-            font-size: 5rem;
+        .vault-asset-img {
+            height: 75%;
+            max-height: 110px;
+            object-fit: contain;
             transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        #vault-door.open {
+        .vault-asset-img.open {
             transform: scale(0) rotate(180deg);
             opacity: 0;
         }
@@ -349,7 +347,7 @@
         </div>
 
         <div id="temple-wall">
-            <div id="vault-door">🍰</div>
+            <img id="vault-image-view" class="vault-asset-img" src="assets/cake.png" alt="Kitchen Target Asset">
         </div>
 
         <div class="puzzle-console">
@@ -365,10 +363,10 @@
     </div>
 
     <div id="victory-card" class="adventure-card" style="display: none;">
-        <div class="avatar-view">
-            <img src="assets/cake.png" alt="Cake" onerror="this.style.display='none'; this.parentElement.innerText='🎂'">
+        <div class="avatar-view" style="width: 160px; height: 160px;">
+            <img src="assets/cake.png" alt="Grand Prize Cake Torphy" style="width: 90%; height: 90%;">
         </div>
-        <h2 class="card-title">Certified Master Bakery Chef!</h2>
+        <h2 class="card-title">Certified Master Bakery Chef! 🏆</h2>
         <p class="scroll-text" style="text-align: center; font-size: 1.25rem;">
             "Sensational work! You balanced every single delivery ticket, handled the big truck orders flawlessly, and completely saved our Grand Opening! The Subtraction Café is booming thanks to your incredible math talents!"
         </p>
@@ -380,7 +378,6 @@
     <audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
     <script>
-        // CBSE Grade 3 Content Matrix
         const levelsData = {
             1: [
                 { txt: "In the math equation: <br><b>50 - 20 = 30</b>, <br>which number is the <b>Difference</b>?", ans: "30" },
@@ -408,6 +405,20 @@
             totalCount: Object.values(levelsData).reduce((sum, lvl) => sum + lvl.length, 0)
         };
 
+        // Fisher-Yates array shuffle logic
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function randomizeAllLevels() {
+            shuffleArray(levelsData[1]);
+            shuffleArray(levelsData[2]);
+            shuffleArray(levelsData[3]);
+        }
+
         function playAudioFeedback(mode) {
             const track = document.getElementById(mode === 'correct' ? 'snd-correct' : 'snd-wrong');
             if (track) {
@@ -426,6 +437,7 @@
         }
 
         function startAdventure() {
+            randomizeAllLevels(); 
             gameState.currentTier = 1;
             gameState.arrayIndex = 0;
             gameState.collectedRelics = 0;
@@ -480,10 +492,17 @@
             const statusLog = document.getElementById('status-log-txt');
             if (statusLog) statusLog.innerText = "";
             
-            const wallDoor = document.getElementById('vault-door');
-            if (wallDoor) {
-                wallDoor.className = ""; 
-                wallDoor.innerText = (gameState.currentTier === 1) ? "🍰" : (gameState.currentTier === 2) ? "🍩" : "📜";
+            // Map the correct workspace images to the playfield frame
+            const targetImgView = document.getElementById('vault-image-view');
+            if (targetImgView) {
+                targetImgView.className = "vault-asset-img"; 
+                if (gameState.currentTier === 1) {
+                    targetImgView.src = "assets/cake.png";
+                } else if (gameState.currentTier === 2) {
+                    targetImgView.src = "assets/delivery-van.png";
+                } else {
+                    targetImgView.src = "assets/scroll.png";
+                }
             }
 
             let absoluteIndex = gameState.arrayIndex;
@@ -536,8 +555,8 @@
                 }
                 
                 playAudioFeedback('correct');
-                const wallDoor = document.getElementById('vault-door');
-                if (wallDoor) wallDoor.classList.add('open');
+                const targetImgView = document.getElementById('vault-image-view');
+                if (targetImgView) targetImgView.classList.add('open');
                 
                 gameState.collectedRelics++;
                 const scoreDisplay = document.getElementById('hud-score');
@@ -601,23 +620,20 @@
             switchScreen('victory-card');
             
             const statsDisplay = document.getElementById('victory-stats');
-            if (statsDisplay) statsDisplay.innerText = `Score Balanced: ${gameState.collectedRelics} / ${gameState.totalCount}`;
+            if (statsDisplay) statsDisplay.innerText = `Orders Balanced: ${gameState.collectedRelics} / ${gameState.totalCount}`;
         }
 
         function resetAdventureSystem() {
             switchScreen('intro-card');
         }
 
-        // Fixed splash fade-out block execution safely handles visibility layer changes
         window.addEventListener('DOMContentLoaded', () => {
-            // Set first home view active behind the splash
             switchScreen('intro-card');
             
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 if (splash) {
                     splash.style.opacity = '0';
-                    // Fully clear layer out of document workflow
                     setTimeout(() => {
                         splash.style.display = 'none';
                     }, 500);
