@@ -295,4 +295,335 @@
 <body>
 
     <div id="splash-screen">
-        <img src="assets/logo.png" alt="Café Logo" class="splash-logo" onerror="this.src='
+        <img src="assets/logo.png" alt="Café Logo" class="splash-logo" onerror="this.style.display='none';">
+    </div>
+
+    <div id="intro-card" class="adventure-card">
+        <div class="avatar-view">
+            <img src="assets/chef.png" alt="Chef Avatar" onerror="this.style.display='none'; this.parentElement.innerText='👨‍🍳'">
+        </div>
+        <h2 class="card-title">Save the Grand Opening! 🍩</h2>
+        <p class="scroll-text">
+            "Welcome aboard, Junior Pastry Chef! Today is the grand opening of <b>The Subtraction Café</b>, but our kitchen tally book is a huge mess! 
+            <br><br>
+            If our morning orders don't balance out perfectly, we won't have enough cakes and pastries for our hungry customers. We need your magical subtraction skills to sort the numbers, solve the mystery tickets, and save the day!"
+        </p>
+        <button class="action-btn" onclick="startAdventure()">Enter Kitchen & Start 🛎️</button>
+    </div>
+
+    <div id="transition-card" class="adventure-card" style="display: none;">
+        <div class="avatar-view">
+            <img src="assets/delivery-van.png" alt="Van" onerror="this.style.display='none'; this.parentElement.innerText='🚚'">
+        </div>
+        <h2 class="card-title">Counter Orders Done! Next Stop: Cargo Delivery Trucks!</h2>
+        <p class="scroll-text">
+            "Brilliant working! The front counter displays look fantastic. But look outside—the giant commercial supply trucks have just pulled into the delivery loading docks!
+            <br><br>
+            These boxes hold much larger batches that will test your column **Borrowing and Regrouping** kitchen skills. Grab your pencil!"
+        </p>
+        <button class="action-btn" style="background: linear-gradient(135deg, #A8E6CF, #69C9A5);" onclick="startLevel(2)">Check the Supply Trucks 📦</button>
+    </div>
+
+    <div id="transition-card-two" class="adventure-card" style="display: none;">
+        <div class="avatar-view">
+            <img src="assets/scroll.png" alt="Scroll" onerror="this.style.display='none'; this.parentElement.innerText='📜'">
+        </div>
+        <h2 class="card-title">Cargo Checked! Can you crack the VIP Scrolls?</h2>
+        <p class="scroll-text">
+            "Outstanding job! All cargo crates have been audited safely. Finally, a VIP hotel customer just sent over handwritten culinary story scrolls!
+            <br><br>
+            Read each kitchen story problem carefully to work out exactly how many luxury treats were removed from our baking trays."
+        </p>
+        <button class="action-btn" style="background: linear-gradient(135deg, #FFD166, #E9B44A);" onclick="startLevel(3)">Read Secret Scrolls 🔍</button>
+    </div>
+
+    <div id="game-container">
+        <div class="hud-bar">
+            <span>TICKET: <span id="hud-index">1 / 9</span></span>
+            <span id="hud-tier-title" style="color: var(--pastry-pink);">Counter Orders</span>
+            <span>FULFILLED: <span id="hud-score">0</span></span>
+        </div>
+
+        <div class="progress-container">
+            <div id="game-progress" class="progress-bar"></div>
+        </div>
+
+        <div id="temple-wall">
+            <div id="vault-door">🍰</div>
+        </div>
+
+        <div class="puzzle-console">
+            <div class="instruction-banner" id="console-hint">Chalkboard Tally Ledger</div>
+            <div class="equation-layout" id="console-equation">Loading kitchen metrics...</div>
+        </div>
+
+        <div class="entry-deck">
+            <input type="number" id="stone-answer" class="stone-input" placeholder="?" autocomplete="off" inputmode="numeric">
+            <button id="submit-btn" class="confirm-btn" onclick="verifyConsoleCode()">Bake ✨</button>
+        </div>
+        <div id="status-log-txt" class="status-log"></div>
+    </div>
+
+    <div id="victory-card" class="adventure-card" style="display: none;">
+        <div class="avatar-view">
+            <img src="assets/cake.png" alt="Cake" onerror="this.style.display='none'; this.parentElement.innerText='🎂'">
+        </div>
+        <h2 class="card-title">Certified Master Bakery Chef!</h2>
+        <p class="scroll-text" style="text-align: center; font-size: 1.25rem;">
+            "Sensational work! You balanced every single delivery ticket, handled the big truck orders flawlessly, and completely saved our Grand Opening! The Subtraction Café is booming thanks to your incredible math talents!"
+        </p>
+        <h3 id="victory-stats" style="color: var(--berry-red); font-size: 1.5rem; margin-bottom: 25px;"></h3>
+        <button class="action-btn" onclick="resetAdventureSystem()">Start Next Shift 🔄</button>
+    </div>
+
+    <audio id="snd-correct" src="assets/claps.mp3" preload="auto"></audio>
+    <audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+
+    <script>
+        // CBSE Grade 3 Content Matrix
+        const levelsData = {
+            1: [
+                { txt: "In the math equation: <br><b>50 - 20 = 30</b>, <br>which number is the <b>Difference</b>?", ans: "30" },
+                { txt: "If you know that <b>40 + 30 = 70</b>, <br>then what is the answer to <b>70 - 30</b>?", ans: "40" },
+                { txt: "Find the missing number on the chalkboard: <br><b>85 - [ ? ] = 60</b>", ans: "25" },
+                { txt: "Chef has 450 cupcakes on the shelf. He sells 0 of them. How many cupcakes are left?", ans: "450" }
+            ],
+            2: [
+                { txt: "Let's subtract with column borrowing! <br>What is: <b>52 - 18</b>?", ans: "34" },
+                { txt: "Solve this column subtraction problem: <br><b>635 - 241</b>", ans: "394" },
+                { txt: "Try a large bulk order! <br>Find the value of: <b>4,250 - 1,139</b>", ans: "3111" }
+            ],
+            3: [
+                { txt: "The café baked 350 vanilla muffins in the morning. By noon, 180 muffins were sold. How many muffins are left in the shop?", ans: "170" },
+                { txt: "A delivery truck carried 1,200 cream rolls. The driver dropped off 450 rolls at the first primary school. How many cream rolls remain inside the truck?", ans: "750" }
+            ]
+        };
+
+        const gameState = {
+            currentTier: 1,
+            arrayIndex: 0,
+            collectedRelics: 0,
+            attemptsUsed: 0,
+            transitionLock: false,
+            totalCount: Object.values(levelsData).reduce((sum, lvl) => sum + lvl.length, 0)
+        };
+
+        function playAudioFeedback(mode) {
+            const track = document.getElementById(mode === 'correct' ? 'snd-correct' : 'snd-wrong');
+            if (track) {
+                track.volume = 0.3;
+                track.currentTime = 0;
+                track.play().catch(() => {});
+            }
+        }
+
+        function switchScreen(targetId) {
+            const screens = ['intro-card', 'transition-card', 'transition-card-two', 'game-container', 'victory-card'];
+            screens.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.style.display = (id === targetId) ? 'block' : 'none';
+            });
+        }
+
+        function startAdventure() {
+            gameState.currentTier = 1;
+            gameState.arrayIndex = 0;
+            gameState.collectedRelics = 0;
+            
+            const scoreDisplay = document.getElementById('hud-score');
+            if (scoreDisplay) scoreDisplay.innerText = gameState.collectedRelics;
+            
+            const inputField = document.getElementById('stone-answer');
+            if (inputField) {
+                inputField.onkeyup = (e) => { if (e.key === 'Enter') verifyConsoleCode(); };
+            }
+
+            startLevel(1);
+        }
+
+        function startLevel(tierNumber) {
+            gameState.currentTier = tierNumber;
+            gameState.arrayIndex = 0;
+            
+            const titleElement = document.getElementById('hud-tier-title');
+            if (titleElement) {
+                if (tierNumber === 1) {
+                    titleElement.innerText = "Counter Orders";
+                    titleElement.style.color = "var(--pastry-pink)";
+                } else if (tierNumber === 2) {
+                    titleElement.innerText = "Truck Logistics";
+                    titleElement.style.color = "var(--warm-caramel)";
+                } else {
+                    titleElement.innerText = "VIP Recipe Scrolls";
+                    titleElement.style.color = "var(--berry-red)";
+                }
+            }
+
+            switchScreen('game-container');
+            loadPuzzleCycle();
+        }
+
+        function loadPuzzleCycle() {
+            gameState.transitionLock = false;
+            gameState.attemptsUsed = 0; 
+            
+            const inputElement = document.getElementById('stone-answer');
+            if (inputElement) {
+                inputElement.value = "";
+                inputElement.className = "stone-input";
+                inputElement.disabled = false;
+            }
+            
+            const submitBtn = document.getElementById('submit-btn');
+            if (submitBtn) submitBtn.disabled = false;
+            
+            const statusLog = document.getElementById('status-log-txt');
+            if (statusLog) statusLog.innerText = "";
+            
+            const wallDoor = document.getElementById('vault-door');
+            if (wallDoor) {
+                wallDoor.className = ""; 
+                wallDoor.innerText = (gameState.currentTier === 1) ? "🍰" : (gameState.currentTier === 2) ? "🍩" : "📜";
+            }
+
+            let absoluteIndex = gameState.arrayIndex;
+            for (let i = 1; i < gameState.currentTier; i++) {
+                absoluteIndex += levelsData[i].length;
+            }
+            
+            const indexDisplay = document.getElementById('hud-index');
+            if (indexDisplay) indexDisplay.innerText = `${absoluteIndex + 1} / ${gameState.totalCount}`;
+            
+            const progressPercentage = (absoluteIndex / gameState.totalCount) * 100;
+            const progressBar = document.getElementById('game-progress');
+            if (progressBar) progressBar.style.width = `${progressPercentage}%`;
+
+            const currentItem = levelsData[gameState.currentTier][gameState.arrayIndex];
+            const equationConsole = document.getElementById('console-equation');
+            if (equationConsole) equationConsole.innerHTML = currentItem.txt;
+
+            const hintElement = document.getElementById('console-hint');
+            if (hintElement) {
+                hintElement.innerText = (gameState.currentTier === 1) ? "Level 1: Basic Kitchen Counters" : 
+                                        (gameState.currentTier === 2) ? "Level 2: Column Borrowing" : 
+                                                                        "Level 3: Story Problem Sheets";
+            }
+            if (inputElement) inputElement.focus();
+        }
+
+        function verifyConsoleCode() {
+            if (gameState.transitionLock) return;
+            
+            const inputElement = document.getElementById('stone-answer');
+            if (!inputElement) return;
+            
+            const userAns = inputElement.value.trim();
+            if (userAns === "") return;
+
+            const solution = levelsData[gameState.currentTier][gameState.arrayIndex].ans;
+            const submitBtn = document.getElementById('submit-btn');
+            const status = document.getElementById('status-log-txt');
+
+            if (userAns === solution) {
+                gameState.transitionLock = true;
+                inputElement.disabled = true;
+                if (submitBtn) submitBtn.disabled = true;
+                
+                inputElement.className = "stone-input correct";
+                if (status) {
+                    status.innerText = "Perfectly Baked! Delicious! ✨🧁";
+                    status.style.color = "#2E7D32";
+                }
+                
+                playAudioFeedback('correct');
+                const wallDoor = document.getElementById('vault-door');
+                if (wallDoor) wallDoor.classList.add('open');
+                
+                gameState.collectedRelics++;
+                const scoreDisplay = document.getElementById('hud-score');
+                if (scoreDisplay) scoreDisplay.innerText = gameState.collectedRelics;
+
+                setTimeout(proceedToNextTask, 2000);
+            } else {
+                gameState.attemptsUsed++;
+                playAudioFeedback('wrong');
+                
+                if (gameState.attemptsUsed === 1) {
+                    inputElement.className = "stone-input wrong";
+                    if (status) {
+                        status.innerText = "Oops, wrong count! Check your math again! ☕";
+                        status.style.color = "var(--berry-red)";
+                    }
+                    
+                    setTimeout(() => {
+                        inputElement.className = "stone-input";
+                        inputElement.value = "";
+                        inputElement.focus();
+                    }, 1200);
+                } else {
+                    gameState.transitionLock = true;
+                    inputElement.disabled = true;
+                    if (submitBtn) submitBtn.disabled = true;
+                    
+                    inputElement.className = "stone-input wrong";
+                    if (status) {
+                        status.innerText = "Order burnt! Correct answer was: " + solution;
+                        status.style.color = "var(--berry-red)";
+                    }
+
+                    setTimeout(proceedToNextTask, 2500);
+                }
+            }
+        }
+
+        function proceedToNextTask() {
+            gameState.arrayIndex++;
+            if (gameState.arrayIndex < levelsData[gameState.currentTier].length) {
+                loadPuzzleCycle();
+            } else {
+                advanceTierGate();
+            }
+        }
+
+        function advanceTierGate() {
+            if (gameState.currentTier === 1) {
+                switchScreen('transition-card');
+            } else if (gameState.currentTier === 2) {
+                switchScreen('transition-card-two');
+            } else {
+                concludeAdventure();
+            }
+        }
+
+        function concludeAdventure() {
+            const progressBar = document.getElementById('game-progress');
+            if (progressBar) progressBar.style.width = "100%";
+            switchScreen('victory-card');
+            
+            const statsDisplay = document.getElementById('victory-stats');
+            if (statsDisplay) statsDisplay.innerText = `Score Balanced: ${gameState.collectedRelics} / ${gameState.totalCount}`;
+        }
+
+        function resetAdventureSystem() {
+            switchScreen('intro-card');
+        }
+
+        // Fixed splash fade-out block execution safely handles visibility layer changes
+        window.addEventListener('DOMContentLoaded', () => {
+            // Set first home view active behind the splash
+            switchScreen('intro-card');
+            
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    // Fully clear layer out of document workflow
+                    setTimeout(() => {
+                        splash.style.display = 'none';
+                    }, 500);
+                }
+            }, 5000); 
+        });
+    </script>
+</body>
+</html>
