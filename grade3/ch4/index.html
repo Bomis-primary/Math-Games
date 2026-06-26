@@ -40,7 +40,7 @@
             padding: 10px;
         }
 
-        /* --- IMMUNE WHITE SPLASH SCREEN --- */
+        /* --- SOLID WHITE SPLASH SCREEN --- */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -92,7 +92,7 @@
             text-align: center;
             z-index: 10;
             position: relative;
-            display: none; /* Controlled explicitly via JS now */
+            display: none;
         }
 
         .avatar-view {
@@ -204,7 +204,7 @@
             transition: width 0.3s ease;
         }
 
-        /* --- FLUID ACTION SECTOR --- */
+        /* --- FLUID ACTION SECTOR (DYNAMIC THEMING) --- */
         #space-arena {
             width: 100%;
             height: 380px;
@@ -214,6 +214,21 @@
             position: relative;
             overflow: hidden;
             box-shadow: inset 0 0 30px rgba(0,0,0,0.9);
+            transition: background 1s ease, border-color 0.5s ease;
+        }
+
+        /* Visual shifts across game levels */
+        #space-arena.level-1-theme {
+            background: radial-gradient(circle at center, #0B162E 0%, #040814 100%);
+            border-color: #1F3D7A;
+        }
+        #space-arena.level-2-theme {
+            background: radial-gradient(circle at center, #270F38 0%, #0E0414 100%);
+            border-color: #63228A;
+        }
+        #space-arena.level-3-theme {
+            background: radial-gradient(circle at center, #3B0D1B 0%, #170308 100%);
+            border-color: #8C1C3A;
         }
 
         .star {
@@ -331,8 +346,8 @@
             animation: shieldFlash 0.4s ease-out;
         }
         @keyframes shieldFlash {
-            0%, 100% { border-color: #1C263B; box-shadow: none; }
-            50% { border-color: var(--neon-pink); box-shadow: inset 0 0 30px rgba(255,0,127,0.5); }
+            0%, 100% { box-shadow: none; }
+            50% { box-shadow: inset 0 0 30px rgba(255,0,127,0.5); }
         }
 
         /* Dust Burst Exploding Particles */
@@ -394,7 +409,7 @@
 
     <div id="game-container">
         <div class="hud-bar">
-            <span>CLUSTER: <span id="hud-index" style="color: var(--neon-cyan);">1 / 9</span></span>
+            <span>CLUSTER: <span id="hud-index" style="color: var(--neon-cyan);">1 / 15</span></span>
             <div id="hud-shields-tray" class="hud-shields"></div>
             <span>ENERGY SCORE: <span id="hud-score" style="color: var(--neon-green);">0</span></span>
         </div>
@@ -428,7 +443,7 @@
     <audio id="snd-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
     <script>
-        // CRITICAL UNCONDITIONAL BYPASS TIMER (Fires even if script throws structural errors later)
+        // STRICT 5-SECOND IMMUNITY LOADING TIME
         setTimeout(() => {
             const splash = document.getElementById('splash-screen');
             if (splash) {
@@ -439,26 +454,39 @@
                     switchScreen('intro-card');
                 }, 500);
             }
-        }, 3000);
+        }, 5000); // 5000ms = 5 Seconds
 
-        // CURRICULUM MATH ARRAY MATRIX (Derived directly from chapter learning outcomes)
-        const levelsData = {
+        // COMPREHENSIVE MATH ITEM POOLS BY TARGET SECTOR OUTCOMES
+        const rawQuestionPools = {
             1: [
                 { targetValue: 120, formula: "30 &times; 4", options: ["30 &times; 4", "20 &times; 5", "40 &times; 2"] },
                 { targetValue: 300, formula: "50 &times; 6", options: ["50 &times; 6", "40 &times; 5", "30 &times; 9"] },
                 { targetValue: 8000, formula: "2000 &times; 4", options: ["2000 &times; 4", "3000 &times; 2", "1000 &times; 7"] },
-                { targetValue: 0, formula: "80 &times; 0", options: ["80 &times; 0", "10 &times; 1", "50 &times; 2"] }
+                { targetValue: 0, formula: "80 &times; 0", options: ["80 &times; 0", "10 &times; 1", "50 &times; 2"] },
+                { targetValue: 240, formula: "60 &times; 4", options: ["60 &times; 4", "50 &times; 5", "70 &times; 3"] },
+                { targetValue: 450, formula: "90 &times; 5", options: ["90 &times; 5", "80 &times; 5", "90 &times; 4"] },
+                { targetValue: 700, formula: "70 &times; 10", options: ["70 &times; 10", "60 &times; 10", "70 &times; 8"] }
             ],
             2: [
                 { targetValue: 284, formula: "142 &times; 2", options: ["142 &times; 2", "121 &times; 2", "135 &times; 2"] },
                 { targetValue: 872, formula: "218 &times; 4", options: ["218 &times; 4", "210 &times; 4", "205 &times; 4"] },
-                { targetValue: 3609, formula: "1203 &times; 3", options: ["1203 &times; 3", "1103 &times; 3", "1300 &times; 3"] }
+                { targetValue: 3609, formula: "1203 &times; 3", options: ["1203 &times; 3", "1103 &times; 3", "1300 &times; 3"] },
+                { targetValue: 484, formula: "242 &times; 2", options: ["242 &times; 2", "220 &times; 2", "212 &times; 3"] },
+                { targetValue: 639, formula: "213 &times; 3", options: ["213 &times; 3", "203 &times; 3", "312 &times; 2"] },
+                { targetValue: 848, formula: "424 &times; 2", options: ["424 &times; 2", "414 &times; 2", "212 &times; 3"] }
             ],
             3: [
                 { targetValue: 420, formula: "35 &times; 12", options: ["35 &times; 12", "30 &times; 12", "25 &times; 15"] },
-                { targetValue: 165, formula: "15 &times; 11", options: ["15 &times; 11", "12 &times; 12", "20 &times; 10"] }
+                { targetValue: 165, formula: "15 &times; 11", options: ["15 &times; 11", "12 &times; 12", "20 &times; 10"] },
+                { targetValue: 240, formula: "20 &times; 12", options: ["20 &times; 12", "15 &times; 12", "18 &times; 10"] },
+                { targetValue: 390, formula: "30 &times; 13", options: ["30 &times; 13", "25 &times; 14", "35 &times; 10"] },
+                { targetValue: 180, formula: "15 &times; 12", options: ["15 &times; 12", "12 &times; 12", "14 &times; 11"] },
+                { targetValue: 400, formula: "25 &times; 16", options: ["25 &times; 16", "20 &times; 18", "30 &times; 12"] }
             ]
         };
+
+        // Active generated level questions container
+        let levelsData = { 1: [], 2: [], 3: [] };
 
         const gameState = {
             currentTier: 1,
@@ -467,9 +495,29 @@
             streak: 0,
             lives: 3,
             transitionLock: false,
-            totalCount: Object.values(levelsData).reduce((sum, lvl) => sum + lvl.length, 0),
+            totalCount: 15, // 5 questions * 3 levels
             asteroidInterval: null
         };
+
+        // Helper function to shuffle any array cleanly
+        function shuffleArray(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        // Build a fresh randomized session dataset every playthrough
+        function generateRandomizedSessionData() {
+            levelsData = { 1: [], 2: [], 3: [] };
+            for (let lvl in rawQuestionPools) {
+                let poolCopy = [...rawQuestionPools[lvl]];
+                shuffleArray(poolCopy);
+                // Extract exactly 5 unique randomized questions per level
+                levelsData[lvl] = poolCopy.slice(0, 5);
+            }
+        }
 
         function buildStarfield() {
             try {
@@ -540,7 +588,7 @@
             try {
                 const track = document.getElementById(mode === 'correct' ? 'snd-correct' : 'snd-wrong');
                 if (track) {
-                    track.volume = 0.25;
+                    track.volume = 0.35;
                     track.currentTime = 0;
                     track.play().catch(() => {});
                 }
@@ -555,7 +603,15 @@
             });
         }
 
+        function updateVisualTheme(level) {
+            const arena = document.getElementById('space-arena');
+            if(!arena) return;
+            arena.className = ''; // Wipe existing class vectors
+            arena.classList.add(`level-${level}-theme`);
+        }
+
         function startAdventure() {
+            generateRandomizedSessionData();
             gameState.currentTier = 1;
             gameState.arrayIndex = 0;
             gameState.score = 0;
@@ -572,6 +628,7 @@
             gameState.arrayIndex = 0;
             gameState.lives = 3; 
             renderShieldTray();
+            updateVisualTheme(tierNumber);
             switchScreen('game-container');
             loadAsteroidWave();
         }
@@ -588,10 +645,8 @@
             const logTxt = document.getElementById('status-log-txt');
             if(logTxt) logTxt.innerText = "";
 
-            let absoluteIndex = gameState.arrayIndex;
-            for (let i = 1; i < gameState.currentTier; i++) {
-                absoluteIndex += levelsData[i].length;
-            }
+            // Absolute linear progression offset tracking
+            let absoluteIndex = gameState.arrayIndex + ((gameState.currentTier - 1) * 5);
             
             const indexHUD = document.getElementById('hud-index');
             if(indexHUD) indexHUD.innerText = `${absoluteIndex + 1} / ${gameState.totalCount}`;
@@ -608,8 +663,10 @@
 
             const arena = document.getElementById('space-arena');
             if(!arena) return;
+            
+            // SHUFFLE BOTH QUESTIONS AND INDIVIDUAL ANSWER OPTIONS DYNAMICALLY
             const choices = [...currentData.options];
-            choices.sort(() => Math.random() - 0.5);
+            shuffleArray(choices);
 
             choices.forEach((expr, index) => {
                 const ast = document.createElement('div');
@@ -631,14 +688,14 @@
                 }, index * 200);
             });
 
-            let currentDrift = 40;
+            // Acceleration mechanics scaling gently by tier numbers
+            let speedIncrement = 0.4 + (gameState.currentTier * 0.15);
             gameState.asteroidInterval = setInterval(() => {
                 if (gameState.transitionLock) return;
-                currentDrift += 1.5;
                 const activeRocks = document.querySelectorAll('.asteroid-sprite');
                 activeRocks.forEach(rock => {
                     const parsedTop = parseFloat(rock.style.top);
-                    rock.style.top = `${parsedTop + 0.5}px`;
+                    rock.style.top = `${parsedTop + speedIncrement}px`;
 
                     if (parsedTop > 270) {
                         triggerImpactBreach();
@@ -798,7 +855,7 @@
             switchScreen('intro-card');
         }
 
-        // Initialize static components safely
+        // Initialize starfield layouts dynamically
         buildStarfield();
         const logo = document.getElementById('logo-img');
         if(logo) {
