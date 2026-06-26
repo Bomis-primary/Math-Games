@@ -139,7 +139,6 @@
             100% { transform: scale(1.15); filter: drop-shadow(0 0 10px #FBC02D); }
         }
         
-        /* Updated to tilt graceful left direction */
         @keyframes flowerTiltLeft {
             0% { transform: rotate(0deg) scale(1); }
             30% { transform: rotate(-15deg) scale(1.1); }
@@ -198,7 +197,6 @@
     </div>
 
     <div id="game-container">
-        
         <div id="intro-card">
             <div style="font-size: 4rem; margin-bottom: 10px;">🌱🌧️🌻</div>
             <h2 style="color: #2E7D32; font-size: 2.3rem; margin-bottom: 12px;">The Magic Garden Addition!</h2>
@@ -237,7 +235,6 @@
             <h2 id="final-stats" style="color: #E65100; margin-bottom: 20px;"></h2>
             <button class="start-btn" onclick="resetSimulator()">Tend Garden Again 🔄</button>
         </div>
-
     </div>
 
     <audio id="snd-correct" src="assets/correct.mp3" preload="none"></audio>
@@ -293,7 +290,6 @@
             } catch(e){}
         }
 
-        // Addition Curriculum Mapping
         var phase1Pool = [
             { question: "Q1. What is 4321 + 0?", answers: ["0", "4321", "4322", "1"], correct: "4321" },
             { question: "Q2. Find the sum: 5132 + 1", answers: ["5133", "5132", "5131", "5142"], correct: "5133" },
@@ -319,20 +315,18 @@
         var gameScore = 0;
         var activeBudTarget = null;
 
-        // Visual growth stages images definitions
         var plantGrowthAssets = [
-            "assets/plant-seed.png",     // Q1
-            "assets/plant-sprout1.png",  // Q2
-            "assets/plant-sprout2.png",  // Q3
-            "assets/plant-leaf1.png",    // Q4
-            "assets/plant-leaf2.png",    // Q5
-            "assets/plant-stem1.png",    // Q6
-            "assets/plant-stem2.png",    // Q7
-            "assets/plant-mature.png",   // Q8
-            "assets/plant-bush.png"      // Q9
+            "assets/plant-seed.png",
+            "assets/plant-sprout1.png",
+            "assets/plant-sprout2.png",
+            "assets/plant-leaf1.png",
+            "assets/plant-leaf2.png",
+            "assets/plant-stem1.png",
+            "assets/plant-stem2.png",
+            "assets/plant-mature.png",
+            "assets/plant-bush.png"
         ];
 
-        // Nodes for buds positions on Level 2 branch setup
         var branchBuds = [
             { id: 0, top: "60px", left: "60px", solved: false },
             { id: 1, top: "110px", left: "190px", solved: false },
@@ -423,5 +417,149 @@
             stage.style.background = "linear-gradient(to bottom, #4A148C 60%, #311B92 60%)";
             document.getElementById('garden-plant').style.display = "none";
 
-            document.getElementById('label-phase').innerText = "Level 2: Flower Bloom";
-            document.getElementById('label-phase').style
+            var phaseBadge = document.getElementById('label-phase');
+            phaseBadge.innerText = "Level 2: Flower Bloom";
+            phaseBadge.style.background = "#E1BEE7";
+            phaseBadge.style.color = "#4A148C";
+
+            branchBuds.forEach(function(bud) {
+                bud.solved = false;
+                var budEl = document.createElement('div');
+                budEl.className = 'bud-interactive';
+                budEl.id = 'bud-' + bud.id;
+                budEl.style.top = bud.top;
+                budEl.style.left = bud.left;
+                
+                var img = document.createElement('img');
+                img.src = 'assets/flower-bud.png';
+                img.onerror = function() { this.src = 'https://placehold.co/50?text=🌸'; };
+                budEl.appendChild(img);
+                
+                budEl.onclick = function() { activateBudChallenge(bud); };
+                stage.appendChild(budEl);
+            });
+
+            selectNextBud();
+        }
+
+        function selectNextBud() {
+            var totalQ = phase1Pool.length + phase2Pool.length;
+            var unsolved = branchBuds.filter(function(b) { return !b.solved; });
+            
+            if (unsolved.length === 0) {
+                endGameSession();
+                return;
+            }
+
+            var currentBudIndex = phase2Pool.length - unsolved.length;
+            var activeIdx = phase1Pool.length + currentBudIndex;
+            document.getElementById('label-task').innerText = "Challenge: " + (activeIdx + 1) + " / " + totalQ;
+            document.getElementById('progress-bar').style.width = ((activeIdx / totalQ) * 100) + "%";
+
+            document.querySelectorAll('.bud-interactive').forEach(function(el) { el.classList.remove('pulse'); });
+            
+            activeBudTarget = unsolved[0];
+            var activeEl = document.getElementById('bud-' + activeBudTarget.id);
+            if (activeEl) activeEl.classList.add('pulse');
+
+            executeLevel2Challenge(currentBudIndex);
+        }
+
+        function executeLevel2Challenge(index) {
+            var data = phase2Pool[index];
+            document.getElementById('field-question').innerText = data.question;
+            
+            var optionsBox = document.getElementById('field-options');
+            optionsBox.innerHTML = '';
+
+            data.answers.forEach(function(ans) {
+                var btn = document.createElement('button');
+                btn.className = 'box-btn';
+                btn.innerText = ans;
+                btn.onclick = function() { checkLevel2Answer(btn, ans, data.correct, index); };
+                optionsBox.appendChild(btn);
+            });
+        }
+
+        function checkLevel2Answer(btnElement, chosen, correct, index) {
+            document.querySelectorAll('.box-btn').forEach(function(b) { b.disabled = true; });
+
+            if (chosen === correct) {
+                btnElement.classList.add('correct');
+                triggerAudio('correct');
+                createRainShower();
+                gameScore++;
+                document.getElementById('label-score').innerText = gameScore;
+                deployConfettiEngine();
+
+                activeBudTarget.solved = true;
+                var activeEl = document.getElementById('bud-' + activeBudTarget.id);
+                if (activeEl) {
+                    activeEl.classList.remove('pulse');
+                    activeEl.classList.add('saved');
+                    var img = activeEl.querySelector('img');
+                    if (img) {
+                        img.src = 'assets/flower-bloom.png';
+                        img.onerror = function() { this.src = 'https://placehold.co/50?text=🌻'; };
+                    }
+                }
+            } else {
+                btnElement.classList.add('wrong');
+                triggerAudio('wrong');
+                document.querySelectorAll('.box-btn').forEach(function(b) {
+                    if (b.innerText === correct) b.classList.add('correct');
+                });
+            }
+
+            setTimeout(function() {
+                selectNextBud();
+            }, 2200);
+        }
+
+        function activateBudChallenge(bud) {
+            if (bud.solved || (activeBudTarget && activeBudTarget.id !== bud.id)) return;
+        }
+
+        function endGameSession() {
+            var totalQ = phase1Pool.length + phase2Pool.length;
+            document.getElementById('progress-bar').style.width = "100%";
+            document.getElementById('active-playfield').style.display = 'none';
+            document.getElementById('victory-card').style.display = 'block';
+            document.getElementById('final-stats').innerText = "Final Score: " + gameScore + " / " + totalQ;
+        }
+
+        function resetSimulator() {
+            gameScore = 0;
+            document.getElementById('label-score').innerText = "0";
+            document.getElementById('victory-card').style.display = 'none';
+            document.getElementById('intro-card').style.display = 'block';
+            
+            var stage = document.getElementById('eco-stage');
+            stage.style.background = "linear-gradient(to bottom, #B3E5FC 60%, #81C784 60%)";
+
+            var phaseBadge = document.getElementById('label-phase');
+            phaseBadge.innerText = "Level 1: Sprout Growth";
+            phaseBadge.style.background = "#C8E6C9";
+            phaseBadge.style.color = "#2E7D32";
+        }
+
+        // FIX FOR SPLASH SCREEN STUCKNESS
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                var splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(function() { splash.remove(); }, 500);
+                }
+                var game = document.getElementById('game-container');
+                if (game) {
+                    game.style.display = 'block';
+                    // Force layout reflow before triggering opacity transition
+                    game.offsetHeight; 
+                    game.style.opacity = '1';
+                }
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
