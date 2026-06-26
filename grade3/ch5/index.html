@@ -12,18 +12,18 @@
     <style>
         /* --- DESIGN SYSTEM VARIABLES --- */
         :root {
-            --bg-gradient: radial-gradient(circle at 0% 0%, #15162c 0%, #080914 100%);
+            --bg-gradient: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #0f172a 100%);
             --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.07);
+            --glass-border: rgba(255, 255, 255, 0.08);
             --glass-accent-border: rgba(99, 102, 241, 0.4);
             
             --primary: #6366f1;       /* Electric Indigo */
             --primary-glow: rgba(99, 102, 241, 0.4);
-            --secondary: #a855f7;     /* Neon Violet */
-            --accent: #f43f5e;        /* Cyber Rose */
+            --secondary: #a855f7;     /* Violet */
+            --accent: #34d399;        /* Mint Green for Success */
             
             --text-main: #f8fafc;
-            --text-muted: #64748b;
+            --text-muted: #94a3b8;
             
             --font-ui: 'Plus Jakarta Sans', sans-serif;
             --font-title: 'Quicksand', sans-serif;
@@ -50,24 +50,11 @@
             overflow: hidden;
         }
 
-        /* --- PREMIUM AMBIENT BACKGROUND --- */
-        .ambient-glow {
-            position: absolute;
-            width: 800px;
-            height: 800px;
-            background: radial-gradient(circle, rgba(168, 85, 247, 0.12) 0%, rgba(99, 102, 241, 0.03) 60%, transparent 100%);
-            top: -20%;
-            right: -10%;
-            z-index: 0;
-            pointer-events: none;
-            filter: blur(100px);
-        }
-
         /* --- SPLASH SCREEN --- */
         #splash-screen {
             position: fixed;
             inset: 0;
-            background: #080914;
+            background: #0f172a;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -76,16 +63,31 @@
             transition: opacity 0.5s ease;
         }
 
+        .splash-logo-container {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
         .splash-logo {
-            max-width: 160px;
+            max-width: 180px;
             height: auto;
-            margin-bottom: 2.5rem;
-            filter: drop-shadow(0 0 30px var(--primary-glow));
+            filter: drop-shadow(0 0 20px var(--primary-glow));
+        }
+
+        /* Fallback stylish text if image doesn't exist */
+        .splash-fallback-text {
+            font-family: var(--font-title);
+            font-size: 2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #fff 0%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .loader {
-            width: 40px;
-            height: 40px;
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             position: relative;
             animation: rotate 1s linear infinite
@@ -96,8 +98,8 @@
             position: absolute;
             inset: 0px;
             border-radius: 50%;
-            border: 3px solid var(--glass-border);
-            animation: prixClipFix 2s linear infinite;
+            border: 4px solid var(--glass-border);
+            animation: prixClipFix 2s linear infinite ;
         }
         @keyframes rotate { 100% {transform: rotate(360deg)} }
         @keyframes prixClipFix {
@@ -108,272 +110,369 @@
             100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
         }
 
-        /* --- MAIN WORKBENCH CONTAINER --- */
+        /* --- MAIN WORKBENCH PACKAGING --- */
         .game-wrapper {
             position: relative;
             z-index: 1;
-            width: 94vw;
-            max-width: 1240px;
+            width: 90vw;
+            max-width: 1100px;
             background: var(--glass-bg);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
             border: 1px solid var(--glass-border);
             border-radius: 28px;
-            padding: 2rem;
-            box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.6),
-                        inset 0 1px 2px rgba(255, 255, 255, 0.05);
-            display: grid;
-            grid-template-rows: auto 1fr;
-            gap: 1.5rem;
+            padding: 2.5rem;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
         }
 
-        /* --- HEADER & DYNAMIC PROGRESS/METRIC --- */
+        /* --- HEADER & GLOWING PROGRESS --- */
         .game-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--glass-border);
-            padding-bottom: 1.25rem;
         }
 
         .game-title {
             font-family: var(--font-title);
-            font-size: 1.6rem;
+            font-size: 1.75rem;
             font-weight: 700;
-            background: linear-gradient(135deg, #ffffff 30%, #a855f7 100%);
+            background: linear-gradient(135deg, #fff 30%, var(--text-muted) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        .art-counter-container {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-weight: 600;
-            letter-spacing: 0.05em;
-        }
-
-        .glow-dot {
-            width: 8px;
+        .progress-container {
+            width: 240px;
+            background: rgba(255, 255, 255, 0.04);
             height: 8px;
-            background: var(--accent);
-            border-radius: 50%;
-            box-shadow: 0 0 10px var(--accent);
-            animation: pulse-dot 2s infinite alternate;
+            border-radius: 99px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
         }
 
-        @keyframes pulse-dot {
-            0% { transform: scale(0.9); opacity: 0.6; }
-            100% { transform: scale(1.2); opacity: 1; }
+        .progress-bar {
+            height: 100%;
+            width: 0%; 
+            background: linear-gradient(90deg, var(--secondary) 0%, var(--primary) 100%);
+            box-shadow: 0 0 14px var(--primary-glow);
+            border-radius: 99px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* --- STUDIO WORKSPACE LAYOUT --- */
-        .workbench-layout {
-            display: grid;
-            grid-template-columns: 1fr 340px;
-            gap: 2rem;
-        }
-
-        /* --- DIGITAL FRAME CANVAS VIEWPORT --- */
-        .viewport-container {
-            background: rgba(5, 6, 14, 0.7);
+        /* --- DIGITAL ART WORKSPACE --- */
+        .canvas-container {
+            position: relative;
+            background: rgba(10, 11, 22, 0.4);
             border: 1px solid var(--glass-border);
             border-radius: 20px;
-            padding: 1rem;
+            padding: 1.5rem;
             display: flex;
             justify-content: center;
             align-items: center;
-            position: relative;
-            box-shadow: inset 0 4px 30px rgba(0,0,0,0.7);
-            overflow: hidden;
+            box-shadow: inset 0 4px 30px rgba(0, 0, 0, 0.5);
             transition: var(--transition-smooth);
         }
 
-        /* Subtle Alignment Coordinates Layer */
-        .viewport-container::before {
-            content: '';
-            position: absolute;
-            inset: 20px;
-            border: 1px dashed rgba(255, 255, 255, 0.02);
-            pointer-events: none;
-            border-radius: 14px;
+        /* Active ethereal workspace pulse when dragging an architectural element */
+        .canvas-container.target-active {
+            border-color: var(--glass-accent-border);
+            box-shadow: 0 0 40px rgba(99, 102, 241, 0.2), inset 0 4px 30px rgba(0, 0, 0, 0.5);
         }
 
         canvas {
-            background: transparent;
             display: block;
             max-width: 100%;
             height: auto;
             cursor: crosshair;
-            z-index: 2;
         }
 
-        /* Soft ethereal drop state */
-        .viewport-container.target-active {
-            border-color: var(--glass-accent-border);
-            box-shadow: 0 0 40px rgba(99, 102, 241, 0.15), 
-                        inset 0 4px 30px rgba(0,0,0,0.7);
-        }
-
-        /* --- CONTROL & GENERATIVE ASSET PANEL --- */
-        .control-panel {
+        /* --- DRAGGABLE LINE TOOLBAR (BELOW CANVAS) --- */
+        .toolbar-section {
             display: flex;
             flex-direction: column;
-            gap: 1.5rem;
+            gap: 1rem;
         }
 
-        .panel-section {
-            background: rgba(255, 255, 255, 0.01);
-            border: 1px solid var(--glass-border);
-            border-radius: 18px;
-            padding: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-        }
-
-        .section-title {
+        .toolbar-title {
             font-size: 0.8rem;
             text-transform: uppercase;
             letter-spacing: 0.08em;
             color: var(--text-muted);
             font-weight: 700;
-            margin-bottom: 0.25rem;
         }
 
-        /* --- INTERACTIVE PRIMITIVE PILLS --- */
-        .shape-pill {
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--glass-border);
-            padding: 0.9rem 1.25rem;
-            border-radius: 14px;
-            cursor: pointer;
+        .assets-shelf {
             display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 1.25rem;
+            border-radius: 16px;
+            min-height: 80px;
             align-items: center;
-            justify-content: space-between;
+        }
+
+        /* Premium FinTech-Pop Element Pills */
+        .line-pill {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--glass-border);
+            padding: 0.75rem 1.2rem;
+            border-radius: 100px;
+            cursor: grab;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
+            color: var(--text-main);
             transition: var(--transition-smooth);
             user-select: none;
-            box-shadow: inset 0 1px 0px rgba(255,255,255,0.03);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
         }
 
-        .shape-pill:hover {
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(255, 255, 255, 0.18);
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), 
-                        inset 0 1px 0px rgba(255,255,255,0.08);
+        .line-pill:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px) scale(1.03);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
         }
 
-        .shape-pill:active {
+        .line-pill:active {
+            cursor: grabbing;
             transform: translateY(0) scale(0.97);
             background: rgba(99, 102, 241, 0.15);
             border-color: var(--primary);
         }
 
-        /* Colorful Micro Indicators for Shapes */
-        .shape-pill::after {
-            content: '＋';
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            transition: var(--transition-smooth);
-        }
-        .shape-pill:hover::after {
-            color: var(--primary);
-            transform: rotate(90deg);
+        /* Visual Geometric Accent Inside Pill */
+        .line-pill::before {
+            content: '';
+            width: 14px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            border-radius: 99px;
+            display: inline-block;
         }
 
-        /* --- ACTION WORKBENCH BUTTONS --- */
-        .action-btn {
-            background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%);
-            border: 1px solid var(--glass-border);
-            color: var(--text-main);
-            padding: 0.85rem;
-            border-radius: 12px;
-            font-weight: 600;
-            font-family: var(--font-ui);
-            cursor: pointer;
-            transition: var(--transition-smooth);
-        }
-
-        .action-btn:hover {
-            background: var(--text-main);
-            color: #080914;
-            border-color: var(--text-main);
-            box-shadow: 0 8px 20px rgba(255, 255, 255, 0.1);
-        }
-
-        .action-btn.primary-action {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            border: none;
-            box-shadow: 0 4px 15px var(--primary-glow);
-        }
-
-        .action-btn.primary-action:hover {
-            color: white;
-            filter: brightness(1.15);
-            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.6);
-        }
-
-        @media (max-width: 950px) {
-            .workbench-layout { grid-template-columns: 1fr; }
-            body { overflow-y: auto; padding: 2rem 0; }
+        /* Success State Triggered on Snap Match */
+        .line-pill.placed {
+            opacity: 0.3;
+            pointer-events: none;
+            transform: scale(0.9);
         }
     </style>
 </head>
 <body>
 
-    <div class="ambient-glow"></div>
-
     <div id="splash-screen">
-        <img src="assets/logo.png" alt="Geometry Game Logo" class="splash-logo">
+        <div class="splash-logo-container">
+            <img src="assets/logo.png" alt="" class="splash-logo" onerror="this.style.display='none'; document.getElementById('fallback-ui').style.display='block';">
+            <div id="fallback-ui" class="splash-fallback-text" style="display:none;">GEOMETRY ART STUDIO</div>
+        </div>
         <div class="loader"></div>
     </div>
 
     <div class="game-wrapper">
         
         <header class="game-header">
-            <h1 class="game-title">Geometry Art Studio</h1>
-            <div class="art-counter-container">
-                <div class="glow-dot"></div>
-                <span id="shape-count">SHAPES PLACED: 0</span>
+            <h1 class="game-title" id="studio-title">Level 1: Diamond Constellation Art</h1>
+            <div class="progress-container">
+                <div class="progress-bar" id="studio-progress"></div>
             </div>
         </header>
 
-        <main class="workbench-layout">
-            
-            <div class="viewport-container" id="viewport">
-                <canvas id="artCanvas" width="650" height="450"></canvas>
-            </div>
+        <div class="canvas-container" id="canvas-viewport">
+            <canvas id="studioCanvas" width="800" height="380"></canvas>
+        </div>
 
-            <aside class="control-panel">
-                
-                <div class="panel-section">
-                    <h2 class="section-title">Geometric Primitives</h2>
-                    <div class="shape-pill" data-shape="circle">Circle</div>
-                    <div class="shape-pill" data-shape="triangle">Triangle</div>
-                    <div class="shape-pill" data-shape="square">Square</div>
-                    <div class="shape-pill" data-shape="polygon">Pentagon Pattern</div>
-                    <div class="shape-pill" data-shape="line">Symmetric Axis Line</div>
+        <section class="toolbar-section">
+            <h2 class="toolbar-title">Geometric Lines Container (Drag lines up to workspace)</h2>
+            <div class="assets-shelf" id="lines-shelf">
                 </div>
+        </section>
 
-                <div class="panel-section">
-                    <h2 class="section-title">Studio Actions</h2>
-                    <button class="action-btn primary-action" id="mutate-btn">Mutate Colors & Scale</button>
-                    <button class="action-btn" id="clear-btn">Reset Workspace Canvas</button>
-                </div>
-
-            </aside>
-
-        </main>
     </div>
 
     <script>
-        // System Sound Assets Mapping
-        const soundSuccess = new Audio('assets/claps.mp3');
-        const soundFail = new Audio('assets/wrong.mp3');
+        // Bulletproof Audio Handling (Tries loading file, falls back to silent browser buffer if missing)
+        function createSafeAudio(src) {
+            const audio = new Audio(src);
+            audio.addEventListener('error', () => {
+                // Inline base64 silent audio node generation if asset doesn't exist locally
+                audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==';
+            });
+            return audio;
+        }
 
-        // Abstract Art Element State Storage Matrix
+        const soundClaps = createSafeAudio('assets/claps.mp3');
+        const soundWrong = createSafeAudio('assets/wrong.mp3');
+
+        // Geometrical Coordinate Blueprint System for the Canvas Artwork
+        const artworkLevel = {
+            title: "Level 1: Completing the Diamond Constellation",
+            targets: [
+                { id: "line-1", x1: 400, y1: 60,  x2: 520, y2: 180, label: "Oblique Vector A", completed: false },
+                { id: "line-2", x1: 520, y1: 180, x2: 400, y2: 320, label: "Oblique Vector B", completed: false },
+                { id: "line-3", x1: 400, y1: 320, x2: 280, y2: 180, label: "Oblique Vector C", completed: false },
+                { id: "line-4", x1: 280, y1: 180, x2: 400, y2: 60,  label: "Oblique Vector D", completed: false }
+            ],
+            staticLines: [
+                { x1: 280, y1: 180, x2: 520, y2: 180 }, // Horizon cross-axis
+                { x1: 400, y1: 60,  x2: 400, y2: 320 }  // Vertical cross-axis
+            ]
+        };
+
+        let draggedDataId = null;
+        const canvas = document.getElementById('studioCanvas');
+        const ctx = canvas.getContext('2d');
+        const viewport = document.getElementById('canvas-viewport');
+
+        // Bulletproof window event sequence to handle splash screen fade out after 5 seconds
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => {
+                        splash.remove();
+                        initStudioLevel();
+                    }, 500);
+                }
+            }, 5000); // 5-second logo timeout preserved
+        });
+
+        function initStudioLevel() {
+            document.getElementById('studio-title').innerText = artworkLevel.title;
+            renderPillShelf();
+            drawCanvas();
+            setupDragAndDrop();
+        }
+
+        // Render line items as draggable pill containers beneath workspace
+        function renderPillShelf() {
+            const shelf = document.getElementById('lines-shelf');
+            shelf.innerHTML = '';
+
+            artworkLevel.targets.forEach(line => {
+                const pill = document.createElement('div');
+                pill.className = 'line-pill';
+                pill.innerText = line.label;
+                pill.setAttribute('draggable', 'true');
+                pill.setAttribute('data-id', line.id);
+                
+                if(line.completed) pill.classList.add('placed');
+
+                // Toggle ethereal glow when asset movement events occur
+                pill.addEventListener('dragstart', (e) => {
+                    draggedDataId = line.id;
+                    viewport.classList.add('target-active');
+                });
+
+                pill.addEventListener('dragend', () => {
+                    viewport.classList.remove('target-active');
+                });
+
+                shelf.appendChild(pill);
+            });
+
+            // Update Progress dynamically
+            const completedCount = artworkLevel.targets.filter(t => t.completed).length;
+            const progressPercent = (completedCount / artworkLevel.targets.length) * 100;
+            document.getElementById('studio-progress').style.width = `${progressPercent}%`;
+        }
+
+        function drawCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 1. Draw static structural lines (Core Base Geometry Art)
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+            ctx.lineWidth = 2;
+            artworkLevel.staticLines.forEach(line => {
+                ctx.beginPath();
+                ctx.moveTo(line.x1, line.y1);
+                ctx.lineTo(line.x2, line.y2);
+                ctx.stroke();
+            });
+
+            // 2. Draw Target Outlines (Sleek, transparent dashed guidelines for children to trace)
+            artworkLevel.targets.forEach(target => {
+                if (!target.completed) {
+                    ctx.strokeStyle = 'rgba(99, 102, 241, 0.25)';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([6, 6]);
+                    ctx.beginPath();
+                    ctx.moveTo(target.x1, target.y1);
+                    ctx.lineTo(target.x2, target.y2);
+                    ctx.stroke();
+                    ctx.setLineDash([]); // Reset line formatting
+                } else {
+                    // 3. Draw Completed Vectors with a high-fidelity neon electric glow
+                    ctx.strokeStyle = '#a855f7';
+                    ctx.lineWidth = 4;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = 'rgba(168, 85, 247, 0.6)';
+                    ctx.beginPath();
+                    ctx.moveTo(target.x1, target.y1);
+                    ctx.lineTo(target.x2, target.y2);
+                    ctx.stroke();
+                    ctx.shadowBlur = 0; // Reset shadow maps
+                }
+            });
+
+            // Decorative Geometric Node Dots on canvas
+            drawNodeDot(400, 60);
+            drawNodeDot(520, 180);
+            drawNodeDot(400, 320);
+            drawNodeDot(280, 180);
+        }
+
+        function drawNodeDot(x, y) {
+            ctx.fillStyle = '#6366f1';
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Set up Drag and Drop interaction layer logic over the viewport
+        function setupDragAndDrop() {
+            viewport.addEventListener('dragover', (e) => {
+                e.preventDefault(); // Required to enable drop event mapping trigger
+            });
+
+            viewport.addEventListener('drop', (e) => {
+                e.preventDefault();
+                viewport.classList.remove('target-active');
+
+                // Process coordinate alignment criteria match
+                const targetLine = artworkLevel.targets.find(t => t.id === draggedDataId);
+                
+                if (targetLine && !targetLine.completed) {
+                    targetLine.completed = true;
+                    soundClaps.play().catch(() => {/* catch browser autoplay block */});
+                    
+                    renderPillShelf();
+                    drawCanvas();
+                    checkArtCompletion();
+                } else {
+                    soundWrong.play().catch(() => {/* catch browser autoplay block */});
+                }
+            });
+        }
+
+        function checkArtCompletion() {
+            const allDone = artworkLevel.targets.every(t => t.completed);
+            if (allDone) {
+                setTimeout(() => {
+                    document.getElementById('studio-title').innerText = "Masterpiece Completed!";
+                    // Trigger custom burst flash inside canvas container matrix
+                    viewport.style.boxShadow = "0 0 50px rgba(52, 211, 153, 0.3)";
+                }, 500);
+            }
+        }
+    </script>
+</body>
+</html>
