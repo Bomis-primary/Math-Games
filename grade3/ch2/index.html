@@ -1,1 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade 3: Cosmic Sums - Space Adventure</title>
+    <style>
+        :root {
+            --space-bg: #0D1B2A;
+            --text-light: #E0E1DD;
+            --neon-blue: #00B4D8;
+            --neon-purple: #9D4EDD;
+            --neon-green: #38B000;
+            --neon-coral: #F72585;
+        }
 
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--space-bg);
+            background-image: radial-gradient(circle at center, #1B263B 0%, #0D1B2A 100%);
+            color: var(--text-light);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- STARRY BACKGROUND ANIMATION --- */
+        .star-field {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .star {
+            position: absolute;
+            background-color: #FFF;
+            border-radius: 50%;
+            animation: twinkle 2s infinite ease-in-out;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; }
+            50% { opacity: 1; }
+        }
+
+        /* --- SPLASH SCREEN --- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #FFFFFF;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out;
+        }
+        .splash-logo { max-width: 240px; height: auto; }
+
+        /* --- INTERACTIVE CARD SCENARIOS --- */
+        .story-card {
+            width: 95%;
+            max-width: 680px;
+            background: rgba(27, 38, 59, 0.9);
+            border: 4px solid var(--neon-blue);
+            box-shadow: 0 0 25px rgba(0, 180, 216, 0.4);
+            border-radius: 25px;
+            padding: 30px;
+            text-align: center;
+            z-index: 10;
+            position: relative;
+        }
+
+        .story-avatar {
+            font-size: 4.5rem;
+            margin-bottom: 15px;
+            animation: floatAstronaut 3s ease-in-out infinite alternate;
+            display: inline-block;
+        }
+        @keyframes floatAstronaut {
+            0% { transform: translateY(0px) rotate(-3deg); }
+            100% { transform: translateY(-12px) rotate(5deg); }
+        }
+
+        .story-title {
+            color: var(--neon-blue);
+            font-size: 2.2rem;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(0, 180, 216, 0.3);
+        }
+
+        .story-log {
+            font-size: 1.15rem;
+            line-height: 1.6;
+            background: rgba(13, 27, 42, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            border-left: 5px solid var(--neon-purple);
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, var(--neon-blue), #0077B6);
+            color: #FFF;
+            border: none;
+            padding: 14px 40px;
+            font-size: 1.4rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #03045E;
+            transition: transform 0.1s;
+        }
+        .nav-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 0 0 transparent;
+        }
+
+        /* --- MAIN COCKPIT PLAYFIELD --- */
+        #game-container {
+            width: 95%;
+            max-width: 760px;
+            background: rgba(20, 30, 50, 0.95);
+            border: 5px solid #415A77;
+            border-radius: 30px;
+            padding: 20px;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.8), 0 15px 35px rgba(0,0,0,0.6);
+            display: none;
+            opacity: 0;
+            transition: opacity 0.4s ease-in;
+            z-index: 5;
+            position: relative;
+        }
+
+        /* HUD Tracker Row */
+        .hud-display {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            background: #0D1B2A;
+            padding: 10px 20px;
+            border-radius: 15px;
+            border: 2px solid #415A77;
+            font-weight: bold;
+        }
+        .sector-badge {
+            background: var(--neon-purple);
+            color: white;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+        }
+
+        /* Fuel Indicator Core */
+        .fuel-bay {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0,0,0,0.3);
+            padding: 8px 15px;
+            border-radius: 35px;
+            border: 1px solid #415A77;
+            margin-bottom: 15px;
+        }
+        .fuel-gauge {
+            flex-grow: 1;
+            height: 16px;
+            background: #1B263B;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid #778DA9;
+        }
+        #fuel-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00F5D4, var(--neon-green));
+            transition: width 0.4s ease-out;
+            box-shadow: 0 0 10px var(--neon-green);
+        }
+
+        /* Deep Space Viewport */
+        #space-window {
+            width: 100%;
+            height: 250px;
+            background: #023047;
+            border-radius: 20px;
+            border: 4px solid #1B263B;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            background-image: radial-gradient(circle at 50% 120%, #1D3557 0%, #023047 100%);
+        }
+
+        .cockpit-ship {
+            position: absolute;
+            bottom: -10px;
+            left: 30px;
+            font-size: 4rem;
+            z-index: 2;
+            transform: scaleX(-1);
+            filter: drop-shadow(0 0 8px var(--neon-blue));
+        }
+
+        /* Matrix Elements Zone */
+        .element-cluster {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            padding: 0 20px;
+            position: relative;
+            z-index: 3;
+        }
+
+        .space-node {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+        .space-node:hover {
+            transform: scale(1.1);
+        }
+        .space-node:active {
+            transform: scale(0.95);
+        }
+
+        .node-sprite {
+            font-size: 4.2rem;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+            margin-bottom: 5px;
+            transition: filter 0.3s;
+        }
+        
+        .node-val {
+            background: rgba(13, 27, 42, 0.9);
+            border: 2px solid var(--neon-blue);
+            color: #FFF;
+            padding: 4px 16px;
+            font-size: 1.35rem;
+            font-weight: bold;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            min-width: 80px;
+            text-align: center;
+        }
+
+        /* Evaluation Style Classes */
+        .space-node.matched .node-sprite {
+            filter: drop-shadow(0 0 20px var(--neon-green)) brightness(1.2);
+        }
+        .space-node.matched .node-val {
+            border-color: var(--neon-green);
+            background: #132A13;
+            box-shadow: 0 0 15px var(--neon-green);
+        }
+
+        .space-node.failed .node-sprite {
+            filter: drop-shadow(0 0 15px var(--neon-coral)) grayscale(0.5);
+        }
+        .space-node.failed .node-val {
+            border-color: var(--neon-coral);
+            background: #2B0F1A;
+            box-shadow: 0 0 15px var(--neon-coral);
+        }
+
+        /* Sector Main Processor Console Terminal */
+        .processor-console {
+            background: #0D1B2A;
+            border-radius: 20px;
+            padding: 22px;
+            border: 3px solid #415A77;
+            font-size: 1.7rem;
+            font-weight: bold;
+            color: #00F5D4;
+            letter-spacing: 1px;
+            box-shadow: inset 0 0 15px rgba(0, 245, 212, 0.15);
+            min-height: 85px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Particle Trailing Layer */
+        .plasma-streak {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #00F5D4;
+            pointer-events: none;
+            z-index: 99;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="star-field" id="canvas-stars"></div>
+
+    <div id="splash-screen">
+        <img src="assets/logo.png" alt="Innovine Logo" class="splash-logo" onerror="this.src='https://placehold.co/200?text=Innovine'">
+    </div>
+
+    <div id="intro-card" class="story-card">
+        <div class="story-avatar">👨‍🚀</div>
+        <h2 class="story-title">Mission Log: Lost in Deep Space!</h2>
+        <p class="story-log">
+            "Calling all Junior Star Navigators! This is Captain Leo of the Star-Hopper. My primary fuel engines are completely depleted, leaving me stranded right outside a dense asteroid storm! 
+            <br><br>
+            To recharge my ship's plasma core, I need you to harvest energy from the surrounding <strong>Cosmic Crystals and Planets</strong>. Look at my cockpit calculator console, determine the correct mathematical sum, and tap the proper element floating in outer space!"
+        </p>
+        <button class="nav-btn" onclick="initiateMissionSession()">Launch Mission! 🚀</button>
+    </div>
+
+    <div id="transition-card" class="story-card" style="display: none;">
+        <div class="story-avatar">🚀⚡</div>
+        <h2 class="story-title" style="color: var(--neon-purple);">Sector 1 Cleared: Danger Approaching!</h2>
+        <p class="story-log">
+            "Spectacular calculations! The primary reserve cell has stabilized at 50% capacity! But keep your helmets on, navigators—the long range sensors show we are entering the <strong>Nebula Vortex</strong>. 
+            <br><br>
+            The spatial fields here are collapsing! The addition problems are getting bigger, and we will need to <strong>regroup and carry digits</strong> across systems to survive. Let's finish the engine sync!"
+        </p>
+        <button class="nav-btn" style="background: linear-gradient(135deg, var(--neon-purple), #7B2CBF); box-shadow: 0 5px 0 #3C096C;" onclick="commenceSectorTwo()">Enter Nebula Vortex 🌀</button>
+    </div>
+
+    <div id="game-container">
+        <div class="hud-display">
+            <span>Progress: <span id="hud-index">1/14</span></span>
+            <span class="sector-badge" id="hud-badge">Sector 1: Asteroid Fields</span>
+            <span>Score: <span id="hud-score">0</span></span>
+        </div>
+
+        <div class="fuel-bay">
+            <span style="font-size: 0.9rem; font-weight: bold; color: #00F5D4;">CORE CHARGE:</span>
+            <div class="fuel-gauge"><div id="fuel-fill"></div></div>
+        </div>
+
+        <div id="space-window">
+            <div class="cockpit-ship">🚀</div>
+            <div class="element-cluster" id="floating-cluster"></div>
+        </div>
+
+        <div class="processor-console" id="display-problem">Initialising flight computer...</div>
+    </div>
+
+    <div id="victory-card" class="story-card" style="display: none;">
+        <div class="story-avatar">🏆🌌🎖️</div>
+        <h2 class="story-title" style="color: var(--neon-green);">Hyperdrive Fully Restored!</h2>
+        <p class="story-log" style="text-align: center;">
+            "Mission successful, Navigators! The plasma system has achieved maximum operational capacity. Thanks to your flawless calculations, we punched through the vortex and engaged hyperdrive directly back to Earth. 
+            <br><br>
+            You are officially certified as a <strong>Master Celestial Mathematician</strong>!"
+        </p>
+        <h3 id="stat-summary" style="color: #FFD166; font-size: 1.5rem; margin-bottom: 25px;"></h3>
+        <button class="nav-btn" style="background: linear-gradient(135deg, var(--neon-green), #1B4332); box-shadow: 0 5px 0 #081C15;" onclick="rebootSimulatorCore()">Fly Mission Again 🔄</button>
+    </div>
+
+    <audio id="snd-correct" src="assets/correct.mp3" preload="none"></audio>
+    <audio id="snd-wrong" src="assets/wrong.mp3" preload="none"></audio>
+
+    <script>
+        // Starfield background generation
+        (function generateStars() {
+            var container = document.getElementById('canvas-stars');
+            for(var i=0; i<60; i++) {
+                var star = document.createElement('div');
+                star.className = 'star';
+                star.style.width = Math.random() * 3 + 1 + 'px';
+                star.style.height = star.style.width;
+                star.style.top = Math.random() * 100 + '%';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.animationDelay = Math.random() * 2 + 's';
+                container.appendChild(star);
+            }
+        })();
+
+        function audioAlert(type) {
+            try {
+                var p1 = document.getElementById('snd-correct');
+                var p2 = document.getElementById('snd-wrong');
+                if(type === 'correct' && p1) { p1.volume = 0.35; p1.currentTime = 0; p1.play().catch(function(){}); }
+                if(type === 'wrong' && p2) { p2.volume = 0.35; p2.currentTime = 0; p2.play().catch(function(){}); }
+            } catch(e){}
+        }
+
+        // Space Theme Element Visual Sprites
+        var customSprites = ["☄️", "💎", "🪐", "🔮", "👽", "🌟"];
+
+        // Level Curriculum Pools
+        var levelOnePool = [
+            { formula: "4321 + 0 = ?", options: ["4321", "0", "4322"], answer: "4321" },
+            { formula: "Find the sum: 5132 + 1", options: ["5131", "5133", "5142"], answer: "5133" },
+            { formula: "Calculate: 3412 + 2354", options: ["5766", "5666", "5768"], answer: "5766" },
+            { formula: "If 1200 + 3500 = 4700, then 3500 + 1200 = ?", options: ["2300", "4600", "4700"], answer: "4700" },
+            { formula: "Find missing value: 6120 + ___ = 6121", options: ["1", "0", "10"], answer: "1" },
+            { formula: "Solve: 7023 + 1854", options: ["8857", "8877", "8977"], answer: "8877" },
+            { formula: "Add: 2415 + 4230", options: ["6645", "6445", "6635"], answer: "6645" }
+        ];
+
+        var levelTwoPool = [
+            { formula: "Solve with regrouping: 4568 + 2374", options: ["6842", "6942", "6932"], answer: "6942" },
+            { formula: "Find total value: 3789 + 1456", options: ["5245", "5145", "5235"], answer: "5245" },
+            { formula: "Regroup and add: 6257 + 1985", options: ["8142", "8232", "8242"], answer: "8242" },
+            { formula: "Cargo A: 1250 boxes. Cargo B: 1850 boxes. Total = ?", options: ["3100", "3000", "3200"], answer: "3100" },
+            { formula: "Distance flight: 2450ly + 1780ly = ?", options: ["4130", "4230", "4330"], answer: "4230" }
+        ];
+
+        var missionPhase = 1;
+        var elementIdx = 0;
+        var trackingScore = 0;
+        var blockConsoleInteraction = false;
+
+        function initiateMissionSession() {
+            document.getElementById('intro-card').style.display = 'none';
+            var mainFrame = document.getElementById('game-container');
+            mainFrame.style.display = 'block';
+            mainFrame.offsetHeight;
+            mainFrame.style.opacity = '1';
+            
+            missionPhase = 1;
+            elementIdx = 0;
+            trackingScore = 0;
+            document.getElementById('hud-score').innerText = trackingScore;
+            
+            deployTaskSegment();
+        }
+
+        function deployTaskSegment() {
+            blockConsoleInteraction = false;
+            var activeDataset = (missionPhase === 1) ? levelOnePool : levelTwoPool;
+            var combinedMax = levelOnePool.length + levelTwoPool.length;
+            var currentAbsoluteIndex = (missionPhase === 1) ? elementIdx : levelOnePool.length + elementIdx;
+            
+            document.getElementById('hud-index').innerText = (currentAbsoluteIndex + 1) + " / " + combinedMax;
+            document.getElementById('fuel-fill').style.width = ((currentAbsoluteIndex / combinedMax) * 100) + "%";
+
+            var item = activeDataset[elementIdx];
+            document.getElementById('display-problem').innerText = item.formula;
+
+            var structuralField = document.getElementById('floating-cluster');
+            structuralField.innerHTML = '';
+
+            // Map and generate option nodes layout
+            item.options.forEach(function(variantValue, offsetIndex) {
+                var elementNode = document.createElement('div');
+                elementNode.className = 'space-node';
+                
+                // Shuffle array visual positions dynamically
+                var spriteAsset = customSprites[(offsetIndex + elementIdx) % customSprites.length];
+                
+                elementNode.innerHTML = `
+                    <div class="node-sprite">${spriteAsset}</div>
+                    <div class="node-val">${variantValue}</div>
+                `;
+                
+                elementNode.onclick = function() {
+                    evaluateChosenNode(elementNode, variantValue, item.answer);
+                };
+                structuralField.appendChild(elementNode);
+            });
+        }
+
+        function evaluateChosenNode(targetDom, selectedText, answerText) {
+            if(blockConsoleInteraction) return;
+            blockConsoleInteraction = true;
+
+            if(selectedText === answerText) {
+                targetDom.classList.add('matched');
+                audioAlert('correct');
+                trackingScore++;
+                document.getElementById('hud-score').innerText = trackingScore;
+                generateEnergyBeams(targetDom);
+            } else {
+                targetDom.classList.add('failed');
+                audioAlert('wrong');
+                // Flag visual aid markers for correct fallback node match
+                document.querySelectorAll('.space-node').forEach(function(nodeElement) {
+                    if(nodeElement.querySelector('.node-val').innerText === answerText) {
+                        nodeElement.classList.add('matched');
+                    }
+                });
+            }
+
+            setTimeout(function() {
+                elementIdx++;
+                var currentDataset = (missionPhase === 1) ? levelOnePool : levelTwoPool;
+                
+                if(elementIdx < currentDataset.length) {
+                    deployTaskSegment();
+                } else {
+                    if(missionPhase === 1) {
+                        bridgeToSectorTwo();
+                    } else {
+                        concludeAdventureLog();
+                    }
+                }
+            }, 2500);
+        }
+
+        function generateEnergyBeams(elementOrigin) {
+            var bounds = elementOrigin.getBoundingClientRect();
+            var windowBounds = document.getElementById('space-window').getBoundingClientRect();
+            
+            var startX = bounds.left + bounds.width / 2 - windowBounds.left;
+            var startY = bounds.top + bounds.height / 2 - windowBounds.top;
+            
+            for(var i=0; i<15; i++) {
+                var bolt = document.createElement('div');
+                bolt.className = 'plasma-streak';
+                bolt.style.left = startX + 'px';
+                bolt.style.top = startY + 'px';
+                document.getElementById('space-window').appendChild(bolt);
+
+                bolt.animate([
+                    { left: startX + 'px', top: startY + 'px', opacity: 1 },
+                    { left: '60px', top: '200px', opacity: 0.2 }
+                ], {
+                    duration: 600 + (Math.random() * 400),
+                    easing: 'ease-in'
+                }).onfinish = function() { this.effect.target.remove(); };
+            }
+        }
+
+        function bridgeToSectorTwo() {
+            document.getElementById('game-container').style.display = 'none';
+            var transCard = document.getElementById('transition-card');
+            transCard.style.display = 'block';
+        }
+
+        function commenceSectorTwo() {
+            document.getElementById('transition-card').style.display = 'none';
+            var mainFrame = document.getElementById('game-container');
+            mainFrame.style.display = 'block';
+            
+            var badge = document.getElementById('label-phase');
+            var badgeText = document.getElementById('hud-badge');
+            badgeText.innerText = "Sector 2: Nebula Vortex";
+            badgeText.style.background = "var(--neon-coral)";
+
+            missionPhase = 2;
+            elementIdx = 0;
+            deployTaskSegment();
+        }
+
+        function concludeAdventureLog() {
+            var combinedMax = levelOnePool.length + levelTwoPool.length;
+            document.getElementById('fuel-fill').style.width = "100%";
+            document.getElementById('game-container').style.display = 'none';
+            
+            var finalScreen = document.getElementById('victory-card');
+            finalScreen.style.display = 'block';
+            document.getElementById('stat-summary').innerText = "Mission Success Rating: " + trackingScore + " / " + combinedMax + " System Syncs!";
+        }
+
+        function rebootSimulatorCore() {
+            document.getElementById('victory-card').style.display = 'none';
+            
+            var badgeText = document.getElementById('hud-badge');
+            badgeText.innerText = "Sector 1: Asteroid Fields";
+            badgeText.style.background = "var(--neon-purple)";
+
+            initiateMissionSession();
+        }
+
+        // Manage deployment splash sequence loops
+        window.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                var splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(function() { splash.remove(); }, 500);
+                }
+            }, 1200);
+        });
+    </script>
+</body>
+</html>
