@@ -11,17 +11,14 @@
 
     <style>
         :root {
-            --bg-color: #52b788;        /* Soft, bright green background */
-            --workspace-bg: #74c69d;    /* Match the green workspace tone */
+            --bg-color: #52b788;        
+            --workspace-bg: #74c69d;    
             --tile-bg: #ffffff;
             
-            --horizontal-color: #2d6a4f; /* Dark forest green for horizontal lines */
-            --vertical-color: #1b4332;   /* Deep emerald green for vertical lines */
-            --slanting-color: #2f3e46;   /* Slate blue-gray for slanting lines */
-            --pink-dot: #ff70a6;         /* Bright pink candy dots */
-            
-            --text-main: #1b4332;
-            --text-muted: #40916c;
+            --horizontal-color: #2d6a4f; 
+            --vertical-color: #1b4332;   
+            --slanting-color: #2f3e46;   
+            --pink-dot: #ff70a6;         
             
             --font-ui: 'Quicksand', sans-serif;
             --font-title: 'Fredoka', sans-serif;
@@ -37,7 +34,7 @@
 
         body {
             background: var(--bg-color);
-            color: var(--text-main);
+            color: #1b4332;
             font-family: var(--font-ui);
             min-height: 100vh;
             display: flex;
@@ -46,7 +43,7 @@
             overflow: hidden;
         }
 
-        /* --- SPLASH SCREEN --- */
+        /* --- STYLED SPLASH SCREEN --- */
         #splash-screen {
             position: fixed;
             inset: 0;
@@ -56,21 +53,36 @@
             justify-content: center;
             align-items: center;
             z-index: 999;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.5s ease, transform 0.5s ease;
         }
 
+        .splash-logo-container {
+            margin-bottom: 2.5rem;
+            text-align: center;
+            max-width: 80%;
+        }
+
+        /* The student logo image configuration */
+        .splash-logo-img {
+            max-width: 240px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
+        /* Safe text fallback if logo file is missing */
         .splash-fallback-text {
             font-family: var(--font-title);
             font-size: 2.8rem;
             font-weight: 700;
             color: #2d6a4f;
             text-shadow: 2px 2px 0px #d8f3dc;
-            letter-spacing: 1px;
+            display: none; /* Only triggered via JS onerror */
         }
 
         .loader {
-            width: 48px;
-            height: 48px;
+            width: 52px;
+            height: 52px;
             border: 6px solid #f1f5f9;
             border-bottom-color: var(--pink-dot);
             border-radius: 50%;
@@ -83,10 +95,8 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* --- MAIN LAYOUT WINDOW --- */
+        /* --- MAIN WORKSPACE LAYOUT --- */
         .game-wrapper {
-            position: relative;
-            z-index: 1;
             width: 92vw;
             max-width: 1150px;
             background: var(--workspace-bg);
@@ -127,10 +137,9 @@
             width: 0%; 
             background: linear-gradient(90deg, #ff70a6 0%, #ff477e 100%);
             border-radius: 99px;
-            transition: width 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: width 0.4s ease;
         }
 
-        /* --- WORKSPACE VIEWER --- */
         .canvas-container {
             position: relative;
             background: rgba(255, 255, 255, 0.15);
@@ -140,12 +149,6 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: var(--transition-bounce);
-        }
-
-        .canvas-container.target-active {
-            background: rgba(255, 255, 255, 0.25);
-            transform: scale(1.002);
         }
 
         canvas {
@@ -154,7 +157,6 @@
             height: auto;
         }
 
-        /* --- LINE TILES TOOLBAR --- */
         .toolbar-section {
             display: flex;
             flex-direction: column;
@@ -165,13 +167,11 @@
             font-family: var(--font-title);
             font-size: 1.3rem;
             color: #ffffff;
-            font-weight: 600;
         }
 
         .assets-shelf {
             display: flex;
             gap: 2rem;
-            flex-wrap: wrap;
             background: rgba(255, 255, 255, 0.2);
             border: 4px dashed rgba(255, 255, 255, 0.5);
             padding: 1.5rem;
@@ -181,7 +181,6 @@
             justify-content: center;
         }
 
-        /* Line Tile Blocks */
         .line-tile {
             background: var(--tile-bg);
             border: 3px solid #ffffff;
@@ -191,27 +190,21 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.8rem;
+            gap: 0.6rem;
             transition: var(--transition-bounce);
             user-select: none;
-            width: 220px;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+            width: 180px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.05);
         }
 
         .line-tile:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 16px 24px rgba(0, 0, 0, 0.1);
+            transform: translateY(-6px);
+            box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1);
         }
 
-        .line-tile:active {
-            cursor: grabbing;
-            transform: translateY(0) scale(0.92);
-        }
-
-        /* Picture box inside the tile */
         .line-preview-box {
-            width: 180px;
-            height: 50px;
+            width: 140px;
+            height: 44px;
             background: #f4f9f4;
             border-radius: 12px;
             position: relative;
@@ -220,15 +213,14 @@
             justify-content: center;
         }
 
-        /* The drawn line models inside the boxes */
         .sample-line {
-            height: 8px;
+            height: 6px;
             border-radius: 99px;
             position: absolute;
         }
-        .sample-horiz { width: 140px; background: var(--horizontal-color); }
-        .sample-vert { width: 40px; transform: rotate(90deg); background: var(--vertical-color); }
-        .sample-slant { width: 130px; transform: rotate(-30deg); background: var(--slanting-color); }
+        .sample-horiz { width: 90px; background: var(--horizontal-color); }
+        .sample-vert { width: 32px; transform: rotate(90deg); background: var(--vertical-color); }
+        .sample-slant { width: 80px; transform: rotate(-35deg); background: var(--slanting-color); }
 
         .tile-text {
             font-weight: 700;
@@ -237,10 +229,10 @@
             text-align: center;
         }
 
-        .line-tile.placed {
-            opacity: 0.2;
+        .line-tile.depleted {
+            opacity: 0.3;
             pointer-events: none;
-            transform: scale(0.85);
+            transform: scale(0.9);
         }
     </style>
 </head>
@@ -248,15 +240,15 @@
 
     <div id="splash-screen">
         <div class="splash-logo-container">
-            <div class="splash-fallback-text">🏰 CASTLE ART STUDIO ☀️</div>
+            <img src="assets/logo.png" alt="Game Logo" class="splash-logo-img" id="main-logo" onerror="handleLogoError()">
+            <div id="logo-text-fallback" class="splash-fallback-text">🏰 CASTLE STUDIO</div>
         </div>
         <div class="loader"></div>
     </div>
 
     <div class="game-wrapper">
-        
         <header class="game-header">
-            <h1 class="game-title" id="studio-title">Level 2: Build the Golden Sun Castle</h1>
+            <h1 class="game-title" id="studio-title">Build the Golden Sun Castle</h1>
             <div class="progress-container">
                 <div class="progress-bar" id="studio-progress"></div>
             </div>
@@ -267,15 +259,19 @@
         </div>
 
         <section class="toolbar-section">
-            <h2 class="toolbar-title">Drag the lines up to fix the castle! 👇</h2>
+            <h2 class="toolbar-title">Drag the lines up to fix the castle drawing! 👇</h2>
             <div class="assets-shelf" id="shapes-shelf">
                 </div>
         </section>
-
     </div>
 
     <script>
-        // Audio Element Polyfills
+        // Automatic fallback safety switch for asset structures
+        function handleLogoError() {
+            document.getElementById('main-logo').style.display = 'none';
+            document.getElementById('logo-text-fallback').style.display = 'block';
+        }
+
         function createSafeAudio(src) {
             const audio = new Audio(src);
             audio.addEventListener('error', () => {
@@ -283,42 +279,28 @@
             });
             return audio;
         }
-        const soundClaps = createSafeAudio('assets/claps.mp3');
+        const soundSnap = createSafeAudio('assets/claps.mp3');
 
-        // Castle Architecture Blueprint Map Configuration
         const castleLevel = {
-            // The 3 line categories children will drag and place
-            targets: [
-                { id: "horizontal-line", type: "horizontal", color: "#2d6a4f", width: 6, label: "Horizontal Line", completed: false },
-                { id: "vertical-line", type: "vertical", color: "#1b4332", width: 6, label: "Vertical Line", completed: false },
-                { id: "slanting-line", type: "slanting", color: "#2f3e46", width: 6, label: "Slanting Line", completed: false }
+            slots: [
+                // Verticals ("Straight Line")
+                { type: "vertical", x1: 380, y1: 370, x2: 380, y2: 150, completed: false },
+                { type: "vertical", x1: 520, y1: 370, x2: 520, y2: 150, completed: false },
+                { type: "vertical", x1: 230, y1: 370, x2: 230, y2: 200, completed: false },
+                { type: "vertical", x1: 300, y1: 370, x2: 300, y2: 200, completed: false },
+                { type: "vertical", x1: 600, y1: 370, x2: 600, y2: 180, completed: false },
+                { type: "vertical", x1: 670, y1: 370, x2: 670, y2: 180, completed: false },
+                
+                // Horizontals ("Flat Line")
+                { type: "horizontal", x1: 380, y1: 280, x2: 520, y2: 280, completed: false },
+                { type: "horizontal", x1: 230, y1: 370, x2: 670, y2: 370, completed: false },
+                
+                // Slantings ("Slanting Line")
+                { type: "slanting", x1: 380, y1: 150, x2: 450, y2: 70, completed: false },
+                { type: "slanting", x1: 520, y1: 150, x2: 450, y2: 70, completed: false },
+                { type: "slanting", x1: 230, y1: 200, x2: 265, y2: 110, completed: false },
+                { type: "slanting", x1: 300, y1: 200, x2: 265, y2: 110, completed: false }
             ],
-            // Master coordinate targets for each group type
-            linesData: {
-                horizontal: [
-                    { x1: 380, y1: 280, x2: 520, y2: 280 },
-                    { x1: 230, y1: 370, x2: 670, y2: 370 }
-                ],
-                vertical: [
-                    { x1: 380, y1: 370, x2: 380, y2: 150 },
-                    { x1: 520, y1: 370, x2: 520, y2: 150 },
-                    { x1: 230, y1: 370, x2: 230, y2: 200 },
-                    { x1: 300, y1: 370, x2: 300, y2: 200 },
-                    { x1: 600, y1: 370, x2: 600, y2: 180 },
-                    { x1: 670, y1: 370, x2: 670, y2: 180 }
-                ],
-                slanting: [
-                    { x1: 380, y1: 150, x2: 450, y2: 70 },
-                    { x1: 520, y1: 150, x2: 450, y2: 70 },
-                    { x1: 230, y1: 200, x2: 265, y2: 110 },
-                    { x1: 300, y1: 200, x2: 265, y2: 110 }
-                ]
-            },
-            // Decorative background curves like hills
-            backgroundDecor: [
-                { type: "arc", cx: 450, cy: 590, r: 240, sA: Math.PI, eA: 0 }
-            ],
-            // Little dots marking key corner points
             dots: [
                 {x: 380, y: 370}, {x: 520, y: 370}, {x: 450, y: 70}, 
                 {x: 230, y: 370}, {x: 300, y: 370}, {x: 265, y: 110},
@@ -328,19 +310,30 @@
             ]
         };
 
-        let draggedDataId = null;
+        const lineInventory = [
+            { type: "horizontal", label: "Flat Line", style: "sample-horiz" },
+            { type: "vertical", label: "Straight Line", style: "sample-vert" },
+            { type: "slanting", label: "Slanting Line", style: "sample-slant" }
+        ];
+
+        let draggedType = null;
         const canvas = document.getElementById('studioCanvas');
         const ctx = canvas.getContext('2d');
         const viewport = document.getElementById('canvas-viewport');
 
+        // Handles the exact 5-second handover sequence
         window.addEventListener('load', () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 if (splash) {
                     splash.style.opacity = '0';
-                    setTimeout(() => { splash.remove(); initGame(); }, 500);
+                    splash.style.transform = 'scale(1.05)';
+                    setTimeout(() => {
+                        splash.remove();
+                        initGame();
+                    }, 500); // Wait for CSS transition finish
                 }
-            }, 5000);
+            }, 5000); // 5000 milliseconds = 5 seconds
         });
 
         function initGame() {
@@ -353,93 +346,84 @@
             const shelf = document.getElementById('shapes-shelf');
             shelf.innerHTML = '';
 
-            castleLevel.targets.forEach(target => {
+            lineInventory.forEach(item => {
+                const remainingSlots = castleLevel.slots.filter(s => s.type === item.type && !s.completed).length;
+
                 const tile = document.createElement('div');
                 tile.className = 'line-tile';
-                if(target.completed) tile.classList.add('placed');
-                tile.setAttribute('draggable', 'true');
-                tile.setAttribute('data-id', target.id);
+                if (remainingSlots === 0) tile.classList.add('depleted');
+                
+                tile.setAttribute('draggable', remainingSlots > 0 ? 'true' : 'false');
+                tile.setAttribute('data-type', item.type);
 
-                // Choose the right design style model class
-                let subClass = "sample-horiz";
-                if(target.type === "vertical") subClass = "sample-vert";
-                if(target.type === "slanting") subClass = "sample-slant";
-
-                // Create inner graphic box instead of only hard words
                 const previewBox = document.createElement('div');
                 previewBox.className = 'line-preview-box';
                 
                 const lineModel = document.createElement('div');
-                lineModel.className = `sample-line ${subClass}`;
+                lineModel.className = `sample-line ${item.style}`;
                 
                 previewBox.appendChild(lineModel);
 
                 const label = document.createElement('span');
                 label.className = 'tile-text';
-                label.innerText = target.label;
+                label.innerText = item.label;
 
                 tile.appendChild(previewBox);
                 tile.appendChild(label);
 
                 tile.addEventListener('dragstart', () => {
-                    draggedDataId = target.id;
-                    viewport.classList.add('target-active');
+                    draggedType = item.type;
+                    drawCanvas(true);
                 });
-                tile.addEventListener('dragend', () => viewport.classList.remove('target-active'));
+                tile.addEventListener('dragend', () => {
+                    drawCanvas(false);
+                });
 
                 shelf.appendChild(tile);
             });
 
-            // Adjust progress loader tracker layout length
-            const finished = castleLevel.targets.filter(t => t.completed).length;
-            document.getElementById('studio-progress').style.width = `${(finished / castleLevel.targets.length) * 100}%`;
+            const finished = castleLevel.slots.filter(s => s.completed).length;
+            document.getElementById('studio-progress').style.width = `${(finished / castleLevel.slots.length) * 100}%`;
         }
 
-        function drawCanvas() {
+        function drawCanvas(isDragging = false) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Creative Landscape Background (Soft green grass hill backdrop context)
+            // Ground line arc
             ctx.fillStyle = '#40916c';
-            castleLevel.backgroundDecor.forEach(item => {
+            ctx.beginPath();
+            ctx.arc(450, 590, 240, Math.PI, 0);
+            ctx.fill();
+
+            // Draw Lines
+            castleLevel.slots.forEach(slot => {
                 ctx.beginPath();
-                ctx.arc(item.cx, item.cy, item.r, item.sA, item.eA);
-                ctx.fill();
-            });
+                ctx.moveTo(slot.x1, slot.y1);
+                ctx.lineTo(slot.x2, slot.y2);
 
-            // 1. Draw Master Dotted-Line Castle Map Layout Design
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-            ctx.lineWidth = 3;
-            ctx.setLineDash([6, 6]);
-            
-            // Loop and render every single structural piece line group inside the castle matrix
-            Object.keys(castleLevel.linesData).forEach(key => {
-                castleLevel.linesData[key].forEach(line => {
-                    ctx.beginPath();
-                    ctx.moveTo(line.x1, line.y1);
-                    ctx.lineTo(line.x2, line.y2);
-                    ctx.stroke();
-                });
-            });
-            ctx.setLineDash([]); // Reset line style tracking mask
-
-            // 2. Draw lines filled in by children
-            castleLevel.targets.forEach(target => {
-                if (target.completed) {
-                    ctx.strokeStyle = target.color;
-                    ctx.lineWidth = target.width;
+                if (slot.completed) {
+                    if (slot.type === "horizontal") ctx.strokeStyle = "#2d6a4f";
+                    else if (slot.type === "vertical") ctx.strokeStyle = "#1b4332";
+                    else ctx.strokeStyle = "#2f3e46";
+                    ctx.lineWidth = 6;
                     ctx.lineCap = 'round';
-                    
-                    // Draw all coordinates connected with this group key match
-                    castleLevel.linesData[target.type].forEach(line => {
-                        ctx.beginPath();
-                        ctx.moveTo(line.x1, line.y1);
-                        ctx.lineTo(line.x2, line.y2);
-                        ctx.stroke();
-                    });
+                    ctx.setLineDash([]);
+                } else {
+                    if (isDragging && slot.type === draggedType) {
+                        ctx.strokeStyle = '#ff70a6'; 
+                        ctx.lineWidth = 4;
+                        ctx.setLineDash([]);
+                    } else {
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                        ctx.lineWidth = 3;
+                        ctx.setLineDash([6, 6]);
+                    }
                 }
+                ctx.stroke();
             });
+            ctx.setLineDash([]);
 
-            // 3. Draw bright pink map dots over corner connection frames
+            // Joiner Candy Dots
             castleLevel.dots.forEach(dot => {
                 ctx.fillStyle = '#ff70a6';
                 ctx.beginPath(); ctx.arc(dot.x, dot.y, 6, 0, Math.PI * 2); ctx.fill();
@@ -449,22 +433,43 @@
 
         function setupDragDrop() {
             viewport.addEventListener('dragover', (e) => e.preventDefault());
+            
             viewport.addEventListener('drop', (e) => {
                 e.preventDefault();
-                viewport.classList.remove('target-active');
 
-                const currentMatch = castleLevel.targets.find(t => t.id === draggedDataId);
-                if (currentMatch && !currentMatch.completed) {
-                    currentMatch.completed = true;
-                    soundClaps.play().catch(() => {});
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const dropX = (e.clientX - rect.left) * scaleX;
+                const dropY = (e.clientY - rect.top) * scaleY;
+
+                let closestSlot = null;
+                let minDistance = 60; 
+
+                castleLevel.slots.forEach(slot => {
+                    if (slot.type === draggedType && !slot.completed) {
+                        const midX = (slot.x1 + slot.x2) / 2;
+                        const midY = (slot.y1 + slot.y2) / 2;
+                        const dist = Math.hypot(dropX - midX, dropY - midY);
+
+                        if (dist < minDistance) {
+                            minDistance = dist;
+                            closestSlot = slot;
+                        }
+                    }
+                });
+
+                if (closestSlot) {
+                    closestSlot.completed = true;
+                    soundSnap.play().catch(() => {});
+                    
                     renderShelf();
-                    drawCanvas();
+                    drawCanvas(false);
 
-                    // Check level finish conditions
-                    if (castleLevel.targets.every(t => t.completed)) {
+                    if (castleLevel.slots.every(s => s.completed)) {
                         setTimeout(() => {
-                            document.getElementById('studio-title').innerText = "✨ Magic Castle Completed! ✨";
-                        }, 300);
+                            document.getElementById('studio-title').innerText = "✨ Hurrah! Beautiful Castle Fixed! ✨";
+                        }, 200);
                     }
                 }
             });
