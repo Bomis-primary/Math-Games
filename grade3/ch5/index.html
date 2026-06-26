@@ -3,32 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chapter 5: Geometry Art Studio</title>
+    <title>Chapter 5: Magic Geometry Art Studio</title>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        /* --- DESIGN SYSTEM VARIABLES --- */
+        /* --- CHILD-FRIENDLY LIGHT DESIGN SYSTEM --- */
         :root {
-            --bg-gradient: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #0f172a 100%);
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-accent-border: rgba(99, 102, 241, 0.4);
+            --bg-color: #f8fafc;        /* Ultra light, clean canvas background */
+            --glass-bg: #ffffff;        /* Pure white card containers */
+            --glass-border: #e2e8f0;    /* Soft grey definition borders */
             
-            --primary: #6366f1;       /* Electric Indigo */
-            --primary-glow: rgba(99, 102, 241, 0.4);
-            --secondary: #a855f7;     /* Violet */
-            --accent: #34d399;        /* Mint Green for Success */
+            --primary: #3b82f6;       /* Playful Sky Blue */
+            --secondary: #ff70a6;     /* Bubblegum Pink */
+            --accent: #4ade80;        /* Bright Mint Green */
             
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --text-main: #1e293b;     /* High contrast charcoal */
+            --text-muted: #64748b;
             
-            --font-ui: 'Plus Jakarta Sans', sans-serif;
-            --font-title: 'Quicksand', sans-serif;
+            --font-ui: 'Quicksand', sans-serif;
+            --font-title: 'Fredoka', sans-serif;
             
-            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-bounce: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         /* --- RESET & BASE STYLES --- */
@@ -40,7 +38,11 @@
         }
 
         body {
-            background: var(--bg-gradient);
+            background: var(--bg-color);
+            /* Super soft, clean geometric blueprint grid for drawing backdrop context */
+            background-image: linear-gradient(rgba(226, 232, 240, 0.6) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(226, 232, 240, 0.6) 1px, transparent 1px);
+            background-size: 40px 40px;
             color: var(--text-main);
             font-family: var(--font-ui);
             min-height: 100vh;
@@ -54,7 +56,7 @@
         #splash-screen {
             position: fixed;
             inset: 0;
-            background: #0f172a;
+            background: #ffffff;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -71,64 +73,49 @@
         .splash-logo {
             max-width: 180px;
             height: auto;
-            filter: drop-shadow(0 0 20px var(--primary-glow));
         }
 
-        /* Fallback stylish text if image doesn't exist */
         .splash-fallback-text {
             font-family: var(--font-title);
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-weight: 700;
-            letter-spacing: 2px;
-            background: linear-gradient(135deg, #fff 0%, var(--primary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--primary);
+            text-shadow: 2px 2px 0px #f0fdf4, 4px 4px 0px rgba(59, 130, 246, 0.1);
+            letter-spacing: 1px;
         }
 
         .loader {
             width: 48px;
             height: 48px;
+            border: 6px solid #f1f5f9;
+            border-bottom-color: var(--primary);
             border-radius: 50%;
-            position: relative;
-            animation: rotate 1s linear infinite
-        }
-        .loader::before {
-            content: "";
-            box-sizing: border-box;
-            position: absolute;
-            inset: 0px;
-            border-radius: 50%;
-            border: 4px solid var(--glass-border);
-            animation: prixClipFix 2s linear infinite ;
-        }
-        @keyframes rotate { 100% {transform: rotate(360deg)} }
-        @keyframes prixClipFix {
-            0% {clip-path:polygon(50% 50%,0 0,0 0,0 0,0 0,0 0)}
-            25% {clip-path:polygon(50% 50%,0 0,100% 0,100% 0,100% 0,100% 0)}
-            50% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,100% 100%,100% 100%)}
-            75% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 100%)}
-            100% {clip-path:polygon(50% 50%,0 0,100% 0,100% 100%,0 100%,0 0)}
+            display: inline-block;
+            animation: rotation 1s linear infinite;
         }
 
-        /* --- MAIN WORKBENCH PACKAGING --- */
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* --- MAIN STUDIO WORKBENCH CARD --- */
         .game-wrapper {
             position: relative;
             z-index: 1;
             width: 90vw;
             max-width: 1100px;
             background: var(--glass-bg);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
             border: 1px solid var(--glass-border);
-            border-radius: 28px;
+            border-radius: 32px;
             padding: 2.5rem;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(148, 163, 184, 0.15);
             display: flex;
             flex-direction: column;
             gap: 2rem;
         }
 
-        /* --- HEADER & GLOWING PROGRESS --- */
+        /* --- HEADER & LOADING TRACK --- */
         .game-header {
             display: flex;
             justify-content: space-between;
@@ -137,59 +124,57 @@
 
         .game-title {
             font-family: var(--font-title);
-            font-size: 1.75rem;
+            font-size: 2.2rem;
             font-weight: 700;
-            background: linear-gradient(135deg, #fff 30%, var(--text-muted) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #0f172a;
         }
 
         .progress-container {
             width: 240px;
-            background: rgba(255, 255, 255, 0.04);
-            height: 8px;
+            background: #f1f5f9;
+            height: 14px;
             border-radius: 99px;
             overflow: hidden;
-            border: 1px solid var(--glass-border);
+            border: 2px solid #e2e8f0;
         }
 
         .progress-bar {
             height: 100%;
             width: 0%; 
-            background: linear-gradient(90deg, var(--secondary) 0%, var(--primary) 100%);
-            box-shadow: 0 0 14px var(--primary-glow);
+            background: linear-gradient(90deg, var(--secondary) 0%, #f43f5e 100%);
             border-radius: 99px;
-            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: width 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         /* --- DIGITAL ART WORKSPACE --- */
         .canvas-container {
             position: relative;
-            background: rgba(10, 11, 22, 0.4);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            padding: 1.5rem;
+            background: #ffffff;
+            border: 3px solid #cbd5e1;
+            border-radius: 24px;
+            padding: 1rem;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: inset 0 4px 30px rgba(0, 0, 0, 0.5);
-            transition: var(--transition-smooth);
+            box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.02);
+            transition: var(--transition-bounce);
         }
 
-        /* Active ethereal workspace pulse when dragging an architectural element */
+        /* Interactive pulse state when element drag is active */
         .canvas-container.target-active {
-            border-color: var(--glass-accent-border);
-            box-shadow: 0 0 40px rgba(99, 102, 241, 0.2), inset 0 4px 30px rgba(0, 0, 0, 0.5);
+            border-color: var(--primary);
+            background: #f8fafc;
+            transform: scale(1.005);
         }
 
         canvas {
             display: block;
             max-width: 100%;
             height: auto;
-            cursor: crosshair;
+            cursor: pointer;
         }
 
-        /* --- DRAGGABLE LINE TOOLBAR (BELOW CANVAS) --- */
+        /* --- DRAGGABLE LINE TOOLBAR --- */
         .toolbar-section {
             display: flex;
             flex-direction: column;
@@ -197,70 +182,65 @@
         }
 
         .toolbar-title {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.08em;
+            font-family: var(--font-title);
+            font-size: 1.1rem;
             color: var(--text-muted);
-            font-weight: 700;
+            font-weight: 600;
         }
 
         .assets-shelf {
             display: flex;
-            gap: 1rem;
+            gap: 1.25rem;
             flex-wrap: wrap;
-            background: rgba(255, 255, 255, 0.01);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            padding: 1.25rem;
-            border-radius: 16px;
-            min-height: 80px;
+            background: #f8fafc;
+            border: 3px dashed #e2e8f0;
+            padding: 1.5rem;
+            border-radius: 20px;
+            min-height: 90px;
             align-items: center;
         }
 
-        /* Premium FinTech-Pop Element Pills */
+        /* Bright Candy Pill Elements */
         .line-pill {
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--glass-border);
-            padding: 0.75rem 1.2rem;
+            background: #ffffff;
+            border: 2px solid #cbd5e1;
+            padding: 0.8rem 1.5rem;
             border-radius: 100px;
             cursor: grab;
             display: inline-flex;
             align-items: center;
-            gap: 0.5rem;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--text-main);
-            transition: var(--transition-smooth);
+            gap: 0.6rem;
+            font-weight: 700;
+            font-size: 1rem;
+            color: #334155;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+            transition: var(--transition-bounce);
             user-select: none;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
         }
 
         .line-pill:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-3px) scale(1.03);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px rgba(59, 130, 246, 0.1);
         }
 
         .line-pill:active {
             cursor: grabbing;
-            transform: translateY(0) scale(0.97);
-            background: rgba(99, 102, 241, 0.15);
-            border-color: var(--primary);
+            transform: translateY(0) scale(0.95);
         }
 
-        /* Visual Geometric Accent Inside Pill */
         .line-pill::before {
             content: '';
-            width: 14px;
-            height: 3px;
-            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            width: 16px;
+            height: 6px;
+            background: var(--secondary);
             border-radius: 99px;
             display: inline-block;
         }
 
-        /* Success State Triggered on Snap Match */
         .line-pill.placed {
-            opacity: 0.3;
+            opacity: 0.25;
             pointer-events: none;
             transform: scale(0.9);
         }
@@ -271,7 +251,7 @@
     <div id="splash-screen">
         <div class="splash-logo-container">
             <img src="assets/logo.png" alt="" class="splash-logo" onerror="this.style.display='none'; document.getElementById('fallback-ui').style.display='block';">
-            <div id="fallback-ui" class="splash-fallback-text" style="display:none;">GEOMETRY ART STUDIO</div>
+            <div id="fallback-ui" class="splash-fallback-text">🎨 ART STUDIO ✨</div>
         </div>
         <div class="loader"></div>
     </div>
@@ -279,7 +259,7 @@
     <div class="game-wrapper">
         
         <header class="game-header">
-            <h1 class="game-title" id="studio-title">Level 1: Diamond Constellation Art</h1>
+            <h1 class="game-title" id="studio-title">Level 1: The Magic Diamond</h1>
             <div class="progress-container">
                 <div class="progress-bar" id="studio-progress"></div>
             </div>
@@ -290,7 +270,7 @@
         </div>
 
         <section class="toolbar-section">
-            <h2 class="toolbar-title">Geometric Lines Container (Drag lines up to workspace)</h2>
+            <h2 class="toolbar-title">Drag the pieces up to complete the drawing! 👇</h2>
             <div class="assets-shelf" id="lines-shelf">
                 </div>
         </section>
@@ -298,11 +278,10 @@
     </div>
 
     <script>
-        // Bulletproof Audio Handling (Tries loading file, falls back to silent browser buffer if missing)
+        // Audio Architecture Hooks
         function createSafeAudio(src) {
             const audio = new Audio(src);
             audio.addEventListener('error', () => {
-                // Inline base64 silent audio node generation if asset doesn't exist locally
                 audio.src = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==';
             });
             return audio;
@@ -311,18 +290,18 @@
         const soundClaps = createSafeAudio('assets/claps.mp3');
         const soundWrong = createSafeAudio('assets/wrong.mp3');
 
-        // Geometrical Coordinate Blueprint System for the Canvas Artwork
+        // Artwork Coordinates & Layout Configurations
         const artworkLevel = {
-            title: "Level 1: Completing the Diamond Constellation",
+            title: "Level 1: Trace the Diamond Castle",
             targets: [
-                { id: "line-1", x1: 400, y1: 60,  x2: 520, y2: 180, label: "Oblique Vector A", completed: false },
-                { id: "line-2", x1: 520, y1: 180, x2: 400, y2: 320, label: "Oblique Vector B", completed: false },
-                { id: "line-3", x1: 400, y1: 320, x2: 280, y2: 180, label: "Oblique Vector C", completed: false },
-                { id: "line-4", x1: 280, y1: 180, x2: 400, y2: 60,  label: "Oblique Vector D", completed: false }
+                { id: "line-1", x1: 400, y1: 60,  x2: 520, y2: 180, label: "Roof Line A", completed: false },
+                { id: "line-2", x1: 520, y1: 180, x2: 400, y2: 320, label: "Floor Line B", completed: false },
+                { id: "line-3", x1: 400, y1: 320, x2: 280, y2: 180, label: "Floor Line C", completed: false },
+                { id: "line-4", x1: 280, y1: 180, x2: 400, y2: 60,  label: "Roof Line D", completed: false }
             ],
             staticLines: [
-                { x1: 280, y1: 180, x2: 520, y2: 180 }, // Horizon cross-axis
-                { x1: 400, y1: 60,  x2: 400, y2: 320 }  // Vertical cross-axis
+                { x1: 280, y1: 180, x2: 520, y2: 180 }, 
+                { x1: 400, y1: 60,  x2: 400, y2: 320 }  
             ]
         };
 
@@ -331,7 +310,7 @@
         const ctx = canvas.getContext('2d');
         const viewport = document.getElementById('canvas-viewport');
 
-        // Bulletproof window event sequence to handle splash screen fade out after 5 seconds
+        // Handles 5 second initialization handover phase
         window.addEventListener('load', () => {
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
@@ -342,7 +321,7 @@
                         initStudioLevel();
                     }, 500);
                 }
-            }, 5000); // 5-second logo timeout preserved
+            }, 5000);
         });
 
         function initStudioLevel() {
@@ -352,7 +331,6 @@
             setupDragAndDrop();
         }
 
-        // Render line items as draggable pill containers beneath workspace
         function renderPillShelf() {
             const shelf = document.getElementById('lines-shelf');
             shelf.innerHTML = '';
@@ -366,8 +344,7 @@
                 
                 if(line.completed) pill.classList.add('placed');
 
-                // Toggle ethereal glow when asset movement events occur
-                pill.addEventListener('dragstart', (e) => {
+                pill.addEventListener('dragstart', () => {
                     draggedDataId = line.id;
                     viewport.classList.add('target-active');
                 });
@@ -379,7 +356,6 @@
                 shelf.appendChild(pill);
             });
 
-            // Update Progress dynamically
             const completedCount = artworkLevel.targets.filter(t => t.completed).length;
             const progressPercent = (completedCount / artworkLevel.targets.length) * 100;
             document.getElementById('studio-progress').style.width = `${progressPercent}%`;
@@ -388,9 +364,16 @@
         function drawCanvas() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // 1. Draw static structural lines (Core Base Geometry Art)
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-            ctx.lineWidth = 2;
+            // Light Background Drawing Detail: Subtle decorative landscape backdrop behind geometry art
+            ctx.fillStyle = '#f0fdf4'; // Soft mint green ground arc
+            ctx.beginPath();
+            ctx.arc(400, 500, 220, Math.PI, 0);
+            ctx.fill();
+
+            // 1. Static drawing background elements (Soft pastel blue reference frame)
+            ctx.strokeStyle = '#cbd5e1';
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
             artworkLevel.staticLines.forEach(line => {
                 ctx.beginPath();
                 ctx.moveTo(line.x1, line.y1);
@@ -398,67 +381,64 @@
                 ctx.stroke();
             });
 
-            // 2. Draw Target Outlines (Sleek, transparent dashed guidelines for children to trace)
+            // 2. Tracing Guidelines (Light gray dots indicating incomplete zones)
             artworkLevel.targets.forEach(target => {
                 if (!target.completed) {
-                    ctx.strokeStyle = 'rgba(99, 102, 241, 0.25)';
-                    ctx.lineWidth = 2;
-                    ctx.setLineDash([6, 6]);
+                    ctx.strokeStyle = '#94a3b8';
+                    ctx.lineWidth = 3;
+                    ctx.setLineDash([8, 8]);
                     ctx.beginPath();
                     ctx.moveTo(target.x1, target.y1);
                     ctx.lineTo(target.x2, target.y2);
                     ctx.stroke();
-                    ctx.setLineDash([]); // Reset line formatting
+                    ctx.setLineDash([]); 
                 } else {
-                    // 3. Draw Completed Vectors with a high-fidelity neon electric glow
-                    ctx.strokeStyle = '#a855f7';
-                    ctx.lineWidth = 4;
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = 'rgba(168, 85, 247, 0.6)';
+                    // 3. Completed Lines (Vibrant bright blue strokes)
+                    ctx.strokeStyle = '#3b82f6';
+                    ctx.lineWidth = 8;
+                    ctx.lineCap = 'round';
                     ctx.beginPath();
                     ctx.moveTo(target.x1, target.y1);
                     ctx.lineTo(target.x2, target.y2);
                     ctx.stroke();
-                    ctx.shadowBlur = 0; // Reset shadow maps
                 }
             });
 
-            // Decorative Geometric Node Dots on canvas
-            drawNodeDot(400, 60);
-            drawNodeDot(520, 180);
-            drawNodeDot(400, 320);
-            drawNodeDot(280, 180);
+            // High-contrast pink map nodes for alignment points
+            drawNodeDot(400, 60, '#ff70a6');
+            drawNodeDot(520, 180, '#ff70a6');
+            drawNodeDot(400, 320, '#ff70a6');
+            drawNodeDot(280, 180, '#ff70a6');
         }
 
-        function drawNodeDot(x, y) {
-            ctx.fillStyle = '#6366f1';
+        function drawNodeDot(x, y, color) {
+            ctx.fillStyle = color;
             ctx.beginPath();
-            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.arc(x, y, 8, 0, Math.PI * 2);
             ctx.fill();
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 3;
+            ctx.stroke();
         }
 
-        // Set up Drag and Drop interaction layer logic over the viewport
         function setupDragAndDrop() {
-            viewport.addEventListener('dragover', (e) => {
-                e.preventDefault(); // Required to enable drop event mapping trigger
-            });
+            viewport.addEventListener('dragover', (e) => e.preventDefault());
 
             viewport.addEventListener('drop', (e) => {
                 e.preventDefault();
                 viewport.classList.remove('target-active');
 
-                // Process coordinate alignment criteria match
                 const targetLine = artworkLevel.targets.find(t => t.id === draggedDataId);
                 
                 if (targetLine && !targetLine.completed) {
                     targetLine.completed = true;
-                    soundClaps.play().catch(() => {/* catch browser autoplay block */});
+                    soundClaps.play().catch(() => {});
                     
                     renderPillShelf();
                     drawCanvas();
                     checkArtCompletion();
                 } else {
-                    soundWrong.play().catch(() => {/* catch browser autoplay block */});
+                    soundWrong.play().catch(() => {});
                 }
             });
         }
@@ -467,10 +447,10 @@
             const allDone = artworkLevel.targets.every(t => t.completed);
             if (allDone) {
                 setTimeout(() => {
-                    document.getElementById('studio-title').innerText = "Masterpiece Completed!";
-                    // Trigger custom burst flash inside canvas container matrix
-                    viewport.style.boxShadow = "0 0 50px rgba(52, 211, 153, 0.3)";
-                }, 500);
+                    document.getElementById('studio-title').innerText = "✨ Magic Art Completed! ✨";
+                    viewport.style.borderColor = "var(--accent)";
+                    viewport.style.background = "#f0fdf4";
+                }, 400);
             }
         }
     </script>
