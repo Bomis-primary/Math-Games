@@ -90,7 +90,6 @@
             margin-bottom: 12px;
         }
 
-        /* Viewport Layout Split */
         .viewport-panel {
             background: #020617;
             border: 5px solid #475569;
@@ -115,7 +114,6 @@
             margin-bottom: 15px;
         }
 
-        /* 1. Unsorted Cargo Source Bin */
         .source-cargo-bin {
             background: rgba(30, 41, 59, 0.5);
             border: 3px dashed #475569;
@@ -144,7 +142,6 @@
             to { transform: translateY(-4px); }
         }
 
-        /* 2. Destination Group Targets */
         .distribution-zone {
             display: flex;
             justify-content: center;
@@ -201,7 +198,6 @@
             border: 2px solid #000;
         }
 
-        /* Integrated Display Values */
         .workspace-calculator {
             display: flex;
             justify-content: center;
@@ -272,12 +268,12 @@
 <body>
 
     <div id="splash-screen">
-        <img id="splashLogo" src="assets/innovine-logo.png" alt="Logo">
+        <img id="splashLogo" src="assets/logo.png" alt="Logo">
     </div>
 
-    <audio id="audioRight" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="audioRight" src="assets/claps.mp3" preload="auto"></audio>
     <audio id="audioWrong" src="assets/wrong.mp3" preload="auto"></audio>
-    <audio id="audioAmplause" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
+    <audio id="audioApplause" src="assets/claps.mp3" preload="auto"></audio>
 
     <div class="game-container">
         
@@ -300,9 +296,7 @@
 
             <div class="viewport-panel">
                 <div class="mission-bubble" id="txtInstruction">Loading space log charts...</div>
-                
                 <div class="source-cargo-bin" id="sourceCargoBin" ondragover="allowDrop(event)" ondrop="dropToSource(event)"></div>
-                
                 <div class="distribution-zone" id="distributionZone"></div>
             </div>
 
@@ -335,8 +329,6 @@
 
     <script>
         window.onload = function() {
-            const logo = document.getElementById('splashLogo');
-            if(logo) { logo.onerror = function() { this.src = 'assets/logo.png'; }; }
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 if(splash) {
@@ -355,7 +347,6 @@
         let levelIndex = 0;
         let totalScore = 0;
 
-        // Structured curriculum to build visual division logic comfortably
         const missionBook = [
             { task: "Share 6 gems equally between 2 drop pods.", dividend: 6, divisor: 2, icon: "💎" },
             { task: "Sort 12 space-donuts equally into 3 pods.", dividend: 12, divisor: 3, icon: "🍩" },
@@ -385,13 +376,11 @@
             document.getElementById('valDividend').innerText = data.dividend;
             document.getElementById('valDivisor').innerText = data.divisor;
 
-            // Clear containers
             const sourceBin = document.getElementById('sourceCargoBin');
             const zone = document.getElementById('distributionZone');
             sourceBin.innerHTML = '';
             zone.innerHTML = '';
 
-            // Generate interactive cargo items inside the main hold
             for (let i = 0; i < data.dividend; i++) {
                 let span = document.createElement('span');
                 span.className = "cargo-item";
@@ -399,16 +388,12 @@
                 span.id = `cargo-item-${i}`;
                 span.draggable = true;
                 
-                // Native desktop drag handlers
                 span.ondragstart = (e) => { e.dataTransfer.setData("text/plain", span.id); };
-                
-                // Native mobile touch grouping fallback
                 span.onclick = () => handleMobileTapGrouping(span);
 
                 sourceBin.appendChild(span);
             }
 
-            // Dynamically generate the precise number of Drop Pod containers (The Divisor)
             for (let j = 0; j < data.divisor; j++) {
                 let pod = document.createElement('div');
                 pod.className = "drop-pod";
@@ -440,7 +425,6 @@
             calculateLiveGroupingValues();
         }
 
-        // --- Drag & Drop Core Engine Mechanics ---
         function allowDrop(e) { e.preventDefault(); if(e.currentTarget.classList.contains('drop-pod')) e.currentTarget.classList.add('drag-hover'); }
         function leaveDrop(e) { e.currentTarget.classList.remove('drag-hover'); }
 
@@ -466,7 +450,6 @@
             }
         }
 
-        // --- Mobile Friendly Intuitive Click/Tap Sorting Mechanics ---
         let selectedMobileItem = null;
         function handleMobileTapGrouping(itemEl) {
             if(selectedMobileItem) { selectedMobileItem.style.border = "none"; }
@@ -493,12 +476,10 @@
             }
         });
 
-        // --- Live Formula Calculation Engine ---
         function calculateLiveGroupingValues() {
             const data = missionBook[levelIndex];
             let counts = [];
 
-            // Read counts across all boxes
             for (let j = 0; j < data.divisor; j++) {
                 const tray = document.getElementById(`pod-tray-${j}`);
                 const count = tray ? tray.children.length : 0;
@@ -508,7 +489,6 @@
                 if(countBadge) countBadge.innerText = count;
             }
 
-            // Check if items are arranged uniformly
             const uniqueCounts = [...new Set(counts)];
             const itemsPerPodInput = document.getElementById('inputQuotient');
             
@@ -517,15 +497,13 @@
             } else if(uniqueCounts.length === 2 && uniqueCounts.includes(0)) {
                 itemsPerPodInput.value = counts.every(v => v === counts[0]) ? counts[0] : ""; 
             } else {
-                itemsPerPodInput.value = ""; // Leaves blank if pods have unequal, mismatched populations
+                itemsPerPodInput.value = ""; 
             }
 
-            // Remainder is what stays in the unsorted source box
             const leftovers = document.getElementById('sourceCargoBin').children.length;
             document.getElementById('inputRemainder').value = leftovers;
         }
 
-        // --- Final Evaluation & Verification Rules ---
         function verifyCargoDivision() {
             const data = missionBook[levelIndex];
             let counts = [];
@@ -537,7 +515,6 @@
             const uniqueCounts = [...new Set(counts)];
             const leftovers = document.getElementById('sourceCargoBin').children.length;
 
-            // Conceptual Requirement Rule: Pod groups must be perfectly equal to make sense of division!
             if(uniqueCounts.length > 1) {
                 playSound('wrong');
                 alert("Division requires EQUAL groupings! Make sure every pod contains the exact same number of items.");
