@@ -32,8 +32,25 @@
             color: #F8FAFC;
         }
 
-        /* Enhanced Splash/Title Screen */
+        /* 1. Pure Minimalist Logo Splash Screen */
         #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #FFFFFF;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.5s ease;
+        }
+        #splash-screen img { 
+            max-width: 60%; 
+            max-height: 50%; 
+            object-fit: contain; 
+        }
+
+        /* 2. Title / Mission Setup Screen */
+        #title-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(135deg, #0B0F19 0%, #1E293B 100%);
@@ -46,46 +63,40 @@
             text-align: center;
             padding: 20px;
         }
-        #splash-screen img { 
-            max-width: 40%; 
-            max-height: 25%; 
-            object-fit: contain; 
-            margin-bottom: 20px;
-        }
         .splash-title {
             font-size: 2.8rem;
             color: var(--star-yellow);
             text-shadow: 3px 3px 0px #000;
-            margin-bottom: 15px;
+            margin-bottom: 25px;
             animation: bobble 2s ease-in-out infinite alternate;
         }
         .splash-mission-box {
             background: rgba(15, 23, 42, 0.8);
             border: 3px dashed var(--cosmic-blue);
             border-radius: 20px;
-            padding: 20px;
-            max-width: 500px;
-            margin-bottom: 30px;
+            padding: 25px;
+            max-width: 540px;
+            margin-bottom: 35px;
             box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
         .splash-mission-box h3 {
             color: var(--neon-pink);
-            font-size: 1.4rem;
-            margin-bottom: 10px;
+            font-size: 1.5rem;
+            margin-bottom: 12px;
             text-transform: uppercase;
             letter-spacing: 2px;
         }
         .splash-mission-box p {
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             line-height: 1.6;
             color: #E2E8F0;
         }
         .btn-start-game {
             background: var(--alien-green);
             color: white;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: bold;
-            padding: 12px 40px;
+            padding: 14px 45px;
             border-radius: 50px;
             border: 4px solid #000;
             cursor: pointer;
@@ -98,6 +109,7 @@
             box-shadow: none;
         }
 
+        /* Main Game Layout Components */
         .game-container {
             background: var(--card-bg);
             border: 6px solid #475569;
@@ -321,18 +333,22 @@
 </head>
 <body>
 
-    <!-- Title / Splash Screen with Game Name and Mission Statement -->
+    <!-- STAGE 1: Logo-Only Splash Screen -->
     <div id="splash-screen">
-        <img id="splashLogo" src="assets/logo.png" alt="Logo">
+        <img id="splashLogo" src="assets/logo.png" alt="Innovine Logo">
+    </div>
+
+    <!-- STAGE 2: Interactive Title Screen Container -->
+    <div id="title-screen" class="hidden" style="opacity: 0;">
         <h1 class="splash-title">Space Cargo Grouping Station! 🪐</h1>
         <div class="splash-mission-box">
             <h3>Your Mission:</h3>
             <p>Drag and distribute space items evenly into the target drop pods. Split the total cargo to find the correct quotient, keep track of leftovers, and master visual division!</p>
         </div>
-        <button class="btn-start-game" onclick="closeSplashScreen()">Launch Mission 🚀</button>
+        <button class="btn-start-game" onclick="launchCargoArena()">Launch Mission 🚀</button>
     </div>
 
-    <!-- Audios mapped to repository structure -->
+    <!-- Audio channels -->
     <audio id="audioRight" src="assets/claps.mp3" preload="auto"></audio>
     <audio id="audioWrong" src="assets/wrong.mp3" preload="auto"></audio>
     <audio id="audioApplause" src="assets/claps.mp3" preload="auto"></audio>
@@ -390,14 +406,31 @@
     </div>
 
     <script>
-        // Dismiss splash container manually on button interaction
-        function closeSplashScreen() {
-            const splash = document.getElementById('splash-screen');
-            if(splash) {
-                splash.style.opacity = 0;
-                setTimeout(() => splash.style.display = 'none', 500);
-            }
+        window.onload = function() {
+            // Changed timeout to 5000ms (5 seconds) per instructions
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                const titleScreen = document.getElementById('title-screen');
+                
+                if(splash) splash.style.opacity = 0;
+                setTimeout(() => {
+                    if(splash) splash.style.display = 'none';
+                    if(titleScreen) {
+                        titleScreen.classList.remove('hidden');
+                        setTimeout(() => titleScreen.style.opacity = 1, 50);
+                    }
+                }, 500);
+            }, 5000);
+            
             startCargoEngine();
+        };
+
+        function launchCargoArena() {
+            const titleScreen = document.getElementById('title-screen');
+            if(titleScreen) {
+                titleScreen.style.opacity = 0;
+                setTimeout(() => titleScreen.style.display = 'none', 500);
+            }
         }
 
         function playSound(type) {
