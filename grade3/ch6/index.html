@@ -32,17 +32,71 @@
             color: #F8FAFC;
         }
 
+        /* Enhanced Splash/Title Screen */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: #FFFFFF;
+            background: linear-gradient(135deg, #0B0F19 0%, #1E293B 100%);
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             z-index: 9999;
             transition: opacity 0.5s ease;
+            text-align: center;
+            padding: 20px;
         }
-        #splash-screen img { max-width: 60%; max-height: 50%; object-fit: contain; }
+        #splash-screen img { 
+            max-width: 40%; 
+            max-height: 25%; 
+            object-fit: contain; 
+            margin-bottom: 20px;
+        }
+        .splash-title {
+            font-size: 2.8rem;
+            color: var(--star-yellow);
+            text-shadow: 3px 3px 0px #000;
+            margin-bottom: 15px;
+            animation: bobble 2s ease-in-out infinite alternate;
+        }
+        .splash-mission-box {
+            background: rgba(15, 23, 42, 0.8);
+            border: 3px dashed var(--cosmic-blue);
+            border-radius: 20px;
+            padding: 20px;
+            max-width: 500px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .splash-mission-box h3 {
+            color: var(--neon-pink);
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .splash-mission-box p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            color: #E2E8F0;
+        }
+        .btn-start-game {
+            background: var(--alien-green);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 12px 40px;
+            border-radius: 50px;
+            border: 4px solid #000;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #166534;
+            text-shadow: 1px 1px 0 #000;
+            transition: transform 0.1s;
+        }
+        .btn-start-game:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
 
         .game-container {
             background: var(--card-bg);
@@ -267,10 +321,18 @@
 </head>
 <body>
 
+    <!-- Title / Splash Screen with Game Name and Mission Statement -->
     <div id="splash-screen">
         <img id="splashLogo" src="assets/logo.png" alt="Logo">
+        <h1 class="splash-title">Space Cargo Grouping Station! 🪐</h1>
+        <div class="splash-mission-box">
+            <h3>Your Mission:</h3>
+            <p>Drag and distribute space items evenly into the target drop pods. Split the total cargo to find the correct quotient, keep track of leftovers, and master visual division!</p>
+        </div>
+        <button class="btn-start-game" onclick="closeSplashScreen()">Launch Mission 🚀</button>
     </div>
 
+    <!-- Audios mapped to repository structure -->
     <audio id="audioRight" src="assets/claps.mp3" preload="auto"></audio>
     <audio id="audioWrong" src="assets/wrong.mp3" preload="auto"></audio>
     <audio id="audioApplause" src="assets/claps.mp3" preload="auto"></audio>
@@ -328,16 +390,15 @@
     </div>
 
     <script>
-        window.onload = function() {
-            setTimeout(() => {
-                const splash = document.getElementById('splash-screen');
-                if(splash) {
-                    splash.style.opacity = 0;
-                    setTimeout(() => splash.style.display = 'none', 500);
-                }
-            }, 1500);
+        // Dismiss splash container manually on button interaction
+        function closeSplashScreen() {
+            const splash = document.getElementById('splash-screen');
+            if(splash) {
+                splash.style.opacity = 0;
+                setTimeout(() => splash.style.display = 'none', 500);
+            }
             startCargoEngine();
-        };
+        }
 
         function playSound(type) {
             const el = document.getElementById(type === 'right' ? 'audioRight' : type === 'wrong' ? 'audioWrong' : 'audioApplause');
