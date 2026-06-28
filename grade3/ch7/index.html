@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Skyburst Arithmetic: Balloon Blast!</title>
+    <title>Skyburst Metrics: Ultimate Playground</title>
     <style>
         :root {
             --sky-blue: #a0e0ff;
@@ -12,7 +12,9 @@
             --grass-green: #4ade80;
             --cloud-white: #ffffff;
             --text-dark: #2c3e50;
-            --glow-shadow: 0 8px 20px rgba(58, 134, 255, 0.2);
+            --wood-brown: #8b5a2b;
+            --wood-light: #cd853f;
+            --iron-gray: #708090;
         }
 
         * {
@@ -47,8 +49,9 @@
         }
         .loading-box {
             background: rgba(255, 255, 255, 0.9); padding: 35px; border-radius: 30px;
-            box-shadow: var(--glow-shadow); text-align: center; width: 90%; max-width: 420px;
-            border: 3px solid #fff; display: flex; flex-direction: column; align-items: center;
+            text-align: center; width: 90%; max-width: 420px; border: 3px solid #fff;
+            display: flex; flex-direction: column; align-items: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }
         .innovine-logo-container {
             margin-bottom: 25px; background: #ffffff; padding: 15px; border-radius: 15px;
@@ -56,14 +59,14 @@
         }
         .innovine-logo-img { max-height: 65px; max-width: 100%; object-fit: contain; }
         .loading-bar { width: 100%; height: 12px; background: #e0f4ff; border-radius: 10px; margin-top: 15px; overflow: hidden; }
-        .loading-fill { width: 100%; height: 100%; background: var(--balloon-blue); transform: translateX(-100%); animation: load 5s linear forwards; }
+        .loading-fill { width: 100%; height: 100%; background: var(--balloon-blue); transform: translateX(-100%); animation: load 3s linear forwards; }
         @keyframes load { 100% { transform: translateX(0); } }
 
-        /* --- CONTAINER --- */
+        /* --- MAIN WRAPPER --- */
         .game-box {
             width: 100%;
             max-width: 850px;
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.9);
             border-radius: 35px;
             box-shadow: 0 15px 35px rgba(0, 50, 100, 0.15);
             border: 6px solid var(--cloud-white);
@@ -78,20 +81,16 @@
         .game-page { display: none; flex-direction: column; flex: 1; padding: 25px; opacity: 0; transition: opacity 0.3s ease; }
         .game-page.active { display: flex; opacity: 1; }
 
-        /* --- TITLE SCREEN --- */
         #page-welcome { text-align: center; justify-content: center; align-items: center; }
-        .balloon-animation { font-size: 5rem; animation: floatUp 3s infinite alternate ease-in-out; margin-bottom: 15px; }
-        @keyframes floatUp { 0% { transform: translateY(10px) scale(1); } 100% { transform: translateY(-15px) scale(1.05); } }
-
+        
         .sunny-button {
             background: linear-gradient(135deg, #ff9f43, #ff6b6b);
             border: none; color: #fff; font-size: 1.4rem; font-weight: bold; text-transform: uppercase;
             padding: 15px 45px; border-radius: 50px; cursor: pointer; box-shadow: 0 6px 15px rgba(255, 107, 107, 0.4);
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s;
         }
         .sunny-button:hover { transform: scale(1.05); }
 
-        /* --- GAMEPLAY ZONE --- */
         .hud-top {
             display: flex; justify-content: space-between; align-items: center;
             background: var(--cloud-white); padding: 15px 25px; border-radius: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
@@ -99,66 +98,80 @@
         .target-alert-badge {
             background: linear-gradient(135deg, var(--balloon-blue), #1a66ff);
             padding: 10px 25px; border-radius: 20px; font-size: 1.3rem; font-weight: bold;
-            color: white; box-shadow: 0 4px 15px rgba(58, 134, 255, 0.3); text-align: center;
-            max-width: 60%;
+            color: white; text-align: center; max-width: 65%;
         }
 
-        /* SUNNY SKY PLAYGROUND */
+        /* --- ADAPTIVE DYNAMIC PLAYGROUND --- */
         .sky-play-bay {
             flex: 1; background: linear-gradient(to bottom, #e0f6ff, #ffffff); border: 3px dashed #bfeeff; border-radius: 25px;
-            margin: 20px 0; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 20px; position: relative;
+            margin: 20px 0; display: flex; padding: 20px; position: relative; min-height: 360px;
         }
 
-        /* BALLOON ROW CONTAINER */
-        .balloon-row {
-            display: flex; gap: 15px; justify-content: center; align-items: center; width: 100%; min-height: 130px; flex-wrap: wrap;
-        }
+        /* Standard Row Layout (Capacity/Length) */
+        .sky-play-bay.row-mode { flex-direction: column; justify-content: space-between; align-items: center; }
 
-        /* BALLOONS SITTING IN A ROW */
+        /* Split-Screen Layout (Weight Mode) */
+        .sky-play-bay.split-mode { flex-direction: row; justify-content: space-between; align-items: center; gap: 20px; }
+
+        .left-zone, .right-zone { width: 50%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .left-zone { border-right: 2px dashed #bfeeff; }
+
+        /* --- BALLOONS INTERFACE --- */
+        .balloon-row { display: flex; gap: 15px; justify-content: center; align-items: center; width: 100%; min-height: 130px; flex-wrap: wrap; }
         .floating-balloon {
-            position: relative; width: 85px; height: 105px;
-            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
-            cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;
-            box-shadow: inset -8px -8px 15px rgba(0,0,0,0.1), 0 8px 12px rgba(0,0,0,0.08); 
-            transition: transform 0.15s, opacity 0.15s;
-            animation: sway 2.5s infinite alternate ease-in-out;
+            position: relative; width: 85px; height: 105px; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: inset -8px -8px 15px rgba(0,0,0,0.1), 0 8px 12px rgba(0,0,0,0.08); transition: transform 0.15s, opacity 0.15s;
         }
-        .floating-balloon:hover { transform: translateY(-8px) scale(1.08); }
+        .floating-balloon::after { content: ""; position: absolute; bottom: -6px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 8px solid currentColor; filter: brightness(0.9); }
+        .floating-balloon .metric-tag { font-weight: bold; color: #fff; font-size: 1.1rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.3); }
+
+        /* --- LIQUID BUCKET SYSTEM --- */
+        .bucket-zone { position: relative; width: 140px; height: 140px; }
+        .bucket-handle { position: absolute; top: -15px; left: 10px; width: 120px; height: 80px; border: 5px solid #95a5a6; border-bottom: none; border-radius: 70px 70px 0 0; }
+        .bucket { position: relative; width: 120px; height: 120px; background: #e2e8f0; border: 5px solid #94a3b8; border-top: none; border-radius: 0 0 25px 25px; clip-path: polygon(0 0, 100% 0, 84% 100%, 16% 100%); overflow: hidden; margin: 0 auto; }
+        .bucket-liquid { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background: linear-gradient(180deg, #4fc3f7, #0288d1); transition: height 0.4s ease; }
+
+        /* --- WOOD LOGS ENGINE (WEIGHT ROUNDS) --- */
+        .log-pile { display: flex; flex-direction: column-reverse; gap: 8px; width: 100%; align-items: center; justify-content: center; min-height: 250px; }
+        .wooden-log {
+            width: 160px; height: 42px; background: linear-gradient(90deg, var(--wood-brown), var(--wood-light), var(--wood-brown));
+            border-radius: 8px; border: 2px solid #5c3a21; position: relative; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15); transition: transform 0.2s, opacity 0.2s;
+        }
+        .wooden-log:hover { transform: scale(1.05) translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.2); }
+        .wooden-log::before, .wooden-log::after {
+            content: ""; position: absolute; top: 0; width: 12px; height: 100%; background: #d2b48c; border-radius: 50%; border: 1px solid #5c3a21;
+        }
+        .wooden-log::before { left: -6px; } .wooden-log::after { right: -6px; }
+        .wooden-log span { z-index: 2; text-shadow: 1px 1px 2px black; font-size: 1.1rem; }
+
+        /* --- HEAVY INDUSTRIAL BALANCE SCALE --- */
+        .scale-machine { position: relative; width: 180px; height: 260px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+        .scale-base { width: 160px; height: 20px; background: var(--iron-gray); border-radius: 5px; box-shadow: 0 4px 5px rgba(0,0,0,0.2); }
+        .scale-pillar { width: 16px; height: 100px; background: #94a3b8; }
+        .scale-pan {
+            width: 150px; height: 12px; background: #cbd5e1; border-top: 3px solid #64748b; border-radius: 2px;
+            position: absolute; bottom: 120px; transition: transform 0.3s ease;
+        }
+        .scale-items-container {
+            position: absolute; bottom: 132px; width: 140px; display: flex; flex-direction: column-reverse;
+            gap: 4px; align-items: center; transition: transform 0.3s ease;
+        }
+        .scale-items-container .wooden-log { width: 120px; height: 30px; font-size: 0.9rem; cursor: default; transform: none !important; }
         
-        .floating-balloon::after {
-            content: ""; position: absolute; bottom: -6px; width: 0; height: 0;
-            border-left: 6px solid transparent; border-right: 6px solid transparent;
-            border-bottom: 8px solid currentColor; filter: brightness(0.9);
+        /* Spring scale readout dial gauge */
+        .scale-dial-housing {
+            position: absolute; bottom: 30px; width: 85px; height: 85px; background: #fff;
+            border: 6px solid var(--iron-gray); border-radius: 50%; display: flex; align-items: center; justify-content: center;
         }
-        .floating-balloon .metric-tag { font-weight: bold; color: #fff; font-size: 1.15rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.3); z-index: 2; }
-
-        @keyframes sway {
-            0% { transform: translateY(0) rotate(-3deg); }
-            100% { transform: translateY(-5px) rotate(3deg); }
+        .scale-needle {
+            width: 4px; height: 32px; background: #ef4444; position: absolute; bottom: 50%;
+            transform-origin: bottom center; transform: rotate(0deg); transition: transform 0.4s ease; border-radius: 4px;
         }
 
-        /* --- VISUAL BUCKET COLLECTOR --- */
-        .bucket-zone {
-            position: relative; width: 150px; height: 150px; margin-bottom: 10px;
-        }
-        .bucket-handle {
-            position: absolute; top: -15px; left: 10px; width: 130px; height: 80px;
-            border: 5px solid #95a5a6; border-bottom: none; border-radius: 70px 70px 0 0; z-index: 1;
-        }
-        .bucket {
-            position: relative; width: 130px; height: 130px; background: #e2e8f0;
-            border: 5px solid #94a3b8; border-top: none; border-radius: 0 0 25px 25px;
-            clip-path: polygon(0 0, 100% 0, 84% 100%, 16% 100%); overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.06); z-index: 2; margin: 0 auto;
-        }
-        .bucket-liquid {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 0%;
-            background: linear-gradient(180deg, #ff9f43, #ff5252);
-            transition: height 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        /* Dynamic item types will alter liquid tint colors via JS for custom visual sync */
-
-        /* PROGRESS GAUGES */
+        /* --- DASHBOARD PROGRESS FOOTER --- */
         .dashboard-gauges { display: flex; gap: 20px; justify-content: center; align-items: center; padding: 10px; width: 100%; }
         .basket-gauge-container { width: 60%; background: #e0eaf0; height: 38px; border-radius: 50px; border: 3px solid var(--cloud-white); overflow: hidden; position: relative; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
         .basket-gauge-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #4ade80, #2ecc71); transition: width 0.3s ease; }
@@ -186,11 +199,11 @@
     <div class="game-box">
         
         <div class="game-page active" id="page-welcome">
-            <div class="balloon-animation">🎈☀️📏</div>
+            <div class="balloon-animation">🎈🪵📏</div>
             <h1 style="font-size: 2.6rem; color: var(--text-dark); font-weight: 800;">Skyburst Metrics</h1>
             <h3 style="color: var(--balloon-blue); letter-spacing: 1.5px; margin-bottom: 20px; font-weight: 700;">MEASUREMENT & ESTIMATION</h3>
             <p style="max-width: 520px; margin-bottom: 35px; font-size: 1.25rem; line-height: 1.6; color: #576574;">
-                Master Length, Weight, and Capacity! Read the challenge target on the badge, then pop the balloons to perfectly fill your collector bucket!
+                Pop liquid balloons or stack heavy wooden logs onto the scale to match the target quantities perfectly!
             </p>
             <button class="sunny-button" onclick="launchGameCore()">Start Mission 🚀</button>
         </div>
@@ -202,19 +215,11 @@
                 <div style="font-size: 1.25rem; font-weight: bold; color: #ff9f43;">Score: <span id="hud-score-val">0</span> ⭐</div>
             </div>
 
-            <div class="sky-play-bay">
-                <div class="balloon-row" id="balloon-row-container"></div>
-                
-                <div class="bucket-zone">
-                    <div class="bucket-handle"></div>
-                    <div class="bucket">
-                        <div class="bucket-liquid" id="bucket-water-fill"></div>
-                    </div>
+            <div class="sky-play-bay row-mode" id="dynamic-playground-environment">
                 </div>
-            </div>
 
             <div class="dashboard-gauges">
-                <div style="font-weight: bold; font-size: 1.2rem; color: var(--text-dark);" id="gauge-title-label">Your Total:</div>
+                <div style="font-weight: bold; font-size: 1.2rem; color: var(--text-dark);" id="gauge-title-label">Total Loaded:</div>
                 <div class="basket-gauge-container">
                     <div class="basket-gauge-fill" id="gauge-fill-bar"></div>
                     <div class="basket-gauge-text" id="gauge-readout-label">0 / 0</div>
@@ -222,12 +227,12 @@
             </div>
 
             <div class="control-btns-row">
-                <button class="clear-btn" onclick="dumpCurrentHold()">Empty Bucket 🗑️</button>
+                <button class="clear-btn" id="clear-btn-label" onclick="dumpCurrentHold()">Reset Round 🗑️</button>
             </div>
         </div>
 
         <div class="game-page" id="page-end" style="text-align: center; justify-content: center; align-items: center;">
-            <div style="font-size: 5.5rem;">🏆🎈🎉</div>
+            <div style="font-size: 5.5rem;">🏆🪵🎉</div>
             <h1 style="color: var(--grass-green); font-size: 2.7rem; margin: 15px 0; font-weight: 800;">Phenomenal Job!</h1>
             <p style="font-size: 1.35rem; margin-bottom: 30px; color: #576574;" id="end-telemetry-msg"></p>
             <button class="sunny-button" onclick="restartWholeGame()">Play Again 🔄</button>
@@ -241,48 +246,43 @@
         let currentHoldValue = 0;
         let currentLevelTarget = 0;
         let currentUnitType = "";
+        let logsOnScaleArray = []; // Track active item nodes visually loaded on scale right side pan
 
-        // Diversified blueprint containing all Chapter 7 learning targets
         const gameLevelsBlueprints = [
             {
                 type: "capacity",
                 target: 80,
                 unit: "Liters",
                 display: "💧 Capacity: Collect exactly 80 Liters of water!",
-                optionsPool: [10, 20, 35, 45, 50, 15],
-                color: "linear-gradient(180deg, #4fc3f7, #0288d1)" // Blue water
+                optionsPool: [10, 20, 35, 45, 50, 15]
             },
             {
                 type: "weight",
                 target: 500,
                 unit: "grams",
-                display: "⚖️ Weight: Collect exactly 500 grams of clay weight!",
-                optionsPool: [100, 200, 300, 50, 150],
-                color: "linear-gradient(180deg, #bcaaa4, #8d6e63)" // Brown clay mud
+                display: "🪵 Weight: Stack logs to reach exactly 500g on the scale!",
+                optionsPool: [100, 200, 300, 50, 150]
             },
             {
                 type: "length",
                 target: 15,
                 unit: "meters",
-                display: "📏 Length: Assemble exactly 15 meters of pipeline!",
-                optionsPool: [2, 3, 5, 7, 10, 1],
-                color: "linear-gradient(180deg, #a5d6a7, #4caf50)" // Green pipe fluid
+                display: "📏 Length: Assemble exactly 15 meters of cable line!",
+                optionsPool: [2, 3, 5, 7, 10, 1]
             },
             {
                 type: "capacity",
                 target: 600,
                 unit: "mL",
-                display: "🧪 Capacity: Pour exactly 600 mL of fluid!",
-                optionsPool: [200, 350, 250, 50, 100],
-                color: "linear-gradient(180deg, #e1bee7, #9c27b0)" // Purple chemical
+                display: "🧪 Capacity: Pour exactly 600 mL into the bucket!",
+                optionsPool: [200, 350, 250, 50, 100]
             },
             {
                 type: "weight",
                 target: 12,
                 unit: "kg",
-                display: "🏋️ Weight: Load exactly 12 kg of iron mass!",
-                optionsPool: [2, 4, 6, 3, 5, 1],
-                color: "linear-gradient(180deg, #cfd8dc, #607d8b)" // Gray steel
+                display: "🪵 Weight: Stack logs to load exactly 12 kg on the scale!",
+                optionsPool: [2, 4, 6, 3, 5, 1]
             }
         ];
 
@@ -311,6 +311,7 @@
             }
 
             currentHoldValue = 0;
+            logsOnScaleArray = [];
             let currentData = gameLevelsBlueprints[currentLevel];
             currentLevelTarget = currentData.target;
             currentUnitType = currentData.unit;
@@ -319,42 +320,98 @@
             document.getElementById('hud-score-val').innerText = score;
             document.getElementById('hud-target-display').innerText = currentData.display;
             
-            // Adjust label title dynamically to match current LO context
-            document.getElementById('gauge-title-label').innerText = `Current ${currentData.type.charAt(0).toUpperCase() + currentData.type.slice(1)}:`;
-            
-            // Re-skin collector bucket fill texture color matching the measurement medium
-            document.getElementById('bucket-water-fill').style.background = currentData.color;
+            document.getElementById('gauge-title-label').innerText = currentData.type === "weight" ? "Scale Weight:" : "Bucket Fill:";
+            document.getElementById('clear-btn-label').innerText = currentData.type === "weight" ? "Clear Scale 🗑️" : "Empty Bucket 🗑️";
 
+            setupRoundLayout(currentData);
             updateVisualHoldGauge();
-            populateFloatingBalloons(currentData);
         }
 
-        function populateFloatingBalloons(levelData) {
-            const container = document.getElementById('balloon-row-container');
-            container.innerHTML = "";
+        function setupRoundLayout(levelData) {
+            const playBay = document.getElementById('dynamic-playground-environment');
+            playBay.innerHTML = "";
 
             let randomizedOptions = [...levelData.optionsPool];
             shuffleDeckArray(randomizedOptions);
 
-            randomizedOptions.forEach((val, idx) => {
-                let balloon = document.createElement('div');
-                balloon.className = "floating-balloon";
-                balloon.innerHTML = `<span class="metric-tag">${val} <small style="font-size:0.7rem;">${levelData.unit}</small></span>`;
+            if (levelData.type === "weight") {
+                // Weight Mode: Change playground grid structure style sheets to dual column split layout mode
+                playBay.className = "sky-play-bay split-mode";
+
+                // Left Column: Stacking Logs selection container deck
+                const leftZone = document.createElement('div');
+                leftZone.className = "left-zone";
+                leftZone.innerHTML = `<h4 style="margin-bottom:12px; color:#5c3a21;">Available Log Pile</h4><div class="log-pile" id="log-pile-source"></div>`;
+                playBay.appendChild(leftZone);
+
+                // Right Column: Weighing machine scale interface dashboard
+                const rightZone = document.createElement('div');
+                rightZone.className = "right-zone";
+                rightZone.innerHTML = `
+                    <div class="scale-machine">
+                        <div class="scale-items-container" id="scale-loaded-logs"></div>
+                        <div class="scale-pan" id="scale-plate-pan"></div>
+                        <div class="scale-pillar"></div>
+                        <div class="scale-dial-housing">
+                            <div class="scale-needle" id="scale-pointer-needle"></div>
+                        </div>
+                        <div class="scale-base"></div>
+                    </div>
+                `;
+                playBay.appendChild(rightZone);
+
+                // Inject logs into left pile side frame
+                const pileContainer = document.getElementById('log-pile-source');
+                randomizedOptions.forEach((val) => {
+                    let log = document.createElement('div');
+                    log.className = "wooden-log";
+                    log.innerHTML = `<span>${val} ${levelData.unit}</span>`;
+                    log.onclick = () => { selectWeightLogItem(val, log); };
+                    pileContainer.appendChild(log);
+                });
+
+            } else {
+                // Capacity/Length Standard Setup: Standard Top Row & Bottom Bucket layout view mode 
+                playBay.className = "sky-play-bay row-mode";
                 
-                let randomColor = balloonColors[idx % balloonColors.length];
-                balloon.style.backgroundColor = randomColor;
-                balloon.style.color = randomColor; 
-                balloon.style.animationDelay = `${idx * 0.15}s`;
+                const rowContainer = document.createElement('div');
+                rowContainer.className = "balloon-row";
+                rowContainer.id = "balloon-row-container";
+                playBay.appendChild(rowContainer);
 
-                balloon.onclick = () => {
-                    popBalloonAction(val, balloon);
-                };
+                const bucketContainer = document.createElement('div');
+                bucketContainer.className = "bucket-zone";
+                bucketContainer.innerHTML = `
+                    <div class="bucket-handle"></div>
+                    <div class="bucket">
+                        <div class="bucket-liquid" id="bucket-water-fill"></div>
+                    </div>
+                `;
+                playBay.appendChild(bucketContainer);
 
-                container.appendChild(balloon);
-            });
+                // Customize fluid theme coloring depending on Capacity vs Length mode execution
+                const fluidNode = document.getElementById('bucket-water-fill');
+                fluidNode.style.background = levelData.type === "length" 
+                    ? "linear-gradient(180deg, #a5d6a7, #4caf50)" // Green string lines line height track meters
+                    : "linear-gradient(180deg, #4fc3f7, #0288d1)"; // Blue pure fluid liquid liters
+
+                randomizedOptions.forEach((val, idx) => {
+                    let balloon = document.createElement('div');
+                    balloon.className = "floating-balloon";
+                    balloon.innerHTML = `<span class="metric-tag">${val}<small style="font-size:0.75rem;display:block;text-align:center;">${levelData.unit}</small></span>`;
+                    
+                    let randomColor = balloonColors[idx % balloonColors.length];
+                    balloon.style.backgroundColor = randomColor;
+                    balloon.style.color = randomColor; 
+
+                    balloon.onclick = () => { selectCapacityBalloonItem(val, balloon); };
+                    rowContainer.appendChild(balloon);
+                });
+            }
         }
 
-        function popBalloonAction(amount, element) {
+        // --- CAPACITY / LENGTH LOGIC INTERACTION HANDLING ---
+        function selectCapacityBalloonItem(amount, element) {
             currentHoldValue += amount;
             updateVisualHoldGauge();
 
@@ -363,14 +420,42 @@
             element.style.pointerEvents = "none";
             setTimeout(() => { element.remove(); }, 125);
 
+            evaluateScoreConditionChecks();
+        }
+
+        // --- WEIGHT LOGS BALANCING SCALE INTERACTION HANDLING ---
+        function selectWeightLogItem(amount, element) {
+            currentHoldValue += amount;
+            updateVisualHoldGauge();
+
+            // Animate moving log node out from left deck options pile column index safely
+            element.style.opacity = "0.3";
+            element.style.pointerEvents = "none";
+
+            // Add item layer graphic replica building up inside scale platform plate
+            const loadedContainer = document.getElementById('scale-loaded-logs');
+            let logPlateReplica = document.createElement('div');
+            logPlateReplica.className = "wooden-log";
+            logPlateReplica.innerHTML = `<span>${amount} ${currentUnitType}</span>`;
+            loadedContainer.appendChild(logPlateReplica);
+
+            // Compress/depress scale hardware downward slightly dynamically as items build up 
+            let depressionWeightOffset = Math.min((currentHoldValue / currentLevelTarget) * 12, 14);
+            document.getElementById('scale-plate-pan').style.transform = `translateY(${depressionWeightOffset}px)`;
+            loadedContainer.style.transform = `translateY(${depressionWeightOffset}px)`;
+
+            evaluateScoreConditionChecks();
+        }
+
+        function evaluateScoreConditionChecks() {
             if (currentHoldValue === currentLevelTarget) {
                 score += 100;
                 document.getElementById('sound-yes').play().catch(()=>{});
                 currentLevel++;
-                setTimeout(initiateSkyRound, 750);
+                setTimeout(initiateSkyRound, 900);
             } else if (currentHoldValue > currentLevelTarget) {
                 document.getElementById('sound-no').play().catch(()=>{});
-                alert(`Oops! Overflowed past the targeted ${currentLevelTarget} ${currentUnitType}. Resetting round!`);
+                alert(`Target Alert! Your measurement load (${currentHoldValue} ${currentUnitType}) exceeded the requested objective goal of ${currentLevelTarget} ${currentUnitType}. Let's reset and balance it again!`);
                 dumpCurrentHold();
             }
         }
@@ -378,22 +463,35 @@
         function dumpCurrentHold() {
             currentHoldValue = 0;
             updateVisualHoldGauge();
-            populateFloatingBalloons(gameLevelsBlueprints[currentLevel]);
+            initiateSkyRound(); // Re-render clean matching layout blueprints assets configuration instantly
         }
 
         function updateVisualHoldGauge() {
             let pct = (currentHoldValue / currentLevelTarget) * 100;
             if(pct > 100) pct = 100;
             
+            // Sync status tracking bar footer indicators
             document.getElementById('gauge-fill-bar').style.width = `${pct}%`;
-            document.getElementById('bucket-water-fill').style.height = `${pct}%`;
             document.getElementById('gauge-readout-label').innerText = `${currentHoldValue} / ${currentLevelTarget} ${currentUnitType}`;
+
+            // Object UI target tracking modules updating loop logic
+            const waterFill = document.getElementById('bucket-water-fill');
+            if (waterFill) {
+                waterFill.style.height = `${pct}%`;
+            }
+
+            const needle = document.getElementById('scale-pointer-needle');
+            if (needle) {
+                // Dial sweeps around matching dial percentage parameters safely (Max 180deg sweep)
+                let angleRotation = (pct / 100) * 180;
+                needle.style.transform = `rotate(${angleRotation}deg)`;
+            }
         }
 
         function gameOverShowdown() {
             document.getElementById('page-play').classList.remove('active');
             document.getElementById('page-end').classList.add('active');
-            document.getElementById('end-telemetry-msg').innerText = `Amazing estimation and calculation! You mastered length, weight, and capacity items flawlessly with ${score} points!`;
+            document.getElementById('end-telemetry-msg').innerText = `Phenomenal! You successfully balanced heavy log scales and measured water capacities to score ${score} points!`;
         }
 
         function restartWholeGame() {
@@ -408,7 +506,7 @@
                     splash.style.opacity = 0;
                     setTimeout(() => splash.remove(), 600);
                 }
-            }, 5000);
+            }, 1500); // Quick load animation pass
         });
     </script>
 </body>
