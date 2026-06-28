@@ -12,4 +12,599 @@
             --grass-green: #2ecc71;
             --cloud-white: #ffffff;
             --text-dark: #2c3e50;
-            --wood-brown: #
+            --wood-brown: #8b5a2b;
+            --wood-light: #cd853f;
+            --iron-gray: #708090;
+            --rope-color: #d2b48c;
+            --gold-star: #f1c40f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Trebuchet MS', 'Comic Sans MS', sans-serif;
+        }
+
+        body {
+            background-color: var(--sky-blue);
+            background-image: 
+                radial-gradient(circle at 10% 10%, var(--sunny-yellow) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255,255,255,0.6) 0%, transparent 25%);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            overflow-x: hidden;
+            user-select: none;
+        }
+
+        /* --- MANDATORY 5-SECOND SPLASH SCREEN --- */
+        #loading-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(180deg, #1e3a5f, #0f172a);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999; transition: opacity 0.6s ease;
+        }
+        .loading-box {
+            background: rgba(255, 255, 255, 0.95); padding: 35px; border-radius: 30px;
+            text-align: center; width: 90%; max-width: 420px; border: 4px solid #fff;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3); display: flex; flex-direction: column; align-items: center;
+        }
+        .innovine-logo-container {
+            margin-bottom: 25px; background: #ffffff; padding: 15px; border-radius: 15px;
+            display: inline-flex; align-items: center; justify-content: center; min-height: 70px; width: 100%;
+        }
+        .innovine-logo-img { max-height: 65px; max-width: 100%; object-fit: contain; }
+        .loading-title { color: #1e293b; font-size: 1.1rem; font-weight: 900; margin-bottom: 12px; letter-spacing: 1px; }
+        .loading-bar { width: 100%; height: 16px; background: #e0f4ff; border-radius: 10px; overflow: hidden; border: 2px solid #bde0fe; }
+        .loading-fill { width: 100%; height: 100%; background: #ff4757; transform: translateX(-100%); animation: load 4.8s linear forwards; }
+        @keyframes load { 100% { transform: translateX(0); } }
+
+        /* --- MAIN WRAPPER CONTAINER --- */
+        .game-box {
+            width: 100%;
+            max-width: 950px;
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 35px;
+            box-shadow: 0 25px 50px rgba(0, 30, 80, 0.22);
+            border: 8px solid var(--cloud-white);
+            min-height: 735px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-page { display: none; flex-direction: column; flex: 1; padding: 25px; opacity: 0; transition: opacity 0.3s ease; position: relative; }
+        .game-page.active { display: flex; opacity: 1; }
+
+        #page-welcome { text-align: center; justify-content: center; align-items: center; padding: 40px; }
+        
+        .sunny-button {
+            background: linear-gradient(135deg, #ff9f43, #ff4757);
+            border: none; color: #fff; font-size: 1.5rem; font-weight: 900; text-transform: uppercase;
+            padding: 18px 55px; border-radius: 50px; cursor: pointer; box-shadow: 0 10px 25px rgba(255, 71, 87, 0.45);
+            transition: transform 0.2s, box-shadow 0.2s; border-bottom: 5px solid #b32e3a;
+        }
+        .sunny-button:hover { transform: scale(1.05); box-shadow: 0 12px 30px rgba(255, 71, 87, 0.55); }
+        .sunny-button:active { transform: scale(0.98); border-bottom-width: 2px; margin-top: 3px; }
+
+        /* --- METRICS MISSION MAP (VISUAL FLOW) --- */
+        .mission-map {
+            display: flex; justify-content: space-between; align-items: center; width: 100%;
+            background: #f8fafc; padding: 10px; border-radius: 20px; margin-bottom: 15px;
+            border: 2px dashed #cbd5e1; flex-wrap: wrap; gap: 6px;
+        }
+        .map-node {
+            flex: 1; min-width: 80px; text-align: center; padding: 6px 4px; font-weight: 900; font-size: 0.75rem;
+            background: #e2e8f0; border-radius: 10px; color: #64748b;
+            position: relative; transition: all 0.3s; text-transform: uppercase;
+        }
+        .map-node.active { background: #3a86ff; color: white; transform: scale(1.05); box-shadow: 0 4px 10px rgba(58,134,255,0.3); }
+        .map-node.cleared { background: #2ecc71; color: white; }
+
+        /* --- HUD ELEMENTS --- */
+        .hud-top {
+            display: flex; justify-content: space-between; align-items: center;
+            background: #f1f9ff; padding: 12px 25px; border-radius: 25px; border: 2px solid #d0e8ff;
+            margin-bottom: 10px;
+        }
+        .badge-pill { background: #ffffff; padding: 8px 18px; border-radius: 20px; font-weight: 900; font-size: 1.2rem; color: #2c3e50; border: 2px solid #cbd5e1; }
+        .score-pill { background: linear-gradient(135deg, #fff3c4, #f1c40f); color: #613400; border: 2px solid #e67e22; }
+
+        /* --- SCENARIO QUEST BAR --- */
+        .scenario-quest-banner {
+            background: linear-gradient(135deg, #fff9db, #fff3bf);
+            border-left: 8px solid #f59f00; border-right: 2px solid #ffe066; border-top: 2px solid #ffe066; border-bottom: 4px solid #f59f00;
+            padding: 15px 20px; border-radius: 20px; margin-bottom: 15px;
+            display: flex; flex-direction: column; gap: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+        }
+        .quest-context { font-size: 1.15rem; color: #b45309; font-weight: bold; }
+        .quest-task { font-size: 1.45rem; color: #1e293b; font-weight: 900; background: #fff; padding: 8px 12px; border-radius: 10px; border: 1px dashed #f59f00; }
+
+        /* --- PLAYGROUND ENVIRONMENTS --- */
+        .sky-play-bay {
+            flex: 1; background: linear-gradient(to bottom, #f8fafc, #ffffff); border: 4px dashed #94a3b8; border-radius: 28px;
+            margin-bottom: 15px; display: flex; padding: 20px; position: relative; min-height: 310px;
+        }
+        .sky-play-bay.row-mode { flex-direction: column; justify-content: space-between; align-items: center; gap: 15px; }
+        .sky-play-bay.split-mode { flex-direction: row; justify-content: space-between; align-items: center; gap: 20px; }
+
+        .left-zone, .right-zone { width: 50%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .left-zone { border-right: 3px dashed #cbd5e1; padding-right: 15px; }
+        .right-zone { padding-left: 15px; }
+
+        .zone-heading { font-size: 1.25rem; font-weight: 900; background: #f1f5f9; padding: 4px 14px; border-radius: 12px; margin-bottom: 12px; border: 1px solid #e2e8f0; }
+
+        /* --- CAPACITY ASSETS --- */
+        .balloon-row { display: flex; gap: 14px; justify-content: center; align-items: center; width: 100%; min-height: 110px; flex-wrap: wrap; }
+        .floating-balloon {
+            position: relative; width: 90px; height: 110px; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: inset -10px -10px 18px rgba(0,0,0,0.15), 0 10px 16px rgba(0,0,0,0.12); transition: transform 0.2s, opacity 0.2s;
+            border: 2px solid rgba(255,255,255,0.4);
+        }
+        .floating-balloon::after { content: ""; position: absolute; bottom: -6px; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 10px solid currentColor; filter: brightness(0.75); }
+        .floating-balloon:hover { transform: translateY(-8px) scale(1.08); }
+        .floating-balloon .metric-tag { font-weight: 900; color: #fff; font-size: 1.3rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); text-align: center; line-height: 1.1; }
+
+        .bucket-zone { position: relative; width: 160px; height: 160px; }
+        .bucket-handle { position: absolute; top: -15px; left: 15px; width: 130px; height: 85px; border: 8px solid #94a3b8; border-bottom: none; border-radius: 80px 80px 0 0; }
+        .bucket { position: relative; width: 140px; height: 120px; background: #f8fafc; border: 8px solid #64748b; border-top: none; border-radius: 0 0 35px 35px; clip-path: polygon(0 0, 100% 0, 84% 100%, 16% 100%); overflow: hidden; margin: 0 auto; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .bucket-liquid { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background: linear-gradient(180deg, #38bdf8, #0284c7); transition: height 0.4s ease-out; }
+
+        /* --- WEIGHT ASSETS --- */
+        .log-pile { display: flex; flex-wrap: wrap; gap: 12px; width: 100%; align-items: center; justify-content: center; max-height: 230px; overflow-y: auto; padding: 5px; }
+        .wooden-log {
+            width: 130px; height: 46px; background: linear-gradient(90deg, var(--wood-brown), var(--wood-light), var(--wood-brown));
+            border-radius: 12px; border: 3px solid #4a2f18; position: relative; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; color: white; font-weight: 900;
+            box-shadow: 0 6px 10px rgba(0,0,0,0.2); transition: transform 0.2s, opacity 0.2s;
+        }
+        .wooden-log:hover { transform: scale(1.08) translateY(-3px); box-shadow: 0 10px 16px rgba(0,0,0,0.3); }
+        .wooden-log::before, .wooden-log::after { content: ""; position: absolute; top: 0; width: 14px; height: 100%; background: #e6c280; border-radius: 50%; border: 2px solid #4a2f18; }
+        .wooden-log::before { left: -7px; } .wooden-log::after { right: -7px; }
+        .wooden-log span { z-index: 2; text-shadow: 2px 2px 4px rgba(0,0,0,0.9); font-size: 1.15rem; }
+
+        .scale-machine { position: relative; width: 220px; height: 240px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+        .scale-base { width: 190px; height: 26px; background: var(--iron-gray); border-radius: 8px; box-shadow: 0 6px 10px rgba(0,0,0,0.2); border-bottom: 4px solid #475569; }
+        .scale-pillar { width: 24px; height: 75px; background: #94a3b8; border-left: 2px solid #cbd5e1; }
+        .scale-pan { width: 180px; height: 16px; background: #cbd5e1; border-top: 6px solid #64748b; position: absolute; bottom: 98px; transition: transform 0.2s ease; border-radius: 4px; }
+        .scale-items-container { position: absolute; bottom: 114px; width: 150px; display: flex; flex-direction: column-reverse; gap: 4px; align-items: center; transition: transform 0.2s ease; z-index: 10; }
+        .scale-items-container .wooden-log { width: 110px; height: 34px; font-size: 0.95rem; cursor: default; transform: none !important; }
+        .scale-items-container .wooden-log span { font-size: 0.95rem; }
+        .scale-dial-housing { position: absolute; bottom: 20px; width: 90px; height: 90px; background: #fff; border: 6px solid var(--iron-gray); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 4px 8px rgba(0,0,0,0.15); }
+        .scale-needle { width: 6px; height: 36px; background: #ef4444; position: absolute; bottom: 50%; transform-origin: bottom center; transform: rotate(0deg); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); border-radius: 3px; }
+
+        /* --- LENGTH ASSETS --- */
+        .rope-bin { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; align-items: center; width: 100%; }
+        .rope-coil {
+            width: 85px; height: 85px; background: radial-gradient(circle, transparent 20%, var(--rope-color) 21%, var(--rope-color) 35%, #b59469 36%, #b59469 45%, var(--rope-color) 46%);
+            border: 4px dashed #6f5229; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 14px rgba(0,0,0,0.18); transition: transform 0.2s;
+        }
+        .rope-coil:hover { transform: scale(1.1) rotate(15deg); }
+        .rope-coil-tag { background: #fff; padding: 4px 10px; border-radius: 10px; font-weight: 900; font-size: 1.1rem; border: 2px solid #6f5229; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+
+        .clothesline-board {
+            width: 100%; height: 210px; background: #f8fafc; border: 3px dashed #cbd5e1; border-radius: 20px;
+            display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; padding: 30px 20px; position: relative;
+        }
+        .anchor-pole { position: absolute; top: 15px; width: 12px; height: 90px; background: #475569; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .anchor-left { left: 20px; } .anchor-right { right: 20px; }
+        .rope-strand-line { position: absolute; top: 35px; left: 25px; width: calc(100% - 50px); height: 8px; background: #e2e8f0; border-radius: 4px; }
+        .active-rope-filled-path {
+            position: absolute; top: 33px; left: 25px; width: 0%; height: 12px;
+            background-image: repeating-linear-gradient(45deg, var(--rope-color), var(--rope-color) 8px, #ba9668 8px, #ba9668 16px);
+            border-radius: 6px; box-shadow: 0 3px 6px rgba(0,0,0,0.2); transition: width 0.4s ease;
+        }
+
+        /* --- PROGRESS DASHBOARD FOOTER --- */
+        .dashboard-gauges { display: flex; gap: 15px; justify-content: center; align-items: center; padding: 5px; width: 100%; flex-wrap: wrap; }
+        .basket-gauge-container { flex: 1; min-width: 200px; background: #e2e8f0; height: 48px; border-radius: 50px; border: 4px solid var(--cloud-white); overflow: hidden; position: relative; box-shadow: inset 0 4px 8px rgba(0,0,0,0.12); }
+        .basket-gauge-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ff4757, #ff6b81); transition: width 0.3s ease; }
+        .basket-gauge-text { position: absolute; width: 100%; text-align: center; top: 8px; font-weight: 900; font-size: 1.4rem; color: var(--text-dark); text-shadow: 1px 1px 0px #fff; }
+        .clear-btn { background: #fee2e2; border: 3px solid #ef4444; color: #ef4444; padding: 10px 24px; border-radius: 25px; cursor: pointer; font-weight: 900; font-size: 1.1rem; transition: all 0.2s; box-shadow: 0 4px 6px rgba(239,68,68,0.15); }
+        .clear-btn:hover { background: #ef4444; color: #fff; }
+
+        /* --- APPRECIATION & TRANSITION SLIDE --- */
+        #page-transition { text-align: center; justify-content: center; align-items: center; background: linear-gradient(135deg, #e0f2fe, #bae6fd); }
+        .star-reward-badge { font-size: 5.5rem; animation: popStar 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite alternate; margin-bottom: 15px; }
+        @keyframes popStar { 0% { transform: scale(1); } 100% { transform: scale(1.15); } }
+
+        /* --- WATER SPLASH CELEBRATION EFFECT --- */
+        .water-splash-overlay {
+            position: absolute; top: 0; width: 140px; height: 100%;
+            background: radial-gradient(circle inside, #38bdf8 20%, transparent 70%);
+            opacity: 0; pointer-events: none; z-index: 100;
+        }
+        #splash-left { left: -140px; border-radius: 0 100% 100% 0; background: linear-gradient(90deg, rgba(56,189,248,0.8), transparent); }
+        #splash-right { right: -140px; border-radius: 100% 0 0 100%; background: linear-gradient(-90deg, rgba(56,189,248,0.8), transparent); }
+        
+        .trigger-splash-active #splash-left { animation: splashInLeft 0.7s ease-out; }
+        .trigger-splash-active #splash-right { animation: splashInRight 0.7s ease-out; }
+
+        @keyframes splashInLeft {
+            0% { left: -140px; opacity: 0; }
+            40% { left: 0; opacity: 1; }
+            100% { left: -140px; opacity: 0; }
+        }
+        @keyframes splashInRight {
+            0% { right: -140px; opacity: 0; }
+            40% { right: 0; opacity: 1; }
+            100% { right: -140px; opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="sound-yes" src="assets/claps.mp3" preload="auto"></audio>
+    <audio id="sound-no" src="assets/wrong.mp3" preload="auto"></audio>
+
+    <div id="loading-screen">
+        <div class="loading-box">
+            <div class="innovine-logo-container">
+                <img class="innovine-logo-img" src="assets/logo.png" alt="Innovine Logo">
+            </div>
+            <div class="loading-title">INITIALIZING 10-NODE CAMPAIGN MAP...</div>
+            <div class="loading-bar"><div class="loading-fill"></div></div>
+        </div>
+    </div>
+
+    <div class="game-box" id="game-main-box">
+        
+        <div class="water-splash-overlay" id="splash-left"></div>
+        <div class="water-splash-overlay" id="splash-right"></div>
+
+        <div class="game-page active" id="page-welcome">
+            <div style="font-size: 5rem; margin-bottom: 10px;">🛸🛠️⚡</div>
+            <h1 style="font-size: 2.8rem; color: var(--text-dark); font-weight: 900; line-height: 1.2;">Operation: Airship Rescue</h1>
+            <h3 style="color: #ff4757; letter-spacing: 1px; margin: 10px 0 25px 0; font-weight: 900; background: #ffe0e6; padding: 6px 20px; border-radius: 50px;">📐 CHAPTER 7: ULTIMATE METRIC LAB 📐</h3>
+            <p style="max-width: 650px; margin-bottom: 35px; font-size: 1.35rem; line-height: 1.6; color: #475569; font-weight: bold;">
+                Attention, Lead Engineer! The legendary explorer airship <span style="color:#3a86ff;">Skyburst-1</span> has completely lost battery pressure over the floating labs. 
+                To sequence the engines and prevent a crash, you must solve a chain of <span style="color:#2ecc71;">10 precise calibration missions</span>. 
+                From core cooling fluids to stabilizers and safety lines—every single unit counts! Ready to clear the dashboard?
+            </p>
+            <button class="sunny-button" onclick="buildAndLaunchQuest()">Accept Mission 🚀</button>
+        </div>
+
+        <div class="game-page" id="page-play">
+            
+            <div class="mission-map">
+                <div class="map-node" id="node-0">Fuel 1</div>
+                <div class="map-node" id="node-1">Fuel 2</div>
+                <div class="map-node" id="node-2">Fuel 3</div>
+                <div class="map-node" id="node-3">Mass 1</div>
+                <div class="map-node" id="node-4">Mass 2</div>
+                <div class="map-node" id="node-5">Mass 3</div>
+                <div class="map-node" id="node-6">Line 1</div>
+                <div class="map-node" id="node-7">Line 2</div>
+                <div class="map-node" id="node-8">Line 3</div>
+                <div class="map-node" id="node-9">Line 4</div>
+            </div>
+
+            <div class="hud-top">
+                <div class="badge-pill">Repair Node: <span id="hud-level-text" style="color: #ff4757;">1 / 10</span></div>
+                <div class="badge-pill score-pill">Engine Energy: <span id="hud-score-val">0</span> GW ⚡</div>
+            </div>
+
+            <div class="scenario-quest-banner">
+                <div class="quest-context" id="quest-scenario-text">Scenario...</div>
+                <div class="quest-task" id="quest-task-text">Task Objective...</div>
+            </div>
+
+            <div class="sky-play-bay row-mode" id="dynamic-playground-environment"></div>
+
+            <div class="dashboard-gauges">
+                <div style="font-weight: 900; font-size: 1.3rem; color: #334155;" id="gauge-title-label">Selected:</div>
+                <div class="basket-gauge-container">
+                    <div class="basket-gauge-fill" id="gauge-fill-bar"></div>
+                    <div class="basket-gauge-text" id="gauge-readout-label">0 / 0</div>
+                </div>
+                <button class="clear-btn" id="clear-btn-label" onclick="clearActiveHold()">Reset 🗑️</button>
+            </div>
+        </div>
+
+        <div class="game-page" id="page-transition">
+            <div class="star-reward-badge">🔧⚙️🔋</div>
+            <h1 style="color: #0369a1; font-size: 2.8rem; font-weight: 900; margin-bottom: 10px;" id="trans-title">Component Repaired!</h1>
+            <p style="font-size: 1.5rem; max-width: 580px; margin-bottom: 30px; color: #0c4a6e; font-weight: bold;" id="trans-message">Perfect measurement completed!</p>
+            <button class="sunny-button" style="background: linear-gradient(135deg, #38bdf8, #0284c7); box-shadow: 0 8px 20px rgba(2,132,199,0.4); border-bottom-color: #0369a1;" onclick="advanceToNextQuestLevel()">Continue Repairs ➡️</button>
+        </div>
+
+        <div class="game-page" id="page-end" style="text-align: center; justify-content: center; align-items: center;">
+            <div style="font-size: 6rem; animation: popStar 0.5s infinite alternate;">🛸👑🏅</div>
+            <h1 style="color: var(--grass-green); font-size: 3.2rem; margin: 15px 0; font-weight: 900;">Mission Complete!</h1>
+            <p style="font-size: 1.55rem; margin-bottom: 35px; color: #334155; font-weight: bold; max-width: 640px;" id="end-telemetry-msg"></p>
+            <button class="sunny-button" onclick="restartWholeGame()">Launch New Flight 🔄</button>
+        </div>
+
+    </div>
+
+    <script>
+        let currentQuestIndex = 0;
+        let score = 0;
+        let currentHoldValue = 0;
+        let currentTargetValue = 0;
+        let currentUnitString = "";
+        let structuredActiveRoundDeck = [];
+
+        const balloonColors = ["#ff595e", "#ffca3a", "#8ac926", "#1982c4", "#6a4c93", "#ff924c"];
+
+        // The interconnected task pool: 3 Capacity -> 3 Weight -> 4 Length = 10 total logical stages
+        const capacityQuestsPool = [
+            { type: "capacity", scenario: "[Fuel Phase 1/3] The Airship needs primary coolant fluid to lower hyper-boiler heat levels!", task: "Release pressure valves to mix exactly 80 Liters of cooling compound.", target: 80, unit: "Liters", items: [10, 20, 35, 45, 50, 15] },
+            { type: "capacity", scenario: "[Fuel Phase 2/3] The ion sub-accelerator array requires high-concentration plasma mix!", task: "Measure and route exactly 600 mL of fluid into the ignition chamber.", target: 600, unit: "mL", items: [200, 350, 250, 50, 100, 150] },
+            { type: "capacity", scenario: "[Fuel Phase 3/3] Emergency backup hydraulic fuel must be funneled into the steering flap reservoir!", task: "Fill the secondary booster tank with exactly 45 Liters of fluid mix.", target: 45, unit: "Liters", items: [5, 10, 15, 20, 25, 8] }
+        ];
+
+        const weightQuestsPool = [
+            { type: "weight", scenario: "[Mass Phase 1/3] The primary storage cargo bay is heavily tilted! We must match internal counterweights.", task: "Stack balance blocks to load exactly 500 grams onto the stabilization tray.", target: 500, unit: "grams", items: [100, 200, 300, 50, 150, 250] },
+            { type: "weight", scenario: "[Mass Phase 2/3] Engine gyro-rotors need solid balance armor plates loaded onto the structural gear scales.", task: "Balance the navigation platform with exactly 12 kg of machine parts.", target: 12, unit: "kg", items: [2, 4, 6, 3, 5, 1] },
+            { type: "weight", scenario: "[Mass Phase 3/3] The navigation deck requires ballast blocks to prevent side-draft wind flipping!", task: "Add precision scrap lead sheets onto the cradle to hit exactly 20 kg.", target: 20, unit: "kg", items: [5, 10, 2, 8, 7, 4] }
+        ];
+
+        const lengthQuestsPool = [
+            { type: "length", scenario: "[Line Phase 1/4] Main communications transmitter dishes have shorted out! We need circuit extensions.", task: "Splice insulation lines together to measure exactly 15 meters long.", target: 15, unit: "meters", items: [2, 3, 5, 7, 10, 1] },
+            { type: "length", scenario: "[Line Phase 2/4] Emergency manual release escape hatches need anchor chords measured out accurately.", task: "Weave steel cable links together to form a net line of exactly 90 cm.", target: 90, unit: "cm", items: [20, 30, 40, 10, 50, 15] },
+            { type: "length", scenario: "[Line Phase 3/4] The control panel copper wiring has snapped from high heat currents!", task: "Piece together internal command line tracks to span exactly 24 meters.", target: 24, unit: "meters", items: [4, 8, 12, 6, 10, 2] },
+            { type: "length", scenario: "[Line Phase 4/4] Final Stage! Deploy the emergency backup deck landing rope to tie the hull safely to the harbor tower.", task: "Connect individual tether chords to match a final safety target of exactly 50 cm.", target: 50, unit: "cm", items: [15, 25, 10, 20, 5, 30] }
+        ];
+
+        const continuationPhrases = [
+            "Systems Coming Online! ⚡", "Energy Pod Stable! 🔋", "Incredible Accuracy, Lead Engineer! 🏅", "Engines Humming to Life! 🛸"
+        ];
+
+        // --- MANDATORY 5-SECOND RETENTION AND TIMING DISMISSAL ---
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                let ld = document.getElementById('loading-screen');
+                if(ld) {
+                    ld.style.opacity = "0";
+                    setTimeout(() => { ld.style.display = "none"; }, 600);
+                }
+            }, 5000); 
+        });
+
+        function buildAndLaunchQuest() {
+            // Sequential array assembly to form a perfect narrative curve (10 complete nodes)
+            structuredActiveRoundDeck = [
+                ...capacityQuestsPool,
+                ...weightQuestsPool,
+                ...lengthQuestsPool
+            ];
+            
+            currentQuestIndex = 0;
+            score = 0;
+            
+            document.getElementById('page-welcome').classList.remove('active');
+            document.getElementById('page-play').classList.add('active');
+            loadActiveQuestLevel();
+        }
+
+        function loadActiveQuestLevel() {
+            currentHoldValue = 0;
+            let currentQuest = structuredActiveRoundDeck[currentQuestIndex];
+            currentTargetValue = currentQuest.target;
+            currentUnitString = currentQuest.unit;
+
+            // Update all 10 nodes on the top status tracker bar
+            for (let i = 0; i < 10; i++) {
+                let node = document.getElementById(`node-${i}`);
+                if (node) {
+                    node.className = "map-node";
+                    if (i < currentQuestIndex) node.classList.add('cleared');
+                    if (i === currentQuestIndex) node.classList.add('active');
+                }
+            }
+
+            document.getElementById('hud-level-text').innerText = `${currentQuestIndex + 1} / 10`;
+            document.getElementById('hud-score-val').innerText = score;
+            document.getElementById('quest-scenario-text').innerText = currentQuest.scenario;
+            document.getElementById('quest-task-text').innerText = currentQuest.task;
+
+            if(currentQuest.type === "weight") {
+                document.getElementById('gauge-title-label').innerText = "Scale Tracker:";
+                document.getElementById('clear-btn-label').innerText = "Empty Scale 🗑️";
+            } else if(currentQuest.type === "length") {
+                document.getElementById('gauge-title-label').innerText = "Cable Meter:";
+                document.getElementById('clear-btn-label').innerText = "Cut Cable 🗑️";
+            } else {
+                document.getElementById('gauge-title-label').innerText = "Coolant Meter:";
+                document.getElementById('clear-btn-label').innerText = "Drain Core 🗑️";
+            }
+
+            renderQuestPlayground(currentQuest);
+            syncVisualGauges();
+        }
+
+        function renderQuestPlayground(quest) {
+            const bay = document.getElementById('dynamic-playground-environment');
+            bay.innerHTML = "";
+
+            if (quest.type === "weight") {
+                bay.className = "sky-play-bay split-mode";
+                const left = document.createElement('div'); left.className = "left-zone";
+                left.innerHTML = `<div class="zone-heading" style="color:#5c3a21;">🪵 Structural Weights</div><div class="log-pile" id="log-pile-box"></div>`;
+                bay.appendChild(left);
+
+                const right = document.createElement('div'); right.className = "right-zone";
+                right.innerHTML = `
+                    <div class="scale-machine">
+                        <div class="scale-items-container" id="scale-logs-pan"></div>
+                        <div class="scale-pan" id="scale-pan-hw"></div>
+                        <div class="scale-pillar"></div>
+                        <div class="scale-dial-housing"><div class="scale-needle" id="scale-needle-hw"></div></div>
+                        <div class="scale-base"></div>
+                    </div>
+                `;
+                bay.appendChild(right);
+
+                quest.items.forEach((val) => {
+                    let itemNode = document.createElement('div');
+                    itemNode.className = "wooden-log";
+                    itemNode.innerHTML = `<span>+ ${val} ${quest.unit}</span>`;
+                    itemNode.onclick = () => { handleLogSelection(val, itemNode); };
+                    document.getElementById('log-pile-box').appendChild(itemNode);
+                });
+
+            } else if (quest.type === "length") {
+                bay.className = "sky-play-bay split-mode";
+                const left = document.createElement('div'); left.className = "left-zone";
+                left.innerHTML = `<div class="zone-heading" style="color:#8c6d43;">🎗️ Available Spools</div><div class="rope-bin" id="rope-bin-box"></div>`;
+                bay.appendChild(left);
+
+                const right = document.createElement('div'); right.className = "right-zone";
+                right.innerHTML = `
+                    <div class="clothesline-board">
+                        <div class="anchor-pole anchor-left"></div>
+                        <div class="anchor-pole anchor-right"></div>
+                        <div class="rope-strand-line"></div>
+                        <div class="active-rope-filled-path" id="rope-path-hw"></div>
+                        <div style="margin-top:auto; width:100%; text-align:center; color:#475569; font-size:1.1rem; font-weight:900;">Splicing array lines together...</div>
+                    </div>
+                `;
+                bay.appendChild(right);
+
+                quest.items.forEach((val) => {
+                    let itemNode = document.createElement('div');
+                    itemNode.className = "rope-coil";
+                    itemNode.innerHTML = `<div class="rope-coil-tag">+ ${val}${quest.unit}</div>`;
+                    itemNode.onclick = () => { handleRopeSelection(val, itemNode); };
+                    document.getElementById('rope-bin-box').appendChild(itemNode);
+                });
+
+            } else {
+                bay.className = "sky-play-bay row-mode";
+                const topRow = document.createElement('div'); topRow.className = "balloon-row"; topRow.id = "balloon-row-box";
+                bay.appendChild(topRow);
+
+                const btmRow = document.createElement('div'); btmRow.className = "bucket-zone";
+                btmRow.innerHTML = `
+                    <div class="bucket-handle"></div>
+                    <div class="bucket"><div class="bucket-liquid" id="bucket-liquid-hw"></div></div>
+                `;
+                bay.appendChild(btmRow);
+
+                quest.items.forEach((val, index) => {
+                    let itemNode = document.createElement('div');
+                    itemNode.className = "floating-balloon";
+                    itemNode.innerHTML = `<span class="metric-tag">+${val}<small style="font-size:0.85rem;display:block;text-transform:none;">${quest.unit}</small></span>`;
+                    let color = balloonColors[index % balloonColors.length];
+                    itemNode.style.backgroundColor = color; itemNode.style.color = color;
+                    itemNode.onclick = () => { handleBalloonSelection(val, itemNode); };
+                    topRow.appendChild(itemNode);
+                });
+            }
+        }
+
+        function handleBalloonSelection(val, node) {
+            currentHoldValue += val;
+            syncVisualGauges();
+            node.style.transform = "scale(0)"; node.style.opacity = "0"; node.style.pointerEvents = "none";
+            verifyMeasurementStatus();
+        }
+
+        function handleLogSelection(val, node) {
+            currentHoldValue += val;
+            syncVisualGauges();
+            node.style.opacity = "0.15"; node.style.pointerEvents = "none";
+
+            const container = document.getElementById('scale-logs-pan');
+            if (container) {
+                let copy = document.createElement('div');
+                copy.className = "wooden-log";
+                copy.innerHTML = `<span>${val} ${currentUnitString}</span>`;
+                container.appendChild(copy);
+
+                let offset = Math.min((currentHoldValue / currentTargetValue) * 15, 20);
+                let pan = document.getElementById('scale-pan-hw');
+                if (pan) pan.style.transform = `translateY(${offset}px)`;
+                container.style.transform = `translateY(${offset}px)`;
+            }
+            verifyMeasurementStatus();
+        }
+
+        function handleRopeSelection(val, node) {
+            currentHoldValue += val;
+            syncVisualGauges();
+            node.style.opacity = "0.15"; node.style.pointerEvents = "none";
+            verifyMeasurementStatus();
+        }
+
+        function verifyMeasurementStatus() {
+            if (currentHoldValue === currentTargetValue) {
+                score += 100;
+                document.getElementById('sound-yes').play().catch(()=>{});
+                
+                const box = document.getElementById('game-main-box');
+                box.classList.add('trigger-splash-active');
+                
+                setTimeout(() => {
+                    box.classList.remove('trigger-splash-active');
+                    showAppreciationSlide();
+                }, 850);
+
+            } else if (currentHoldValue > currentTargetValue) {
+                document.getElementById('sound-no').play().catch(()=>{});
+                alert(`Engine Metric Overload! Total surged to ${currentHoldValue} ${currentUnitString}, bypassing standard safety tolerances of ${currentTargetValue} ${currentUnitString}. Re-adjusting diagnostics...`);
+                clearActiveHold();
+            }
+        }
+
+        function clearActiveHold() {
+            currentHoldValue = 0;
+            syncVisualGauges();
+            loadActiveQuestLevel();
+        }
+
+        function syncVisualGauges() {
+            let pct = (currentHoldValue / currentTargetValue) * 100;
+            if (pct > 100) pct = 100;
+
+            document.getElementById('gauge-fill-bar').style.width = `${pct}%`;
+            document.getElementById('gauge-readout-label').innerText = `${currentHoldValue} / ${currentTargetValue} ${currentUnitString}`;
+
+            const water = document.getElementById('bucket-liquid-hw');
+            if (water) water.style.height = `${pct}%`;
+
+            const needle = document.getElementById('scale-needle-hw');
+            if (needle) needle.style.transform = `rotate(${(pct / 100) * 180}deg)`;
+
+            const rope = document.getElementById('rope-path-hw');
+            if (rope) rope.style.width = `${pct}%`;
+        }
+
+        function showAppreciationSlide() {
+            document.getElementById('page-play').classList.remove('active');
+            document.getElementById('page-transition').classList.add('active');
+
+            let phrases = continuationPhrases[Math.floor(Math.random() * continuationPhrases.length)];
+            document.getElementById('trans-title').innerText = phrases;
+            document.getElementById('trans-message').innerText = `You configured exactly ${currentTargetValue} ${currentUnitString} to stabilize the target platform node.`;
+        }
+
+        function advanceToNextQuestLevel() {
+            currentQuestIndex++;
+            document.getElementById('page-transition').classList.remove('active');
+
+            if (currentQuestIndex < structuredActiveRoundDeck.length) {
+                document.getElementById('page-play').classList.add('active');
+                loadActiveQuestLevel();
+            } else {
+                document.getElementById('page-end').classList.add('active');
+                document.getElementById('end-telemetry-msg').innerText = `Outstanding engineering work, Hero! All 10 core calculation matrices are functional. The Skyburst-1 airship engines are humming cleanly with a max output of ${score} GW of energy! The skies have been successfully saved!`;
+            }
+        }
+
+        function restartWholeGame() {
+            document.getElementById('page-end').classList.remove('active');
+            document.getElementById('page-welcome').classList.add('active');
+        }
+    </script>
+</body>
+</html>
