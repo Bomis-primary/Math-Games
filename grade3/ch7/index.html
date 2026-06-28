@@ -169,7 +169,7 @@
         .rope-coil {
             width: 90px; height: 90px; background: radial-gradient(circle, transparent 20%, var(--rope-color) 21%, var(--rope-color) 35%, #b59469 36%, #b59469 45%, var(--rope-color) 46%);
             border: 4px dashed #6f5229; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 8px 14px rgba(0,0,0,0.18); transition: transform 0.2s;
+            box-shadow: 0 8px 14px rgba(0,0,0,0.18); transition: transform(0.2s);
         }
         .rope-coil:hover { transform: scale(1.1) rotate(15deg); }
         .rope-coil-tag { background: #fff; padding: 4px 10px; border-radius: 10px; font-weight: 900; font-size: 1.1rem; border: 2px solid #6f5229; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
@@ -234,7 +234,6 @@
             <div class="innovine-logo-container">
                 <img class="innovine-logo-img" src="assets/logo.png" alt="Innovine Logo">
             </div>
-            <div style="font-weight: 900; font-size: 1.4rem; color: #3a86ff; margin-top: 5px;">Loading Game... Shhh! 😉</div>
             <div class="loading-bar"><div class="loading-fill"></div></div>
         </div>
     </div>
@@ -245,7 +244,337 @@
         <div class="water-splash-overlay" id="splash-right"></div>
 
         <div class="game-page active" id="page-welcome">
-            <div style="font-size: 4.5rem; margin-bottom: 10px; animation: bounce 1s infinite alternate;">🧪🪵🎗️</div>
+            <div style="font-size: 4.5rem; margin-bottom: 10px;">🧪🪵🎗️</div>
             <h1 style="font-size: 3rem; color: var(--text-dark); font-weight: 900; line-height: 1.2;">Skyburst Metrics Quest</h1>
             <h3 style="color: var(--balloon-blue); letter-spacing: 1px; margin: 10px 0 25px 0; font-weight: 900; background: #e0f2fe; padding: 6px 15px; border-radius: 12px;">📐 CH 7: LAB WORKSHOP 📐</h3>
-            <p style="max-width: 600px; margin-bottom: 35px; font-size: 1.4rem; line-height: 1.5; color: #475569; font
+            <p style="max-width: 600px; margin-bottom: 35px; font-size: 1.4rem; line-height: 1.5; color: #475569; font-weight: bold;">
+                Chalo solve karein fun math puzzles! Help friendly people measure liquid, weights, and lines accurately! 🎯
+            </p>
+            <button class="sunny-button" onclick="buildAndLaunchQuest()">Start Game 🚀</button>
+        </div>
+
+        <div class="game-page" id="page-play">
+            <div class="hud-top">
+                <div class="badge-pill">Round: <span id="hud-level-text" style="color: #3a86ff;">1 / 6</span></div>
+                <div class="badge-pill score-pill">Score: <span id="hud-score-val">0</span> ⭐</div>
+            </div>
+
+            <div class="scenario-quest-banner">
+                <div class="quest-context" id="quest-scenario-text">Scenario...</div>
+                <div class="quest-task" id="quest-task-text">Task Objective...</div>
+            </div>
+
+            <div class="sky-play-bay row-mode" id="dynamic-playground-environment"></div>
+
+            <div class="dashboard-gauges">
+                <div style="font-weight: 900; font-size: 1.3rem; color: #334155;" id="gauge-title-label">Selected:</div>
+                <div class="basket-gauge-container">
+                    <div class="basket-gauge-fill" id="gauge-fill-bar"></div>
+                    <div class="basket-gauge-text" id="gauge-readout-label">0 / 0</div>
+                </div>
+                <button class="clear-btn" id="clear-btn-label" onclick="clearActiveHold()">Reset 🗑️</button>
+            </div>
+        </div>
+
+        <div class="game-page" id="page-transition">
+            <div class="star-reward-badge">🌟🏆🌟</div>
+            <h1 style="color: #1e3a1e; font-size: 3rem; font-weight: 900; margin-bottom: 10px;" id="trans-title">Waah! Gazab!</h1>
+            <p style="font-size: 1.6rem; max-width: 540px; margin-bottom: 30px; color: #155724; font-weight: bold;" id="trans-message">Perfect measurement done!</p>
+            <button class="sunny-button" style="background: linear-gradient(135deg, #2ecc71, #27ae60); box-shadow: 0 8px 20px rgba(46,204,113,0.4); border-bottom-color: #1e7e34;" onclick="advanceToNextQuestLevel()">Next Level ➡️</button>
+        </div>
+
+        <div class="game-page" id="page-end" style="text-align: center; justify-content: center; align-items: center;">
+            <div style="font-size: 6rem;">🏆👑🥳</div>
+            <h1 style="color: var(--grass-green); font-size: 3.2rem; margin: 15px 0; font-weight: 900;">Sabhi Levels Clear!</h1>
+            <p style="font-size: 1.6rem; margin-bottom: 35px; color: #334155; font-weight: bold; max-width: 600px;" id="end-telemetry-msg"></p>
+            <button class="sunny-button" onclick="restartWholeGame()">Play Again 🔄</button>
+        </div>
+
+    </div>
+
+    <script>
+        let currentQuestIndex = 0;
+        let score = 0;
+        let currentHoldValue = 0;
+        let currentTargetValue = 0;
+        let currentUnitString = "";
+        let structuredActiveRoundDeck = [];
+
+        const balloonColors = ["#ff595e", "#ffca3a", "#8ac926", "#1982c4", "#6a4c93", "#ff924c"];
+
+        const capacityQuestsPool = [
+            { type: "capacity", scenario: "Chef Marina is mixing sweet Mango Juice for all kids! 🍹", task: "Pour exactly 80 Liters into the big juice barrel.", target: 80, unit: "Liters", items: [10, 20, 35, 45, 50, 15] },
+            { type: "capacity", scenario: "Doctor Uncle needs magic fluid to activate the glow lamp! 🧪", task: "Measure and mix exactly 600 mL into the flask.", target: 600, unit: "mL", items: [200, 350, 250, 50, 100, 150] },
+            { type: "capacity", scenario: "Ramu Farmer is filling sweet milk from the cow bucket! 🐄", task: "Fill the milk delivery bottle up to exactly 45 Liters.", target: 45, unit: "Liters", items: [5, 10, 15, 20, 25, 8] },
+            { type: "capacity", scenario: "Chotu needs to fill up a water cooling tub for the street puppies! 🐶", task: "Collect balloons to add exactly 30 Liters of water to the tub.", target: 30, unit: "Liters", items: [5, 8, 12, 15, 7, 10] }
+        ];
+
+        const weightQuestsPool = [
+            { type: "weight", scenario: "Forester Amit is packing tree logs to fix a tiny foot bridge! 🪵", task: "Click and stack heavy logs to load exactly 500 grams onto the tray.", target: 500, unit: "grams", items: [100, 200, 300, 50, 150, 250] },
+            { type: "weight", scenario: "Lokesh Blacksmith is measuring raw metal iron bars! 🧲", task: "Add weights to put exactly 12 kg of mass onto the weighing machine.", target: 12, unit: "kg", items: [2, 4, 6, 3, 5, 1] },
+            { type: "weight", scenario: "Halwai Suresh is weighing fresh Kaju Katli sweets for Diwali! ▱", task: "Load sweet packs onto the scale to get exactly 750 grams.", target: 750, unit: "grams", items: [250, 500, 100, 200, 150, 50] },
+            { type: "weight", scenario: "Meena is making a bundle of firewood for village cooking! 🪵", task: "Stack enough firewood sticks onto the pan to balance exactly 20 kg.", target: 20, unit: "kg", items: [5, 10, 2, 8, 7, 4] }
+        ];
+
+        const lengthQuestsPool = [
+            { type: "length", scenario: "Tailor Pip is preparing colorful ribbons for the Independence Day fair! 🎗️", task: "Tie ribbons together until they are exactly 15 meters long.", target: 15, unit: "meters", items: [2, 3, 5, 7, 10, 1] },
+            { type: "length", scenario: "Karan Sailor is making a safety line rope for his small boat! ⚓", task: "Join rope pieces together to reach exactly 90 cm.", target: 90, unit: "cm", items: [20, 30, 40, 10, 50, 15] },
+            { type: "length", scenario: "Ravi Electrician is cutting wire pieces to fix the school classroom fan! ⚡", task: "Join electric wire pieces to get exactly 24 meters.", target: 24, unit: "meters", items: [4, 8, 12, 6, 10, 2] },
+            { type: "length", scenario: "Sita is weaving a marigold flower garland (mala) for the temple gate! 🌸", task: "Connect threads together to reach a length of exactly 18 meters.", target: 18, unit: "meters", items: [3, 6, 9, 5, 4, 2] },
+            { type: "length", scenario: "Deepak is tying beautiful light strings to decorate his roof! 💡", task: "Piece the fairy light chords together to get exactly 50 cm.", target: 50, unit: "cm", items: [15, 25, 10, 20, 5, 30] }
+        ];
+
+        const celebrationPraisePhrases = [
+            "Waah! Gazab Calculation! ⭐", "Ekdum Sahi Jawab! 🌟", "Awesome Job, Hero! 🎉", "Super Fast Measurement! 💎", "You are a Math Genius! 🚀"
+        ];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                let ld = document.getElementById('loading-screen');
+                if(ld) {
+                    ld.style.opacity = "0";
+                    setTimeout(() => { ld.style.display = "none"; }, 600);
+                }
+            }, 5000);
+        });
+
+        function itemShuffler(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function buildAndLaunchQuest() {
+            let selectedCap = itemShuffler([...capacityQuestsPool]).slice(0, 2);
+            let selectedWgt = itemShuffler([...weightQuestsPool]).slice(0, 2);
+            let selectedLen = itemShuffler([...lengthQuestsPool]).slice(0, 2);
+            
+            structuredActiveRoundDeck = itemShuffler([...selectedCap, ...selectedWgt, ...selectedLen]);
+            
+            currentQuestIndex = 0;
+            score = 0;
+            
+            document.getElementById('page-welcome').classList.remove('active');
+            document.getElementById('page-play').classList.add('active');
+            loadActiveQuestLevel();
+        }
+
+        function loadActiveQuestLevel() {
+            currentHoldValue = 0;
+            let currentQuest = structuredActiveRoundDeck[currentQuestIndex];
+            currentTargetValue = currentQuest.target;
+            currentUnitString = currentQuest.unit;
+
+            document.getElementById('hud-level-text').innerText = `${currentQuestIndex + 1} / ${structuredActiveRoundDeck.length}`;
+            document.getElementById('hud-score-val').innerText = score;
+            document.getElementById('quest-scenario-text').innerText = currentQuest.scenario;
+            document.getElementById('quest-task-text').innerText = currentQuest.task;
+
+            if(currentQuest.type === "weight") {
+                document.getElementById('gauge-title-label').innerText = "Wazan (Weight):";
+                document.getElementById('clear-btn-label').innerText = "Empty Scale 🗑️";
+            } else if(currentQuest.type === "length") {
+                document.getElementById('gauge-title-label').innerText = "Lambaai (Length):";
+                document.getElementById('clear-btn-label').innerText = "Cut Line 🗑️";
+            } else {
+                document.getElementById('gauge-title-label').innerText = "Liquid Volume:";
+                document.getElementById('clear-btn-label').innerText = "Empty Bucket 🗑️";
+            }
+
+            renderQuestPlayground(currentQuest);
+            syncVisualGauges();
+        }
+
+        function renderQuestPlayground(quest) {
+            const bay = document.getElementById('dynamic-playground-environment');
+            bay.innerHTML = "";
+            let randomizedItems = itemShuffler([...quest.items]);
+
+            if (quest.type === "weight") {
+                bay.className = "sky-play-bay split-mode";
+
+                const left = document.createElement('div'); left.className = "left-zone";
+                left.innerHTML = `<div class="zone-heading" style="color:#5c3a21;">🪵 Choose Logs</div><div class="log-pile" id="log-pile-box"></div>`;
+                bay.appendChild(left);
+
+                const right = document.createElement('div'); right.className = "right-zone";
+                right.innerHTML = `
+                    <div class="scale-machine">
+                        <div class="scale-items-container" id="scale-logs-pan"></div>
+                        <div class="scale-pan" id="scale-pan-hw"></div>
+                        <div class="scale-pillar"></div>
+                        <div class="scale-dial-housing"><div class="scale-needle" id="scale-needle-hw"></div></div>
+                        <div class="scale-base"></div>
+                    </div>
+                `;
+                bay.appendChild(right);
+
+                randomizedItems.forEach((val) => {
+                    let itemNode = document.createElement('div');
+                    itemNode.className = "wooden-log";
+                    itemNode.innerHTML = `<span>+ ${val} ${quest.unit}</span>`;
+                    itemNode.onclick = () => { handleLogSelection(val, itemNode); };
+                    document.getElementById('log-pile-box').appendChild(itemNode);
+                });
+
+            } else if (quest.type === "length") {
+                bay.className = "sky-play-bay split-mode";
+
+                const left = document.createElement('div'); left.className = "left-zone";
+                left.innerHTML = `<div class="zone-heading" style="color:#8c6d43;">🎗️ Choose Pieces</div><div class="rope-bin" id="rope-bin-box"></div>`;
+                bay.appendChild(left);
+
+                const right = document.createElement('div'); right.className = "right-zone";
+                right.innerHTML = `
+                    <div class="clothesline-board">
+                        <div class="anchor-pole anchor-left"></div>
+                        <div class="anchor-pole anchor-right"></div>
+                        <div class="rope-strand-line"></div>
+                        <div class="active-rope-filled-path" id="rope-path-hw"></div>
+                        <div style="margin-top:auto; width:100%; text-align:center; color:#475569; font-size:1.1rem; font-weight:900;">Tying and joining cabled strings together...</div>
+                    </div>
+                `;
+                bay.appendChild(right);
+
+                randomizedItems.forEach((val) => {
+                    let itemNode = document.createElement('div');
+                    itemNode.className = "rope-coil";
+                    itemNode.innerHTML = `<div class="rope-coil-tag">+${val}${quest.unit}</div>`;
+                    itemNode.onclick = () => { handleRopeSelection(val, itemNode); };
+                    document.getElementById('rope-bin-box').appendChild(itemNode);
+                });
+
+            } else {
+                bay.className = "sky-play-bay row-mode";
+
+                const topRow = document.createElement('div'); topRow.className = "balloon-row"; topRow.id = "balloon-row-box";
+                bay.appendChild(topRow);
+
+                const btmRow = document.createElement('div'); btmRow.className = "bucket-zone";
+                btmRow.innerHTML = `
+                    <div class="bucket-handle"></div>
+                    <div class="bucket"><div class="bucket-liquid" id="bucket-liquid-hw"></div></div>
+                `;
+                bay.appendChild(btmRow);
+
+                randomizedItems.forEach((val, index) => {
+                    let itemNode = document.createElement('div');
+                    itemNode.className = "floating-balloon";
+                    itemNode.innerHTML = `<span class="metric-tag">+${val}<small style="font-size:0.85rem;display:block;text-transform:none;">${quest.unit}</small></span>`;
+                    let color = balloonColors[index % balloonColors.length];
+                    itemNode.style.backgroundColor = color; itemNode.style.color = color;
+                    itemNode.onclick = () => { handleBalloonSelection(val, itemNode); };
+                    topRow.appendChild(itemNode);
+                });
+            }
+        }
+
+        function handleBalloonSelection(val, node) {
+            currentHoldValue += val;
+            syncVisualGauges();
+            node.style.transform = "scale(0)"; node.style.opacity = "0"; node.style.pointerEvents = "none";
+            verifyMeasurementStatus();
+        }
+
+        function handleLogSelection(val, node) {
+            currentHoldValue += val;
+            syncVisualGauges();
+            node.style.opacity = "0.15"; node.style.pointerEvents = "none";
+
+            const container = document.getElementById('scale-logs-pan');
+            if (container) {
+                let copy = document.createElement('div');
+                copy.className = "wooden-log";
+                copy.innerHTML = `<span>${val} ${currentUnitString}</span>`;
+                container.appendChild(copy);
+
+                let offset = Math.min((currentHoldValue / currentTargetValue) * 15, 20);
+                let pan = document.getElementById('scale-pan-hw');
+                if (pan) pan.style.transform = `translateY(${offset}px)`;
+                container.style.transform = `translateY(${offset}px)`;
+            }
+
+            verifyMeasurementStatus();
+        }
+
+        function handleRopeSelection(val, node) {
+            currentHoldValue += val;
+            syncVisualGauges();
+            node.style.opacity = "0.15"; node.style.pointerEvents = "none";
+            verifyMeasurementStatus();
+        }
+
+        function verifyMeasurementStatus() {
+            if (currentHoldValue === currentTargetValue) {
+                score += 100;
+                document.getElementById('sound-yes').play().catch(()=>{});
+                
+                const box = document.getElementById('game-main-box');
+                box.classList.add('trigger-splash-active');
+                
+                setTimeout(() => {
+                    box.classList.remove('trigger-splash-active');
+                    showAppreciationSlide();
+                }, 850);
+
+            } else if (currentHoldValue > currentTargetValue) {
+                document.getElementById('sound-no').play().catch(()=>{});
+                alert(`Oh ho! Total went up to ${currentHoldValue} ${currentUnitString}! Target was only ${currentTargetValue} ${currentUnitString}. Wazan/Lambaai zyada ho gayi! Resetting level...`);
+                clearActiveHold();
+            }
+        }
+
+        function clearActiveHold() {
+            currentHoldValue = 0;
+            syncVisualGauges();
+            loadActiveQuestLevel();
+        }
+
+        function syncVisualGauges() {
+            let pct = (currentHoldValue / currentTargetValue) * 100;
+            if (pct > 100) pct = 100;
+
+            document.getElementById('gauge-fill-bar').style.width = `${pct}%`;
+            document.getElementById('gauge-readout-label').innerText = `${currentHoldValue} / ${currentTargetValue} ${currentUnitString}`;
+
+            const water = document.getElementById('bucket-liquid-hw');
+            if (water) water.style.height = `${pct}%`;
+
+            const needle = document.getElementById('scale-needle-hw');
+            if (needle) needle.style.transform = `rotate(${(pct / 100) * 180}deg)`;
+
+            const rope = document.getElementById('rope-path-hw');
+            if (rope) rope.style.width = `${pct}%`;
+        }
+
+        function showAppreciationSlide() {
+            document.getElementById('page-play').classList.remove('active');
+            document.getElementById('page-transition').classList.add('active');
+
+            let randomPraise = celebrationPraisePhrases[Math.floor(Math.random() * celebrationPraisePhrases.length)];
+            document.getElementById('trans-title').innerText = randomPraise;
+            document.getElementById('trans-message').innerText = `Aapne pure ${currentTargetValue} ${currentUnitString} perfect measure kiye!`;
+        }
+
+        function advanceToNextQuestLevel() {
+            currentQuestIndex++;
+            document.getElementById('page-transition').classList.remove('active');
+
+            if (currentQuestIndex < structuredActiveRoundDeck.length) {
+                document.getElementById('page-play').classList.add('active');
+                loadActiveQuestLevel();
+            } else {
+                document.getElementById('page-end').classList.add('active');
+                document.getElementById('end-telemetry-msg').innerText = `Zabardast! Aapne sabhi rounds successfully khatam kiye aur pure ${score} ⭐ stars kamaye!`;
+            }
+        }
+
+        function restartWholeGame() {
+            document.getElementById('page-end').classList.remove('active');
+            document.getElementById('page-welcome').classList.add('active');
+        }
+    </script>
+</body>
+</html>
