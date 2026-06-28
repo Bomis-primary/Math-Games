@@ -3,209 +3,157 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bob's Bridge Builder Game!</title>
+    <title>Skyburst Arithmetic: Balloon Blast!</title>
     <style>
         :root {
-            --bright-yellow: #ffca28;
-            --safety-orange: #ff9800;
-            --sky-blue: #ade4ff;
-            --brick-red: #d32f2f;
-            --grass-green: #66bb6a;
-            --mud-brown: #8d6e63;
-            --dark-blue: #1565c0;
-            --cozy-white: #fffdf7;
-            --text-color: #263238;
-            --pop-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            --sky-blue: #a0e0ff;
+            --sunny-yellow: #ffdf00;
+            --balloon-red: #ff4a4a;
+            --balloon-blue: #3a86ff;
+            --grass-green: #4ade80;
+            --cloud-white: #ffffff;
+            --text-dark: #2c3e50;
+            --pop-orange: #ff9f43;
+            --glow-shadow: 0 8px 20px rgba(58, 134, 255, 0.2);
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Comic Sans MS', 'Chalkboard SE', 'Ubuntu', sans-serif;
+            font-family: 'Trebuchet MS', sans-serif;
         }
 
         body {
-            background-color: #e3f2fd;
-            background-image: radial-gradient(var(--bright-yellow) 1px, transparent 1px);
-            background-size: 24px 24px;
-            color: var(--text-color);
+            background-color: var(--sky-blue);
+            background-image: 
+                radial-gradient(circle at 10% 10%, var(--sunny-yellow) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255,255,255,0.6) 0%, transparent 25%);
+            color: var(--text-dark);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 15px;
+            overflow: hidden;
             user-select: none;
         }
 
-        /* --- SPLASH/LOADING SCREEN WITH LOGO --- */
+        /* --- SPLASH SCREEN --- */
         #loading-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(135deg, #29b6f6, var(--dark-blue));
+            background: linear-gradient(180deg, #bfeeff, var(--sky-blue));
             display: flex; flex-direction: column; justify-content: center; align-items: center;
-            z-index: 9999; transition: opacity 0.5s ease;
+            z-index: 9999; transition: opacity 0.6s ease;
         }
         .loading-box {
-            background: white; padding: 35px; border-radius: 30px;
-            box-shadow: var(--pop-shadow); text-align: center; width: 90%; max-width: 420px;
-            border: 5px solid var(--bright-yellow);
-            display: flex; flex-direction: column; align-items: center;
+            background: rgba(255, 255, 255, 0.9); padding: 35px; border-radius: 30px;
+            box-shadow: var(--glow-shadow); text-align: center; width: 90%; max-width: 420px;
+            border: 3px solid #fff; display: flex; flex-direction: column; align-items: center;
         }
         .innovine-logo-container {
-            margin-bottom: 25px;
-            background: #ffffff; /* Clean white background */
-            padding: 15px;
-            border-radius: 15px;
-            border: none;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 70px;
-            width: 100%;
+            margin-bottom: 25px; background: #ffffff; padding: 15px; border-radius: 15px;
+            display: inline-flex; align-items: center; justify-content: center; min-height: 70px; width: 100%;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
         }
-        .innovine-logo-img {
-            max-height: 65px;
-            max-width: 100%;
-            object-fit: contain;
-        }
-        .loading-bar { width: 100%; height: 15px; background: #e0e0e0; border-radius: 10px; margin-top: 15px; overflow: hidden; }
-        .loading-fill { width: 100%; height: 100%; background: var(--safety-orange); transform: translateX(-100%); animation: load 1.2s forwards ease-in-out; }
+        .innovine-logo-img { max-height: 65px; max-width: 100%; object-fit: contain; }
+        .loading-bar { width: 100%; height: 12px; background: #e0f4ff; border-radius: 10px; margin-top: 15px; overflow: hidden; }
+        .loading-fill { width: 100%; height: 100%; background: var(--balloon-blue); transform: translateX(-100%); animation: load 5s linear forwards; }
         @keyframes load { 100% { transform: translateX(0); } }
 
-        /* --- GAME BOX --- */
+        /* --- CONTAINER --- */
         .game-box {
             width: 100%;
-            max-width: 820px;
-            background: var(--cozy-white);
+            max-width: 850px;
+            background: rgba(255, 255, 255, 0.85);
             border-radius: 35px;
-            box-shadow: var(--pop-shadow);
-            border: 6px solid var(--bright-yellow);
-            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0, 50, 100, 0.15);
+            border: 6px solid var(--cloud-white);
+            min-height: 660px;
             display: flex;
             flex-direction: column;
-            min-height: 640px;
             position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
         }
 
-        .game-page {
-            display: none; flex-direction: column; flex: 1; padding: 30px; opacity: 0; transition: opacity 0.3s ease;
-        }
+        .game-page { display: none; flex-direction: column; flex: 1; padding: 25px; opacity: 0; transition: opacity 0.3s ease; }
         .game-page.active { display: flex; opacity: 1; }
 
-        /* --- STARTING SCREEN --- */
+        /* --- TITLE SCREEN --- */
         #page-welcome { text-align: center; justify-content: center; align-items: center; }
-        .jumping-crew { font-size: 5.5rem; margin-bottom: 10px; animation: jump 1.5s infinite alternate ease-in-out; }
-        @keyframes jump { 0% { transform: translateY(0); } 100% { transform: translateY(-15px); } }
+        .balloon-animation { font-size: 5rem; animation: floatUp 3s infinite alternate ease-in-out; margin-bottom: 15px; }
+        @keyframes floatUp { 0% { transform: translateY(10px) scale(1); } 100% { transform: translateY(-15px) scale(1.05); } }
 
-        .story-scroll {
-            background: #fff9c4; border: 4px dashed var(--safety-orange); padding: 22px;
-            border-radius: 25px; text-align: left; max-width: 650px; margin: 20px 0;
-            font-size: 1.25rem; line-height: 1.6; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+        .sunny-button {
+            background: linear-gradient(135deg, #ff9f43, #ff6b6b);
+            border: none; color: #fff; font-size: 1.4rem; font-weight: bold; text-transform: uppercase;
+            padding: 15px 45px; border-radius: 50px; cursor: pointer; box-shadow: 0 6px 15px rgba(255, 107, 107, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
         }
-        .story-scroll h2 { color: var(--dark-blue); text-align: center; margin-bottom: 12px; font-size: 1.8rem; }
+        .sunny-button:hover { transform: scale(1.05); box-shadow: 0 8px 20px rgba(255, 107, 107, 0.6); }
 
-        .yellow-button {
-            background: linear-gradient(to bottom, #ffeb3b, #fbc02d);
-            border: none; color: #5d4037; font-size: 1.5rem; font-weight: bold;
-            padding: 15px 45px; border-radius: 50px; cursor: pointer;
-            box-shadow: 0 6px 0 #f57f17, 0 10px 15px rgba(0,0,0,0.1);
-            transition: all 0.1s ease; border: 2px solid #fff;
+        /* --- GAMEPLAY ZONE --- */
+        .hud-top {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--cloud-white); padding: 15px 25px; border-radius: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
         }
-        .yellow-button:hover { transform: scale(1.03); }
-        .yellow-button:active { transform: translateY(4px); box-shadow: 0 2px 0 #f57f17, 0 4px 6px rgba(0,0,0,0.1); }
+        .target-alert-badge {
+            background: linear-gradient(135deg, var(--balloon-blue), #1a66ff);
+            padding: 10px 25px; border-radius: 20px; font-size: 1.4rem; font-weight: bold;
+            color: white; box-shadow: 0 4px 15px rgba(58, 134, 255, 0.3); text-align: center;
+        }
 
-        /* --- CANYON DRAWING ENGINE --- */
-        .canyon-view {
-            background: var(--sky-blue);
-            border: 4px solid #455a64; border-radius: 25px;
-            height: 150px; position: relative; margin-bottom: 25px;
-            box-shadow: inset 0 4px 10px rgba(0,0,0,0.1);
+        /* SUNNY SKY PLAYGROUND (THE BALLOON ZONE) */
+        .sky-play-bay {
+            flex: 1; background: linear-gradient(to bottom, #e0f6ff, #ffffff); border: 3px dashed #bfeeff; border-radius: 25px;
+            margin: 20px 0; position: relative; overflow: hidden; min-height: 300px;
         }
-        .rocky-wall { width: 75px; height: 100%; background: var(--mud-brown); position: absolute; bottom: 0; }
-        .left-wall { left: 0; border-radius: 20px 0 0 20px; border-right: 4px solid #4e342e; }
-        .right-wall { right: 0; border-radius: 0 20px 20px 0; border-left: 4px solid #4e342e; }
+
+        /* INTERACTIVE FLOATING BALLOONS */
+        .floating-balloon {
+            position: absolute; width: 85px; height: 105px;
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: inset -8px -8px 15px rgba(0,0,0,0.1), 0 10px 15px rgba(0,0,0,0.08); 
+            transition: transform 0.1s, opacity 0.15s;
+            animation: sway 3s infinite alternate ease-in-out;
+        }
+        /* Balloon Knot/String Helper */
+        .floating-balloon::after {
+            content: ""; position: absolute; bottom: -6px; width: 0; height: 0;
+            border-left: 6px solid transparent; border-right: 6px solid transparent;
+            border-bottom: 8px solid currentColor; filter: brightness(0.9);
+        }
         
-        .bridge-track {
-            position: absolute; bottom: 35px; left: 75px; right: 75px; height: 32px;
-            display: flex; gap: 4px; padding: 0 2px; justify-content: space-between; align-items: center;
-        }
-        .bridge-block {
-            flex: 1; height: 20px; background: transparent; 
-            border: 2px dashed #b0bec5; border-radius: 4px; transition: all 0.4s ease;
-        }
-        .bridge-block.fixed {
-            background: linear-gradient(to bottom, var(--brick-red), #b71c1c);
-            border: 2px solid #3e2723; box-shadow: inset 0 -4px 0 rgba(0,0,0,0.2), 0 3px 5px rgba(0,0,0,0.15);
-            animation: slamBlock 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.25);
-        }
-        @keyframes slamBlock { 0% { transform: scale(1.4); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .floating-balloon .metric-tag { font-weight: bold; color: #fff; font-size: 1.2rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.3); z-index: 2; }
 
-        /* --- KIDS HEADS-UP DISPLAY --- */
-        .kids-hud {
-            display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;
-            font-size: 1.25rem; font-weight: bold; padding-bottom: 12px;
-            margin-bottom: 15px; border-bottom: 4px dotted var(--bright-yellow);
-        }
-        .phase-tag { background: var(--dark-blue); color: white; padding: 4px 18px; border-radius: 15px; font-size: 0.95rem; text-transform: uppercase; }
-
-        /* --- QUESTION AREA --- */
-        .bubble-question {
-            background: #f1f8e9; border: 3px solid var(--grass-green);
-            padding: 20px; border-radius: 20px; margin-bottom: 20px;
-            font-size: 1.3rem; line-height: 1.5; font-weight: bold; text-align: center;
+        @keyframes sway {
+            0% { transform: translateX(0) rotate(-4deg); }
+            100% { transform: translateX(15px) rotate(4deg); }
         }
 
-        /* --- CONTROLS WORKSPACE --- */
-        .workspace { display: flex; justify-content: center; align-items: center; min-height: 120px; }
-        .options-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; width: 100%; }
-        
-        .option-button {
-            background: white; border: 3px solid #cfd8dc; border-radius: 20px; padding: 15px;
-            font-size: 1.2rem; font-weight: bold; cursor: pointer; text-align: left;
-            transition: all 0.2s ease; display: flex; align-items: center; box-shadow: 0 4px 0 #b0bec5;
-        }
-        .option-button:hover { border-color: var(--safety-orange); background: #fffde7; }
-        .option-button:active { transform: translateY(3px); box-shadow: none; }
-        .option-button .letter-badge { background: var(--bright-yellow); color: #37474f; width: 32px; height: 32px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; margin-right: 12px; font-weight: bold; border: 2px solid #fff; }
+        /* BASKET PROGRESS GAUGES */
+        .dashboard-gauges { display: flex; gap: 20px; justify-content: center; align-items: center; padding: 10px; }
+        .basket-gauge-container { width: 60%; background: #e0eaf0; height: 38px; border-radius: 50px; border: 3px solid var(--cloud-white); overflow: hidden; position: relative; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
+        .basket-gauge-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #4ade80, #2ecc71); transition: width 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .basket-gauge-text { position: absolute; width: 100%; text-align: center; top: 6px; font-weight: bold; font-size: 1.15rem; color: var(--text-dark); }
 
-        .option-button.good-pick { background: #e8f5e9 !important; border-color: var(--grass-green) !important; color: #2e7d32 !important; box-shadow: 0 4px 0 #a5d6a7 !important; }
-        .option-button.bad-pick { background: #ffebee !important; border-color: var(--brick-red) !important; color: #c62828 !important; box-shadow: 0 4px 0 #ef9a9a !important; }
+        .control-btns-row { display: flex; gap: 15px; justify-content: center; margin-top: 5px; }
+        .clear-btn { background: #fee2e2; border: 2px solid #ef4444; color: #ef4444; padding: 8px 25px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+        .clear-btn:hover { background: #ef4444; color: #fff; }
 
-        /* --- TEXT/NUMBER BOX STYLING --- */
-        .input-number-box { width: 130px; padding: 8px; font-size: 2.2rem; font-weight: bold; text-align: center; border: 4px solid #37474f; border-radius: 20px; outline: none; box-shadow: inset 0 4px 6px rgba(0,0,0,0.1); }
-        .input-number-box:focus { border-color: var(--safety-orange); background: #fffde7; }
-        .unit-text { font-size: 1.6rem; font-weight: bold; margin: 0 15px 0 8px; vertical-align: middle; }
-
-        .banner-msg { text-align: center; height: 32px; font-size: 1.4rem; font-weight: bold; margin-top: 15px; }
-
-        /* --- VISUALS DRAWER --- */
-        #visual-helper-zone { width: 100%; display: flex; justify-content: center; margin-bottom: 15px; }
-        
-        .visual-ruler {
-            width: 320px; height: 60px; background: #ffe082; border: 3px solid #ffb300;
-            border-radius: 10px; position: relative; display: flex; align-items: flex-end; padding-bottom: 4px;
-        }
-        .ruler-mark { position: absolute; bottom: 0; width: 3px; background: #5d4037; height: 15px; }
-        .ruler-mark.major { height: 25px; }
-        .ruler-mark.major::after { content: attr(data-val); position: absolute; top: -22px; left: -5px; font-size: 0.9rem; font-weight: bold; color: #5d4037; }
-        .visual-object-bar { position: absolute; top: 12px; left: 2px; height: 18px; background: #66bb6a; border-radius: 6px; border: 2px solid #2e7d32; }
-
-        .water-bucket-row { display: flex; gap: 20px; align-items: flex-end; }
-        .bucket-art { width: 65px; height: 80px; border: 4px solid #37474f; border-top: none; border-radius: 0 0 15px 15px; position: relative; background: #fff; overflow: hidden; }
-        .bucket-fill { position: absolute; bottom: 0; left: 0; width: 100%; background: #29b6f6; transition: height 0.5s ease; }
-        .bucket-text { position: absolute; top: -25px; width: 100%; text-align: center; font-size: 0.85rem; font-weight: bold; color: #37474f; }
-
-        .tool-particle { position: fixed; font-size: 2.2rem; z-index: 9999; pointer-events: none; top: -50px; animation: tumble var(--dur) linear forwards; }
-        @keyframes tumble { 0% { top: -50px; transform: translateX(0) rotate(0deg); opacity: 1; } 100% { top: 105vh; transform: translateX(var(--drift)) rotate(360deg); opacity: 0; } }
+        /* RECAP CONFIGS */
+        #page-end { text-align: center; justify-content: center; align-items: center; }
     </style>
 </head>
 <body>
 
     <audio id="sound-yes" src="assets/claps.mp3" preload="auto"></audio>
     <audio id="sound-no" src="assets/wrong.mp3" preload="auto"></audio>
-    <audio id="sound-win" src="assets/claps.mp3" preload="auto"></audio>
 
+    <!-- LOADING SCREEN -->
     <div id="loading-screen">
         <div class="loading-box">
             <div class="innovine-logo-container">
@@ -217,377 +165,207 @@
 
     <div class="game-box">
         
+        <!-- TITLE WELCOME -->
         <div class="game-page active" id="page-welcome">
-            <div class="jumping-crew"> 👷‍♂️🔨🏗️</div>
-            <h1 style="font-size: 2.4rem; font-weight: bold; color: var(--safety-orange); text-shadow: 1px 1px 0 #fff;">Can We Fix It?</h1>
-            <h3 style="color: var(--dark-blue); font-weight: bold; margin-top: 4px;">Bob's Bridge Repair Game</h3>
-            
-            <div class="story-scroll">
-                <h2>Oh no! The Old Bridge Broke!</h2>
-                <p>A storm knocked down the canyon bridge! Now our truck friends are stuck on the other side and cannot cross safely.</p>
-                <br>
-                <p><strong>Your Mission:</strong> Solve all 13 building puzzles to lock the new structural sections into place. We have added brand new estimation segments to double-check our work details before the trucks cross!</p>
-                <br>
-                <p style="text-align: center; color: #e65100;"><strong>Let's grab our hard hats and build it! 🚀</strong></p>
-            </div>
-            <button class="yellow-button" onclick="startGameSession()">Let's Build! 🛠️</button>
+            <div class="balloon-animation">🎈☀️🎈</div>
+            <h1 style="font-size: 2.6rem; color: var(--text-dark); font-weight: 800;">Skyburst Arithmetic</h1>
+            <h3 style="color: var(--balloon-blue); letter-spacing: 1.5px; margin-bottom: 20px; font-weight: 700;">BALLOON BLAST!</h3>
+            <p style="max-width: 520px; margin-bottom: 35px; font-size: 1.25rem; line-height: 1.6; color: #576574;">
+                Look at the sun-badge to find your target math total! Pop the floating balloons by clicking them to add their numbers into your collection basket!
+            </p>
+            <button class="sunny-button" onclick="launchGameCore()">Let's Pop! 🎈</button>
         </div>
 
+        <!-- ACTIVE GAMEPLAY PAGE -->
         <div class="game-page" id="page-play">
-            <div class="canyon-view">
-                <div class="rocky-wall left-wall"></div>
-                <div class="bridge-track" id="bridge-assembly-line"></div>
-                <div class="rocky-wall right-wall"></div>
+            <div class="hud-top">
+                <div style="font-size: 1.25rem; font-weight: bold; color: var(--text-dark);">Round: <span id="hud-level-text">1 / 5</span></div>
+                <div class="target-alert-badge" id="hud-target-display">Target: Loading...</div>
+                <div style="font-size: 1.25rem; font-weight: bold; color: #ff9f43;">Score: <span id="hud-score-val">0</span> ⭐</div>
             </div>
 
-            <div class="kids-hud">
-                <div>🔩 Golden Bolts: <span id="hud-bolts">0</span></div>
-                <div class="phase-tag" id="hud-phase">Job Spec</div>
-                <div>Piece: <span id="hud-turn">1 / 13</span></div>
+            <!-- INTERACTIVE BALLOON SKY ENVIRONMENT -->
+            <div class="sky-play-bay" id="sky-balloon-playground"></div>
+
+            <!-- PROGRESS TRACKING DYNAMIC SYSTEM -->
+            <div class="dashboard-gauges">
+                <div style="font-weight: bold; font-size: 1.2rem; color: var(--text-dark);">Your Basket Total:</div>
+                <div class="basket-gauge-container">
+                    <div class="basket-gauge-fill" id="gauge-fill-bar"></div>
+                    <div class="basket-gauge-text" id="gauge-readout-label">0 / 0</div>
+                </div>
             </div>
 
-            <div class="bubble-question" id="text-question">Loading specs...</div>
-            <div id="visual-helper-zone"></div>
-            <div class="workspace" id="input-controls-zone"></div>
-            <div class="banner-msg" id="text-feedback"></div>
+            <div class="control-btns-row">
+                <button class="clear-btn" onclick="dumpCurrentHold()">Empty Basket 🗑️</button>
+            </div>
         </div>
 
-        <div class="game-page" id="page-end" style="text-align: center; justify-content: center; align-items: center;">
-            <div id="victory-avatar" style="font-size: 5.5rem; animation: jump 1s infinite alternate ease-in-out;">⚠️🌉🚧</div>
-            <h1 id="victory-title" style="color: var(--grass-green); font-size: 2.6rem; font-weight: bold;">Bridge Check!</h1>
-            
-            <div class="story-scroll" id="victory-scroll-box" style="background: #e8f5e9; border-color: var(--grass-green); text-align: center; margin: 20px auto;">
-                <h2>🏆 Structural Inspection</h2>
-                <p id="victory-message">Checking structure stability status...</p>
-            </div>
-            <h2 id="final-bolts-report" style="color: var(--safety-orange); margin-bottom: 25px; font-size: 1.6rem;">Golden Bolts Earned: 0 / 13</h2>
-            <button class="yellow-button" id="victory-action-btn" onclick="restartGameSession()">Try Again 🔄</button>
+        <!-- RECAP SCREEN -->
+        <div class="game-page" id="page-end">
+            <div style="font-size: 5.5rem; animation: floatUp 2s infinite alternate ease-in-out;">🏆🎈🎉</div>
+            <h1 style="color: var(--grass-green); font-size: 2.7rem; margin: 15px 0; font-weight: 800;">Phenomenal Job!</h1>
+            <p style="font-size: 1.35rem; margin-bottom: 30px; color: #576574;" id="end-telemetry-msg"></p>
+            <button class="sunny-button" onclick="restartWholeGame()">Play Again 🔄</button>
         </div>
 
     </div>
 
     <script>
-        let goldenBoltsCount = 0;
-        let currentJobIndex = 0;
+        let currentLevel = 0;
+        let score = 0;
+        let currentHoldValue = 0;
+        let currentLevelTarget = 0;
+        let currentUnitType = "";
 
-        const buildingBlueprints = [
+        const gameLevelsBlueprints = [
             {
-                type: "input",
-                phase: "🪵 Wood Scaffolding",
-                question: "Scoop needs to connect two wood boards. Board One is 45 centimeters long, and Board Two is 35 centimeters long. Put them together! How many centimeters long are they in total?",
-                correct: "80",
-                unit: "cm",
-                makeVisual: () => ""
-            },
-            {
-                type: "choice",
-                phase: "📏 Blueprint Check",
-                question: "Look at the little green board sitting on the builder's ruler below. Exactly how many centimeters long is this piece?",
-                options: ["5 centimeters", "10 centimeters", "12 centimeters", "15 centimeters"],
-                correct: "10 centimeters",
-                makeVisual: () => "ruler-10"
-            },
-            {
-                type: "input",
-                phase: "✂️ Cutting Pillars",
-                question: "Muck has a long metal bar that is 90 centimeters long. He saws off a 40-centimeter piece to use as a pin. How many centimeters of the metal bar are left?",
-                correct: "50",
-                unit: "cm",
-                makeVisual: () => ""
-            },
-            {
-                type: "choice",
-                phase: "🔮 Weight Estimation",
-                question: "Bob is guessing the weight of an apple he packed inside his lunchbox. What is the best estimate for the weight of a single regular apple?",
-                options: ["About 5 grams", "About 200 grams", "About 50 kilograms", "About 500 kilograms"],
-                correct: "About 200 grams",
-                makeVisual: () => ""
-            },
-            {
-                type: "choice",
-                phase: "⚖️ Heavy Shipments",
-                question: "Wendy needs to buy a huge truckload of heavy crushed rocks to fill the deep holes under the bridge. Which unit should she use to weigh these heavy rocks?",
-                options: ["Grams (g)", "Kilograms (kg)", "Milliliters (mL)", "Meters (m)"],
-                correct: "Kilograms (kg)",
-                makeVisual: () => ""
-            },
-            {
-                type: "choice",
-                phase: "🔮 Liquid Estimation",
-                question: "Spud wants to fill a standard, normal-sized plastic bucket with water to wash Scoop's wheels. About how much liquid can a normal cleaning bucket hold?",
-                options: ["About 10 Liters", "About 10 milliliters", "About 500 Liters", "About 1 Liter"],
-                correct: "About 10 Liters",
-                makeVisual: () => ""
-            },
-            {
-                type: "input",
-                phase: "🥤 Mixing Concrete",
-                question: "To make wet concrete, Bob pours a 400 mL cup of water and a 500 mL cup of glue-liquid into a big tub. How many mL of total liquid are inside the tub now?",
-                correct: "900",
-                unit: "mL",
-                makeVisual: () => "buckets-400-500"
-            },
-            {
-                type: "choice",
-                phase: "🔮 Tool Length Estimation",
-                question: "Lofty drops a small handheld metal screw wrench on the ground. Which is the most realistic estimate for the length of a small hand tool?",
-                options: ["About 2 meters", "About 20 centimeters", "About 2 centimeters", "About 80 meters"],
-                correct: "About 20 centimeters",
-                makeVisual: () => ""
-            },
-            {
-                type: "choice",
-                phase: "🔩 Sorting Parts",
-                question: "We have three boxes of bolts sitting in the garage. Box A weighs 15 kg, Box B weighs 900 grams, and Box C weighs 6 kg. Which box is the absolute heaviest?",
-                options: ["Box A (15 kg)", "Box B (900 g)", "Box C (6 kg)", "They all weigh the same"],
-                correct: "Box A (15 kg)",
-                makeVisual: () => ""
-            },
-            {
-                type: "choice",
-                phase: "🔮 Massive Truck Estimation",
-                question: "Muck is a very big, heavy red dump truck vehicle. What is the smartest estimate for the weight of a real big working construction truck?",
-                options: ["About 50 grams", "About 5 kilograms", "About 4,000 kilograms", "About 400,000 kilograms"],
-                correct: "About 4,000 kilograms",
-                makeVisual: () => ""
-            },
-            {
-                type: "input",
-                phase: "💧 Emptying Tanks",
-                question: "The water cleaning truck holds 800 Liters of water. After washing off the dusty bridge road, 300 Liters are gone. How many Liters are left inside the tank?",
-                correct: "500",
+                target: 80,
                 unit: "Liters",
-                makeVisual: () => ""
+                display: "Pop exactly 80 Liters of water!",
+                optionsPool: [10, 20, 35, 45, 50, 15]
             },
             {
-                type: "choice",
-                phase: "🔮 Small Drop Estimation",
-                question: "Wendy uses a tiny little medicine dropper to put a few drops of lubricating oil inside a squeaky gear. About how much liquid is inside a single tiny drop?",
-                options: ["About 1 milliliter", "About 1 Liter", "About 50 Liters", "About 500 milliliters"],
-                correct: "About 1 milliliter",
-                makeVisual: () => ""
+                target: 500,
+                unit: "mL",
+                display: "Pop exactly 500 mL of juice!",
+                optionsPool: [100, 200, 300, 50, 150]
             },
             {
-                type: "input",
-                phase: "🏗️ Crane Ropes",
-                question: "Lofty needs 6 meters of strong yellow cable rope to pull up the central bridge road. How many centimeters is that?",
-                correct: "600",
-                unit: "cm",
-                makeVisual: () => ""
+                target: 15,
+                unit: "kg",
+                display: "Gather exactly 15 kg of apples!",
+                optionsPool: [2, 3, 5, 7, 10, 1]
+            },
+            {
+                target: 600,
+                unit: "grams",
+                display: "Collect exactly 600g of flour!",
+                optionsPool: [100, 250, 350, 50, 200]
+            },
+            {
+                target: 12,
+                unit: "meters",
+                display: "Reach exactly 12m of kite string!",
+                optionsPool: [2, 4, 6, 3, 5, 1]
             }
         ];
 
-        function playSoundTrack(style) {
-            const id = (style === 'win-bolt' || style === 'project-complete') ? 'sound-yes' : 'sound-no';
-            const track = document.getElementById(id);
-            if (track) { track.currentTime = 0; track.play().catch(() => {}); }
-        }
+        const balloonColors = ['#ff4a4a', '#3a86ff', '#ff9f43', '#a855f7', '#06b6d4', '#ec4899'];
 
-        function launchCelebrationShower() {
-            let items = 10;
-            let timer = setInterval(() => {
-                if(items <= 0) { clearInterval(timer); return; }
-                let block = document.createElement('div');
-                block.className = 'tool-particle';
-                block.innerText = ['🔩', '🔧', '⭐', '🛠️', '🧱'][Math.floor(Math.random() * 5)];
-                block.style.left = Math.random() * 90 + 'vw';
-                block.style.setProperty('--drift', (Math.random() - 0.5) * 180 + 'px');
-                block.style.setProperty('--dur', (Math.random() * 0.6 + 1.1) + 's');
-                document.body.appendChild(block);
-                setTimeout(() => block.remove(), 1800);
-                items--;
-            }, 80);
-        }
-
-        function startGameSession() {
+        function launchGameCore() {
             document.getElementById('page-welcome').classList.remove('active');
             document.getElementById('page-play').classList.add('active');
-            buildBridgePlaceholders();
-            loadNextJobSpecs();
+            currentLevel = 0;
+            score = 0;
+            initiateSkyRound();
         }
 
-        function buildBridgePlaceholders() {
-            const track = document.getElementById('bridge-assembly-line');
-            track.innerHTML = "";
-            for(let i = 0; i < buildingBlueprints.length; i++) {
-                let segment = document.createElement('div');
-                segment.className = "bridge-block";
-                segment.id = `bridge-unit-${i}`;
-                track.appendChild(segment);
-            }
-        }
-
-        function loadNextJobSpecs() {
-            if (currentJobIndex >= buildingBlueprints.length) {
-                showVictoryScreen();
+        function initiateSkyRound() {
+            if(currentLevel >= gameLevelsBlueprints.length) {
+                gameOverShowdown();
                 return;
             }
 
-            document.getElementById('text-feedback').innerText = "";
-            let data = buildingBlueprints[currentJobIndex];
+            currentHoldValue = 0;
+            let currentData = gameLevelsBlueprints[currentLevel];
+            currentLevelTarget = currentData.target;
+            currentUnitType = currentData.unit;
 
-            document.getElementById('hud-turn').innerText = `${currentJobIndex + 1} / ${buildingBlueprints.length}`;
-            document.getElementById('hud-bolts').innerText = goldenBoltsCount;
-            document.getElementById('hud-phase').innerText = data.phase;
-            document.getElementById('text-question').innerText = data.question;
+            document.getElementById('hud-level-text').innerText = `${currentLevel + 1} / ${gameLevelsBlueprints.length}`;
+            document.getElementById('hud-score-val').innerText = score;
+            document.getElementById('hud-target-display').innerText = currentData.display;
 
-            let helperZone = document.getElementById('visual-helper-zone');
-            helperZone.innerHTML = "";
-            
-            let visualMode = data.makeVisual();
-            if (visualMode === "ruler-10") {
-                let ruler = document.createElement('div');
-                ruler.className = "visual-ruler";
-                for(let i=0; i<=15; i++) {
-                    let tick = document.createElement('div');
-                    tick.className = "ruler-mark" + (i % 5 === 0 ? " major" : "");
-                    tick.style.left = `${(i / 15) * 300 + 8}px`;
-                    if(i % 5 === 0) tick.setAttribute('data-val', i);
-                    ruler.appendChild(tick);
-                }
-                let bar = document.createElement('div');
-                bar.className = "visual-object-bar";
-                bar.style.width = `${(10 / 15) * 300}px`;
-                ruler.appendChild(bar);
-                helperZone.appendChild(ruler);
-            } else if (visualMode === "buckets-400-500") {
-                helperZone.innerHTML = `
-                    <div class="water-bucket-row">
-                        <div class="bucket-art"><div class="bucket-fill" style="height:44%"></div><div class="bucket-text">400mL</div></div>
-                        <div style="font-size:2.2rem; font-weight:bold; align-self:center; color: var(--safety-orange);">+</div>
-                        <div class="bucket-art"><div class="bucket-fill" style="height:55%"></div><div class="bucket-text">500mL</div></div>
-                    </div>`;
-            }
+            updateVisualHoldGauge();
+            populateFloatingBalloons(currentData);
+        }
 
-            let interactArea = document.getElementById('input-controls-zone');
-            interactArea.innerHTML = "";
+        function populateFloatingBalloons(levelData) {
+            const playground = document.getElementById('sky-balloon-playground');
+            playground.innerHTML = "";
 
-            if(data.type === "choice") {
-                let container = document.createElement('div');
-                container.className = "options-list";
-                const tags = ["A", "B", "C", "D"];
-                data.options.forEach((choice, code) => {
-                    let btn = document.createElement('button');
-                    btn.className = "option-button";
-                    btn.innerHTML = `<span class="letter-badge">${tags[code]}</span> <span class="txt-val">${choice}</span>`;
-                    btn.onclick = () => checkChoiceAnswer(btn, choice, data.correct);
-                    container.appendChild(btn);
-                });
-                interactArea.appendChild(container);
-            } else if(data.type === "input") {
-                let box = document.createElement('div');
-                box.style.textAlign = "center";
+            levelData.optionsPool.forEach((val, idx) => {
+                let balloon = document.createElement('div');
+                balloon.className = "floating-balloon";
+                balloon.innerHTML = `<span class="metric-tag">${val}</span>`;
                 
-                let textIn = document.createElement('input');
-                textIn.type = "number"; textIn.className = "input-number-box"; textIn.placeholder = "???";
-                textIn.onkeydown = (ev) => { if(ev.key === "Enter") checkTypedAnswer(textIn, data.correct); };
+                // Distribute bright theme colors dynamically
+                let randomColor = balloonColors[idx % balloonColors.length];
+                balloon.style.backgroundColor = randomColor;
+                balloon.style.color = randomColor; // Used for knot currentColor matching
 
-                let label = document.createElement('span');
-                label.className = "unit-text"; label.innerText = data.unit;
+                // Set random positions around the sunny sky playground box boundaries safely
+                let randomX = Math.floor(Math.random() * 80); 
+                let randomY = Math.floor(Math.random() * 55);
+                
+                balloon.style.left = `${randomX + 5}%`;
+                balloon.style.top = `${randomY + 5}%`;
+                balloon.style.animationDelay = `${idx * 0.25}s`;
 
-                let sendBtn = document.createElement('button');
-                sendBtn.className = "yellow-button"; sendBtn.style.padding = "10px 30px"; sendBtn.innerText = "Check Answer! ⭐";
-                sendBtn.onclick = () => checkTypedAnswer(textIn, data.correct);
+                balloon.onclick = () => {
+                    popBalloonAction(val, balloon);
+                };
 
-                box.appendChild(textIn); box.appendChild(label); box.appendChild(sendBtn);
-                interactArea.appendChild(box);
-                textIn.focus();
+                playground.appendChild(balloon);
+            });
+        }
+
+        function popBalloonAction(amount, element) {
+            currentHoldValue += amount;
+            updateVisualHoldGauge();
+
+            // Direct visual animation effect for bursting balloons
+            element.style.transform = "scale(1.4)";
+            element.style.opacity = "0";
+            element.style.pointerEvents = "none";
+            setTimeout(() => { element.remove(); }, 120);
+
+            // Instant addition targets accuracy checkers
+            if (currentHoldValue === currentLevelTarget) {
+                score += 100;
+                document.getElementById('sound-yes').play().catch(()=>{});
+                currentLevel++;
+                setTimeout(initiateSkyRound, 700);
+            } else if (currentHoldValue > currentLevelTarget) {
+                document.getElementById('sound-no').play().catch(()=>{});
+                alert(`Oops! Your basket overflowed past ${currentLevelTarget} ${currentUnitType}. Let's reset this round!`);
+                dumpCurrentHold();
             }
         }
 
-        function checkChoiceAnswer(btnElement, selection, answerKey) {
-            document.querySelectorAll('.option-button').forEach(b => b.style.pointerEvents = "none");
-            let feedback = document.getElementById('text-feedback');
-
-            if(selection === answerKey) {
-                btnElement.classList.add('good-pick');
-                feedback.style.color = "var(--grass-green)";
-                feedback.innerText = "Yes! One piece safely connected! 🔩";
-                goldenBoltsCount++; playSoundTrack('win-bolt'); launchCelebrationShower();
-                document.getElementById(`bridge-unit-${currentJobIndex}`).classList.add('fixed');
-            } else {
-                btnElement.classList.add('bad-pick');
-                feedback.style.color = "var(--brick-red)";
-                feedback.innerText = "Let's check the blueprint details again!";
-                playSoundTrack('check-blueprint');
-                document.querySelectorAll('.option-button').forEach(b => {
-                    if(b.querySelector('.txt-val').innerText === answerKey) b.classList.add('good-pick');
-                });
-            }
-            currentJobIndex++; setTimeout(loadNextJobSpecs, 2000);
+        function dumpCurrentHold() {
+            currentHoldValue = 0;
+            updateVisualHoldGauge();
+            populateFloatingBalloons(gameLevelsBlueprints[currentLevel]);
         }
 
-        function checkTypedAnswer(inputField, answerKey) {
-            if(!inputField.value.trim()) return;
-            inputField.disabled = true;
-            let feedback = document.getElementById('text-feedback');
-
-            if(inputField.value.trim() === answerKey) {
-                inputField.style.backgroundColor = "#c8e6c9";
-                feedback.style.color = "var(--grass-green)";
-                feedback.innerText = "Perfect number! Part snapped down tightly! 🏗️";
-                goldenBoltsCount++; playSoundTrack('win-bolt'); launchCelebrationShower();
-                document.getElementById(`bridge-unit-${currentJobIndex}`).classList.add('fixed');
-            } else {
-                inputField.style.backgroundColor = "#ffcdd2";
-                feedback.style.color = "var(--brick-red)";
-                feedback.innerText = `The secret builder number was: ${answerKey}`;
-                playSoundTrack('check-blueprint');
-            }
-            currentJobIndex++; setTimeout(loadNextJobSpecs, 2300);
+        function updateVisualHoldGauge() {
+            let pct = (currentHoldValue / currentLevelTarget) * 100;
+            if(pct > 100) pct = 100;
+            document.getElementById('gauge-fill-bar').style.width = `${pct}%`;
+            document.getElementById('gauge-readout-label').innerText = `${currentHoldValue} / ${currentLevelTarget} ${currentUnitType}`;
         }
 
-        function showVictoryScreen() {
+        function gameOverShowdown() {
             document.getElementById('page-play').classList.remove('active');
             document.getElementById('page-end').classList.add('active');
-            
-            const title = document.getElementById('victory-title');
-            const msg = document.getElementById('victory-message');
-            const avatar = document.getElementById('victory-avatar');
-            const box = document.getElementById('victory-scroll-box');
-            const actionBtn = document.getElementById('victory-action-btn');
-            
-            document.getElementById('final-bolts-report').innerText = `Pieces Successfully Completed: ${goldenBoltsCount} / ${buildingBlueprints.length}`;
-
-            if (goldenBoltsCount === buildingBlueprints.length) {
-                avatar.innerText = "🚚🎉🌉";
-                title.innerText = "We Fixed It! YES!";
-                title.style.color = "var(--grass-green)";
-                box.style.backgroundColor = "#e8f5e9";
-                box.style.borderColor = "var(--grass-green)";
-                msg.innerHTML = "Fantastic job! You built the whole bridge perfectly. Every single piece is connected, so Scoop, Muck, and Lofty can drive safely across now!";
-                actionBtn.innerText = "Play Again 🔄";
-                playSoundTrack('project-complete');
-            } else {
-                avatar.innerText = "⚠️🔧🛑";
-                title.innerText = "Bridge Has Gaps!";
-                title.style.color = "var(--brick-red)";
-                box.style.backgroundColor = "#ffebee";
-                box.style.borderColor = "var(--brick-red)";
-                msg.innerHTML = `Oh no! The bridge still has missing parts. A bridge with gaps isn't safe for heavy trucks to cross yet! Let's try again to lock all 13 pieces into place!`;
-                actionBtn.innerText = "Fix the Gaps! 🛠️";
-            }
+            document.getElementById('end-telemetry-msg').innerText = `Sensors clean! You achieved a fantastic score of ${score} metric points! Every balloon round was perfectly calculated!`;
         }
 
-        function restartGameSession() {
-            goldenBoltsCount = 0; currentJobIndex = 0;
+        function restartWholeGame() {
             document.getElementById('page-end').classList.remove('active');
             document.getElementById('page-welcome').classList.add('active');
         }
 
-        function dismissLoadingSplash() {
-            let layer = document.getElementById('loading-screen');
-            if(layer) {
-                layer.style.opacity = 0;
-                setTimeout(() => layer.remove(), 500);
-            }
-        }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => setTimeout(dismissLoadingSplash, 1300));
-        } else {
-            setTimeout(dismissLoadingSplash, 1300);
-        }
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                let splash = document.getElementById('loading-screen');
+                if(splash) {
+                    splash.style.opacity = 0;
+                    setTimeout(() => splash.remove(), 600);
+                }
+            }, 5000);
+        });
     </script>
 </body>
 </html>
