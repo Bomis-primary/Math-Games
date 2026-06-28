@@ -1,32 +1,308 @@
-function showAppreciationSlide() {
-            document.getElementById('page-play').classList.remove('active');
-            document.getElementById('page-transition').classList.add('active');
-
-            let randomPraise = celebrationPraisePhrases[Math.floor(Math.random() * celebrationPraisePhrases.length)];
-            document.getElementById('trans-title').innerText = randomPraise;
-            document.getElementById('trans-message').innerText = `You measured exactly ${currentTargetValue} ${currentUnitString}!`;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skyburst Metrics: Quest Mode</title>
+    <style>
+        :root {
+            --sky-blue: #a0e0ff;
+            --sunny-yellow: #ffdf00;
+            --balloon-blue: #3a86ff;
+            --grass-green: #2ecc71;
+            --cloud-white: #ffffff;
+            --text-dark: #2c3e50;
+            --wood-brown: #8b5a2b;
+            --wood-light: #cd853f;
+            --iron-gray: #708090;
+            --rope-color: #d2b48c;
+            --gold-star: #f1c40f;
         }
 
-        function advanceToNextQuestLevel() {
-            currentQuestIndex++;
-            document.getElementById('page-transition').classList.remove('active');
-
-            if (currentQuestIndex < structuredActiveRoundDeck.length) {
-                document.getElementById('page-play').classList.add('active');
-                loadActiveQuestLevel();
-            } else {
-                document.getElementById('page-end').classList.add('active');
-                document.getElementById('end-telemetry-msg').innerText = `Amazing! You finished all 6 rounds and earned a perfect score of ${score} ⭐!`;
-            }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Trebuchet MS', sans-serif;
         }
 
-        function restartWholeGame() {
-            document.getElementById('page-end').classList.remove('active');
-            document.getElementById('page-welcome').classList.add('active');
+        body {
+            background-color: var(--sky-blue);
+            background-image: 
+                radial-gradient(circle at 10% 10%, var(--sunny-yellow) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(255,255,255,0.6) 0%, transparent 25%);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            overflow: hidden;
+            user-select: none;
         }
 
-        // Global definition for balloon colors referenced during playground rendering
+        /* --- SPLASH SCREEN --- */
+        #loading-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(180deg, #bfeeff, var(--sky-blue));
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 9999; transition: opacity 0.6s ease;
+        }
+        .loading-box {
+            background: rgba(255, 255, 255, 0.9); padding: 35px; border-radius: 30px;
+            text-align: center; width: 90%; max-width: 420px; border: 3px solid #fff;
+            box-shadow: 0 12px 28px rgba(0,0,0,0.12); display: flex; flex-direction: column; align-items: center;
+        }
+        .innovine-logo-container {
+            margin-bottom: 25px; background: #ffffff; padding: 15px; border-radius: 15px;
+            display: inline-flex; align-items: center; justify-content: center; min-height: 70px; width: 100%;
+        }
+        .innovine-logo-img { max-height: 65px; max-width: 100%; object-fit: contain; }
+        .loading-bar { width: 100%; height: 12px; background: #e0f4ff; border-radius: 10px; margin-top: 15px; overflow: hidden; }
+        .loading-fill { width: 100%; height: 100%; background: var(--balloon-blue); transform: translateX(-100%); animation: load 1.8s linear forwards; }
+        @keyframes load { 100% { transform: translateX(0); } }
+
+        /* --- MAIN WRAPPER CONTAINER --- */
+        .game-box {
+            width: 100%;
+            max-width: 880px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 40px;
+            box-shadow: 0 20px 45px rgba(0, 40, 90, 0.18);
+            border: 6px solid var(--cloud-white);
+            min-height: 680px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+        }
+
+        .game-page { display: none; flex-direction: column; flex: 1; padding: 30px; opacity: 0; transition: opacity 0.3s ease; position: relative; }
+        .game-page.active { display: flex; opacity: 1; }
+
+        #page-welcome { text-align: center; justify-content: center; align-items: center; }
+        
+        .sunny-button {
+            background: linear-gradient(135deg, #ff9f43, #ff6b6b);
+            border: none; color: #fff; font-size: 1.4rem; font-weight: bold; text-transform: uppercase;
+            padding: 16px 50px; border-radius: 50px; cursor: pointer; box-shadow: 0 8px 20px rgba(255, 107, 107, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .sunny-button:hover { transform: scale(1.04); box-shadow: 0 10px 25px rgba(255, 107, 107, 0.5); }
+
+        /* --- HUD ELEMENTS --- */
+        .hud-top {
+            display: flex; justify-content: space-between; align-items: center;
+            background: var(--cloud-white); padding: 15px 25px; border-radius: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+        .badge-pill { background: #f1f5f9; padding: 8px 16px; border-radius: 15px; font-weight: bold; font-size: 1.1rem; color: #475569; }
+        .score-pill { background: linear-gradient(135deg, #fff3c4, #f1c40f); color: #784315; border: 1px solid #f39c12; }
+
+        /* --- SCENARIO QUEST BAR --- */
+        .scenario-quest-banner {
+            background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+            border-left: 6px solid var(--balloon-blue);
+            padding: 15px 20px; border-radius: 18px; margin: 15px 0 5px 0;
+            display: flex; flex-direction: column; gap: 4px;
+        }
+        .quest-context { font-size: 1.05rem; color: #0369a1; font-style: italic; font-weight: bold; }
+        .quest-task { font-size: 1.3rem; color: var(--text-dark); font-weight: 800; }
+
+        /* --- PLAYGROUND ENVIRONMENTS --- */
+        .sky-play-bay {
+            flex: 1; background: linear-gradient(to bottom, #f0f9ff, #ffffff); border: 3px dashed #cbd5e1; border-radius: 28px;
+            margin: 15px 0; display: flex; padding: 20px; position: relative; min-height: 350px;
+        }
+        .sky-play-bay.row-mode { flex-direction: column; justify-content: space-between; align-items: center; }
+        .sky-play-bay.split-mode { flex-direction: row; justify-content: space-between; align-items: center; gap: 20px; }
+
+        .left-zone, .right-zone { width: 50%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .left-zone { border-right: 2px dashed #e2e8f0; padding-right: 15px; }
+        .right-zone { padding-left: 15px; }
+
+        /* --- CAPACITY ASSETS --- */
+        .balloon-row { display: flex; gap: 15px; justify-content: center; align-items: center; width: 100%; min-height: 120px; flex-wrap: wrap; }
+        .floating-balloon {
+            position: relative; width: 85px; height: 105px; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: inset -8px -8px 15px rgba(0,0,0,0.12), 0 8px 15px rgba(0,0,0,0.08); transition: transform 0.2s, opacity 0.2s;
+        }
+        .floating-balloon::after { content: ""; position: absolute; bottom: -6px; border-left: 6px solid transparent; border-right: 6px solid transparent; border-bottom: 8px solid currentColor; filter: brightness(0.85); }
+        .floating-balloon:hover { transform: translateY(-5px) scale(1.05); }
+        .floating-balloon .metric-tag { font-weight: bold; color: #fff; font-size: 1.15rem; text-shadow: 1px 1px 3px rgba(0,0,0,0.4); text-align: center; }
+
+        .bucket-zone { position: relative; width: 150px; height: 150px; }
+        .bucket-handle { position: absolute; top: -15px; left: 15px; width: 120px; height: 80px; border: 6px solid #b4becb; border-bottom: none; border-radius: 70px 70px 0 0; }
+        .bucket { position: relative; width: 130px; height: 120px; background: #f1f5f9; border: 6px solid #cbd5e1; border-top: none; border-radius: 0 0 30px 30px; clip-path: polygon(0 0, 100% 0, 84% 100%, 16% 100%); overflow: hidden; margin: 0 auto; box-shadow: 0 8px 16px rgba(0,0,0,0.05); }
+        .bucket-liquid { position: absolute; bottom: 0; left: 0; width: 100%; height: 0%; background: linear-gradient(180deg, #38bdf8, #0284c7); transition: height 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* --- WEIGHT ASSETS --- */
+        .log-pile { display: flex; flex-direction: column-reverse; gap: 8px; width: 100%; align-items: center; justify-content: center; min-height: 230px; }
+        .wooden-log {
+            width: 155px; height: 40px; background: linear-gradient(90deg, var(--wood-brown), var(--wood-light), var(--wood-brown));
+            border-radius: 8px; border: 2px solid #5c3a21; position: relative; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;
+            box-shadow: 0 5px 8px rgba(0,0,0,0.16); transition: transform 0.2s, opacity 0.2s;
+        }
+        .wooden-log:hover { transform: scale(1.06) translateY(-2px); box-shadow: 0 8px 14px rgba(0,0,0,0.22); }
+        .wooden-log::before, .wooden-log::after { content: ""; position: absolute; top: 0; width: 12px; height: 100%; background: #e6c280; border-radius: 50%; border: 1px solid #5c3a21; }
+        .wooden-log::before { left: -6px; } .wooden-log::after { right: -6px; }
+        .wooden-log span { z-index: 2; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); font-size: 1.05rem; }
+
+        .scale-machine { position: relative; width: 190px; height: 240px; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+        .scale-base { width: 170px; height: 22px; background: var(--iron-gray); border-radius: 6px; box-shadow: 0 4px 6px rgba(0,0,0,0.15); }
+        .scale-pillar { width: 18px; height: 85px; background: #cbd5e1; }
+        .scale-pan { width: 160px; height: 12px; background: #e2e8f0; border-top: 4px solid #94a3b8; position: absolute; bottom: 107px; transition: transform 0.3s ease; }
+        .scale-items-container { position: absolute; bottom: 119px; width: 140px; display: flex; flex-direction: column-reverse; gap: 4px; align-items: center; transition: transform 0.3s ease; }
+        .scale-items-container .wooden-log { width: 115px; height: 30px; font-size: 0.85rem; cursor: default; transform: none !important; }
+        .scale-dial-housing { position: absolute; bottom: 25px; width: 82px; height: 82px; background: #fff; border: 6px solid var(--iron-gray); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1); }
+        .scale-needle { width: 4px; height: 32px; background: #ef4444; position: absolute; bottom: 50%; transform-origin: bottom center; transform: rotate(0deg); transition: transform 0.4s ease; border-radius: 2px; }
+
+        /* --- LENGTH ASSETS --- */
+        .rope-bin { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; align-items: center; width: 100%; }
+        .rope-coil {
+            width: 85px; height: 85px; background: radial-gradient(circle, transparent 20%, var(--rope-color) 21%, var(--rope-color) 35%, #b59469 36%, #b59469 45%, var(--rope-color) 46%);
+            border: 3px dashed #8c6d43; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15); transition: transform 0.2s;
+        }
+        .rope-coil:hover { transform: scale(1.08) rotate(10deg); }
+        .rope-coil-tag { background: #fff; padding: 3px 8px; border-radius: 8px; font-weight: bold; font-size: 0.95rem; border: 1px solid #8c6d43; }
+
+        .clothesline-board {
+            width: 100%; height: 230px; background: #fafafa; border: 2px dashed #cbd5e1; border-radius: 20px;
+            display: flex; flex-direction: column; justify-content: flex-start; align-items: flex-start; padding: 30px 20px; position: relative;
+        }
+        .anchor-pole { position: absolute; top: 15px; width: 8px; height: 80px; background: #64748b; border-radius: 4px; }
+        .anchor-left { left: 20px; } .anchor-right { right: 20px; }
+        .rope-strand-line { position: absolute; top: 35px; left: 25px; width: calc(100% - 50px); height: 6px; background: #e2e8f0; border-radius: 3px; }
+        .active-rope-filled-path {
+            position: absolute; top: 34px; left: 25px; width: 0%; height: 8px;
+            background-image: repeating-linear-gradient(45deg, var(--rope-color), var(--rope-color) 6px, #ba9668 6px, #ba9668 12px);
+            border-radius: 4px; box-shadow: 0 2px 5px rgba(0,0,0,0.18); transition: width 0.4s ease;
+        }
+
+        /* --- PROGRESS DASHBOARD FOOTER --- */
+        .dashboard-gauges { display: flex; gap: 20px; justify-content: center; align-items: center; padding: 5px 10px; width: 100%; }
+        .basket-gauge-container { width: 65%; background: #e2e8f0; height: 40px; border-radius: 50px; border: 3px solid var(--cloud-white); overflow: hidden; position: relative; box-shadow: inset 0 2px 6px rgba(0,0,0,0.08); }
+        .basket-gauge-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #2ecc71, #26af5f); transition: width 0.3s ease; }
+        .basket-gauge-text { position: absolute; width: 100%; text-align: center; top: 7px; font-weight: bold; font-size: 1.2rem; color: var(--text-dark); }
+        .clear-btn { background: #fee2e2; border: 2px solid #ef4444; color: #ef4444; padding: 8px 24px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: all 0.2s; }
+        .clear-btn:hover { background: #ef4444; color: #fff; }
+
+        /* --- APPRECIATION & TRANSITION SLIDE --- */
+        #page-transition { text-align: center; justify-content: center; align-items: center; background: linear-gradient(135deg, #f0fdf4, #dcfce7); }
+        .star-reward-badge { font-size: 4.5rem; animation: popStar 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) infinite alternate; margin-bottom: 15px; }
+        @keyframes popStar { 0% { transform: scale(1); } 100% { transform: scale(1.15); } }
+
+        /* --- WATER SPLASH CELEBRATION EFFECT --- */
+        .water-splash-overlay {
+            position: absolute; top: 0; width: 120px; height: 100%;
+            background: radial-gradient(circle inside, #38bdf8 20%, transparent 70%);
+            opacity: 0; pointer-events: none; z-index: 100;
+        }
+        #splash-left { left: -120px; border-radius: 0 100% 100% 0; background: linear-gradient(90deg, rgba(56,189,248,0.7), transparent); }
+        #splash-right { right: -120px; border-radius: 100% 0 0 100%; background: linear-gradient(-90deg, rgba(56,189,248,0.7), transparent); }
+        
+        .trigger-splash-active #splash-left { animation: splashInLeft 0.7s ease-out; }
+        .trigger-splash-active #splash-right { animation: splashInRight 0.7s ease-out; }
+
+        @keyframes splashInLeft {
+            0% { left: -120px; opacity: 0; }
+            40% { left: 0; opacity: 1; }
+            100% { left: -120px; opacity: 0; }
+        }
+        @keyframes splashInRight {
+            0% { right: -120px; opacity: 0; }
+            40% { right: 0; opacity: 1; }
+            100% { right: -120px; opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="sound-yes" src="assets/claps.mp3" preload="auto"></audio>
+    <audio id="sound-no" src="assets/wrong.mp3" preload="auto"></audio>
+
+    <div id="loading-screen">
+        <div class="loading-box">
+            <div class="innovine-logo-container">
+                <img class="innovine-logo-img" src="assets/logo.png" alt="Innovine Logo">
+            </div>
+            <div class="loading-bar"><div class="loading-fill"></div></div>
+        </div>
+    </div>
+
+    <div class="game-box" id="game-main-box">
+        
+        <div class="water-splash-overlay" id="splash-left"></div>
+        <div class="water-splash-overlay" id="splash-right"></div>
+
+        <div class="game-page active" id="page-welcome">
+            <div style="font-size: 3.5rem; margin-bottom: 10px;">🧪🪵🎗️</div>
+            <h1 style="font-size: 2.8rem; color: var(--text-dark); font-weight: 800;">Skyburst Metrics Quest</h1>
+            <h3 style="color: var(--balloon-blue); letter-spacing: 2px; margin-bottom: 25px; font-weight: 700;">CHAPTER 7: LAB WORKSHOP</h3>
+            <p style="max-width: 560px; margin-bottom: 35px; font-size: 1.25rem; line-height: 1.6; color: #475569;">
+                Welcome Explorer! Help our town citizens solve real-world problems by using your expert measurement skills!
+            </p>
+            <button class="sunny-button" onclick="buildAndLaunchQuest()">Start Mission 🚀</button>
+        </div>
+
+        <div class="game-page" id="page-play">
+            <div class="hud-top">
+                <div class="badge-pill">Round: <span id="hud-level-text">1 / 6</span></div>
+                <div class="badge-pill score-pill">Score: <span id="hud-score-val">0</span> ⭐</div>
+            </div>
+
+            <div class="scenario-quest-banner">
+                <div class="quest-context" id="quest-scenario-text">Scenario...</div>
+                <div class="quest-task" id="quest-task-text">Task Objective...</div>
+            </div>
+
+            <div class="sky-play-bay row-mode" id="dynamic-playground-environment"></div>
+
+            <div class="dashboard-gauges">
+                <div style="font-weight: bold; font-size: 1.15rem; color: #475569;" id="gauge-title-label">Selected:</div>
+                <div class="basket-gauge-container">
+                    <div class="basket-gauge-fill" id="gauge-fill-bar"></div>
+                    <div class="basket-gauge-text" id="gauge-readout-label">0 / 0</div>
+                </div>
+                <button class="clear-btn" id="clear-btn-label" onclick="clearActiveHold()">Reset 🗑️</button>
+            </div>
+        </div>
+
+        <div class="game-page" id="page-transition">
+            <div class="star-reward-badge">⭐🤩🌟</div>
+            <h1 style="color: #16a34a; font-size: 2.5rem; font-weight: 800; margin-bottom: 10px;" id="trans-title">Outstanding!</h1>
+            <p style="font-size: 1.3rem; max-width: 540px; margin-bottom: 30px; color: #166534;" id="trans-message">You successfully solved the task objective!</p>
+            <button class="sunny-button" style="background: linear-gradient(135deg, #2ecc71, #27ae60); box-shadow: 0 6px 15px rgba(46,204,113,0.4);" onclick="advanceToNextQuestLevel()">Continue Quest ➡️</button>
+        </div>
+
+        <div class="game-page" id="page-end" style="text-align: center; justify-content: center; align-items: center;">
+            <div style="font-size: 5rem;">🏆👑🎉</div>
+            <h1 style="color: var(--grass-green); font-size: 2.8rem; margin: 15px 0; font-weight: 800;">Quest Completed!</h1>
+            <p style="font-size: 1.4rem; margin-bottom: 35px; color: #475569;" id="end-telemetry-msg"></p>
+            <button class="sunny-button" onclick="restartWholeGame()">Play Again 🔄</button>
+        </div>
+
+    </div>
+
+    <script>
+        let currentQuestIndex = 0;
+        let score = 0;
+        let currentHoldValue = 0;
+        let currentTargetValue = 0;
+        let currentUnitString = "";
+        let structuredActiveRoundDeck = [];
+
         const balloonColors = ["#ff595e", "#ffca3a", "#8ac926", "#1982c4", "#6a4c93", "#ff924c"];
-    </script>
-</body>
-</html>
+
+        // Comprehensive Question Blueprints Pool per Learning Outcome Category
+        const capacityQuestsPool = [
+            { type: "capacity", scenario: "Chef Marina is mixing a batch of Magical Ocean Fruit Punch! 🍹", task: "Pour exactly 80 Liters of mixed juice into the storage barrel.", target: 80, unit: "Liters", items: [10, 20, 35, 45, 50, 15] },
+            { type: "capacity", scenario: "Dr. Zinc needs precise amounts of reactant base fluid to activate the glow lamp! 🧪", task: "Measure and pour exactly 600 mL into the glass beaker safely.", target: 600, unit: "mL", items: [200, 350, 250, 50, 100, 150] },
+            { type: "capacity", scenario: "Farmer Tim is setting out fresh clean well-water for his dairy cows! 🐄", task: "Fill the pasture drinking bucket to exactly 45 Liters.", target: 45, unit: "Liters", items: [5, 10, 15, 20, 25, 8] }
+        ];
+
+        const
