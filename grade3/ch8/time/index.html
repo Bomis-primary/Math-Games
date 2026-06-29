@@ -16,6 +16,9 @@
 
         body {
             background-color: #2c3e50;
+            background-image: url('assets/time-bg.png');
+            background-size: cover;
+            background-position: center;
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -34,12 +37,9 @@
             z-index: 9999;
             transition: opacity 0.5s ease-out;
         }
-        #splash-screen .fallback-logo {
-            font-size: 32px;
-            font-weight: bold;
-            color: #111;
-            border: 4px double #111;
-            padding: 10px 20px;
+        #splash-screen img {
+            max-width: 240px;
+            height: auto;
         }
 
         /* --- ARCADE CABINET --- */
@@ -74,6 +74,9 @@
             width: 170px;
             height: 170px;
             background: #fff8e1;
+            background-image: url('assets/clock-face.png');
+            background-size: cover;
+            background-position: center;
             border: 4px solid #f39c12;
             border-radius: 50%;
             position: relative;
@@ -134,6 +137,13 @@
             font-weight: bold;
             display: none;
             text-shadow: 0 0 10px rgba(0,240,255,0.7);
+        }
+
+        /* Image Display inside stage area */
+        .stage-banner-img {
+            max-width: 120px;
+            max-height: 120px;
+            display: none;
         }
 
         /* --- CONTROL CONSOLE --- */
@@ -228,7 +238,7 @@
 <body>
 
     <div id="splash-screen">
-        <div class="fallback-logo">INNOVINE LOGO</div>
+        <img src="assets/logo.png" alt="Game Logo">
     </div>
 
     <div class="arcade-cabinet">
@@ -246,6 +256,7 @@
             <div class="digital-readout" id="clock-digital">Current: 12:00</div>
 
             <div class="badge-display" id="visual-image">⚙️</div>
+            <img src="assets/calendar.png" class="stage-banner-img" id="calendar-vector-img" alt="Calendar Display">
         </div>
 
         <div class="control-board">
@@ -292,15 +303,15 @@
 
     </div>
 
-    <audio id="sound-correct" src="" preload="auto"></audio>
-    <audio id="sound-wrong" src="" preload="auto"></audio>
+    <audio id="sound-correct" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
 
     <script>
         const level1Puzzles = [
             { isDigital: false, text: "CRITICAL SYNC: Move hands to exactly quarter past 3 o'clock! (3:15)", h: 3, m: 15 },
-            { isDigital: true, text: "⏰ Look at the digital clock below. Change the analog clock to match it:", displayTime: "06:42", h: 6, m: 42 },
-            { isDigital: true, text: "⏰ Look at the digital clock below. Change the analog clock to match it:", displayTime: "08:45", h: 8, m: 45 },
-            { isDigital: true, text: "⏰ Look at the digital clock below. Change the analog clock to match it:", displayTime: "11:07", h: 11, m: 7 }
+            { isDigital: true, text: "⏰ Look at the digital clock below. Change the analog clock to match it:", displayTime: "06:45", h: 6, m: 45 },
+            { isDigital: true, text: "⏰ Look at the digital clock below. Change the analog clock to match it:", displayTime: "08:20", h: 8, m: 20 },
+            { isDigital: true, text: "⏰ Look at the digital clock below. Change the analog clock to match it:", displayTime: "09:15", h: 9, m: 15 }
         ];
 
         const level2Puzzles = [
@@ -327,9 +338,18 @@
 
         const clipWin = document.getElementById('sound-correct');
         const clipLose = document.getElementById('sound-wrong');
+        const volControl = document.getElementById('volume');
+
+        // Sync volume logic manually
+        volControl.addEventListener('input', (e) => {
+            clipWin.volume = e.target.value;
+            clipLose.volume = e.target.value;
+        });
 
         window.addEventListener('DOMContentLoaded', () => {
-            // Shortened to 2000ms for a better testing workflow
+            clipWin.volume = volControl.value;
+            clipLose.volume = volControl.value;
+
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 splash.style.opacity = '0';
@@ -345,6 +365,7 @@
             document.getElementById('visual-clock').style.display = 'none';
             document.getElementById('clock-digital').style.display = 'none';
             document.getElementById('visual-image').style.display = 'none';
+            document.getElementById('calendar-vector-img').style.display = 'none';
         }
 
         function advanceToLevel(targetLevelId) {
@@ -364,8 +385,7 @@
             }
             else if (currentLevel === 2) {
                 document.getElementById('label-level').textContent = "MATRIX LEVEL 2";
-                visualImg.textContent = "📅";
-                visualImg.style.display = "block";
+                document.getElementById('calendar-vector-img').style.display = "block";
                 promptBox.innerHTML = "🌀 <strong>ZONE 2: CALENDAR CALIBRATION DRIVES</strong><br>The chronological anchors are slipstreaming. Solve relative day shifts and jump multiple calendar years into the continuum!";
                 document.getElementById('view-transition').style.display = 'block';
             }
@@ -397,8 +417,7 @@
             }
             else if (currentLevel === 2) {
                 document.getElementById('label-level').textContent = "L2: QUANTUM LEAP CALENDAR";
-                document.getElementById('visual-image').textContent = "📅";
-                document.getElementById('visual-image').style.display = 'block';
+                document.getElementById('calendar-vector-img').style.display = 'block';
                 document.getElementById('view-grid').style.display = 'block';
                 activePool = [...level2Puzzles].sort(() => Math.random() - 0.5);
                 executeStageLoad();
@@ -504,7 +523,7 @@
 
         function handleIncorrectAttempt(clickedElement) {
             attemptsUsed++;
-            try { if(clipLose.src) clipLose.play(); } catch(err){}
+            try { clipLose.play(); } catch(err){}
 
             if (attemptsUsed < 2) {
                 const puzzle = activePool[puzzleIndex];
@@ -543,9 +562,8 @@
 
         function processValidationSuccess() {
             inputLock = true;
-            try { if(clipWin.src) clipWin.play(); } catch(err){}
+            try { clipWin.play(); } catch(err){}
             
-            // Fires visual confetti particle explosion effect
             confetti({ particleCount: 50, spread: 60 });
 
             puzzleIndex++;
