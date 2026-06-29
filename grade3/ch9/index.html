@@ -137,7 +137,6 @@
             overflow-y: auto;
         }
 
-        /* 2-row layout grid tray */
         #asset-shelf {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -152,7 +151,6 @@
             border-radius: 8px;
         }
 
-        /* Increased size of currency tray icons for better visibility */
         .money-asset {
             height: 68px;
             object-fit: contain;
@@ -162,7 +160,6 @@
         }
         .money-asset:hover { transform: scale(1.08); }
 
-        /* Increased size of dropped currency items inside the workspace */
         .workspace-item {
             height: 64px;
             object-fit: contain;
@@ -173,6 +170,25 @@
         .controls { display: flex; gap: 15px; margin-bottom: 5px; }
         .btn-clear { background-color: #e74c3c; }
         .btn-submit { background-color: #3498db; }
+
+        /* --- Dynamic Coin Blast CSS --- */
+        .blast-coin {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background-color: #ffd700;
+            border: 2px solid #daa520;
+            border-radius: 50%;
+            box-shadow: inset 0 0 5px rgba(255,255,255,0.6), 0 2px 4px rgba(0,0,0,0.2);
+            font-size: 12px;
+            font-weight: bold;
+            color: #b8860b;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            z-index: 999;
+        }
 
         @keyframes pulse {
             0% { transform: scale(1); }
@@ -220,7 +236,8 @@
             <img src="./assets/note20.png" class="money-asset" data-val="20" onclick="addAsset(20, './assets/note20.png')">
             <img src="./assets/note50.png" class="money-asset" data-val="50" onclick="addAsset(50, './assets/note50.png')">
             <img src="./assets/note200.png" class="money-asset" data-val="200" onclick="addAsset(200, './assets/note200.png')">
-            <div></div> </div>
+            <div></div> 
+        </div>
 
         <div class="controls">
             <button class="btn-clear" onclick="clearWorkspace()">Clear</button>
@@ -357,11 +374,63 @@
         document.getElementById('workspace').innerHTML = '';
     }
 
+    // --- Dynamic Coin Burst Generation Engine ---
+    function triggerCoinBlast() {
+        const container = document.getElementById('game-container');
+        const chooseSide = Math.random() > 0.5 ? 'left' : 'right';
+        const totalCoins = 24; 
+
+        for (let i = 0; i < totalCoins; i++) {
+            const coin = document.createElement('div');
+            coin.className = 'blast-coin';
+            coin.innerText = '₹';
+
+            // Pin starting side positions
+            const startX = chooseSide === 'left' ? -30 : container.clientWidth + 30;
+            const startY = Math.random() * (container.clientHeight * 0.6) + (container.clientHeight * 0.2);
+
+            coin.style.left = startX + 'px';
+            coin.style.top = startY + 'px';
+            container.appendChild(coin);
+
+            // Compute physics velocity trajectory vectors
+            const angle = chooseSide === 'left' 
+                ? (Math.random() * 60 - 30) * Math.PI / 180 
+                : (Math.random() * 60 + 150) * Math.PI / 180;
+                
+            const velocity = Math.random() * 12 + 10;
+            let velX = Math.cos(angle) * velocity;
+            let velY = Math.sin(angle) * velocity - 5; 
+            const gravity = 0.5;
+
+            let currentX = startX;
+            let currentY = startY;
+
+            function updateCoinPhysics() {
+                velY += gravity;
+                currentX += velX;
+                currentY += velY;
+
+                coin.style.left = currentX + 'px';
+                coin.style.top = currentY + 'px';
+
+                // Keep rendering inside framework borders
+                if (currentY < container.clientHeight + 40 && currentX > -50 && currentX < container.clientWidth + 50) {
+                    requestAnimationFrame(updateCoinPhysics);
+                } else {
+                    coin.remove();
+                }
+            }
+            requestAnimationFrame(updateCoinPhysics);
+        }
+    }
+
     function validateAnswer() {
         let currentTarget = gameQuestions[currentIdx].target;
 
         if (totalSelectedVal === currentTarget) {
             soundClaps.play();
+            triggerCoinBlast(); // Shoots money assets across screen layout
             score += 10;
             alert("Excellent! That's correct! 🌟");
             advanceNext();
