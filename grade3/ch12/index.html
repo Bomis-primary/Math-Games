@@ -456,4 +456,482 @@
 
     <div id="game-screen" class="screen">
         <div class="header">
-            <div class
+            <div class="stats" id="level-indicator">Level: Recall</div>
+            <div class="stats" id="progress-tracker">Task: 1/12</div>
+            <div class="stats" id="score-tracker">Score: 0</div>
+        </div>
+
+        <div class="main-container">
+            <div class="question-box" id="question-text">Loading task context...</div>
+            <div class="workspace" id="game-workspace"></div>
+            <div class="input-container">
+                <button class="btn btn-primary" style="width: 100%; max-width: 450px;" onclick="submitAnswer()">Submit Census Record</button>
+            </div>
+        </div>
+
+        <div class="modal" id="feedback-modal">
+            <div class="modal-content">
+                <div class="feedback-title" id="feedback-title">Correct!</div>
+                <div class="explanation" id="explanation-text">Explanation goes here.</div>
+                <button class="btn btn-primary" style="width: 100%" id="modal-next-btn" onclick="closeModal()">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="end-screen" class="screen">
+        <div class="card">
+            <h1>🏆 Mission Accomplished!</h1>
+            <p>Fantastic job, Data Ranger! You organized the zoo beautifully.</p>
+            <div class="score-badge" id="final-score">Score: 0</div>
+            <p id="final-feedback">Keep practicing data strategies!</p>
+            <button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const database = [
+            {
+                level: "Level 1: Recall",
+                question: "Look at the tally marks. Set the numeric counter pad below to show how many playful Monkeys were recorded.",
+                type: "counter_pad",
+                designType: "tally",
+                data: [ { label: "Monkeys", count: 7, img: "monkey.png" }, { label: "Lions", count: 3, img: "lion.png" } ],
+                targetAnswer: 7,
+                explanation: "Each bundle with a diagonal line across represents 5. So, 5 + 2 single lines equals 7 monkeys!"
+            },
+            {
+                level: "Level 1: Recall",
+                question: "Ranger Emma logged a flock of exotic Toucans resting on the rainforest canopy. Look at her tally sheet below and set the counter pad to match the total count.",
+                type: "counter_pad",
+                designType: "tally",
+                data: [ { label: "Toucans", count: 5, img: "toucan.png" } ],
+                targetAnswer: 5,
+                explanation: "The census bundle shows 4 vertical bars closed off by 1 diagonal slash line, which means exactly 5 Toucans were tracked!"
+            },
+            {
+                level: "Level 1: Recall",
+                question: "Read this Pictograph. If each banana icon stands for 1 banana, use the counter pad to record how many bananas the elephants ate.",
+                type: "counter_pad",
+                designType: "picto",
+                key: 1,
+                data: [ { label: "Elephants", count: 4, img: "banana.png" }, { label: "Giraffes", count: 2, img: "banana.png" } ],
+                targetAnswer: 4,
+                explanation: "Count the banana icons in the Elephants row. There are 4 icons, and since each icon represents 1, the answer is 4."
+            },
+            {
+                level: "Level 1: Recall",
+                question: "Look at the Bar Graph. What is the recorded height value of the bar indicating Zebras? Tap the counter pad to register.",
+                type: "counter_pad",
+                designType: "bar",
+                data: [ { label: "Zebras", count: 8 }, { label: "Pandas", count: 5 } ],
+                targetAnswer: 8,
+                explanation: "Follow the peak of the Zebra bar straight over to the value lines; it perfectly aligns with the number 8."
+            },
+            {
+                level: "Level 2: Understanding",
+                question: "CRITICAL KEY CHANGE: In this Pictograph, each paw icon represents 2 Bears. Set the counter to show how many total Bears live in the forest zone.",
+                type: "counter_pad",
+                designType: "picto",
+                key: 2,
+                data: [ { label: "Bears", count: 6, img: "paw.png" } ], 
+                targetAnswer: 6,
+                explanation: "Look closely at the key! Each icon counts for 2. Since there are 3 icons displayed, we skip-count: 2, 4, 6!"
+            },
+            {
+                level: "Level 2: Understanding",
+                question: "Compare the counts! Use the counter pad to show how many MORE Parrots than Koalas are recorded via these tally sets.",
+                type: "counter_pad",
+                designType: "tally",
+                data: [ { label: "Parrots", count: 9, img: "parrot.png" }, { label: "Koalas", count: 4, img: "koala.png" } ],
+                targetAnswer: 5,
+                explanation: "Parrots have 9 tallies and Koalas have 4 tallies. To find how many more, subtract: 9 - 4 = 5."
+            },
+            {
+                level: "Level 2: Understanding",
+                question: "BUILD THE DATA: Click rows inside the workspace grid to plant item units. Recreate a pictograph where Snakes = 3 and Tigers = 5! (Key: 1 Icon = 1 Animal)",
+                type: "interactive_picto",
+                key: 1,
+                data: [ { label: "Snakes", current: 0, img: "snake.png" }, { label: "Tigers", current: 0, img: "tiger.png" } ],
+                targetAnswer: { "Snakes": 3, "Tigers": 5 },
+                explanation: "You successfully configured 3 icons for Snakes and 5 icons for Tigers to match the required metric."
+            },
+            {
+                level: "Level 2: Understanding",
+                question: "Calculate total stock: If each fish icon means 3 items, how many total fish are stored for the penguins? Input onto the counter pad.",
+                type: "counter_pad",
+                designType: "picto",
+                key: 3,
+                data: [ { label: "Fish Stack", count: 12, img: "fish.png" } ], 
+                targetAnswer: 12,
+                explanation: "With 4 fish icons present and a key value of 3 units per icon, we calculate 4 times 3, which equals 12 fish."
+            },
+            {
+                level: "Level 3: Application",
+                question: "INTERACTIVE CHARTING: The Zookeeper lost a notebook entry! Use the chart adjust buttons (+/-) to change the missing Lions bar until it reads exactly 4 units.",
+                type: "interactive_bar",
+                data: [ { label: "Tigers", count: 7, interactive: false }, { label: "Lions", count: 0, interactive: true } ],
+                targetAnswer: { "Lions": 4 },
+                explanation: "The bar shows there are 7 Tigers. Adjusting the missing Lions bar to 4 balances the census data perfectly."
+            },
+            {
+                level: "Level 3: Application",
+                question: "Ranger Lily says this pictograph represents 10 Kangaroos. If there are 4 icons and each icon equals 2, use the counter pad to show the actual total number represented.",
+                type: "counter_pad",
+                designType: "picto",
+                key: 2,
+                data: [ { label: "Kangaroos", count: 8, img: "kangaroo.png" } ], 
+                targetAnswer: 8,
+                explanation: "There are 4 icons and each icon equals 2. 4 times 2 is 8, not 10. Lily made an evaluation error!"
+            },
+            {
+                level: "Level 3: Application",
+                question: "CHART RE-BALANCE: A delivery truck arrives with 3 new Foxes. Use the adjusters to raise the current Foxes bar (at 4) up to its new total value.",
+                type: "interactive_bar",
+                data: [ { label: "Foxes", count: 4, interactive: true }, { label: "Deer", count: 6, interactive: false } ],
+                targetAnswer: { "Foxes": 7 },
+                explanation: "The graph shows 4 current Foxes. Adding the 3 newcomers means you raised the interactive bar until it reached 7."
+            },
+            {
+                level: "Level 3: Application",
+                question: "Final Challenge! Look at the tally marks below. Compute the combined total of Foxes and Owls together using the counter pad.",
+                type: "counter_pad",
+                designType: "tally",
+                data: [ { label: "Foxes", count: 6, img: "fox.png" }, { label: "Owls", count: 8, img: "owl.png" } ],
+                targetAnswer: 14,
+                explanation: "Foxes have 6 tallies and Owls have 8 tallies. Combined together, 6 + 8 equals 14 total animals!"
+            }
+        ];
+
+        let currentIndex = 0;
+        let score = 0;
+        let wrongAttempts = 0;
+        let currentCounterValue = 0;
+
+        function switchScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // COMPULSORY TIMEOUT: Locks splash screen display for exactly 5000ms
+        window.addEventListener('DOMContentLoaded', () => {
+            const imgLogo = document.getElementById('splash-logo');
+            if (imgLogo) {
+                imgLogo.onerror = function() {
+                    this.src = 'https://placehold.co/250x100?text=Innovine+Zoo';
+                };
+            }
+            
+            setTimeout(() => {
+                switchScreen('intro-screen');
+            }, 5000);
+        });
+
+        function startGame() {
+            currentIndex = 0;
+            score = 0;
+            switchScreen('game-screen');
+            loadTask();
+        }
+
+        function loadTask() {
+            wrongAttempts = 0;
+            currentCounterValue = 0;
+            const item = database[currentIndex];
+
+            document.getElementById('level-indicator').innerText = item.level;
+            document.getElementById('progress-tracker').innerText = `Task: ${currentIndex + 1}/${database.length}`;
+            document.getElementById('score-tracker').innerText = `Score: ${score}`;
+            document.getElementById('question-text').innerText = item.question;
+
+            const workspace = document.getElementById('game-workspace');
+            workspace.innerHTML = "";
+
+            if (item.type === 'counter_pad') {
+                const subContainer = document.createElement('div');
+                subContainer.style.width = "100%";
+                subContainer.style.display = "flex";
+                subContainer.style.flexDirection = "column";
+                subContainer.style.alignItems = "center";
+                subContainer.style.gap = "20px";
+
+                if (item.designType === 'tally') {
+                    subContainer.appendChild(renderStaticTallies(item.data));
+                } else if (item.designType === 'picto') {
+                    subContainer.appendChild(renderStaticPictograph(item.data, item.key));
+                } else if (item.designType === 'bar') {
+                    subContainer.appendChild(renderStaticBarChart(item.data));
+                }
+
+                const pad = document.createElement('div');
+                pad.className = 'counter-container';
+                pad.innerHTML = `
+                    <button class="counter-btn" onclick="updatePadValue(-1)">−</button>
+                    <div class="counter-value" id="pad-display">0</div>
+                    <button class="counter-btn" onclick="updatePadValue(1)">+</button>
+                `;
+                subContainer.appendChild(pad);
+                workspace.appendChild(subContainer);
+
+            } else if (item.type === 'interactive_picto') {
+                const grid = document.createElement('div');
+                grid.className = 'picto-grid';
+                
+                item.data.forEach(d => {
+                    const row = document.createElement('div');
+                    row.className = 'picto-row interactive';
+                    row.onclick = () => {
+                        d.current = (d.current + 1) > 8 ? 0 : d.current + 1;
+                        renderDynamicPictoRow(row, d);
+                    };
+                    renderDynamicPictoRow(row, d);
+                    grid.appendChild(row);
+                });
+
+                const keyTag = document.createElement('div');
+                keyTag.className = 'picto-key';
+                keyTag.innerText = `Key: 1 Icon = ${item.key}`;
+                workspace.appendChild(grid);
+                workspace.appendChild(keyTag);
+
+            } else if (item.type === 'interactive_bar') {
+                const chart = document.createElement('div');
+                chart.className = 'bar-chart';
+                chart.innerHTML = `<div class="y-axis-label" style="position:absolute; left:-10px; top:40%; transform:rotate(-90deg); font-size:0.8rem; font-weight:800; color:#64748b;">Scale Axis</div>`;
+                
+                item.data.forEach(d => {
+                    const barContainer = document.createElement('div');
+                    barContainer.className = 'bar-container';
+                    barContainer.setAttribute('data-label', d.label);
+                    
+                    const bar = document.createElement('div');
+                    bar.className = 'bar';
+                    
+                    const lbl = document.createElement('div');
+                    lbl.className = 'bar-label';
+                    lbl.innerText = d.label;
+
+                    bar.innerHTML = `<div class="bar-value"></div>`;
+                    barContainer.appendChild(bar);
+                    barContainer.appendChild(lbl);
+
+                    if (d.interactive) {
+                        d.current = d.count; 
+                        const controls = document.createElement('div');
+                        controls.className = 'bar-controls';
+                        controls.innerHTML = `
+                            <button class="bar-adjust-btn" onclick="adjustBar('${d.label}', -1)">−</button>
+                            <button class="bar-adjust-btn" onclick="adjustBar('${d.label}', 1)">+</button>
+                        `;
+                        barContainer.appendChild(controls);
+                    }
+                    chart.appendChild(barContainer);
+                });
+                workspace.appendChild(chart);
+                refreshInteractiveBars();
+            }
+        }
+
+        function updatePadValue(amt) {
+            currentCounterValue = Math.max(0, currentCounterValue + amt);
+            const disp = document.getElementById('pad-display');
+            if(disp) disp.innerText = currentCounterValue;
+        }
+
+        function renderStaticTallies(data) {
+            const container = document.createElement('div');
+            container.className = 'tally-container';
+            data.forEach(d => {
+                const card = document.createElement('div');
+                card.className = 'tally-card';
+                
+                let marksHtml = '';
+                let remaining = d.count;
+                while (remaining >= 5) {
+                    marksHtml += `
+                        <div class="tally-group">
+                            <div class="tally-stick"></div>
+                            <div class="tally-stick"></div>
+                            <div class="tally-stick"></div>
+                            <div class="tally-stick"></div>
+                            <div class="tally-stick diagonal"></div>
+                        </div>`;
+                    remaining -= 5;
+                }
+                if (remaining > 0) {
+                    marksHtml += `<div class="tally-group">`;
+                    for(let i=0; i<remaining; i++) {
+                        marksHtml += `<div class="tally-stick"></div>`;
+                    }
+                    marksHtml += `</div>`;
+                }
+
+                card.innerHTML = `
+                    <img class="tally-img" src="assets/${d.img}" onerror="this.src='https://placehold.co/60?text=🐾'">
+                    <div class="tally-info">
+                        <div class="tally-label">${d.label}</div>
+                        <div class="tally-marks">${marksHtml}</div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+            return container;
+        }
+
+        function renderStaticPictograph(data, key) {
+            const grid = document.createElement('div');
+            grid.className = 'picto-grid';
+            data.forEach(d => {
+                const row = document.createElement('div');
+                row.className = 'picto-row';
+                
+                const iconCount = Math.floor(d.count / key);
+                let iconsHtml = '';
+                for(let i=0; i<iconCount; i++) {
+                    iconsHtml += `<img class="picto-icon" src="assets/${d.img}" onerror="this.src='https://placehold.co/42?text=🍎'">`;
+                }
+
+                row.innerHTML = `
+                    <div class="picto-label">${d.label}</div>
+                    <div class="picto-items">${iconsHtml}</div>
+                `;
+                grid.appendChild(row);
+            });
+            
+            const keyTag = document.createElement('div');
+            keyTag.className = 'picto-key';
+            keyTag.innerText = `Key: 1 Icon = ${key}`;
+            grid.appendChild(keyTag);
+            return grid;
+        }
+
+        function renderStaticBarChart(data) {
+            const chart = document.createElement('div');
+            chart.className = 'bar-chart';
+            chart.style.height = "200px";
+            chart.innerHTML = `<div class="y-axis-label" style="position:absolute; left:-10px; top:40%; transform:rotate(-90deg); font-size:0.8rem; font-weight:800; color:#64748b;">Scale Axis</div>`;
+            
+            data.forEach(d => {
+                const barContainer = document.createElement('div');
+                barContainer.className = 'bar-container';
+                
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                bar.style.height = `${d.count * 20}px`;
+                
+                const valTag = document.createElement('div');
+                valTag.className = 'bar-value';
+                valTag.innerText = d.count;
+                
+                const lbl = document.createElement('div');
+                lbl.className = 'bar-label';
+                lbl.innerText = d.label;
+
+                bar.appendChild(valTag);
+                barContainer.appendChild(bar);
+                barContainer.appendChild(lbl);
+                chart.appendChild(barContainer);
+            });
+            return chart;
+        }
+
+        function renderDynamicPictoRow(row, d) {
+            let iconsHtml = '';
+            for(let i=0; i<d.current; i++) {
+                iconsHtml += `<img class="picto-icon" src="assets/${d.img}" onerror="this.src='https://placehold.co/42?text=🐾'">`;
+            }
+            row.innerHTML = `
+                <div class="picto-label">${d.label}</div>
+                <div class="picto-items">${iconsHtml}</div>
+                <div class="picto-hint-overlay">Count: ${d.current}</div>
+            `;
+        }
+
+        function adjustBar(label, amt) {
+            const item = database[currentIndex];
+            const d = item.data.find(x => x.label === label);
+            if (d) {
+                d.current = Math.max(0, Math.min(10, (d.current || 0) + amt));
+                refreshInteractiveBars();
+            }
+        }
+
+        function refreshInteractiveBars() {
+            const item = database[currentIndex];
+            item.data.forEach(d => {
+                const container = document.querySelector(`.bar-container[data-label="${d.label}"]`);
+                if (container) {
+                    const bar = container.querySelector('.bar');
+                    const valTag = bar.querySelector('.bar-value');
+                    const value = d.interactive ? d.current : d.count;
+                    bar.style.height = `${value * 22}px`;
+                    if (valTag) valTag.innerText = value;
+                }
+            });
+        }
+
+        function submitAnswer() {
+            const item = database[currentIndex];
+            let isCorrect = false;
+
+            if (item.type === 'counter_pad') {
+                isCorrect = (currentCounterValue === item.targetAnswer);
+            } else if (item.type === 'interactive_picto') {
+                isCorrect = item.data.every(d => d.current === item.targetAnswer[d.label]);
+            } else if (item.type === 'interactive_bar') {
+                isCorrect = item.data.every(d => !d.interactive || d.current === item.targetAnswer[d.label]);
+            }
+
+            const title = document.getElementById('feedback-title');
+            const expText = document.getElementById('explanation-text');
+            const modal = document.getElementById('feedback-modal');
+
+            if (isCorrect) {
+                try { document.getElementById('snd-correct').play(); } catch(audioErr){}
+                title.innerText = "🎉 Correct Record!";
+                title.className = "feedback-title correct";
+                score += Math.max(10, 30 - (wrongAttempts * 10));
+                expText.innerText = item.explanation;
+            } else {
+                try { document.getElementById('snd-wrong').play(); } catch(audioErr){}
+                title.innerText = "❌ Discrepancy Found";
+                title.className = "feedback-title wrong";
+                wrongAttempts++;
+                expText.innerText = "The figures do not perfectly align with the expected census ledger. Review carefully and update your structural adjustments.";
+            }
+
+            modal.style.display = "flex";
+            modal.setAttribute('data-correct', isCorrect);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('feedback-modal');
+            const wasCorrect = modal.getAttribute('data-correct') === 'true';
+            modal.style.display = "none";
+
+            if (wasCorrect) {
+                currentIndex++;
+                if (currentIndex >= database.length) {
+                    endGame();
+                } else {
+                    loadTask();
+                }
+            }
+        }
+
+        function endGame() {
+            switchScreen('end-screen');
+            document.getElementById('final-score').innerText = `Total Score: ${score}`;
+            const feedbackText = document.getElementById('final-feedback');
+            if (score >= 300) {
+                feedbackText.innerText = "Outstanding Ranger work! Perfect structural clarity achieved across all zoo sectors! Here is your Master Data Badge!";
+            } else {
+                feedbackText.innerText = "Good job tracking the database matrix! Practice structural updates to elevate your record score higher!";
+            }
+        }
+
+        function restartGame() {
+            switchScreen('intro-screen');
+        }
+    </script>
+</body>
+</html>
