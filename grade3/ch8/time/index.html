@@ -23,7 +23,7 @@
             padding: 12px;
         }
 
-        /* --- BLANK WHITE SPLASH SCREEN --- */
+        /* --- SPLASH SCREEN --- */
         #splash-screen {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -34,7 +34,13 @@
             z-index: 9999;
             transition: opacity 0.5s ease-out;
         }
-        #splash-screen img { max-width: 280px; height: auto; }
+        #splash-screen .fallback-logo {
+            font-size: 32px;
+            font-weight: bold;
+            color: #111;
+            border: 4px double #111;
+            padding: 10px 20px;
+        }
 
         /* --- ARCADE CABINET --- */
         .arcade-cabinet {
@@ -75,7 +81,6 @@
             box-shadow: 0 6px 12px rgba(0,0,0,0.5);
         }
         
-        /* Dynamic CSS Clock Numbers */
         .clock-number {
             position: absolute;
             width: 100%;
@@ -125,10 +130,10 @@
         }
 
         .badge-display {
-            max-height: 150px;
-            width: auto;
-            object-fit: contain;
+            font-size: 48px;
+            font-weight: bold;
             display: none;
+            text-shadow: 0 0 10px rgba(0,240,255,0.7);
         }
 
         /* --- CONTROL CONSOLE --- */
@@ -164,7 +169,7 @@
             flex-direction: column;
         }
 
-        /* Student-Facing Digital Target Layout */
+        /* Digital Badge Styles */
         .target-digital-badge {
             display: inline-block;
             background: #23395d;
@@ -223,7 +228,7 @@
 <body>
 
     <div id="splash-screen">
-        <img src="assets/logo.png" alt="Innovine Logo" onerror="this.src='https://placehold.co/280x150?text=Innovine+Logo'">
+        <div class="fallback-logo">INNOVINE LOGO</div>
     </div>
 
     <div class="arcade-cabinet">
@@ -240,7 +245,7 @@
             </div>
             <div class="digital-readout" id="clock-digital">Current: 12:00</div>
 
-            <img class="badge-display" id="visual-image" src="" alt="Paradox Monitor" onerror="this.style.display='none';">
+            <div class="badge-display" id="visual-image">⚙️</div>
         </div>
 
         <div class="control-board">
@@ -264,9 +269,9 @@
                 <div id="view-l1" class="input-view">
                     <div class="crank-box">
                         <button class="btn-game" onclick="turnGears(1, 0)">⚙️ +1 Hour</button>
-                        <button class="btn-game" onclick="turnGears(0, 15)" style="background:#00b8d4;">⚙️ +15 Min (Quarter)</button>
+                        <button class="btn-game" onclick="turnGears(0, 15)" style="background:#00b8d4;">⚙️ +15 Min</button>
                         <button class="btn-game" onclick="turnGears(0, 5)" style="background:#2e4053;">⚙️ +5 Min</button>
-                        <button class="btn-game" onclick="turnGears(0, 1)" style="background:#7f8c8d;">⚙️ +1 Min Precision</button>
+                        <button class="btn-game" onclick="turnGears(0, 1)" style="background:#7f8c8d;">⚙️ +1 Min</button>
                     </div>
                     <div class="action-row">
                         <button class="btn-game" style="background: #e67e22; box-shadow: 0 4px 0 #d35400;" onclick="resetHandsToTwelve()">🔄 Reset</button>
@@ -287,11 +292,10 @@
 
     </div>
 
-    <audio id="sound-correct" src="assets/correct.mp3" preload="auto"></audio>
-    <audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+    <audio id="sound-correct" src="" preload="auto"></audio>
+    <audio id="sound-wrong" src="" preload="auto"></audio>
 
     <script>
-        // Confined structure setting up Q1 text and Q2, Q3, Q4 digital clock types
         const level1Puzzles = [
             { isDigital: false, text: "CRITICAL SYNC: Move hands to exactly quarter past 3 o'clock! (3:15)", h: 3, m: 15 },
             { isDigital: true, text: "⏰ Look at the digital clock below. Change the analog clock to match it:", displayTime: "06:42", h: 6, m: 42 },
@@ -325,6 +329,7 @@
         const clipLose = document.getElementById('sound-wrong');
 
         window.addEventListener('DOMContentLoaded', () => {
+            // Shortened to 2000ms for a better testing workflow
             setTimeout(() => {
                 const splash = document.getElementById('splash-screen');
                 splash.style.opacity = '0';
@@ -332,7 +337,7 @@
                     splash.style.display = 'none';
                     document.getElementById('display-prompt').innerHTML = "Quantum anomalies detected! Synchronize the clock coordinates, bridge calendar wormholes, and realign chronological timelines!";
                 }, 500);
-            }, 5000);
+            }, 2000);
         });
 
         function clearViewPorts() {
@@ -352,21 +357,21 @@
 
             if (currentLevel === 1) {
                 document.getElementById('label-level').textContent = "MATRIX LEVEL 1";
-                visualImg.src = "assets/clock-face.png";
+                visualImg.textContent = "⏱️";
                 visualImg.style.display = "block";
                 promptBox.innerHTML = "⚡ <strong>ZONE 1: PRECISION CLOCKWORK LOGS</strong><br>The gears are loose! Sync the analog dial mechanism to the exact minutes and specific hour quarter intervals.";
                 document.getElementById('view-transition').style.display = 'block';
             }
             else if (currentLevel === 2) {
                 document.getElementById('label-level').textContent = "MATRIX LEVEL 2";
-                visualImg.src = "assets/calendar.png";
+                visualImg.textContent = "📅";
                 visualImg.style.display = "block";
                 promptBox.innerHTML = "🌀 <strong>ZONE 2: CALENDAR CALIBRATION DRIVES</strong><br>The chronological anchors are slipstreaming. Solve relative day shifts and jump multiple calendar years into the continuum!";
                 document.getElementById('view-transition').style.display = 'block';
             }
             else if (currentLevel === 3) {
                 document.getElementById('label-level').textContent = "MATRIX LEVEL 3";
-                visualImg.src = "assets/time-bg.png";
+                visualImg.textContent = "📜";
                 visualImg.style.display = "block";
                 promptBox.innerHTML = "📜 <strong>ZONE 3: CHRONOLOGICAL SEQUENCE REPAIR</strong><br>Final Paradox! Order structural blocks and sequential timelines to freeze history arrays in their proper, linear paths.";
                 document.getElementById('view-transition').style.display = 'block';
@@ -383,7 +388,6 @@
                 document.getElementById('clock-digital').style.display = 'block';
                 document.getElementById('view-l1').style.display = 'block';
                 
-                // Shuffle Level 1 setup variables cleanly
                 activePool = [...level1Puzzles].sort(() => Math.random() - 0.5);
                 
                 hValue = 12;
@@ -393,7 +397,7 @@
             }
             else if (currentLevel === 2) {
                 document.getElementById('label-level').textContent = "L2: QUANTUM LEAP CALENDAR";
-                document.getElementById('visual-image').src = "assets/calendar.png";
+                document.getElementById('visual-image').textContent = "📅";
                 document.getElementById('visual-image').style.display = 'block';
                 document.getElementById('view-grid').style.display = 'block';
                 activePool = [...level2Puzzles].sort(() => Math.random() - 0.5);
@@ -401,7 +405,7 @@
             }
             else if (currentLevel === 3) {
                 document.getElementById('label-level').textContent = "L3: TIMELINE SEQUENCERS";
-                document.getElementById('visual-image').src = "assets/time-bg.png";
+                document.getElementById('visual-image').textContent = "📜";
                 document.getElementById('visual-image').style.display = 'block';
                 document.getElementById('view-grid').style.display = 'block';
                 activePool = [...level3Puzzles].sort(() => Math.random() - 0.5);
@@ -413,7 +417,6 @@
             inputLock = false;
             const puzzle = activePool[puzzleIndex];
             
-            // Output text for words or render structural layout box for digital questions
             if (currentLevel === 1 && puzzle.isDigital) {
                 document.getElementById('display-prompt').innerHTML = `
                     <div style="margin-bottom: 4px;">${puzzle.text}</div>
@@ -423,7 +426,6 @@
                 document.getElementById('display-prompt').textContent = puzzle.text;
             }
 
-            // GUARANTEE 12:00 AT EVERY FRESH ENTRY PIPELINE
             if (currentLevel === 1) {
                 hValue = 12;
                 mValue = 0;
@@ -445,7 +447,6 @@
             }
         }
 
-        // --- CLOCK MECHANICS ---
         function turnGears(hrDelta, minDelta) {
             if (inputLock) return;
             mValue += minDelta;
@@ -487,7 +488,6 @@
             }
         }
 
-        // --- CHOICE SELECTION LOGIC ---
         function parseGridSelection(clickedElement, pointsMatch) {
             if (inputLock) return;
 
@@ -502,10 +502,9 @@
             }
         }
 
-        // --- ATTEMPT DISPATCH ENGINE ---
         function handleIncorrectAttempt(clickedElement) {
             attemptsUsed++;
-            try { clipLose.play(); } catch(err){}
+            try { if(clipLose.src) clipLose.play(); } catch(err){}
 
             if (attemptsUsed < 2) {
                 const puzzle = activePool[puzzleIndex];
@@ -544,7 +543,9 @@
 
         function processValidationSuccess() {
             inputLock = true;
-            try { clipWin.play(); } catch(err){}
+            try { if(clipWin.src) clipWin.play(); } catch(err){}
+            
+            // Fires visual confetti particle explosion effect
             confetti({ particleCount: 50, spread: 60 });
 
             puzzleIndex++;
@@ -568,7 +569,7 @@
             document.getElementById('label-level').textContent = "ALL LOGIC STABLE";
             
             const trophyAsset = document.getElementById('visual-image');
-            trophyAsset.src = "assets/logo.png";
+            trophyAsset.textContent = "🏆";
             trophyAsset.style.display = 'block';
 
             document.getElementById('display-prompt').innerHTML = "🏆 <strong>QUANTUM CONVERGENCE SECURED!</strong><br>All analog variables, timeline directions, and chronological grids are completely stable!";
