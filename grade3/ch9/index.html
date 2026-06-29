@@ -171,16 +171,16 @@
         .btn-clear { background-color: #e74c3c; }
         .btn-submit { background-color: #3498db; }
 
-        /* --- Dynamic Coin Blast CSS --- */
+        /* --- Upward Coin Blast Elements --- */
         .blast-coin {
             position: absolute;
-            width: 24px;
-            height: 24px;
+            width: 26px;
+            height: 26px;
             background-color: #ffd700;
             border: 2px solid #daa520;
             border-radius: 50%;
-            box-shadow: inset 0 0 5px rgba(255,255,255,0.6), 0 2px 4px rgba(0,0,0,0.2);
-            font-size: 12px;
+            box-shadow: inset 0 0 5px rgba(255,255,255,0.7), 0 3px 5px rgba(0,0,0,0.25);
+            font-size: 13px;
             font-weight: bold;
             color: #b8860b;
             display: flex;
@@ -374,34 +374,37 @@
         document.getElementById('workspace').innerHTML = '';
     }
 
-    // --- Dynamic Coin Burst Generation Engine ---
+    // --- Repositioned Upward Corner Fountain Blast Engine ---
     function triggerCoinBlast() {
         const container = document.getElementById('game-container');
         const chooseSide = Math.random() > 0.5 ? 'left' : 'right';
-        const totalCoins = 24; 
+        const totalCoins = 25; 
 
         for (let i = 0; i < totalCoins; i++) {
             const coin = document.createElement('div');
             coin.className = 'blast-coin';
             coin.innerText = '₹';
 
-            // Pin starting side positions
-            const startX = chooseSide === 'left' ? -30 : container.clientWidth + 30;
-            const startY = Math.random() * (container.clientHeight * 0.6) + (container.clientHeight * 0.2);
+            // Fixed Spawn point at the absolute bottom corner channels
+            const startX = chooseSide === 'left' ? 20 : (container.clientWidth - 40);
+            const startY = container.clientHeight - 20; 
 
             coin.style.left = startX + 'px';
             coin.style.top = startY + 'px';
             container.appendChild(coin);
 
-            // Compute physics velocity trajectory vectors
-            const angle = chooseSide === 'left' 
-                ? (Math.random() * 60 - 30) * Math.PI / 180 
-                : (Math.random() * 60 + 150) * Math.PI / 180;
+            // Upward vertical angles (Left corner fires up-right, Right corner fires up-left)
+            let angle;
+            if (chooseSide === 'left') {
+                angle = (Math.random() * -50 - 20) * Math.PI / 180; // Fires between -20 and -70 degrees
+            } else {
+                angle = (Math.random() * -50 - 110) * Math.PI / 180; // Fires between -110 and -160 degrees
+            }
                 
-            const velocity = Math.random() * 12 + 10;
+            const velocity = Math.random() * 11 + 13; // Fast initial velocity to clear workspace height
             let velX = Math.cos(angle) * velocity;
-            let velY = Math.sin(angle) * velocity - 5; 
-            const gravity = 0.5;
+            let velY = Math.sin(angle) * velocity; 
+            const gravity = 0.65; // Pulls them back down gracefully
 
             let currentX = startX;
             let currentY = startY;
@@ -414,8 +417,8 @@
                 coin.style.left = currentX + 'px';
                 coin.style.top = currentY + 'px';
 
-                // Keep rendering inside framework borders
-                if (currentY < container.clientHeight + 40 && currentX > -50 && currentX < container.clientWidth + 50) {
+                // Recycles nodes smoothly as they fall off screen base margins
+                if (currentY < container.clientHeight + 40 && currentX > -40 && currentX < container.clientWidth + 40) {
                     requestAnimationFrame(updateCoinPhysics);
                 } else {
                     coin.remove();
@@ -430,7 +433,7 @@
 
         if (totalSelectedVal === currentTarget) {
             soundClaps.play();
-            triggerCoinBlast(); // Shoots money assets across screen layout
+            triggerCoinBlast(); 
             score += 10;
             alert("Excellent! That's correct! 🌟");
             advanceNext();
