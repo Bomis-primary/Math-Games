@@ -93,12 +93,44 @@
             font-size: 22px;
             font-weight: bold;
             color: #333;
-            min-height: 70px;
+            min-height: 110px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .question-visual-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 5px;
+        }
+
+        .question-inline-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .question-img-wrapper {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .question-asset-img {
+            height: 50px;
+            object-fit: contain;
+            animation: popIn 0.3s ease-out;
         }
 
         #workspace {
             width: 90%;
-            height: 160px;
+            height: 130px;
             border: 3px dashed #bdc3c7;
             border-radius: 10px;
             background: #fafafa;
@@ -109,21 +141,27 @@
             flex-wrap: wrap;
             margin-bottom: 15px;
             padding: 10px;
+            overflow-y: auto;
         }
 
+        /* Fixed Currency Asset Shelf: Formats cleanly into 2 rows of 4 items */
         #asset-shelf {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 20px;
-            width: 100%;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 10px;
+            justify-items: center;
+            align-items: center;
+            margin-bottom: 15px;
+            width: 90%;
             padding: 10px;
             background: #f5f5f5;
             border-radius: 8px;
         }
 
         .money-asset {
-            height: 70px;
+            height: 52px;
+            object-fit: contain;
             cursor: pointer;
             transition: transform 0.1s;
             -webkit-user-drag: none;
@@ -131,12 +169,13 @@
         .money-asset:hover { transform: scale(1.1); }
 
         .workspace-item {
-            height: 60px;
+            height: 48px;
+            object-fit: contain;
             cursor: pointer;
-            animation: popIn 0.2s ease-out;
+            animation: popIn 0.15s ease-out;
         }
 
-        .controls { display: flex; gap: 15px; }
+        .controls { display: flex; gap: 15px; margin-bottom: 10px; }
         .btn-clear { background-color: #e74c3c; }
         .btn-submit { background-color: #3498db; }
 
@@ -182,10 +221,11 @@
             <img src="./assets/coin2.png" class="money-asset" data-val="2" onclick="addAsset(2, './assets/coin2.png')">
             <img src="./assets/coin5.png" class="money-asset" data-val="5" onclick="addAsset(5, './assets/coin5.png')">
             <img src="./assets/note10.png" class="money-asset" data-val="10" onclick="addAsset(10, './assets/note10.png')">
+            
             <img src="./assets/note20.png" class="money-asset" data-val="20" onclick="addAsset(20, './assets/note20.png')">
             <img src="./assets/note50.png" class="money-asset" data-val="50" onclick="addAsset(50, './assets/note50.png')">
             <img src="./assets/note200.png" class="money-asset" data-val="200" onclick="addAsset(200, './assets/note200.png')">
-        </div>
+            <div></div> </div>
 
         <div class="controls">
             <button class="btn-clear" onclick="clearWorkspace()">Clear</button>
@@ -202,22 +242,41 @@
 </div>
 
 <script>
-    // Audio controller wrappers
     const soundClaps = new Audio('./assets/claps.mp3');
     const soundWrong = new Audio('./assets/wrong.mp3');
 
-    // Master Randomized App-based Question Array (10 total tasks)
+    // Questions configured with multiple item image structures for extreme visual engagement
     const masterPool = [
-        { q: "Give the shopkeeper exactly ₹12.00 using assets.", target: 12 },
-        { q: "Count out exactly ₹215.00 for a book box.", target: 215 },
-        { q: "Convert 500p into Rupees. Pay that amount to the stall.", target: 5 },
-        { q: "Convert 700p into Rupees. Place the matching notes/coins here.", target: 7 },
-        { q: "Rohan bought an ice cream for ₹20 and a pen for ₹10. Pay the total.", target: 30 },
-        { q: "A pack of chips costs ₹15. You buy two packs. Pay the total.", target: 30 },
-        { q: "Riya wants to pay ₹75.00. Help her put together the right assets.", target: 75 },
-        { q: "Sam gave a ₹200 note for a toy costing ₹150. Drag the change he gets back.", target: 50 },
-        { q: "Karan buys a notebook for ₹45 and an eraser for ₹5. What is the sum?", target: 50 },
-        { q: "You split a ₹40 meal evenly with a friend. How much do you owe?", target: 20 }
+        { q: "Give the shopkeeper exactly ₹12.00 using assets.", target: 12, items: [] },
+        { q: "Count out exactly ₹215.00 for a book box.", target: 215, items: [] },
+        { q: "Convert 500p into Rupees. Pay that amount to the stall.", target: 5, items: [] },
+        { q: "Convert 700p into Rupees. Place the matching notes/coins here.", target: 7, items: [] },
+        { 
+            q: "Rohan bought a muffin for ₹20 and a candy for ₹10. Pay the total.", 
+            target: 30, 
+            items: [
+                { src: "./assets/muffin.png", count: 1 },
+                { src: "./assets/candy.png", count: 1 }
+            ] 
+        },
+        { 
+            q: "Each pack of chips costs ₹15. You buy these packs. Pay the total:", 
+            target: 30, 
+            items: [
+                { src: "./assets/chips.png", count: 2 }
+            ] 
+        },
+        { q: "Riya wants to pay ₹75.00. Help her put together the right assets.", target: 75, items: [] },
+        { q: "Sam gave a ₹200 note for a toy costing ₹150. Drag the change he gets back.", target: 50, items: [] },
+        { 
+            q: "Karan buys a muffin for ₹45 and a candy for ₹5. What is the sum?", 
+            target: 50, 
+            items: [
+                { src: "./assets/muffin.png", count: 1 },
+                { src: "./assets/candy.png", count: 1 }
+            ] 
+        },
+        { q: "You split a ₹40 meal evenly with a friend. How much do you owe?", target: 20, items: [] }
     ];
 
     let gameQuestions = [];
@@ -227,9 +286,7 @@
     let selectedAssets = [];
     let totalSelectedVal = 0;
 
-    // Run immediately when index loads
     window.onload = function() {
-        // Rule: Show logo for 5 seconds, then move to Instructions
         setTimeout(() => {
             showScreen('instruction-screen');
         }, 5000);
@@ -241,7 +298,6 @@
     }
 
     function startGame() {
-        // Randomize questions for tracking check
         gameQuestions = [...masterPool].sort(() => Math.random() - 0.5);
         currentIdx = 0;
         score = 0;
@@ -255,14 +311,37 @@
         clearWorkspace();
         document.getElementById('txt-progress').innerText = `Task: ${currentIdx + 1} / 10`;
         document.getElementById('txt-score').innerText = `Score: ${score}`;
-        document.getElementById('question-box').innerText = gameQuestions[currentIdx].q;
+        
+        let qBox = document.getElementById('question-box');
+        let currentQuestion = gameQuestions[currentIdx];
+        
+        qBox.innerText = currentQuestion.q;
+
+        // If visual item descriptors exist, render them dynamically
+        if (currentQuestion.items && currentQuestion.items.length > 0) {
+            let visualRow = document.createElement('div');
+            visualRow.className = 'question-visual-row';
+            
+            currentQuestion.items.forEach(item => {
+                let wrapper = document.createElement('div');
+                wrapper.className = 'question-img-wrapper';
+                
+                for (let i = 0; i < item.count; i++) {
+                    let img = document.createElement('img');
+                    img.src = item.src;
+                    img.className = 'question-asset-img';
+                    wrapper.appendChild(img);
+                }
+                visualRow.appendChild(wrapper);
+            });
+            qBox.appendChild(visualRow);
+        }
     }
 
     function addAsset(value, src) {
         selectedAssets.push(value);
         totalSelectedVal += value;
         
-        // Append visual token to workspace display area
         const img = document.createElement('img');
         img.src = src;
         img.className = 'workspace-item';
@@ -289,13 +368,11 @@
         let currentTarget = gameQuestions[currentIdx].target;
 
         if (totalSelectedVal === currentTarget) {
-            // Correct Feedback
             soundClaps.play();
             score += 10;
             alert("Excellent! That's correct! 🌟");
             advanceNext();
         } else {
-            // Incorrect Feedback
             attempts--;
             soundWrong.play();
             
@@ -303,7 +380,6 @@
                 alert(`Not quite right. Let's check! You have ${attempts} attempt left. Try again!`);
                 clearWorkspace();
             } else {
-                // Hint/Answer declaration rule after 2 failed attempts
                 alert(`Nice try! The correct target was ₹${currentTarget}. Let's move to the next marketplace stall.`);
                 advanceNext();
             }
@@ -313,7 +389,6 @@
     function advanceNext() {
         currentIdx++;
         if (currentIdx >= 10) {
-            // Final completion score logic
             showScreen('completion-screen');
             document.getElementById('final-score-text').innerText = `Great Job! Your Total Score: ${score}/100`;
         } else {
