@@ -378,11 +378,12 @@
             z-index: 5;
         }
 
-        .input-container {
+        .controls-row {
             width: 100%;
             display: flex;
             justify-content: center;
-            padding: 10px 0;
+            gap: 12px;
+            padding: 5px 0;
         }
         .btn {
             border-radius: 16px;
@@ -399,6 +400,11 @@
             background: linear-gradient(135deg, #22c55e, #16a34a);
             color: white;
             box-shadow: 0 4px 10px rgba(22, 163, 74, 0.3);
+        }
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #475569;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
         
         .modal {
@@ -467,8 +473,9 @@
         <div class="main-container">
             <div class="question-box" id="question-text">Loading task context...</div>
             <div class="workspace" id="game-workspace"></div>
-            <div class="input-container">
-                <button class="btn btn-primary" style="width: 100%; max-width: 450px;" onclick="submitAnswer()">Submit Census Record</button>
+            <div class="controls-row">
+                <button class="btn btn-secondary" style="flex: 1; max-width: 150px;" onclick="resetCurrentTask()">Reset</button>
+                <button class="btn btn-primary" style="flex: 2; max-width: 300px;" onclick="submitAnswer()">Submit Census Record</button>
             </div>
         </div>
 
@@ -551,12 +558,12 @@
             },
             {
                 level: "Level 2: Understanding",
-                question: "BUILD THE DATA: Click rows inside the workspace grid to plant item units. Recreate a pictograph where Snakes = 3 and Tigers = 5! (Key: 1 Icon = 1 Animal)",
+                question: "BUILD THE DATA: Click rows inside the workspace grid to plant item units. Recreate a pictograph where Parrots = 3 and Toucans = 5! (Key: 1 Icon = 1 Animal)",
                 type: "interactive_picto",
                 key: 1,
-                data: [ { label: "Snakes", current: 0, img: "snake.png" }, { label: "Tigers", current: 0, img: "tiger.png" } ],
-                targetAnswer: { "Snakes": 3, "Tigers": 5 },
-                explanation: "You successfully configured 3 icons for Snakes and 5 icons for Tigers to match the required metric."
+                data: [ { label: "Parrots", current: 0, img: "parrot.png" }, { label: "Toucans", current: 0, img: "toucan.png" } ],
+                targetAnswer: { "Parrots": 3, "Toucans": 5 },
+                explanation: "You successfully configured 3 icons for Parrots and 5 icons for Toucans to match the required metric."
             },
             {
                 level: "Level 2: Understanding",
@@ -737,6 +744,26 @@
             currentCounterValue = Math.max(0, currentCounterValue + amt);
             const disp = document.getElementById('pad-display');
             if(disp) disp.innerText = currentCounterValue;
+        }
+
+        function resetCurrentTask() {
+            const item = database[currentIndex];
+            if (item.type === 'counter_pad') {
+                currentCounterValue = 0;
+                const disp = document.getElementById('pad-display');
+                if(disp) disp.innerText = 0;
+            } else if (item.type === 'interactive_picto') {
+                item.data.forEach(d => d.current = 0);
+                const rows = document.querySelectorAll('.picto-row.interactive');
+                item.data.forEach((d, idx) => {
+                    if(rows[idx]) renderDynamicPictoRow(rows[idx], d);
+                });
+            } else if (item.type === 'interactive_bar') {
+                item.data.forEach(d => {
+                    if (d.interactive) d.current = d.count;
+                });
+                refreshInteractiveBars();
+            }
         }
 
         function renderStaticTallies(data) {
