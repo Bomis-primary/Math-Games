@@ -35,13 +35,13 @@
             padding: 15px;
             opacity: 0;
             pointer-events: none;
-            visibility: hidden; /* Keeps inactive screens from trapping clicks */
+            visibility: hidden;
             transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
         }
         .screen.active {
             opacity: 1;
             pointer-events: auto;
-            visibility: visible; /* Safely surfaces the active layout screen state */
+            visibility: visible;
         }
         
         #splash-screen {
@@ -307,6 +307,7 @@
             justify-content: center;
         }
 
+        /* FIXED CLEAN TALLY MARK ALIGNMENT SYSTEM */
         .tally-container {
             display: flex;
             flex-direction: column;
@@ -317,7 +318,7 @@
             background: #f0fdf4;
             border: 2px solid #86efac;
             border-radius: 16px;
-            padding: 10px;
+            padding: 12px;
             display: flex;
             align-items: center;
             gap: 14px;
@@ -345,29 +346,34 @@
         }
         .tally-marks {
             display: flex;
-            gap: 6px;
+            gap: 12px;
             flex-wrap: wrap;
             align-items: center;
             min-height: 35px;
         }
+        .tally-group {
+            position: relative;
+            display: inline-flex;
+            gap: 6px;
+            padding: 0 4px;
+        }
         .tally-stick {
             width: 5px;
-            height: 30px;
+            height: 32px;
             background: #15803d;
             border-radius: 3px;
         }
+        /* Crosses directly over the 4 vertical bars cleanly */
         .tally-stick.diagonal {
-            transform: rotate(-60deg) translate(-8px, 0px);
             position: absolute;
-            height: 36px;
-            background: #dc2626;
-        }
-        .tally-group {
-            position: relative;
-            display: flex;
-            gap: 5px;
-            width: 32px;
-            margin-right: 8px;
+            top: 50%;
+            left: -2px;
+            width: calc(100% + 4px);
+            height: 5px;
+            background: #15803d;
+            border-radius: 3px;
+            transform: translateY(-50%) rotate(-25deg);
+            transform-origin: center;
         }
 
         .input-container {
@@ -601,7 +607,7 @@
         let score = 0;
         let wrongAttempts = 0;
         let currentCounterValue = 0;
-        let transitioned = false; // Flag to ensure transition only happens once
+        let transitioned = false;
 
         function switchScreen(screenId) {
             if (screenId === 'intro-screen') transitioned = true;
@@ -609,15 +615,12 @@
             document.getElementById(screenId).classList.add('active');
         }
 
-        // --- BULLETPROOF TRANSITION SYSTEM ---
-        // Force the switch after 5000ms regardless of loading states/errors
         setTimeout(() => {
             if (!transitioned) {
                 switchScreen('intro-screen');
             }
         }, 5000);
 
-        // Safe image rendering fallback error check
         const imgLogo = document.getElementById('splash-logo');
         if (imgLogo) {
             imgLogo.onerror = function() {
@@ -625,7 +628,6 @@
             };
         }
 
-        // Standard load trigger as secondary safety switch
         window.addEventListener('load', () => {
             setTimeout(() => {
                 if (!transitioned) {
@@ -748,7 +750,7 @@
             if(disp) disp.innerText = currentCounterValue;
         }
 
-        /* RENDERING LOGIC HELPERS */
+        /* FIXED RENDERER LOGIC FOR CLEAN TALLY GROUPS */
         function renderStaticTallies(data) {
             const container = document.createElement('div');
             container.className = 'tally-container';
@@ -881,7 +883,6 @@
             });
         }
 
-        /* ARMORED EVALUATION PIPELINE */
         function submitAnswer() {
             const item = database[currentIndex];
             let isCorrect = false;
@@ -899,14 +900,12 @@
             const modal = document.getElementById('feedback-modal');
 
             if (isCorrect) {
-                // Safeguarded Audio Engine
                 try { document.getElementById('snd-correct').play(); } catch(audioErr){}
                 title.innerText = "🎉 Correct Record!";
                 title.className = "feedback-title correct";
                 score += Math.max(10, 30 - (wrongAttempts * 10));
                 expText.innerText = item.explanation;
             } else {
-                // Safeguarded Audio Engine
                 try { document.getElementById('snd-wrong').play(); } catch(audioErr){}
                 title.innerText = "❌ Discrepancy Found";
                 title.className = "feedback-title wrong";
