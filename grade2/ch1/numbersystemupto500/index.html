@@ -3,338 +3,786 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grade 2 - Chapter 1: Number Systems Interactive</title>
+    <title>Grade 2 Math: Number System Upto 500</title>
     <style>
-        :root {
-            --primary: #4A60A1;
-            --success: #2ECC71;
-            --error: #E74C3C;
-            --background: #F5F7FA;
-            --text: #2C3E50;
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Comic Sans MS', 'Bubblegum Sans', 'Chalkboard SE', sans-serif;
+            user-select: none;
         }
 
         body {
-            background-color: var(--background);
-            color: var(--text);
+            background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%);
+            min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            padding: 15px;
+            padding: 20px;
+            color: #333;
         }
 
-        .container {
+        .game-container {
             width: 100%;
             max-width: 600px;
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            background: #ffffff;
+            border-radius: 25px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            overflow: hidden;
+            border: 6px solid #4a90e2;
+            position: relative;
+        }
+
+        .screen {
+            display: none;
+            padding: 30px;
             text-align: center;
         }
 
-        #splash-screen {
-            position: fixed;
-            top: 0; 
-            left: 0; 
-            width: 100vw; 
-            height: 100vh;
-            background: #FFFFFF; 
+        .screen.active {
+            display: block;
+        }
+
+        /* Logo Screen */
+        #logo-screen {
+            background: #ffffff;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 9999; 
+            min-height: 450px;
         }
 
-        #splash-screen img {
-            max-width: 240px;
+        .logo-img {
+            max-width: 180px;
             height: auto;
+            margin-bottom: 15px;
+            animation: bounce 1.5s infinite;
         }
 
-        .hidden { display: none !important; }
-
-        .btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            font-size: 16px;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 15px;
-            transition: opacity 0.2s;
+        .logo-sub {
+            font-size: 1.3rem;
+            color: #666;
+            margin-bottom: 25px;
         }
 
-        .btn:active { opacity: 0.9; }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
 
-        .header-meta {
+        /* Header Bar */
+        .header-bar {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
-            font-size: 14px;
-            color: #7F8C8D;
+            align-items: center;
+            background: #4a90e2;
+            color: white;
+            padding: 12px 20px;
+            font-size: 1.1rem;
             font-weight: bold;
+            border-bottom: 4px solid #357abd;
         }
 
-        .timer { color: var(--error); }
+        .score-board, .question-tracker {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 12px;
+            border-radius: 15px;
+        }
 
-        .question-text {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            text-align: left;
+        /* Question Content */
+        .question-box {
+            font-size: 1.3rem;
+            margin: 20px 0 15px 0;
+            color: #2c3e50;
+            font-weight: bold;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
             line-height: 1.4;
         }
 
-        .options-list {
+        /* Interactive Zones / Drag Elements */
+        .game-play-area {
+            min-height: 220px;
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
         }
 
-        .option-btn {
-            background: #F8FAFC;
-            border: 2px solid #E2E8F0;
-            padding: 14px;
-            text-align: left;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
+        /* Type 1: Drop Target Container */
+        .drop-zone {
+            width: 140px;
+            height: 70px;
+            border: 4px dashed #4a90e2;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            background: #f0f7ff;
+            color: #555;
             transition: all 0.2s;
         }
 
-        .option-btn:active { background: #EDF2F7; }
-        
-        .option-btn.correct { background: #D4EDDA; border-color: var(--success); color: #155724; }
-        .option-btn.wrong { background: #F8D7DA; border-color: var(--error); color: #721C24; }
-
-        .feedback-box {
-            margin-top: 15px;
-            padding: 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            text-align: left;
-            font-weight: 500;
+        .drop-zone.highlight {
+            background: #d4edda;
+            border-color: #28a745;
         }
-        .feedback-box.hint { background: #FFF3CD; color: #856404; }
-        .feedback-box.explanation { background: #E2E3E5; color: #383D41; }
+
+        .draggable-items-container {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .drag-item {
+            background: #ffb142;
+            color: white;
+            padding: 12px 20px;
+            font-size: 1.3rem;
+            border-radius: 15px;
+            cursor: grab;
+            box-shadow: 0 4px 0 #e89420;
+            font-weight: bold;
+            touch-action: none;
+            transition: transform 0.1s;
+        }
+
+        .drag-item:active {
+            cursor: grabbing;
+            transform: scale(0.95);
+        }
+
+        /* Type 2: Symbol Comparison */
+        .comparison-area {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .compare-box {
+            background: #eef2f7;
+            padding: 15px 25px;
+            border-radius: 15px;
+            border: 3px solid #cbd5e1;
+        }
+
+        .symbol-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .symbol-btn {
+            background: #20bf6b;
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            font-size: 1.8rem;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #0f9b58;
+            font-weight: bold;
+            transition: all 0.1s;
+        }
+
+        .symbol-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #0f9b58;
+        }
+
+        .symbol-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #0f9b58;
+        }
+
+        /* Type 3: Abacus Counter Pegs */
+        .abacus-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: #fff3cd;
+            padding: 8px 15px;
+            border-radius: 12px;
+            border: 2px solid #ffeeba;
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .abacus-label {
+            font-weight: bold;
+            font-size: 1.1rem;
+            color: #856404;
+            width: 90px;
+            text-align: left;
+        }
+
+        .counter-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .count-btn {
+            background: #ffc107;
+            border: none;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #d39e00;
+        }
+
+        .count-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #d39e00;
+        }
+
+        .count-display {
+            font-size: 1.4rem;
+            font-weight: bold;
+            width: 30px;
+            text-align: center;
+        }
+
+        /* Feedback Message */
+        .feedback-msg {
+            font-size: 1.2rem;
+            font-weight: bold;
+            min-height: 30px;
+            margin-bottom: 10px;
+        }
+
+        /* Primary Action Buttons */
+        .primary-btn {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.3rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 5px 0 #d9534f;
+            transition: all 0.2s;
+            margin-top: 10px;
+        }
+
+        .primary-btn:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #d9534f;
+        }
+
+        /* Instructions Screen */
+        #instruction-screen h2 {
+            color: #4a90e2;
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        #instruction-screen p {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        /* End Screen */
+        #end-screen h2 {
+            color: #20bf6b;
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        .final-score {
+            font-size: 1.5rem;
+            color: #2c3e50;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: none;
+            z-index: 99;
+        }
     </style>
 </head>
 <body>
 
-<div id="splash-screen">
-    <img src="assets/logo.png" alt="Innovine Logo">
-</div>
+    <!-- Audio Elements -->
+    <audio id="correct-audio" src="assets/correct.mp3" preload="auto"></audio>
+    <audio id="wrong-audio" src="assets/wrong.mp3" preload="auto"></audio>
 
-<div class="container">
-    <div id="intro-screen" class="hidden">
-        <h2>Grade 2 - Chapter 1</h2>
-        <p style="margin: 15px 0; color: #64748B;">Welcome to the Number Systems Challenge! Let's apply what we know about place value, grouping, and number tracking.</p>
-        <button class="btn" onclick="startInteractive()">Start Interactive</button>
-    </div>
+    <div class="game-container">
+        <canvas id="confetti-canvas"></canvas>
 
-    <div id="quiz-screen" class="hidden">
-        <div class="header-meta">
-            <span id="score-tracker">Score: 0</span>
-            <span id="question-number">Q: 1/15</span>
-            <span class="timer">Time left: <span id="timer-count">60</span>s</span>
+        <!-- 1. LOGO SCREEN (5 seconds) -->
+        <div id="logo-screen" class="screen active">
+            <img src="assets/logo.png" alt="Logo" class="logo-img">
+            <div class="logo-sub">Interactive Learning Games</div>
+            <p style="color: #888; font-size: 0.9rem;">Loading mini-games...</p>
         </div>
-        <div id="question-container" class="question-text"></div>
-        <div id="options-container" class="options-list"></div>
-        <div id="feedback-container" class="feedback-box hidden"></div>
-        <button id="next-btn" class="btn hidden" onclick="nextQuestion()">Next Question</button>
+
+        <!-- 2. INSTRUCTION SCREEN -->
+        <div id="instruction-screen" class="screen">
+            <h2>Number System Upto 500</h2>
+            <p>Welcome, Grade 2 learner! Play through exciting mini-games: drag correct numbers into place value chests, compare number sizes, build numbers with abacus counters, and order number sequences!</p>
+            <button class="primary-btn" onclick="startGame()">Start Playing!</button>
+        </div>
+
+        <!-- 3. GAMEPLAY SCREEN -->
+        <div id="game-screen" class="screen">
+            <div class="header-bar">
+                <div class="question-tracker" id="tracker">Task: 1/8</div>
+                <div class="score-board" id="score">Score: 0</div>
+            </div>
+            <div class="question-box" id="question-text">Loading task...</div>
+            <div class="game-play-area" id="game-play-area">
+                <!-- Dynamically injected minigame UI -->
+            </div>
+            <div class="feedback-msg" id="feedback"></div>
+        </div>
+
+        <!-- 4. END SCREEN -->
+        <div id="end-screen" class="screen">
+            <h2>Amazing Job! 🎉</h2>
+            <div class="final-score" id="final-score-text">Your Score: 80 / 80</div>
+            <p style="color: #666; margin-bottom: 20px;">You're a Number System Master!</p>
+            <button class="primary-btn" onclick="restartGame()">Play Again</button>
+        </div>
     </div>
 
-    <div id="result-screen" class="hidden">
-        <h2>Challenge Completed!</h2>
-        <h3 style="margin: 15px 0; font-size: 24px;" id="final-score">Your Score: 0/15</h3>
-        <p id="result-message" style="font-weight: 500; color: #4A5568;"></p>
-        <button class="btn" onclick="location.reload()">Try Chapter Again</button>
-    </div>
-</div>
+    <script>
+        // Sound FX Player
+        function playSound(type) {
+            if (type === 'correct') {
+                const sound = document.getElementById('correct-audio');
+                sound.currentTime = 0;
+                sound.play().catch(e => console.log("Audio play blocked:", e));
+            } else if (type === 'wrong') {
+                const sound = document.getElementById('wrong-audio');
+                sound.currentTime = 0;
+                sound.play().catch(e => console.log("Audio play blocked:", e));
+            }
+        }
 
-<audio id="sound-correct" src="assets/freesound_community-claps-44774.mp3" preload="auto"></audio>
-<audio id="sound-wrong" src="assets/wrong.mp3" preload="auto"></audio>
+        // Master Interactive Tasks (Non-MCQ Game Bank)
+        const masterTasks = [
+            {
+                type: 'placeValueChest',
+                question: "Drag the correct number matching the expanded form: 300 + 40 + 5 into the chest!",
+                targetVal: "345",
+                options: ["245", "345", "435", "354"]
+            },
+            {
+                type: 'comparison',
+                question: "Compare the two numbers correctly by clicking the right symbol!",
+                num1: 384,
+                num2: 412,
+                correctSymbol: "<"
+            },
+            {
+                type: 'sequenceFill',
+                question: "Drag the missing number that comes after 299 into the empty box!",
+                targetVal: "300",
+                options: ["298", "300", "301", "200"]
+            },
+            {
+                type: 'abacusBuilder',
+                question: "Set the Abacus counters to match the number: 234 (2 Hundreds, 3 Tens, 4 Ones)",
+                hundreds: 2,
+                tens: 3,
+                ones: 4
+            },
+            {
+                type: 'placeValueChest',
+                question: "Drag the numeral for: \"Four hundred twelve\" into the chest!",
+                targetVal: "412",
+                options: ["421", "214", "412", "402"]
+            },
+            {
+                type: 'comparison',
+                question: "Compare the two numbers correctly by clicking the right symbol!",
+                num1: 450,
+                num2: 399,
+                correctSymbol: ">"
+            },
+            {
+                type: 'sequenceFill',
+                question: "Find the missing number in counting by 5s: 100, 105, 110, ___ , 120",
+                targetVal: "115",
+                options: ["112", "116", "115", "125"]
+            },
+            {
+                type: 'abacusBuilder',
+                question: "Set the Abacus counters to match the number: 405 (4 Hundreds, 0 Tens, 5 Ones)",
+                hundreds: 4,
+                tens: 0,
+                ones: 5
+            }
+        ];
 
-<script>
-    const quizData = [
-        { id: 1, q: "Kabir says: 'In 426, 4 is in the ones place.' What is his mistake?", opts: { a: "4 is in the hundreds place", b: "4 is in the tens place", c: "4 is in the ones place", d: "No mistake" }, ans: "a", hint: "Think about where the digits live: Hundreds, Tens, Ones!", exp: "The digit 4 represents four hundreds, meaning it sits in the hundreds place." },
-        { id: 2, q: "Arjun says: '300 + 40 + 5 = 3450' What is wrong?", opts: { a: "The standard form should be 345", b: "The standard form should be 305", c: "The standard form is correct", d: "Numbers are too big" }, ans: "a", hint: "Don't just write the numbers side by side with a zero added!", exp: "300 + 40 + 5 combines to make 345 in standard form, not 3450." },
-        { id: 3, q: "Look at the numbers: 345 and 135. Which statement is correct?", opts: { a: "Place value of 3 is 300 in both", b: "Place value of 3 is different in both", c: "Place value of 3 is 30 in both", d: "Place value of 3 is 3 in both" }, ans: "b", hint: "Look closely at the positions of the digit 3 in both numbers.", exp: "In 345, 3 is worth 300. In 135, 3 is worth 30. They are different." },
-        { id: 4, q: "A child writes two numbers: 345 and 354. Which number is greater?", opts: { a: "345", b: "354", c: "Both are equal", d: "300" }, ans: "b", hint: "Compare the hundreds place first, then look at the tens place.", exp: "Since both have 3 hundreds, we compare the tens. 5 tens is greater than 4 tens." },
-        { id: 5, q: "A child counts 248 objects and then counts 100 more. Is the total more than 300?", opts: { a: "Yes", b: "No", c: "Exactly 300", d: "Less than 300" }, ans: "a", hint: "Add 1 hundred to the hundreds digit of 248.", exp: "248 + 100 equals 348, which is greater than 300." },
-        { id: 6, q: "Aarav needs to collect more than 350 tokens to win a school prize board game. He looks at his collection bag and counts exactly 372 tokens. Does Aarav have enough tokens to win the prize?", opts: { a: "Yes, because 372 is greater than 350", b: "No, because 372 is less than 350", c: "He has exactly 350 tokens", d: "He needs 300 tokens more" }, ans: "a", hint: "Compare the tens digit of both numbers to see which value is larger.", exp: "Yes, 372 has 7 tens, which is greater than 350 which only has 5 tens." },
-        { id: 7, q: "A number is formed using 5 hundreds, 0 tens, and 8 ones. Is the number more than 500?", opts: { a: "Yes", b: "No", c: "Exactly 500", d: "Less than 100" }, ans: "a", hint: "Write out the digits together to form the number.", exp: "The number is 508, which is slightly more than 500." },
-        { id: 8, q: "Which number is closest to 400?", opts: { a: "398", b: "420", c: "450", d: "470" }, ans: "a", hint: "Which number needs the fewest jumps to reach 400?", exp: "398 is only 2 jumps away from 400." },
-        { id: 9, q: "(Picture-Based) Image: Number line 100–200 with a point right in the middle at 150. Which statement is correct?", opts: { a: "The number is exactly 150", b: "The number is less than 150", c: "The number is more than 150", d: "The number is 100" }, ans: "a", hint: "Look at where the mark sits between 100 and 200.", exp: "The mark sits exactly halfway, pointing straight to 150." },
-        { id: 10, q: "Riya has 3 currency notes of ₹100, 4 notes of ₹10, and 7 coins of ₹1. She wants to buy a toy that costs ₹350. Does she have enough money?", opts: { a: "Yes, she has exactly ₹350", b: "No, she only has ₹347", c: "Yes, she has ₹374", d: "No, she only has ₹304" }, ans: "b", hint: "Count up her total value: 300 + 40 + 7.", exp: "Riya only has ₹347, which is short of the ₹350 price tag." },
-        { id: 11, q: "A frog is jumping on a number track. It starts at 120 and jumps forward by 10s. What number will the frog land on after 3 more jumps?", opts: { a: "150", b: "160", c: "170", d: "200" }, ans: "a", hint: "Count up by tens three times: 130, 140...", exp: "Three jumps of 10 add 30 to 120, landing the frog right on 150." },
-        { id: 12, q: "Rohan packs sweets into boxes. Each full box holds 100 sweets. He fills 5 boxes completely and has 8 individual sweets left over. Which number represents his total sweets?", opts: { a: "58", b: "580", c: "508", d: "805" }, ans: "c", hint: "Be careful! He has 5 hundreds and 8 ones, but 0 extra tens.", exp: "5 hundreds and 8 ones is written as 508 in standard form." },
-        { id: 13, q: "Section A of Grade 2 has 235 books in its mini-library. Section B has 253 books. Which statement is true about their libraries?", opts: { a: "Section A has more books than Section B", b: "Section B has more books than Section A", c: "Both sections have the exact same number of books", d: "Section A has 300 books" }, ans: "b", hint: "Compare the tens column: 3 tens vs 5 tens.", exp: "253 has 5 tens, making Section B's collection larger than Section A's 235." },
-        { id: 14, q: "I am a 3-digit number. My hundreds digit is 6, my tens digit is 0, and my ones digit is greater than 7 but less than 9. What number am I?", opts: { a: "678", b: "607", c: "609", d: "608" }, ans: "d", hint: "What single whole number sits between 7 and 9?", exp: "The number is 608 because 8 is the unique digit between 7 and 9." },
-        { id: 15, q: "Meera is writing numbers backwards from 500 by tens. She writes: 500, 490, 480, 460, 450. Which number did she accidentally skip?", opts: { a: "470", b: "440", c: "400", d: "495" }, ans: "a", hint: "What number comes 10 steps below 480?", exp: "Counting backwards by tens means 470 belongs right between 480 and 460." }
-    ];
+        let tasks = [];
+        let currentTaskIndex = 0;
+        let score = 0;
+        let lockAnswer = false;
 
-    let currentQIdx = 0;
-    let score = 0;
-    let attempts = 0;
-    let timerInterval;
-    let timeLeft = 60;
-
-    window.addEventListener('DOMContentLoaded', () => {
-        setTimeout(() => {
-            document.getElementById('splash-screen').classList.add('hidden');
-            document.getElementById('intro-screen').classList.remove('hidden');
-        }, 5000);
-    });
-
-    function startInteractive() {
-        document.getElementById('intro-screen').classList.add('hidden');
-        document.getElementById('quiz-screen').classList.remove('hidden');
-        loadQuestion();
-    }
-
-    function loadQuestion() {
-        clearInterval(timerInterval);
-        timeLeft = 60;
-        attempts = 0;
-        
-        document.getElementById('timer-count').textContent = timeLeft;
-        document.getElementById('feedback-container').classList.add('hidden');
-        document.getElementById('next-btn').classList.add('hidden');
-        
-        const qData = quizData[currentQIdx];
-        document.getElementById('question-number').textContent = `Q: ${currentQIdx + 1}/15`;
-        document.getElementById('question-container').textContent = qData.q;
-        
-        const optionsDiv = document.getElementById('options-container');
-        optionsDiv.innerHTML = '';
-        
-        Object.keys(qData.opts).forEach(key => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.textContent = `${key.toUpperCase()}) ${qData.opts[key]}`;
-            btn.onclick = () => handleAnswer(btn, key);
-            optionsDiv.appendChild(btn);
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                document.getElementById('logo-screen').classList.remove('active');
+                document.getElementById('instruction-screen').classList.add('active');
+            }, 5000);
         });
 
-        startTimer();
-    }
+        function startGame() {
+            document.getElementById('instruction-screen').classList.remove('active');
+            document.getElementById('game-screen').classList.add('active');
+            tasks = [...masterTasks].sort(() => Math.random() - 0.5);
+            currentTaskIndex = 0;
+            score = 0;
+            loadTask();
+        }
 
-    function startTimer() {
-        timerInterval = setInterval(() => {
-            timeLeft--;
-            document.getElementById('timer-count').textContent = timeLeft;
-            if(timeLeft <= 0) {
-                clearInterval(timerInterval);
-                lockQuestionOnTimeout();
+        function loadTask() {
+            lockAnswer = false;
+            document.getElementById('feedback').innerText = "";
+            
+            if (currentTaskIndex >= tasks.length) {
+                endGame();
+                return;
             }
-        }, 1000);
-    }
 
-    function handleAnswer(selectedBtn, chosenKey) {
-        const qData = quizData[currentQIdx];
-        const isCorrect = (chosenKey === qData.ans);
-        
-        if (isCorrect) {
-            clearInterval(timerInterval);
-            selectedBtn.classList.add('correct');
-            document.getElementById('sound-correct').play().catch(()=>{});
-            score++;
-            document.getElementById('score-tracker').textContent = `Score: ${score}`;
-            disableAllOptions();
-            showFinalExplanation(qData.exp);
-        } else {
-            attempts++;
-            document.getElementById('sound-wrong').play().catch(()=>{});
-            if (attempts === 1) {
-                selectedBtn.classList.add('wrong');
-                selectedBtn.disabled = true;
-                showHint(qData.hint);
+            const task = tasks[currentTaskIndex];
+            document.getElementById('tracker').innerText = `Task: ${currentTaskIndex + 1}/${tasks.length}`;
+            document.getElementById('score').innerText = `Score: ${score}`;
+            document.getElementById('question-text').innerText = task.question;
+
+            const area = document.getElementById('game-play-area');
+            area.innerHTML = '';
+
+            if (task.type === 'placeValueChest' || task.type === 'sequenceFill') {
+                renderDragDropGame(task, area);
+            } else if (task.type === 'comparison') {
+                renderComparisonGame(task, area);
+            } else if (task.type === 'abacusBuilder') {
+                renderAbacusGame(task, area);
+            }
+        }
+
+        // --- MINI-GAME 1: Drag & Drop into Chest / Box ---
+        function renderDragDropGame(task, container) {
+            const dropZone = document.createElement('div');
+            dropZone.className = 'drop-zone';
+            dropZone.innerText = "📥 Chest";
+            container.appendChild(dropZone);
+
+            const itemsContainer = document.createElement('div');
+            itemsContainer.className = 'draggable-items-container';
+            
+            const shuffledOptions = [...task.options].sort(() => Math.random() - 0.5);
+            
+            shuffledOptions.forEach(opt => {
+                const dragItem = document.createElement('div');
+                dragItem.className = 'drag-item';
+                dragItem.innerText = opt;
+                
+                // Desktop Drag Events
+                dragItem.draggable = true;
+                dragItem.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', opt);
+                });
+
+                // Mobile Touch Drag Simulation
+                let initialX = 0, initialY = 0, currentX = 0, currentY = 0;
+                dragItem.addEventListener('touchstart', (e) => {
+                    if (lockAnswer) return;
+                    initialX = e.touches[0].clientX - currentX;
+                    initialY = e.touches[0].clientY - currentY;
+                });
+
+                dragItem.addEventListener('touchmove', (e) => {
+                    if (lockAnswer) return;
+                    currentX = e.touches[0].clientX - initialX;
+                    currentY = e.touches[0].clientY - initialY;
+                    dragItem.style.transform = `translate(${currentX}px, ${currentY}px)`;
+                    
+                    // Check overlap with dropZone
+                    const dropRect = dropZone.getBoundingClientRect();
+                    const itemRect = dragItem.getBoundingClientRect();
+                    if (itemRect.left < dropRect.right && itemRect.right > dropRect.left &&
+                        itemRect.top < dropRect.bottom && itemRect.bottom > dropRect.top) {
+                        dropZone.classList.add('highlight');
+                    } else {
+                        dropZone.classList.remove('highlight');
+                    }
+                });
+
+                dragItem.addEventListener('touchend', (e) => {
+                    if (lockAnswer) return;
+                    const dropRect = dropZone.getBoundingClientRect();
+                    const itemRect = dragItem.getBoundingClientRect();
+                    if (itemRect.left < dropRect.right && itemRect.right > dropRect.left &&
+                        itemRect.top < dropRect.bottom && itemRect.bottom > dropRect.top) {
+                        checkTaskResult(opt === task.targetVal);
+                    }
+                    dragItem.style.transform = 'translate(0px, 0px)';
+                    currentX = 0; currentY = 0;
+                    dropZone.classList.remove('highlight');
+                });
+
+                itemsContainer.appendChild(dragItem);
+            });
+
+            container.appendChild(itemsContainer);
+
+            // Desktop Drop listener
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.classList.add('highlight');
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.classList.remove('highlight');
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('highlight');
+                if (lockAnswer) return;
+                const droppedVal = e.dataTransfer.getData('text/plain');
+                checkTaskResult(droppedVal === task.targetVal);
+            });
+        }
+
+        // --- MINI-GAME 2: Symbol Comparison Game ---
+        function renderComparisonGame(task, container) {
+            const compArea = document.createElement('div');
+            compArea.className = 'comparison-area';
+
+            const box1 = document.createElement('div');
+            box1.className = 'compare-box';
+            box1.innerText = task.num1;
+
+            const signBox = document.createElement('div');
+            signBox.className = 'compare-box';
+            signBox.style.color = '#ff6b6b';
+            signBox.innerText = "?";
+            signBox.id = 'sign-placeholder';
+
+            const box2 = document.createElement('div');
+            box2.className = 'compare-box';
+            box2.innerText = task.num2;
+
+            compArea.appendChild(box1);
+            compArea.appendChild(signBox);
+            compArea.appendChild(box2);
+            container.appendChild(compArea);
+
+            const btnContainer = document.createElement('div');
+            btnContainer.className = 'symbol-buttons';
+
+            ['>', '<', '='].forEach(sym => {
+                const symBtn = document.createElement('button');
+                symBtn.className = 'symbol-btn';
+                symBtn.innerText = sym;
+                symBtn.onclick = () => {
+                    if (lockAnswer) return;
+                    document.getElementById('sign-placeholder').innerText = sym;
+                    checkTaskResult(sym === task.correctSymbol);
+                };
+                btnContainer.appendChild(symBtn);
+            });
+
+            container.appendChild(btnContainer);
+        }
+
+        // --- MINI-GAME 3: Abacus Counter Builder ---
+        function renderAbacusGame(task, container) {
+            let currentH = 0;
+            let currentT = 0;
+            let currentO = 0;
+
+            const abacusWrapper = document.createElement('div');
+            abacusWrapper.style.display = 'flex';
+            abacusWrapper.style.flexDirection = 'column';
+            abacusWrapper.style.gap = '10px';
+            abacusWrapper.style.width = '100%';
+
+            // Hundreds Row
+            abacusWrapper.appendChild(createAbacusRow("Hundreds", currentH, (val) => { currentH = val; }));
+            // Tens Row
+            abacusWrapper.appendChild(createAbacusRow("Tens", currentT, (val) => { currentT = val; }));
+            // Ones Row
+            abacusWrapper.appendChild(createAbacusRow("Ones", currentO, (val) => { currentO = val; }));
+
+            container.appendChild(abacusWrapper);
+
+            const verifyBtn = document.createElement('button');
+            verifyBtn.className = 'primary-btn';
+            verifyBtn.innerText = "Check Abacus";
+            verifyBtn.onclick = () => {
+                if (lockAnswer) return;
+                const isCorrect = (currentH === task.hundreds && currentT === task.tens && currentO === task.ones);
+                checkTaskResult(isCorrect);
+            };
+            container.appendChild(verifyBtn);
+
+            function createAbacusRow(labelName, initialVal, updateCallback) {
+                let val = initialVal;
+                const row = document.createElement('div');
+                row.className = 'abacus-row';
+
+                const label = document.createElement('div');
+                label.className = 'abacus-label';
+                label.innerText = labelName;
+
+                const controls = document.createElement('div');
+                controls.className = 'counter-controls';
+
+                const minusBtn = document.createElement('button');
+                minusBtn.className = 'count-btn';
+                minusBtn.innerText = "-";
+
+                const display = document.createElement('div');
+                display.className = 'count-display';
+                display.innerText = val;
+
+                const plusBtn = document.createElement('button');
+                plusBtn.className = 'count-btn';
+                plusBtn.innerText = "+";
+
+                plusBtn.onclick = () => {
+                    if (val < 9) { val++; display.innerText = val; updateCallback(val); }
+                };
+                minusBtn.onclick = () => {
+                    if (val > 0) { val--; display.innerText = val; updateCallback(val); }
+                };
+
+                controls.appendChild(minusBtn);
+                controls.appendChild(display);
+                controls.appendChild(plusBtn);
+
+                row.appendChild(label);
+                row.appendChild(controls);
+                return row;
+            }
+        }
+
+        // --- Task Completion Handler ---
+        function checkTaskResult(isCorrect) {
+            if (lockAnswer) return;
+            lockAnswer = true;
+
+            const feedback = document.getElementById('feedback');
+
+            if (isCorrect) {
+                feedback.innerText = "Correct! Fantastic! 👏";
+                feedback.style.color = "#20bf6b";
+                score += 10;
+                playSound('correct');
+                triggerConfetti();
             } else {
-                clearInterval(timerInterval);
-                selectedBtn.classList.add('wrong');
-                disableAllOptions();
-                highlightCorrectAnswer(qData.ans);
-                showFinalExplanation(qData.exp);
+                feedback.innerText = "Oops! That's not quite right.";
+                feedback.style.color = "#eb3b5a";
+                playSound('wrong');
             }
+
+            setTimeout(() => {
+                currentTaskIndex++;
+                loadTask();
+            }, 1600);
         }
-    }
 
-    function showHint(hintText) {
-        const fb = document.getElementById('feedback-container');
-        fb.className = "feedback-box hint";
-        fb.textContent = `Hint: ${hintText}`;
-        fb.classList.remove('hidden');
-    }
+        function endGame() {
+            document.getElementById('game-screen').classList.remove('active');
+            document.getElementById('end-screen').classList.add('active');
+            document.getElementById('final-score-text').innerText = `Your Score: ${score} / ${tasks.length * 10}`;
+        }
 
-    function showFinalExplanation(expText) {
-        const fb = document.getElementById('feedback-container');
-        fb.className = "feedback-box explanation";
-        fb.textContent = `Explanation: ${expText}`;
-        fb.classList.remove('hidden');
-        document.getElementById('next-btn').classList.remove('hidden');
-    }
+        function restartGame() {
+            document.getElementById('end-screen').classList.remove('active');
+            document.getElementById('instruction-screen').classList.add('active');
+        }
 
-    function highlightCorrectAnswer(correctKey) {
-        const btns = document.getElementsByClassName('option-btn');
-        for(let btn of btns) {
-            if(btn.textContent.startsWith(correctKey.toUpperCase())) {
-                btn.classList.add('correct');
+        // Confetti Engine
+        function triggerConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.style.display = 'block';
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+
+            let particles = [];
+            const colors = ['#ff6b6b', '#20bf6b', '#ffb142', '#4a90e2', '#a55eea'];
+
+            for (let i = 0; i < 60; i++) {
+                particles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2,
+                    vx: (Math.random() - 0.5) * 10,
+                    vy: (Math.random() - 0.5) * 10 - 3,
+                    radius: Math.random() * 6 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    alpha: 1,
+                    decay: Math.random() * 0.03 + 0.015
+                });
             }
-        }
-    }
 
-    function disableAllOptions() {
-        const btns = document.getElementsByClassName('option-btn');
-        for(let btn of btns) {
-            btn.disabled = true;
-        }
-    }
+            function animateConfetti() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach((p, index) => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.vy += 0.3;
+                    p.alpha -= p.decay;
 
-    function lockQuestionOnTimeout() {
-        disableAllOptions();
-        const qData = quizData[currentQIdx];
-        highlightCorrectAnswer(qData.ans);
-        showFinalExplanation(`Time ran out! ${qData.exp}`);
-    }
+                    if (p.alpha <= 0) {
+                        particles.splice(index, 1);
+                        return;
+                    }
 
-    function nextQuestion() {
-        currentQIdx++;
-        if(currentQIdx < quizData.length) {
-            loadQuestion();
-        } else {
-            showResults();
-        }
-    }
+                    ctx.save();
+                    ctx.globalAlpha = p.alpha;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                });
 
-    function showResults() {
-        document.getElementById('quiz-screen').classList.add('hidden');
-        const resultScreen = document.getElementById('result-screen');
-        resultScreen.classList.remove('hidden');
-        
-        document.getElementById('final-score').textContent = `Your Score: ${score}/15`;
-        
-        const percentage = (score / 15) * 100;
-        let msg = "";
-        if (percentage >= 75) {
-            msg = "Good job!";
-        } else if (percentage >= 40) {
-            msg = "Review this chapter and try again.";
-        } else {
-            msg = "Let's practise more.";
+                if (particles.length > 0) {
+                    requestAnimationFrame(animateConfetti);
+                } else {
+                    canvas.style.display = 'none';
+                }
+            }
+
+            animateConfetti();
         }
-        document.getElementById('result-message').textContent = msg;
-    }
-</script>
+    </script>
 </body>
 </html>
