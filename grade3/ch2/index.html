@@ -12,6 +12,7 @@
             --neon-purple: #9D4EDD;
             --neon-green: #38B000;
             --neon-coral: #F72585;
+            --neon-orange: #FF9F1C;
         }
 
         * {
@@ -33,7 +34,6 @@
             align-items: center;
             min-height: 100vh;
             padding: 15px;
-            /* Allow vertical scrolling on mobile */
             overflow-y: auto; 
         }
 
@@ -288,13 +288,22 @@
             box-shadow: 0 0 15px var(--neon-coral);
         }
 
+        .space-node.hinted .node-sprite {
+            filter: drop-shadow(0 0 15px var(--neon-orange));
+        }
+        .space-node.hinted .node-val {
+            border-color: var(--neon-orange);
+            background: #3A2005;
+            box-shadow: 0 0 15px var(--neon-orange);
+        }
+
         /* Sector Main Processor Console Terminal */
         .processor-console {
             background: #0D1B2A;
             border-radius: 15px;
             padding: 18px;
             border: 3px solid #415A77;
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             font-weight: bold;
             color: #00F5D4;
             letter-spacing: 1px;
@@ -326,7 +335,6 @@
         <img src="assets/logo.png" alt="Innovine Logo" class="splash-logo" onerror="this.src='https://placehold.co/200?text=Innovine'">
     </div>
 
-    <!-- CONCISE INTRO SCREEN -->
     <div id="intro-card" class="story-card">
         <div class="story-avatar">👨‍🚀</div>
         <h2 class="story-title">Mission Log: Lost in Space!</h2>
@@ -428,6 +436,8 @@
         var elementIdx = 0;
         var trackingScore = 0;
         var blockConsoleInteraction = false;
+        var currentMistakes = 0;
+        var currentFormulaText = "";
 
         function initiateMissionSession() {
             document.getElementById('intro-card').style.display = 'none';
@@ -446,6 +456,7 @@
 
         function deployTaskSegment() {
             blockConsoleInteraction = false;
+            currentMistakes = 0;
             var activeDataset = (missionPhase === 1) ? levelOnePool : levelTwoPool;
             var combinedMax = levelOnePool.length + levelTwoPool.length;
             var currentAbsoluteIndex = (missionPhase === 1) ? elementIdx : levelOnePool.length + elementIdx;
@@ -454,7 +465,8 @@
             document.getElementById('fuel-fill').style.width = ((currentAbsoluteIndex / combinedMax) * 100) + "%";
 
             var item = activeDataset[elementIdx];
-            document.getElementById('display-problem').innerText = item.formula;
+            currentFormulaText = item.formula;
+            document.getElementById('display-problem').innerText = currentFormulaText;
 
             var structuralField = document.getElementById('floating-cluster');
             structuralField.innerHTML = '';
@@ -479,38 +491,60 @@
 
         function evaluateChosenNode(targetDom, selectedText, answerText) {
             if(blockConsoleInteraction) return;
-            blockConsoleInteraction = true;
 
             if(selectedText === answerText) {
+                blockConsoleInteraction = true;
                 targetDom.classList.add('matched');
                 audioAlert('correct');
                 trackingScore++;
                 document.getElementById('hud-score').innerText = trackingScore;
                 generateEnergyBeams(targetDom);
-            } else {
-                targetDom.classList.add('failed');
-                audioAlert('wrong');
-                document.querySelectorAll('.space-node').forEach(function(nodeElement) {
-                    if(nodeElement.querySelector('.node-val').innerText === answerText) {
-                        nodeElement.classList.add('matched');
-                    }
-                });
-            }
 
-            setTimeout(function() {
-                elementIdx++;
-                var currentDataset = (missionPhase === 1) ? levelOnePool : levelTwoPool;
-                
-                if(elementIdx < currentDataset.length) {
-                    deployTaskSegment();
+                setTimeout(function() {
+                    proceedToNextQuestion();
+                }, 2500);
+            } else {
+                currentMistakes++;
+                audioAlert('wrong');
+
+                if(currentMistakes === 1) {
+                    // First mistake: give a hint and keep turn open
+                    targetDom.classList.add('hinted');
+                    targetDom.style.pointerEvents = 'none'; // Disable clicked wrong node
+                    document.getElementById('display-problem').innerText = "💡 Hint: Check your addition again!";
+                    setTimeout(function() {
+                        document.getElementById('display-problem').innerText = currentFormulaText;
+                    }, 2000);
                 } else {
-                    if(missionPhase === 1) {
-                        bridgeToSectorTwo();
-                    } else {
-                        concludeAdventureLog();
-                    }
+                    // Second mistake: reveal correct answer and move on
+                    blockConsoleInteraction = true;
+                    targetDom.classList.add('failed');
+                    document.querySelectorAll('.space-node').forEach(function(nodeElement) {
+                        if(nodeElement.querySelector('.node-val').innerText === answerText) {
+                            nodeElement.classList.add('matched');
+                        }
+                    });
+
+                    setTimeout(function() {
+                        proceedToNextQuestion();
+                    }, 2500);
                 }
-            }, 2500);
+            }
+        }
+
+        function proceedToNextQuestion() {
+            elementIdx++;
+            var currentDataset = (missionPhase === 1) ? levelOnePool : levelTwoPool;
+            
+            if(elementIdx < currentDataset.length) {
+                deployTaskSegment();
+            } else {
+                if(missionPhase === 1) {
+                    bridgeToSectorTwo();
+                } else {
+                    concludeAdventureLog();
+                }
+            }
         }
 
         function generateEnergyBeams(elementOrigin) {
