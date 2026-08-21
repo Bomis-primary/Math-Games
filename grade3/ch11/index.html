@@ -452,7 +452,6 @@
             let loaded = 0;
             const entries = Object.entries(this.manifest);
             
-            // Safety Backup: Forces loading closure if folders or logo graphics are missing locally
             const safetyTimeout = setTimeout(() => {
                 console.warn("Asset pipeline handshake timed out. Initializing vector framework engine.");
                 callback();
@@ -471,7 +470,7 @@
                 };
 
                 this.images[key].onload = processCompletion;
-                this.images[key].onerror = processCompletion; // Safely process if custom assets are dropped
+                this.images[key].onerror = processCompletion;
             });
         }
     };
@@ -506,7 +505,6 @@
         }
     };
 
-    // --- PIPELINE RENDERING CANVAS SYSTEM ---
     const Render = {
         canvas: document.getElementById('game-canvas'),
         ctx: document.getElementById('game-canvas').getContext('2d'),
@@ -516,7 +514,6 @@
             const q = GameState.current;
             if (!q) return;
 
-            // Draw Space Background Environment
             if (AssetManager.images.bg && AssetManager.images.bg.complete && AssetManager.images.bg.naturalWidth !== 0) {
                 this.ctx.drawImage(AssetManager.images.bg, 0, 0, this.canvas.width, this.canvas.height);
             } else {
@@ -594,7 +591,6 @@
         }
     };
 
-    // --- ACCELERATED PARTICLE SHOCKWAVE FX PIPELINE ---
     const FXEngine = {
         canvas: document.getElementById('fx-canvas'),
         ctx: document.getElementById('fx-canvas').getContext('2d'),
@@ -615,26 +611,10 @@
             if (!this.loopRef) this.run();
         },
 
-        setSnapLine(tx, ty, kx, ky) {
-            this.snapGuides = [{ tx, ty, kx, ky }];
-            if (!this.loopRef) this.run();
-        },
-
-        clearSnapLine() { this.snapGuides = []; },
-
         run() {
             const self = FXEngine;
             self.ctx.clearRect(0, 0, self.canvas.width, self.canvas.height);
             let active = false;
-
-            if (self.snapGuides.length > 0) {
-                active = true;
-                const s = self.snapGuides[0];
-                self.ctx.save();
-                self.ctx.strokeStyle = 'rgba(59, 130, 246, 0.5)'; self.ctx.lineWidth = 3; self.ctx.setLineDash([6, 4]);
-                self.ctx.beginPath(); self.ctx.moveTo(s.tx, s.ty); self.ctx.lineTo(s.kx, s.ky); self.ctx.stroke();
-                self.ctx.restore();
-            }
 
             self.particles.forEach((p, idx) => {
                 p.x += p.vX; p.y += p.vY; p.vY += 0.02; p.alpha -= p.decay;
@@ -653,10 +633,9 @@
         }
     };
 
-    // --- ACCELERATED DRAG-AND-DROP INTERACTION SYSTEM ---
     const Interaction = {
         layer: document.getElementById('interaction-layer'),
-        activeNode: null, offX: 0, offY: 0, origX: 0, origY: 0,
+        activeNode: null,
 
         build() {
             this.layer.innerHTML = '';
@@ -701,171 +680,96 @@
                         }
                     });
                 } else {
-                    el.className = 'draggable-token';
-                    if (q.mode === 'repeating') {
-                        const img = AssetManager.images[choice];
-                        if (img && img.complete && img.naturalWidth !== 0) {
-                            const tokenImg = document.createElement('img');
-                            tokenImg.className = 'token-img'; tokenImg.src = img.src; el.appendChild(tokenImg);
-                        } else {
-                            el.innerText = choice.substring(0,3).toUpperCase();
-                            el.style.color = '#fff'; el.style.fontWeight = '700';
-                        }
+                    el.className = 'draggable-token clickable-token';
+                    const img = AssetManager.images[choice];
+                    if (img && img.complete && img.naturalWidth !== 0) {
+                        const tokenImg = document.createElement('img');
+                        tokenImg.className = 'token-img'; tokenImg.src = img.src; el.appendChild(tokenImg);
                     } else {
-                        el.innerText = choice; el.style.color = '#fff'; el.style.fontSize = '32px'; el.style.fontWeight = '900';
+                        el.innerText = choice.toUpperCase();
+                        el.style.color = '#fff'; el.style.fontSize = '16px'; el.style.fontWeight = '700';
                     }
-                    this.bindDragSystems(el);
+
+                    el.addEventListener('click', () => {
+                        if (choice === q.target) {
+                            AudioEngine.play('success'); View.animateMascot('win');
+                            View.toast('✨ Data Node Synchronized! +10 Cosmic Stars ✨', true);
+                            GameState.score++; GameState.stars += 10;
+                            FXEngine.boom(512, 230);
+                            setTimeout(() => CoreEngine.next(), 1400);
+                        } else {
+                            AudioEngine.play('fail'); GameState.attempts++; View.animateMascot('lose');
+                            View.toast('Incorrect token match. Review logs.', false); CoreEngine.refreshUI();
+                        }
+                    });
                 }
                 this.layer.appendChild(el);
             });
-        },
-
-        bindDragSystems(el) {
-            const moveHandler = (e) => {
-                if (!this.activeNode) return;
-                e.preventDefault();
-                const rect = this.layer.getBoundingClientRect();
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-                const scaleX = 1024 / rect.width; const scaleY = 576 / rect.height;
-                const x = (clientX - rect.left) * scaleX - this.offX;
-                const y = (clientY - rect.top) * scaleY - this.offY;
-
-                this.activeNode.style.left = `${x}px`; this.activeNode.style.top = `${y}px`;
-
-                const drop = document.querySelector('.drop-target');
-                const tCX = x + parseFloat(this.activeNode.style.width)/2;
-                const tCY = y + parseFloat(this.activeNode.style.height)/2;
-                const dCX = parseFloat(drop.style.left) + parseFloat(drop.style.width)/2;
-                const dCY = parseFloat(drop.style.top) + parseFloat(drop.style.height)/2;
-
-                if (Math.hypot(tCX - dCX, tCY - dCY) < 110) {
-                    drop.classList.add('hovered');
-                    FXEngine.setSnapLine(dCX, dCY, tCX, tCY);
-                } else {
-                    drop.classList.remove('hovered');
-                    FXEngine.clearSnapLine();
-                }
-            };
-
-            const endHandler = () => {
-                if (!this.activeNode) return;
-                this.activeNode.classList.remove('dragging');
-                const drop = document.querySelector('.drop-target');
-                const targetLocked = drop.classList.contains('hovered');
-                drop.classList.remove('hovered');
-                FXEngine.clearSnapLine();
-
-                document.removeEventListener('mousemove', moveHandler); document.removeEventListener('mouseup', endHandler);
-                document.removeEventListener('touchmove', moveHandler); document.removeEventListener('touchend', endHandler);
-
-                if (targetLocked) this.validate(this.activeNode, drop); else this.snapBack(this.activeNode);
-                this.activeNode = null;
-            };
-
-            const startHandler = (e) => {
-                this.activeNode = el; el.classList.add('dragging');
-                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                const r = el.getBoundingClientRect(); const lR = this.layer.getBoundingClientRect();
-                this.offX = (clientX - r.left) * (1024 / lR.width); this.offY = (clientY - r.top) * (576 / lR.height);
-                this.origX = parseFloat(el.style.left); this.origY = parseFloat(el.style.top);
-                el.style.zIndex = 100;
-
-                if (e.type === 'touchstart') {
-                    document.addEventListener('touchmove', moveHandler, {passive: false}); document.addEventListener('touchend', endHandler);
-                } else {
-                    document.addEventListener('mousemove', moveHandler); document.addEventListener('mouseup', endHandler);
-                }
-            };
-
-            el.addEventListener('mousedown', startHandler);
-            el.addEventListener('touchstart', startHandler, {passive: true});
-        },
-
-        snapBack(el) {
-            el.style.transition = 'all 0.35s cubic-bezier(0.25, 1, 0.5, 1)';
-            el.style.left = `${this.origX}px`; el.style.top = `${this.origY}px`;
-            setTimeout(() => { el.style.transition = 'none'; el.style.zIndex = ''; }, 350);
-        },
-
-        validate(el, drop) {
-            if (el.dataset.val === GameState.current.target) {
-                el.style.left = drop.style.left; el.style.top = drop.style.top; el.style.pointerEvents = 'none';
-                const x = parseFloat(drop.style.left) + parseFloat(drop.style.width)/2;
-                const y = parseFloat(drop.style.top) + parseFloat(drop.style.height)/2;
-                
-                AudioEngine.play('success'); FXEngine.boom(x, y); View.animateMascot('win');
-                View.toast('✨ Vector Matrix Stable! +10 Cosmic Stars ✨', true);
-                GameState.score++; GameState.stars += 10;
-                setTimeout(() => CoreEngine.next(), 1400);
-            } else {
-                this.snapBack(el); AudioEngine.play('fail'); GameState.attempts++; View.animateMascot('lose');
-                View.toast('Deflector shields failing! Recalibrate code data array.', false);
-                if (GameState.attempts >= 2) drop.classList.add('hint-flash');
-                CoreEngine.refreshUI();
-            }
         }
     };
 
-    // --- SYSTEM COORDINATION ENGINE HUB ---
     const CoreEngine = {
         init() {
+            AssetManager.loadAll(() => {
+                document.getElementById('splash-screen').classList.add('hidden');
+                document.getElementById('instruction-screen').classList.remove('hidden');
+            });
+
             document.getElementById('start-btn').addEventListener('click', () => {
                 document.getElementById('instruction-screen').classList.add('hidden');
                 document.getElementById('hud').classList.remove('hidden');
                 document.getElementById('mascot-widget').classList.remove('hidden');
-                this.start();
+                this.startMission();
             });
 
             document.getElementById('restart-btn').addEventListener('click', () => {
                 document.getElementById('end-screen').classList.add('hidden');
-                document.getElementById('hud').classList.remove('hidden');
-                document.getElementById('mascot-widget').classList.remove('hidden');
-                GameState.score = 0; GameState.stars = 0; this.start();
+                this.startMission();
             });
 
             document.getElementById('volume-control').addEventListener('input', (e) => {
                 AudioEngine.volume = parseFloat(e.target.value);
             });
-
-            AssetManager.loadAll(() => {
-                document.getElementById('splash-screen').classList.add('hidden');
-                document.getElementById('instruction-screen').classList.remove('hidden');
-            });
         },
 
-        start() {
-            GameState.index = 0;
+        startMission() {
+            GameState.score = 0; GameState.stars = 0; GameState.index = 0;
             GameState.questions = GameState.shuffle([...QuestionPool]);
-            this.step();
+            this.loadQuestion();
         },
 
-        step() {
-            GameState.attempts = 0; GameState.current = GameState.questions[GameState.index];
-            this.refreshUI();
+        loadQuestion() {
+            if (GameState.index >= GameState.questions.length) {
+                this.endMission();
+                return;
+            }
+            GameState.current = GameState.questions[GameState.index];
+            GameState.attempts = 0;
+            View.updateHUD();
+            Render.draw();
+            Interaction.build();
         },
 
         refreshUI() {
-            View.updateHUD(); Render.draw(); Interaction.build();
+            View.updateHUD();
         },
 
         next() {
-            GameState.index++; if (GameState.index < 10) this.step(); else this.over();
+            GameState.index++;
+            this.loadQuestion();
         },
 
-        over() {
-            Interaction.layer.innerHTML = '';
+        endMission() {
             document.getElementById('hud').classList.add('hidden');
             document.getElementById('mascot-widget').classList.add('hidden');
             document.getElementById('hint-overlay').classList.add('hidden');
-            document.getElementById('end-evaluation').innerText = `Sensational Jump Complete! You bypassed ${GameState.score} out of 10 dimensional blockades and harvested ${GameState.stars} galactic hyper-stars!`;
+            document.getElementById('interaction-layer').innerHTML = '';
+            document.getElementById('end-evaluation').innerText = `Mission Successful! You gathered ${GameState.stars} Cosmic Stars across all sectors.`;
             document.getElementById('end-screen').classList.remove('hidden');
         }
     };
 
-    window.onload = () => CoreEngine.init();
+    window.addEventListener('load', () => CoreEngine.init());
 </script>
 </body>
 </html>
