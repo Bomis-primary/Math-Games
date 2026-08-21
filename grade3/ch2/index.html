@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Grade 3: Cosmic Sums - Space Adventure</title>
+    <!-- Canvas Confetti Library for correct answers -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
             --space-bg: #0D1B2A;
@@ -385,7 +387,8 @@
         <button class="nav-btn" style="background: linear-gradient(135deg, var(--neon-green), #1B4332); box-shadow: 0 5px 0 #081C15;" onclick="rebootSimulatorCore()">Play Again 🔄</button>
     </div>
 
-    <audio id="snd-correct" src="assets/correct.mp3" preload="none"></audio>
+    <!-- Updated Audio Assets mapped to assets/claps.mp3 and assets/wrong.mp3 -->
+    <audio id="snd-correct" src="assets/claps.mp3" preload="none"></audio>
     <audio id="snd-wrong" src="assets/wrong.mp3" preload="none"></audio>
 
     <script>
@@ -407,9 +410,20 @@
             try {
                 var p1 = document.getElementById('snd-correct');
                 var p2 = document.getElementById('snd-wrong');
-                if(type === 'correct' && p1) { p1.volume = 0.35; p1.currentTime = 0; p1.play().catch(function(){}); }
+                if(type === 'correct' && p1) { p1.volume = 0.5; p1.currentTime = 0; p1.play().catch(function(){}); }
                 if(type === 'wrong' && p2) { p2.volume = 0.35; p2.currentTime = 0; p2.play().catch(function(){}); }
             } catch(e){}
+        }
+
+        // Trigger celebratory confetti effect
+        function triggerConfetti() {
+            try {
+                confetti({
+                    particleCount: 80,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            } catch(e) {}
         }
 
         var customSprites = ["☄️", "💎", "🪐", "🔮", "👽", "🌟"];
@@ -496,6 +510,7 @@
                 blockConsoleInteraction = true;
                 targetDom.classList.add('matched');
                 audioAlert('correct');
+                triggerConfetti();
                 trackingScore++;
                 document.getElementById('hud-score').innerText = trackingScore;
                 generateEnergyBeams(targetDom);
