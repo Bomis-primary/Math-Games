@@ -2,51 +2,68 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Animal Balloon Rescue & Feast - Grade 1 Addition</title>
 <style>
     :root {
-        --sky-blue: #bae6fd;
+        --sky-blue: #38bdf8;
         --grass-green: #22c55e;
         --pop-pink: #f43f5e;
         --gold: #eab308;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { 
+        box-sizing: border-box; 
+        margin: 0; 
+        padding: 0; 
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+    }
+    
+    /* Allow native mobile scrolling while maintaining screen filling background */
     body, html {
-        width: 100%; height: 100%;
-        font-family: 'Segoe UI', Arial, sans-serif;
-        color: #1e293b; overflow: hidden;
+        width: 100%;
+        min-height: 100vh;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        color: #1e293b;
         background-color: #38bdf8;
+        overflow-x: hidden;
+        overflow-y: auto;
     }
 
     .game-container {
-        position: relative; width: 100%; height: 100%;
+        position: relative;
+        width: 100%;
+        min-height: 100vh;
         background: #38bdf8 url('assets/sky-bg.png') no-repeat center center;
         background-size: cover;
-        display: flex; justify-content: center; align-items: center;
-        flex-direction: column; padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-direction: column;
+        padding: 16px 16px 80px 16px; /* Extra bottom padding for room above grass floor */
     }
 
-    /* Splash Screen Overlay Layer - Logo Size Increased */
+    /* Splash Screen Overlay Layer */
     #screen-splash {
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
         background: #ffffff !important; z-index: 9999;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
         opacity: 1; transition: opacity 0.5s ease;
+        padding: 20px;
     }
     .logo-container {
         display: flex; flex-direction: column; align-items: center; justify-content: center;
     }
     .logo-img {
-        max-width: 420px; max-height: 220px; object-fit: contain;
+        max-width: 80vw; max-height: 180px; object-fit: contain;
     }
     .logo-fallback {
-        width: 160px; height: 160px; background: linear-gradient(135deg, #0284c7, #38bdf8);
-        border-radius: 32px; display: flex; align-items: center; justify-content: center;
-        color: white; font-size: 80px; font-weight: bold; box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+        width: 120px; height: 120px; background: linear-gradient(135deg, #0284c7, #38bdf8);
+        border-radius: 28px; display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 60px; font-weight: bold; box-shadow: 0 12px 24px rgba(0,0,0,0.15);
     }
     .splash-loader {
-        margin-top: 40px; width: 180px; height: 8px; background: #e2e8f0;
+        margin-top: 30px; width: 160px; height: 8px; background: #e2e8f0;
         border-radius: 4px; overflow: hidden; position: relative;
     }
     .splash-loader-bar {
@@ -54,44 +71,47 @@
         left: -100%; animation: loadProgress 5s linear forwards;
     }
 
-    /* Content wrapper to isolate screens and block visual background leaking */
+    /* Content wrapper */
     #main-content-canvas {
         display: none;
         flex-direction: column;
         align-items: center;
         justify-content: center;
         width: 100%;
-        height: 100%;
+        max-width: 650px;
+        margin: 0 auto;
+        z-index: 5;
     }
 
     .grass-floor {
-        position: absolute; bottom: 0; left: 0; width: 100%; height: 16%;
-        background: linear-gradient(to bottom, rgba(74, 222, 128, 0.9) 0%, rgba(34, 197, 94, 0.95) 100%);
-        z-index: 1; border-top: 8px solid #86efac;
+        position: fixed; bottom: 0; left: 0; width: 100%; height: 60px;
+        background: linear-gradient(to bottom, rgba(74, 222, 128, 0.95) 0%, rgba(34, 197, 94, 0.98) 100%);
+        z-index: 2; border-top: 6px solid #86efac;
         display: flex; align-items: center; justify-content: space-around;
-        font-size: 24px; padding-bottom: 20px; pointer-events: none;
+        font-size: 20px; pointer-events: none;
     }
 
     .screen {
-        display: none; width: 100%; max-width: 650px;
+        display: none; width: 100%;
         flex-direction: column; align-items: center; text-align: center;
-        z-index: 5;
+        padding-bottom: 20px;
     }
     .screen.active { display: flex !important; }
 
     .card {
         background: rgba(255, 255, 255, 0.96);
-        padding: 35px; border-radius: 32px;
-        border: 6px solid #38bdf8; box-shadow: 0 20px 40px rgba(15, 23, 42, 0.15);
+        padding: 24px 20px; border-radius: 28px;
+        border: 5px solid #38bdf8; box-shadow: 0 15px 30px rgba(15, 23, 42, 0.15);
+        width: 100%;
     }
-    h1 { font-size: 38px; color: #0284c7; margin-bottom: 12px; font-weight: 800; }
-    p { font-size: 19px; line-height: 1.5; color: #475569; margin-bottom: 25px; }
+    h1 { font-size: 28px; color: #0284c7; margin-bottom: 12px; font-weight: 800; }
+    p { font-size: 16px; line-height: 1.5; color: #475569; margin-bottom: 20px; }
 
     .animal-lineup {
-        display: flex; justify-content: center; gap: 25px; margin-bottom: 25px; min-height: 90px;
+        display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; min-height: 70px;
     }
     .lineup-item {
-        width: 90px; height: 90px; display: flex; align-items: center; justify-content: center;
+        width: 70px; height: 70px; display: flex; align-items: center; justify-content: center;
         animation: floatAnimation 3s infinite ease-in-out;
     }
     .lineup-item img { width: 100%; height: 100%; object-fit: contain; }
@@ -99,23 +119,24 @@
     .lineup-item:nth-child(3) { animation-delay: 0.8s; }
     
     .fallback-avatar-circle {
-        width: 80px; height: 80px; background: #f97316; border-radius: 50%;
-        display: flex; align-items: center; justify-content: center; font-size: 44px;
+        width: 65px; height: 65px; background: #f97316; border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; font-size: 36px;
         color: white;
     }
 
+    /* Repositioned live companion so it doesn't block main touch inputs */
     .live-companion-box {
-        position: absolute; bottom: 8%; left: 8%; z-index: 3;
-        display: flex; flex-direction: column; align-items: center; min-height: 130px;
+        position: relative; margin: 10px 0; z-index: 3;
+        display: flex; flex-direction: column; align-items: center; height: 100px;
     }
-    .companion-wrapper { width: 130px; height: 130px; display: flex; align-items: center; justify-content: center; }
+    .companion-wrapper { width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; }
     .companion-img {
         width: 100%; height: 100%; object-fit: contain;
-        filter: drop-shadow(0 8px 12px rgba(0,0,0,0.15));
+        filter: drop-shadow(0 6px 10px rgba(0,0,0,0.15));
     }
     
     .falling-snack {
-        position: absolute; top: -120px; font-size: 50px;
+        position: absolute; top: -80px; font-size: 40px;
         display: none; z-index: 4;
     }
     .falling-snack.drop {
@@ -123,66 +144,74 @@
     }
 
     .btn {
-        padding: 16px 36px; font-size: 24px; font-weight: 900;
-        color: white; border: none; border-radius: 24px; cursor: pointer;
+        padding: 14px 28px; font-size: 20px; font-weight: 900;
+        color: white; border: none; border-radius: 20px; cursor: pointer;
         background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
-        box-shadow: 0 8px 0px #15803d, 0 12px 20px rgba(0,0,0,0.2);
+        box-shadow: 0 6px 0px #15803d, 0 10px 16px rgba(0,0,0,0.15);
         transition: transform 0.1s ease, box-shadow 0.1s ease;
+        min-height: 52px; /* Touch-friendly height */
+        display: inline-flex; align-items: center; justify-content: center;
     }
-    .btn:hover { transform: translateY(-3px); box-shadow: 0 11px 0px #15803d, 0 14px 24px rgba(0,0,0,0.25); }
-    .btn:active { transform: translateY(5px); box-shadow: 0 3px 0px #15803d; }
+    .btn:active { transform: translateY(4px); box-shadow: 0 2px 0px #15803d; }
     
     .btn-red {
         background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
-        box-shadow: 0 8px 0px #9f1239, 0 12px 20px rgba(0,0,0,0.2);
+        box-shadow: 0 6px 0px #9f1239, 0 10px 16px rgba(0,0,0,0.15);
     }
-    .btn-red:hover { box-shadow: 0 11px 0px #9f1239, 0 14px 24px rgba(0,0,0,0.25); }
-    .btn-red:active { box-shadow: 0 3px 0px #9f1239; }
+    .btn-red:active { box-shadow: 0 2px 0px #9f1239; }
 
     .hud {
-        width: 100%; max-width: 620px; display: flex; justify-content: space-between; align-items: center;
-        background: white; padding: 14px 28px; border-radius: 24px;
-        margin-bottom: 20px; font-size: 18px; font-weight: bold;
-        border: 4px solid #e2e8f0; box-shadow: 0 6px 12px rgba(0,0,0,0.04);
+        width: 100%; display: flex; justify-content: space-between; align-items: center;
+        background: white; padding: 10px 18px; border-radius: 20px;
+        margin-bottom: 15px; font-size: 16px; font-weight: bold;
+        border: 3px solid #e2e8f0; box-shadow: 0 4px 8px rgba(0,0,0,0.04);
     }
 
     .math-banner {
-        background: #fef08a; color: #854d0e; font-size: 32px; font-weight: 900;
-        padding: 14px 35px; border-radius: 30px; border: 5px solid #facc15;
-        margin-bottom: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.08);
-        display: inline-block; letter-spacing: 1px; max-width: 100%;
+        background: #fef08a; color: #854d0e; font-size: 24px; font-weight: 900;
+        padding: 10px 20px; border-radius: 20px; border: 4px solid #facc15;
+        margin-bottom: 15px; box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+        display: inline-block; letter-spacing: 0.5px; max-width: 100%; word-break: break-word;
     }
 
     .interaction-canvas {
-        position: relative; width: 100%; height: 350px;
-        display: flex; justify-content: center; gap: 40px; align-items: center;
+        position: relative; width: 100%; min-height: 180px;
+        display: flex; justify-content: center; gap: 15px; align-items: flex-end;
+        flex-wrap: wrap; padding: 10px 0;
     }
 
     /* LEVEL 1: Balloons */
-    .balloon-node { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s, opacity 0.2s; }
+    .balloon-node { 
+        display: flex; flex-direction: column; align-items: center; cursor: pointer; 
+        transition: transform 0.2s, opacity 0.2s; min-width: 80px;
+        touch-action: manipulation;
+    }
     .balloon-body {
-        width: 115px; height: 135px; border-radius: 50% 50% 50% 50% / 42% 42% 58% 58%;
+        width: 90px; height: 110px; border-radius: 50% 50% 50% 50% / 42% 42% 58% 58%;
         display: flex; justify-content: center; align-items: center;
-        font-size: 32px; font-weight: 900; color: white; position: relative;
-        text-shadow: 0 2px 5px rgba(0,0,0,0.25);
-        box-shadow: inset -12px -12px 0px rgba(0,0,0,0.12), 0 12px 20px rgba(0,0,0,0.1);
+        font-size: 28px; font-weight: 900; color: white; position: relative;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.25);
+        box-shadow: inset -10px -10px 0px rgba(0,0,0,0.12), 0 8px 16px rgba(0,0,0,0.1);
     }
     .balloon-node.popped { animation: popBurst 0.25s forwards ease-out; pointer-events: none; }
     .balloon-body::after {
-        content: ''; position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%);
-        border-left: 8px solid transparent; border-right: 8px solid transparent;
-        border-bottom: 9px solid currentColor; filter: brightness(0.85);
+        content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+        border-left: 7px solid transparent; border-right: 7px solid transparent;
+        border-bottom: 8px solid currentColor; filter: brightness(0.85);
     }
-    .balloon-string { width: 3px; height: 55px; background-color: #cbd5e1; margin-top: 6px; }
+    .balloon-string { width: 2px; height: 40px; background-color: #cbd5e1; margin-top: 4px; }
 
     /* LEVEL 2: Baskets */
-    .basket-node { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.2s, opacity 0.2s; }
-    .basket-node:hover { transform: scale(1.08); }
-    .basket-body { font-size: 75px; position: relative; display: flex; justify-content: center; align-items: center; }
+    .basket-node { 
+        display: flex; flex-direction: column; align-items: center; cursor: pointer; 
+        transition: transform 0.2s, opacity 0.2s; min-width: 85px;
+        touch-action: manipulation;
+    }
+    .basket-body { font-size: 60px; position: relative; display: flex; justify-content: center; align-items: center; }
     .basket-label {
-        position: absolute; bottom: 5px; background: #ea580c; color: white;
-        font-size: 24px; font-weight: 900; padding: 4px 16px; border-radius: 12px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.15); border: 2px solid white;
+        position: absolute; bottom: 0px; background: #ea580c; color: white;
+        font-size: 20px; font-weight: 900; padding: 2px 12px; border-radius: 10px;
+        box-shadow: 0 3px 6px rgba(0,0,0,0.15); border: 2px solid white;
     }
     .basket-node.selected-correct { animation: happyDance 0.5s ease infinite alternate; pointer-events: none; }
 
@@ -190,12 +219,12 @@
     .color-purple { background-color: #a855f7; }
     .color-orange { background-color: #f97316; }
 
-    .level-badge { font-size: 60px; margin-bottom: 15px; animation: floatAnimation 2s infinite ease-in-out; }
+    .level-badge { font-size: 50px; margin-bottom: 10px; animation: floatAnimation 2s infinite ease-in-out; }
 
     @keyframes loadProgress { 0% { left: -100%; } 100% { left: 0%; } }
     @keyframes floatAnimation {
         0%, 100% { transform: translateY(0px) rotate(0deg); }
-        50% { transform: translateY(-12px) rotate(2deg); }
+        50% { transform: translateY(-8px) rotate(2deg); }
     }
     .float-idle { animation: floatAnimation 4s infinite ease-in-out; }
     .float-idle:nth-child(2) { animation-delay: 0.6s; }
@@ -203,22 +232,32 @@
 
     @keyframes popBurst {
         0% { transform: scale(1); opacity: 1; }
-        50% { transform: scale(1.3); opacity: 0.7; }
+        50% { transform: scale(1.2); opacity: 0.7; }
         100% { transform: scale(0); opacity: 0; }
     }
     @keyframes dropDown {
         0% { transform: translateY(0) scale(0.5); opacity: 0; }
-        20% { opacity: 1; transform: translateY(-20px) scale(1.2); }
-        100% { transform: translateY(220px) scale(1); opacity: 0; }
+        20% { opacity: 1; transform: translateY(-10px) scale(1.1); }
+        100% { transform: translateY(140px) scale(1); opacity: 0; }
     }
     @keyframes jump {
         0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-30px) scaleY(1.05); }
+        50% { transform: translateY(-20px) scaleY(1.05); }
     }
     .jump-happy { animation: jump 0.4s 2 ease-out; }
     @keyframes happyDance {
         0% { transform: translateY(0) rotate(-5deg); }
-        100% { transform: translateY(-15px) rotate(5deg); }
+        100% { transform: translateY(-10px) rotate(5deg); }
+    }
+
+    /* Media query adjustments for larger viewports */
+    @media (min-width: 600px) {
+        h1 { font-size: 36px; }
+        p { font-size: 18px; }
+        .math-banner { font-size: 30px; }
+        .balloon-body { width: 110px; height: 130px; font-size: 32px; }
+        .basket-body { font-size: 75px; }
+        .interaction-canvas { gap: 30px; min-height: 240px; }
     }
 </style>
 </head>
@@ -236,19 +275,7 @@
 
 <div class="game-container">
     
-    <div class="grass-floor">
-        <span>🌸</span><span>🌼</span><span>🌸</span><span>🌼</span><span>🌸</span><span>🌼</span>
-    </div>
-
-    <!-- Gameplay Isolation Area -->
     <div id="main-content-canvas">
-
-        <div id="live-companion" class="live-companion-box" style="display:none;">
-            <div id="reward-snack" class="falling-snack">🍌</div>
-            <div id="companion-wrapper" class="companion-wrapper">
-                <img id="companion-avatar" class="companion-img" src="assets/rabbit.png" onerror="handleImageError(this, '🐰')" alt="Buddy">
-            </div>
-        </div>
 
         <div id="screen-welcome" class="screen active">
             <div class="card">
@@ -272,16 +299,23 @@
             </div>
 
             <div class="math-banner" id="challenge-formula">Loading...</div>
-            <p id="instruction-subtext" style="font-weight: bold; margin-bottom: 5px; color: #475569; font-size: 18px;">Pop the correct balloon!</p>
+            <p id="instruction-subtext" style="font-weight: bold; margin-bottom: 10px; color: #475569; font-size: 16px;">Pop the correct balloon!</p>
 
             <div class="interaction-canvas" id="interaction-field"></div>
+
+            <div id="live-companion" class="live-companion-box" style="display:none;">
+                <div id="reward-snack" class="falling-snack">🍌</div>
+                <div id="companion-wrapper" class="companion-wrapper">
+                    <img id="companion-avatar" class="companion-img" src="assets/rabbit.png" onerror="handleImageError(this, '🐰')" alt="Buddy">
+                </div>
+            </div>
         </div>
 
         <div id="screen-levelup" class="screen">
             <div class="card">
                 <div class="level-badge">🧺✨</div>
                 <h1>Level 1 Complete!</h1>
-                <p>Awesome balloon popping! You saved the snacks. Now, let's head over to **Level 2: Basket Packing**! Read what your animal friends want, add the numbers together, and pack the matching picnic basket!</p>
+                <p>Awesome balloon popping! You saved the snacks. Now, let's head over to <strong>Level 2: Basket Packing</strong>! Read what your animal friends want, add the numbers together, and pack the matching picnic basket!</p>
                 <button class="btn" onclick="startLevel2();">Enter Level 2</button>
             </div>
         </div>
@@ -294,6 +328,10 @@
             </div>
         </div>
 
+    </div>
+
+    <div class="grass-floor">
+        <span>🌸</span><span>🌼</span><span>🌸</span><span>🌼</span><span>🌸</span><span>🌼</span>
     </div>
 
 </div>
@@ -313,7 +351,7 @@
     let currentScore = 0;
     let targetSolutionValue = 0;
     let isRoundActive = true; 
-    let roundAttempts = 0; // Tracks number of attempts made in the current round
+    let roundAttempts = 0;
 
     function handleImageError(imgElement, emojiBackup) {
         const parent = imgElement.parentElement;
@@ -332,13 +370,16 @@
                     document.getElementById('main-content-canvas').style.display = 'flex';
                 }, 500);
             }
-        }, 5000);
+        }, 3000); // reduced timeout slightly for better UX
     };
 
     function goToScreen(screenId) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         const target = document.getElementById(screenId);
-        if(target) target.classList.add('active');
+        if(target) {
+            target.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
     }
 
     function resetStateTrackers() {
@@ -361,7 +402,7 @@
 
     function renderActiveGameRound() {
         isRoundActive = true; 
-        roundAttempts = 0; // Reset player attempts for the new problem
+        roundAttempts = 0; 
         document.getElementById('round-counter').innerText = `Round: ${currentRoundIndex}/${totalRoundsCount}`;
         document.getElementById('pops-counter').innerText = `Feast Points: ${currentScore}`;
         
@@ -396,7 +437,7 @@
 
         if (currentRoundIndex <= 5) {
             document.getElementById('challenge-formula').innerText = `${primaryValue} + ${secondaryValue}`;
-            document.getElementById('instruction-subtext').innerText = "Find and pop the balloon with the correct total sum!";
+            document.getElementById('instruction-subtext').innerText = "Find and pop the balloon with the correct sum!";
 
             optionsPool.forEach((val, idx) => {
                 const node = document.createElement('div');
@@ -412,8 +453,8 @@
             const itemType1 = foodItems[(currentRoundIndex) % foodItems.length];
             const itemType2 = foodItems[(currentRoundIndex + 1) % foodItems.length];
             
-            document.getElementById('challenge-formula').innerHTML = `Pack ${primaryValue} ${itemType1} and ${secondaryValue} ${itemType2}!`;
-            document.getElementById('instruction-subtext').innerText = `Click the correct basket total to pack the ${currentAnimalName}'s order!`;
+            document.getElementById('challenge-formula').innerHTML = `Pack ${primaryValue} ${itemType1} & ${secondaryValue} ${itemType2}!`;
+            document.getElementById('instruction-subtext').innerText = `Click the basket total to pack ${currentAnimalName}'s order!`;
 
             optionsPool.forEach((val, idx) => {
                 const node = document.createElement('div');
@@ -465,11 +506,10 @@
             const avatarContainer = document.getElementById('companion-wrapper');
             if(avatarContainer) avatarContainer.classList.add('jump-happy');
 
-            setTimeout(advanceRound, 2500);
+            setTimeout(advanceRound, 2200);
 
         } else {
-            // Player answered incorrectly
-            domElement.onclick = null; // Disable the wrong option completely
+            domElement.onclick = null;
             const sndW = document.getElementById('snd-wrong');
             if (sndW) sndW.play().catch(() => {});
             
@@ -478,16 +518,14 @@
             domElement.style.pointerEvents = 'none';
 
             if (roundAttempts === 1) {
-                // First turn guess wrong: Do not reveal answer, give second chance
                 document.getElementById('challenge-formula').innerText = "Oops! Try one more time! 🤔";
             } else {
-                // Second turn guess wrong: Lock inputs and reveal correct answer
                 isRoundActive = false;
                 const nodes = document.querySelectorAll(roundType === 'balloon' ? '.balloon-node' : '.basket-node');
                 nodes.forEach(n => n.onclick = null);
 
                 document.getElementById('challenge-formula').innerText = `Oops! That equals ${targetSolutionValue}`;
-                setTimeout(advanceRound, 2500);
+                setTimeout(advanceRound, 2200);
             }
         }
     }
@@ -501,7 +539,7 @@
             renderActiveGameRound();
         } else {
             goToScreen('screen-end');
-            document.getElementById('adventure-outcome-text').innerText = `Fantastic Job, Snack Master! You earned a stellar score of ${currentScore}/${totalRoundsCount} points while managing your addition sums up to 20!`;
+            document.getElementById('adventure-outcome-text').innerText = `Fantastic Job, Snack Master! You earned ${currentScore}/${totalRoundsCount} points!`;
         }
     }
 </script>
