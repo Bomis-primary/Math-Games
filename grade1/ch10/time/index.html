@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>Time & Routines Lesson</title>
     <style>
         :root {
@@ -18,22 +18,32 @@
             font-family: 'Comic Sans MS', 'Capriola', sans-serif;
             -webkit-user-select: none;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Allow natural vertical scrolling across mobile devices */
+        html, body {
+            width: 100%;
+            height: auto;
+            min-height: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
         }
 
         body {
             background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             margin: 0;
-            padding: 10px;
+            padding: 16px 10px;
             display: flex;
             justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            align-items: flex-start;
         }
 
         .outer-app-wrapper {
             width: 100%;
             max-width: 440px;
             position: relative;
+            margin: 0 auto;
         }
 
         /* --- 1. SPLASH SCREEN --- */
@@ -54,7 +64,7 @@
             object-fit: contain;
         }
 
-        /* --- 2. TITLE SCREEN & TRANSITION SLIDE --- */
+        /* --- 2. TITLE & END OVERLAY SCREENS --- */
         .intro-slide {
             background: linear-gradient(135deg, #0288d1, #01579b);
             border-radius: 24px;
@@ -66,7 +76,8 @@
             width: 100%;
             min-height: 480px;
             color: white;
-            padding: 30px;
+            padding: 30px 20px;
+            overflow-y: auto;
         }
 
         .action-btn {
@@ -93,7 +104,7 @@
             border-radius: 24px;
             border: 4px solid #ffeb3b;
             box-shadow: 0 10px 25px rgba(0,0,0,0.05);
-            padding: 24px;
+            padding: 24px 16px;
             text-align: center;
             width: 100%;
             display: none;
@@ -160,7 +171,7 @@
             align-items: center;
         }
 
-        /* --- TEMPLATE HEADER & CONTROLS FROM image_82b03b.png --- */
+        /* --- TEMPLATE HEADER & CONTROLS --- */
         .template-header-row {
             display: flex;
             justify-content: space-between;
@@ -221,7 +232,7 @@
             transition: width 0.3s ease;
         }
 
-        /* --- HORIZONTAL CHIPS FROM image_82b03b.png --- */
+        /* --- HORIZONTAL CHIPS --- */
         .chips-flex-container {
             display: flex;
             flex-wrap: wrap;
@@ -269,21 +280,21 @@
 
         /* --- POPUP MODAL --- */
         .modal-overlay {
-            position: absolute;
+            position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0, 0, 0, 0.2);
-            border-radius: 24px;
+            background-color: rgba(0, 0, 0, 0.4);
             display: none;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
             z-index: 3000;
+            padding: 16px;
         }
 
         .custom-popup-box {
             background-color: #1e293b;
             color: white;
-            width: 90%;
-            margin-top: 15px;
+            width: 100%;
+            max-width: 400px;
             border-radius: 16px;
             padding: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
@@ -366,10 +377,10 @@
             <button class="action-btn" onclick="startRoutineGame()">Next Activity ➡️</button>
         </div>
 
-        <!-- 5. PART 2: ROUTINES SYSTEM (MATCHING TEMPLATE IN image_82b03b.png) -->
+        <!-- 5. PART 2: ROUTINES SYSTEM -->
         <div id="game-screen-routine" class="game-card">
             
-            <!-- Top Controls Row matching image_82b03b.png -->
+            <!-- Top Controls Row -->
             <div class="template-header-row">
                 <div class="level-badge">Level 3: Daily Routines 🔄</div>
                 <div class="audio-slider-mock">
@@ -378,7 +389,7 @@
                 </div>
             </div>
 
-            <!-- Progress Bar matching image_82b03b.png -->
+            <!-- Progress Bar -->
             <div class="visual-progress-line">
                 <div class="visual-progress-fill" id="progress-bar-fill"></div>
             </div>
@@ -389,13 +400,23 @@
             </div>
             
             <div style="font-size: 13px; color: #64748b; margin-bottom: 5px;">
-                Drag and arrange items in order (Left to Right):
+                Tap cards to swap and arrange them in order:
             </div>
 
             <!-- Horizontal Grid Box for Chips -->
             <div class="chips-flex-container" id="cards-list-box"></div>
 
             <button class="submit-btn" onclick="evaluateRoutineAnswer()">Check Answer ✓</button>
+        </div>
+
+        <!-- 6. END GAME SCREEN -->
+        <div id="end-screen" class="intro-slide" style="background: linear-gradient(135deg, #1ebd9b, #00897b);">
+            <div style="font-size: 60px; margin-bottom: 10px;">🏆</div>
+            <h2 style="font-size: 28px; margin: 0 0 10px 0; text-align: center;">Grand Champion!</h2>
+            <p style="font-size: 15px; text-align: center; max-width: 320px; line-height: 1.5; margin-bottom: 15px;">
+                Congratulations! You successfully completed all clock challenges and daily routine sequences!
+            </p>
+            <button class="action-btn" style="background-color: #ffffff; color: #00897b;" onclick="restartEntireGame()">Play Again 🔄</button>
         </div>
 
         <!-- POPUP MODAL -->
@@ -425,7 +446,7 @@
         const audioClaps = new Audio('assets/claps.mp3');
         const audioWrong = new Audio('assets/wrong.mp3');
 
-        // Scenarios configured with clean concise chips matching image_82b03b.png
+        // Scenarios configured with clean concise chips
         const routineScenarios = [
             {
                 hint: "Sequence your evening routine! Riya loves to play outside right after school, then finishes her homework before eating dinner!",
@@ -529,7 +550,7 @@
             selectedCardIndex = null;
             const activeData = routineScenarios[index];
             
-            // Adjust visual progress bar length matching template style
+            // Adjust visual progress bar length
             const percent = ((index + 1) / routineScenarios.length) * 100;
             document.getElementById('progress-bar-fill').style.width = `${percent}%`;
             document.getElementById('scenario-instruction').innerHTML = activeData.hint;
@@ -625,9 +646,22 @@
                     if (currentScenarioIndex < routineScenarios.length - 1) {
                         currentScenarioIndex++;
                         initScenario(currentScenarioIndex);
+                    } else {
+                        // All routine scenarios completed -> Show End Screen
+                        document.getElementById('game-screen-routine').style.display = 'none';
+                        document.getElementById('end-screen').style.display = 'flex';
                     }
                 }
             }
+        }
+
+        function restartEntireGame() {
+            currentLessonPhase = "phase_clock";
+            clockQuestionIndex = 1;
+            currentScenarioIndex = 0;
+            document.getElementById('end-screen').style.display = 'none';
+            document.getElementById('title-screen').style.display = 'flex';
+            initScenario(0);
         }
     </script>
 </body>
