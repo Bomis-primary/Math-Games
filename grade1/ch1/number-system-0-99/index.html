@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Raju's Train Journey - The Number Express</title>
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     :root {
       --bg-sky: linear-gradient(to bottom, #90caf9, #e3f2fd);
@@ -12,6 +14,8 @@
       --train-red: #ef5350;
       --train-blue: #42a5f5;
       --text-dark: #263238;
+      --primary: #00bcd4;
+      --danger: #ef5350;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,7 +28,7 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 15px;
+      padding: 10px;
       overflow-x: hidden;
     }
 
@@ -32,16 +36,16 @@
       width: 100%;
       max-width: 800px;
       background: white;
-      border-radius: 24px;
-      box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+      border-radius: 20px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
       overflow: hidden;
       display: flex;
       flex-direction: column;
       position: relative;
-      min-height: 500px;
+      min-height: 480px;
     }
 
-    /* Screen 1: 5-Second White Splash Screen for logo.png */
+    /* Splash Screen */
     #screen-logo-splash {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -51,14 +55,15 @@
       align-items: center;
       z-index: 2000;
       transition: opacity 0.5s ease;
+      padding: 20px;
     }
     #screen-logo-splash img {
-      max-width: 60%;
-      max-height: 60%;
+      max-width: 80%;
+      max-height: 70%;
       object-fit: contain;
     }
 
-    /* Core Content Wrapper - Solves peaking issue by keeping gameplay elements hidden at boot */
+    /* Main Content Wrapper */
     #main-game-wrapper {
       display: none;
       flex-direction: column;
@@ -69,20 +74,19 @@
     .game-header {
       background: #37474f;
       color: white;
-      padding: 15px 20px;
+      padding: 12px 15px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
       gap: 10px;
     }
 
-    .title-area h1 { font-size: 1.4rem; color: #ffca28; }
-    .hud-stats { display: flex; gap: 15px; font-weight: bold; font-size: 1.1rem; }
+    .title-area h1 { font-size: clamp(1rem, 3.5vw, 1.3rem); color: #ffca28; }
+    .hud-stats { display: flex; gap: 10px; font-weight: bold; font-size: clamp(0.85rem, 3vw, 1rem); whitespace: nowrap; }
     
     .progress-bar {
       width: 100%;
-      height: 10px;
+      height: 8px;
       background: #263238;
       overflow: hidden;
     }
@@ -93,72 +97,80 @@
       transition: width 0.4s ease;
     }
 
-    /* Screen Areas */
-    .screen { display: none; padding: 25px; text-align: center; }
+    /* Screen Layouts */
+    .screen { display: none; padding: 15px; text-align: center; }
     .screen.active { display: block; }
 
-    /* Dialog Box Setup */
+    /* Dialog Box */
     .story-bubble {
       background: #fff9c4;
-      border: 3px dashed #fbc02d;
-      border-radius: 16px;
-      padding: 15px;
-      margin-bottom: 25px;
-      font-size: 1.2rem;
-      line-height: 1.5;
+      border: 2px dashed #fbc02d;
+      border-radius: 14px;
+      padding: 10px 14px;
+      margin-bottom: 15px;
+      font-size: clamp(0.95rem, 3vw, 1.1rem);
+      line-height: 1.4;
     }
 
-    /* Scenery Canvas Area */
+    /* Scenery Canvas Area - Responsive Container */
     .scenery-canvas {
-      height: 180px;
+      height: 150px;
       background: var(--bg-sky);
-      border-radius: 16px;
+      border-radius: 14px;
       position: relative;
       overflow: hidden;
-      margin-bottom: 25px;
-      border: 4px solid #b0bec5;
+      margin-bottom: 15px;
+      border: 3px solid #b0bec5;
+      width: 100%;
     }
 
-    /* Pure CSS Train Tracks */
+    /* Train Tracks */
     .tracks {
       position: absolute;
-      bottom: 20px;
+      bottom: 18px;
       left: 0;
       width: 100%;
-      height: 8px;
+      height: 6px;
       background: var(--track-grey);
     }
     .tracks::before {
       content: '';
       position: absolute;
-      top: 6px; left: 0; width: 100%; height: 6px;
-      background: repeating-linear-gradient(90deg, var(--wood-brown), var(--wood-brown) 10px, transparent 10px, transparent 30px);
+      top: 4px; left: 0; width: 100%; height: 5px;
+      background: repeating-linear-gradient(90deg, var(--wood-brown), var(--wood-brown) 8px, transparent 8px, transparent 20px);
     }
 
-    /* CSS Train Visuals */
-    .train-engine {
+    /* Flex Train Container inside Canvas */
+    .train-flex-container {
       position: absolute;
-      bottom: 28px;
-      left: 20px;
-      width: 70px;
-      height: 50px;
+      bottom: 22px;
+      width: 90%;
+      left: 5%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .train-engine {
+      width: clamp(45px, 12vw, 65px);
+      height: clamp(35px, 9vw, 48px);
       background: var(--train-red);
-      border-radius: 15px 8px 4px 4px;
-      z-index: 5;
+      border-radius: 12px 6px 4px 4px;
+      position: relative;
+      flex-shrink: 0;
     }
     .train-engine::after {
       content: '🚂';
-      font-size: 38px;
+      font-size: clamp(26px, 6vw, 36px);
       position: absolute;
-      top: -3px; left: 4px;
+      top: -4px; left: 2px;
       transform: scaleX(-1);
     }
 
     .train-car {
-      position: absolute;
-      bottom: 28px;
-      width: 60px;
-      height: 40px;
+      width: clamp(40px, 13vw, 60px);
+      height: clamp(32px, 8vw, 42px);
       background: var(--train-blue);
       border-radius: 6px;
       border: 2px solid #1e88e5;
@@ -167,42 +179,44 @@
       align-items: center;
       font-weight: 900;
       color: white;
-      font-size: 1.4rem;
-      z-index: 4;
-      box-shadow: inset 0 -5px 0 rgba(0,0,0,0.15);
+      font-size: clamp(0.9rem, 3.5vw, 1.3rem);
+      flex-shrink: 0;
+      box-shadow: inset 0 -4px 0 rgba(0,0,0,0.15);
     }
 
-    /* Question & Input Controls */
+    /* Prompt & Options */
     .question-prompt {
-      font-size: 1.5rem;
+      font-size: clamp(1.1rem, 4vw, 1.4rem);
       font-weight: bold;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
       color: #1a237e;
     }
 
     .options-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      max-width: 500px;
+      gap: 10px;
+      max-width: 450px;
       margin: 0 auto;
+      width: 100%;
     }
 
     .game-btn {
       background: linear-gradient(to bottom, #ffca28, #ffb300);
       border: none;
-      padding: 18px;
-      font-size: 1.5rem;
+      padding: 12px 8px;
+      font-size: clamp(1.1rem, 4vw, 1.4rem);
       font-weight: bold;
       color: #5d4037;
-      border-radius: 14px;
+      border-radius: 12px;
       cursor: pointer;
-      box-shadow: 0 6px 0 #ff8f00;
+      box-shadow: 0 4px 0 #ff8f00;
       transition: transform 0.1s, box-shadow 0.1s;
       outline: none;
+      width: 100%;
     }
-    .game-btn:active {
-      transform: translateY(4px);
+    .game-btn:active:not(:disabled) {
+      transform: translateY(2px);
       box-shadow: 0 2px 0 #ff8f00;
     }
 
@@ -212,14 +226,14 @@
 
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-6px); }
-      75% { transform: translateX(6px); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
     }
 
     .feedback-banner {
-      height: 30px;
-      margin-top: 15px;
-      font-size: 1.4rem;
+      height: 25px;
+      margin-top: 10px;
+      font-size: clamp(1rem, 3.5vw, 1.2rem);
       font-weight: bold;
     }
 
@@ -227,52 +241,39 @@
       background: #00bcd4;
       color: white;
       border: none;
-      padding: 15px 35px;
-      font-size: 1.3rem;
+      padding: 12px 28px;
+      font-size: clamp(1rem, 3.5vw, 1.2rem);
       font-weight: bold;
       border-radius: 50px;
       cursor: pointer;
-      box-shadow: 0 5px 0 #0097a7;
-      margin-top: 15px;
+      box-shadow: 0 4px 0 #0097a7;
+      margin-top: 10px;
     }
     .action-btn:active {
-      transform: translateY(3px);
+      transform: translateY(2px);
       box-shadow: 0 2px 0 #0097a7;
     }
 
-    /* Confetti Particle FX Elements */
-    .particle {
-      position: absolute;
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 999;
-      animation: blow-up 0.8s ease-out forwards;
-    }
-    @keyframes blow-up {
-      0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
-      100% { transform: translate(var(--dx), var(--dy)) scale(0.5) rotate(360deg); opacity: 0; }
-    }
-
-    /* Abacus Layout Configuration */
+    /* Responsive Abacus Layout */
     .abacus-frame {
       display: flex;
-      gap: 35px;
+      gap: clamp(20px, 8vw, 35px);
       background: #efebe9;
-      border: 4px solid #5d4037;
-      border-bottom-width: 8px;
-      border-radius: 12px;
-      padding: 12px 30px 28px 30px;
+      border: 3px solid #5d4037;
+      border-bottom-width: 6px;
+      border-radius: 10px;
+      padding: 10px 20px 22px 20px;
       position: absolute;
-      bottom: 28px;
+      bottom: 15px;
       left: 50%;
       transform: translateX(-50%);
-      height: 140px;
+      height: 120px;
       align-items: flex-end;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+      max-width: 90%;
     }
     .abacus-rod {
-      width: 6px;
+      width: 5px;
       height: 100%;
       background: #bdbdbd;
       position: relative;
@@ -284,16 +285,16 @@
     .abacus-rod::after {
       content: attr(data-label);
       position: absolute;
-      bottom: -22px;
+      bottom: -20px;
       font-weight: bold;
-      font-size: 0.85rem;
-      width: 70px;
+      font-size: clamp(0.7rem, 2.5vw, 0.85rem);
+      width: 60px;
       text-align: center;
       color: #37474f;
     }
     .bead {
-      width: 24px;
-      height: 8px;
+      width: clamp(18px, 5vw, 24px);
+      height: 7px;
       background: #e91e63;
       border-radius: 3px;
       border: 1px solid #ad1457;
@@ -301,13 +302,6 @@
       flex-shrink: 0;
     }
     .abacus-rod:nth-child(2) .bead { background: #009688; border-color: #00695c; }
-
-    @media(max-width: 500px) {
-      .scenery-canvas { height: 140px; }
-      .train-engine { scale: 0.8; bottom: 18px; }
-      .train-car { scale: 0.8; bottom: 18px; }
-      .abacus-frame { scale: 0.8; bottom: 15px; }
-    }
   </style>
 </head>
 <body>
@@ -336,7 +330,9 @@
         </div>
         <div class="scenery-canvas">
           <div class="tracks"></div>
-          <div class="train-engine" style="left: 45%;"></div>
+          <div class="train-flex-container">
+            <div class="train-engine"></div>
+          </div>
         </div>
         <button class="action-btn" onclick="startLevel(1)">Let's Play! 🟢</button>
       </div>
@@ -366,8 +362,8 @@
           <p><strong>🎉 Yay! The Train Can Go!</strong></p>
           <p>You did it! You know your numbers so well. Raju's train is moving down the tracks now. Good job!</p>
         </div>
-        <h2 style="font-size: 2.5rem; color: #2e7d32; margin-bottom: 20px;">You Win! ⭐</h2>
-        <button class="action-btn" style="background: #9c27b0; box-shadow: 0 5px 0 #7b1fa2;" onclick="resetWholeGame()">Play Again 🔄</button>
+        <h2 style="font-size: clamp(1.8rem, 6vw, 2.5rem); color: #2e7d32; margin-bottom: 15px;">You Win! ⭐</h2>
+        <button class="action-btn" style="background: #9c27b0; box-shadow: 0 4px 0 #7b1fa2;" onclick="resetWholeGame()">Play Again 🔄</button>
       </div>
     </div>
 
@@ -378,28 +374,13 @@
       console.log("Playing sound action: " + elementId);
     }
 
-    function popConfetti() {
-      const container = document.querySelector('.game-container');
-      const rect = container.getBoundingClientRect();
-      
-      for (let i = 0; i < 40; i++) {
-        const p = document.createElement('div');
-        p.className = 'particle';
-        
-        const startX = Math.random() * rect.width;
-        const startY = Math.random() * (rect.height * 0.6);
-        
-        p.style.left = startX + 'px'; 
-        p.style.top = startY + 'px';
-        p.style.background = ['#ffeb3b','#ff5722','#4caf50','#00bcd4','#e91e63','#9c27b0'][Math.floor(Math.random()*6)];
-        
-        const dx = (Math.random() - 0.5) * 250 + 'px';
-        const dy = (Math.random() - 0.5) * 250 - 50 + 'px';
-        p.style.setProperty('--dx', dx); 
-        p.style.setProperty('--dy', dy);
-        
-        container.appendChild(p);
-        setTimeout(() => p.remove(), 800);
+    function triggerConfetti() {
+      if (typeof confetti === 'function') {
+        confetti({
+          particleCount: 70,
+          spread: 60,
+          origin: { y: 0.6 }
+        });
       }
     }
 
@@ -507,21 +488,24 @@
 
       if (targetLvl === 2) {
         document.getElementById('stage-title').innerText = "Next Stop: Counting Beads!";
-        storyTextEl.innerHTML = `<strong>Raju the Train Driver says:</strong> "Great job fixing the numbers! Now, our friends want to get on the train! Let's count them together using our colorful <strong>Tens</strong> and <strong>Ones</strong> beads!"`;
+        storyTextEl.innerHTML = `<strong>Raju says:</strong> "Great job! Now let's count using our colorful <strong>Tens</strong> and <strong>Ones</strong> beads!"`;
         
         canvasEl.innerHTML = `
-          <div class="abacus-frame" style="bottom: 15px;">
+          <div class="abacus-frame">
             <div class="abacus-rod" data-label="Tens"><div class="bead"></div><div class="bead"></div></div>
             <div class="abacus-rod" data-label="Ones"><div class="bead"></div><div class="bead"></div><div class="bead"></div></div>
           </div>`;
       } else if (targetLvl === 3) {
         document.getElementById('stage-title').innerText = "Next Stop: Heavy Boxes!";
-        storyTextEl.innerHTML = `<strong>Raju the Train Driver says:</strong> "Wow, you are so good at counting beads! Next, we need to load big boxes onto our train cars. Let's find out which boxes are the <strong>BIGGEST</strong> and <strong>SMALLEST</strong>!"`;
+        storyTextEl.innerHTML = `<strong>Raju says:</strong> "Next, let's load big boxes. Let's find the <strong>BIGGEST</strong> and <strong>SMALLEST</strong> numbers!"`;
         
         canvasEl.innerHTML = `
           <div class="tracks"></div>
-          <div class="train-car" style="left: 25%; background: #0097a7; bottom: 25px;">25</div>
-          <div class="train-car" style="left: 55%; background: #0097a7; bottom: 25px;">84</div>`;
+          <div class="train-flex-container">
+            <div class="train-car" style="background: #0097a7;">25</div>
+            <div class="train-car" style="background: #0097a7;">84</div>
+            <div class="train-engine"></div>
+          </div>`;
       }
     }
 
@@ -549,7 +533,7 @@
       activeLevel = currentQ.level;
 
       document.getElementById('stage-title').innerText = `Level ${activeLevel}: ` + 
-        (activeLevel === 1 ? "The Missing Number" : activeLevel === 2 ? "Count the Beads" : "Big and Small Numbers");
+        (activeLevel === 1 ? "Missing Number" : activeLevel === 2 ? "Count Beads" : "Big & Small Numbers");
       document.getElementById('progress-val').innerText = `${turnIndex + 1} / ${TOTAL_TOTAL_TURNS}`;
       document.getElementById('progress-fill').style.width = `${(turnIndex / TOTAL_TOTAL_TURNS) * 100}%`;
       document.getElementById('score-val').innerText = runningScore;
@@ -561,16 +545,12 @@
       canvas.innerHTML = '<div class="tracks"></div>';
 
       if (currentQ.displayData.type === 'sequence') {
-        let startLeft = 110;
-        let engine = document.createElement('div');
-        engine.className = "train-engine";
-        engine.style.left = (startLeft + (currentQ.displayData.values.length * 75)) + "px";
-        canvas.appendChild(engine);
+        let flexBox = document.createElement('div');
+        flexBox.className = "train-flex-container";
 
-        currentQ.displayData.values.forEach((val, idx) => {
+        currentQ.displayData.values.forEach((val) => {
           let car = document.createElement('div');
           car.className = "train-car";
-          car.style.left = (startLeft + (idx * 75)) + "px";
           car.innerText = val;
           if(val === '__') {
             car.style.background = 'transparent';
@@ -578,8 +558,13 @@
             car.style.borderColor = '#e65100';
             car.style.color = '#e65100';
           }
-          canvas.appendChild(car);
+          flexBox.appendChild(car);
         });
+
+        let engine = document.createElement('div');
+        engine.className = "train-engine";
+        flexBox.appendChild(engine);
+        canvas.appendChild(flexBox);
 
       } else if (currentQ.displayData.type === 'abacus') {
         let frame = document.createElement('div');
@@ -600,19 +585,21 @@
         canvas.appendChild(frame);
 
       } else if (currentQ.displayData.type === 'compare') {
-        let engine = document.createElement('div');
-        engine.className = "train-engine";
-        engine.style.left = (120 + (currentQ.displayData.list.length * 90)) + "px";
-        canvas.appendChild(engine);
+        let flexBox = document.createElement('div');
+        flexBox.className = "train-flex-container";
 
-        currentQ.displayData.list.forEach((val, idx) => {
+        currentQ.displayData.list.forEach((val) => {
           let car = document.createElement('div');
           car.className = "train-car";
-          car.style.left = (120 + (idx * 90)) + "px";
           car.style.background = '#0097a7';
           car.innerText = val;
-          canvas.appendChild(car);
+          flexBox.appendChild(car);
         });
+
+        let engine = document.createElement('div');
+        engine.className = "train-engine";
+        flexBox.appendChild(engine);
+        canvas.appendChild(flexBox);
       }
 
       const optionsBox = document.getElementById('options-box');
@@ -640,7 +627,7 @@
         feedBox.innerText = "Yay! You got it right! 🎉";
         
         playAudio('snd-correct');
-        popConfetti();
+        triggerConfetti();
         
         turnIndex++;
         setTimeout(renderActiveTurn, 1400);
@@ -663,6 +650,7 @@
       document.getElementById('progress-fill').style.width = "100%";
       document.getElementById('screen-play').classList.remove('active');
       document.getElementById('screen-end').classList.add('active');
+      triggerConfetti();
     }
 
     function resetWholeGame() {
@@ -680,16 +668,12 @@
     window.onload = function() {
       assembleLevelQuestions();
       
-      // Wait exactly 5 seconds for the logo screen to display
       setTimeout(() => {
         const logoSplash = document.getElementById('screen-logo-splash');
-        
         if (logoSplash) {
           logoSplash.style.opacity = '0';
           setTimeout(() => {
             logoSplash.style.display = 'none';
-            
-            // Cleanly reveal the game wrapper framework and introduction screen simultaneously
             document.getElementById('main-game-wrapper').style.display = 'flex';
           }, 500);
         }
