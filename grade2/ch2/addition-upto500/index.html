@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Grade 2: Balloon Festival Addition Champion</title>
     <style>
         :root {
@@ -17,6 +17,7 @@
             padding: 0;
             font-family: 'Comic Sans MS', 'Chalkboard SE', 'Arial', sans-serif;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -25,16 +26,17 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            min-height: 100dvh;
             overflow: hidden;
+            padding: 10px;
         }
 
-        /* --- REQUIRED 5-SECOND SPLASH SCREEN --- */
+        /* --- SPLASH SCREEN --- */
         #splash-screen {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            height: 100dvh;
             background: #FFFFFF;
             display: flex;
             flex-direction: column;
@@ -43,7 +45,6 @@
             z-index: 9999;
             transition: opacity 0.6s ease-out;
         }
-        .splash-logo { max-width: 260px; height: auto; margin-bottom: 20px; }
         .timer-loader {
             width: 120px; height: 6px; background: #E0E0E0; border-radius: 3px; overflow: hidden;
         }
@@ -53,22 +54,24 @@
         }
         @keyframes fillBar { 100% { width: 100%; } }
 
-        /* --- CORE GAME CANVAS FRAMEWORK --- */
+        /* --- RESPONSIVE CONTAINER --- */
         #game-container {
-            width: 95%;
-            max-width: 750px;
-            height: 620px;
+            width: 100%;
+            max-width: 600px;
+            height: 92vh;
+            height: 92dvh;
+            max-height: 700px;
             background: #FFFFFF;
-            border-radius: 24px;
-            border: 6px solid var(--panel-bg);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            border-radius: 20px;
+            border: 4px solid var(--panel-bg);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.25);
             position: relative;
-            display: none; /* Controlled via loading cycle initialization */
+            display: none;
             flex-direction: column;
             overflow: hidden;
         }
 
-        /* --- INTRO & VICTORY CARDS --- */
+        /* --- OVERLAY CARDS --- */
         .overlay-card {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -77,97 +80,102 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 30px;
+            padding: 20px;
             text-align: center;
             z-index: 50;
         }
         .mission-text {
-            font-size: 1.25rem; line-height: 1.6; margin: 20px 0; max-width: 550px;
-            background: #E8F5E9; padding: 20px; border-radius: 16px; border: 2px dashed #4CAF50;
+            font-size: clamp(0.95rem, 3.5vw, 1.15rem); 
+            line-height: 1.4; 
+            margin: 15px 0; 
+            width: 100%;
+            background: #E8F5E9; 
+            padding: 15px; 
+            border-radius: 14px; 
+            border: 2px dashed #4CAF50;
             color: #2E7D32;
         }
         .start-btn {
             background: linear-gradient(135deg, #FF9800, #F57C00); color: white;
-            border: none; padding: 16px 45px; font-size: 1.4rem; font-weight: bold;
-            border-radius: 50px; cursor: pointer; box-shadow: 0 6px 0 #E65100;
+            border: none; padding: 12px 35px; 
+            font-size: clamp(1.1rem, 4vw, 1.3rem); 
+            font-weight: bold;
+            border-radius: 50px; cursor: pointer; box-shadow: 0 5px 0 #E65100;
             transition: transform 0.1s;
         }
-        .start-btn:active { transform: translateY(6px); box-shadow: 0 0 0 transparent; }
+        .start-btn:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
 
         /* --- HUD HEADERS --- */
         .hud-header {
             background: var(--panel-bg);
             color: var(--text-light);
-            padding: 12px 20px;
+            padding: 8px 12px;
             display: flex;
             justify-content: space-between;
             align-items: center;
             font-weight: bold;
-            font-size: 1.05rem;
+            font-size: clamp(0.8rem, 3vw, 0.95rem);
             z-index: 30;
         }
         .target-banner {
             background: #FFF3E0;
-            border-bottom: 4px solid var(--accent-orange);
-            padding: 16px;
-            font-size: 1.7rem;
+            border-bottom: 3px solid var(--accent-orange);
+            padding: 10px 8px;
+            font-size: clamp(1.1rem, 4.5vw, 1.4rem);
             font-weight: bold;
             text-align: center;
             color: #E65100;
             z-index: 29;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 3px 6px rgba(0,0,0,0.05);
         }
 
-        /* --- AIRPLAY BALLOON ZONE CONTAINED INSIDE BOX --- */
+        /* --- BALLOON FIELD --- */
         .balloon-field {
             flex: 1;
-            background-image: url('assets/sky-bg.png');
-            background-size: cover;
-            background-position: center;
+            background: linear-gradient(180deg, #81D4FA 0%, #E0F7FA 100%);
             position: relative;
             overflow: hidden;
         }
 
-        /* --- BALLOON COMPONENT --- */
+        /* --- RESPONSIVE BALLOON NODE --- */
         .balloon-node {
             position: absolute;
-            width: 105px;
-            height: 130px;
+            width: clamp(75px, 22vw, 95px);
+            height: clamp(95px, 28vw, 120px);
             border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
             cursor: pointer;
             display: flex;
             justify-content: center;
             align-items: center;
-            box-shadow: inset -8px -12px 15px rgba(0,0,0,0.15), 0 8px 15px rgba(0,0,0,0.1);
-            transition: transform 0.1s ease;
+            box-shadow: inset -6px -9px 12px rgba(0,0,0,0.15), 0 6px 12px rgba(0,0,0,0.1);
+            touch-action: manipulation;
         }
         .balloon-node::after {
             content: '';
             position: absolute;
-            bottom: -6px;
+            bottom: -5px;
             left: 50%;
             transform: translateX(-50%);
-            border-left: 7px solid transparent;
-            border-right: 7px solid transparent;
-            border-bottom: 10px solid currentColor;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-bottom: 8px solid currentColor;
         }
 
-        /* High-Contrast Value Badge */
         .value-badge {
             background: #FFFFFF;
             color: #222E3C;
-            padding: 4px 10px;
-            border-radius: 8px;
-            font-size: 1.45rem;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: clamp(1rem, 4vw, 1.25rem);
             font-weight: 900;
-            border: 3px solid #222E3C;
+            border: 2px solid #222E3C;
             text-align: center;
-            min-width: 65px;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            min-width: 50px;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.1);
         }
 
         .pop-sparkle {
-            position: absolute; width: 10px; height: 10px; border-radius: 50%;
+            position: absolute; width: 8px; height: 8px; border-radius: 50%;
             pointer-events: none; z-index: 40;
         }
     </style>
@@ -175,15 +183,16 @@
 <body>
 
     <div id="splash-screen">
-        <img src="assets/logo.png" alt="Game Logo" class="splash-logo" onerror="this.src='https://placehold.co/220x60/FF9800/fff?text=Logo'">
+        <div style="font-size: 3rem; margin-bottom: 8px;">🎈</div>
+        <h2 style="color: #222E3C; margin-bottom: 16px; font-size: 1.3rem;">Balloon Math Fest</h2>
         <div class="timer-loader"><div class="timer-progress"></div></div>
     </div>
 
     <div id="game-container">
         
         <div id="intro-card" class="overlay-card">
-            <div style="font-size: 4.5rem; margin-bottom: 10px;">🎈🎈✨</div>
-            <h2 style="color: #2E7D32; font-size: 2.2rem;">The Big Balloon Festival!</h2>
+            <div style="font-size: clamp(3rem, 10vw, 4rem); margin-bottom: 5px;">🎈🎈✨</div>
+            <h2 style="color: #2E7D32; font-size: clamp(1.4rem, 5vw, 1.8rem);">The Big Balloon Festival!</h2>
             <p class="mission-text">
                 Welcome to the balloon party! Look at the math problem at the top, watch the 3 slow balloons float up, and pop the one with the correct magic number to win points!
             </p>
@@ -191,35 +200,30 @@
         </div>
 
         <div class="hud-header">
-            <span id="label-level">Question: 1 / 15</span>
-            <span style="background: #FF9800; padding: 4px 12px; border-radius: 12px; color: black; font-size: 0.9rem;">Grade 2 Addition</span>
+            <span id="label-level">Q: 1 / 15</span>
+            <span style="background: #FF9800; padding: 2px 8px; border-radius: 8px; color: black; font-size: 0.75rem;">Grade 2</span>
             <span>Score: <span id="label-score" style="color: #81C784;">0</span></span>
         </div>
 
         <div class="target-banner" id="current-target-formula">
-            Loading your question...
+            Loading...
         </div>
 
         <div class="balloon-field" id="playfield-canvas"></div>
 
         <div id="victory-card" class="overlay-card" style="display: none;">
-            <div style="font-size: 5rem;">🏆⭐👑</div>
-            <h1 style="color: #1B5E20; font-size: 2.4rem; margin: 15px 0;">You are an addition champion! 🏆</h1>
-            <p style="font-size: 1.35rem; margin-bottom: 25px; max-width: 500px; color: #37474F;">
-                Fantastic popping skills! You answered all questions correctly and mastered place values, carry overs, and math matrices up to 500!
+            <div style="font-size: clamp(3.5rem, 12vw, 4.5rem);">🏆⭐👑</div>
+            <h1 style="color: #1B5E20; font-size: clamp(1.5rem, 5vw, 2rem); margin: 10px 0;">Addition Champion! 🏆</h1>
+            <p style="font-size: clamp(0.95rem, 3.5vw, 1.15rem); margin-bottom: 20px; color: #37474F;">
+                Fantastic popping skills! You answered all questions correctly and mastered place values!
             </p>
-            <h3 id="final-stats" style="color: var(--accent-orange); margin-bottom: 30px; font-size: 1.6rem;"></h3>
+            <h3 id="final-stats" style="color: var(--accent-orange); margin-bottom: 20px; font-size: clamp(1.2rem, 4vw, 1.4rem);"></h3>
             <button class="start-btn" onclick="resetMathEngine()">Play Again 🔄</button>
         </div>
 
     </div>
 
-    <audio id="snd-pop" src="assets/correct.mp3" preload="none"></audio>
-    <audio id="snd-wrong" src="assets/wrong.mp3" preload="none"></audio>
-    <audio id="snd-victory" src="assets/freesound_community-claps-44774.mp3" preload="none"></audio>
-
     <script>
-        // 15 structural matrix additions up to 500 mapping image guidelines
         var problemSets = [
             { question: "What is 23 + 14?", target: 37, choices: [37, 47, 36] },
             { question: "What is 52 + 35?", target: 87, choices: [87, 85, 97] },
@@ -250,14 +254,31 @@
             { bg: '#9C27B0', text: '#9C27B0' }
         ];
 
-        function playSound(type) {
+        var audioCtx = null;
+        function playSynthesizedSound(type) {
             try {
-                var p = document.getElementById('snd-pop');
-                var w = document.getElementById('snd-wrong');
-                var v = document.getElementById('snd-victory');
-                if (type === 'pop' && p) { p.volume = 0.4; p.currentTime = 0; p.play().catch(function(){}); }
-                if (type === 'wrong' && w) { w.volume = 0.3; w.currentTime = 0; w.play().catch(function(){}); }
-                if (type === 'victory' && v) { v.volume = 0.5; v.currentTime = 0; v.play().catch(function(){}); }
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                var osc = audioCtx.createOscillator();
+                var gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'pop') {
+                    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.1);
+                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.1);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.1);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(110, audioCtx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.2);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.2);
+                }
             } catch(e) {}
         }
 
@@ -283,7 +304,7 @@
             clearActiveBalloons();
             
             var totalLevels = problemSets.length;
-            document.getElementById('label-level').innerText = "Question: " + (currentStep + 1) + " / " + totalLevels;
+            document.getElementById('label-level').innerText = "Q: " + (currentStep + 1) + " / " + totalLevels;
             
             var activeData = problemSets[currentStep];
             document.getElementById('current-target-formula').innerText = activeData.question;
@@ -291,7 +312,10 @@
             var randomizedChoices = activeData.choices.slice();
             shuffleArray(randomizedChoices);
 
-            var trackWidth = 750 / 3; 
+            var canvas = document.getElementById('playfield-canvas');
+            var canvasWidth = canvas.clientWidth;
+            var canvasHeight = canvas.clientHeight;
+            var trackWidth = canvasWidth / 3;
 
             for (var i = 0; i < 3; i++) {
                 var val = randomizedChoices[i];
@@ -307,21 +331,24 @@
                 badge.innerText = val;
                 balloon.appendChild(badge);
 
-                var computedLeft = (i * trackWidth) + (trackWidth / 2) - 52; 
+                // Dynamically center balloon in its 1/3 track
+                var computedLeft = (i * trackWidth) + (trackWidth / 2);
                 balloon.style.left = computedLeft + "px";
-                
-                var startTop = 500; 
+                balloon.style.transform = "translateX(-50%) translateY(0px)";
+
+                var startTop = canvasHeight - 20; 
                 balloon.style.top = startTop + "px";
 
                 balloon.dataset.value = val;
                 balloon.dataset.targetVal = activeData.target;
                 balloon.dataset.currentY = startTop;
+                balloon.dataset.startY = startTop;
 
-                balloon.onclick = function(e) {
+                balloon.onclick = function() {
                     evaluatePopSelection(this);
                 };
 
-                document.getElementById('playfield-canvas').appendChild(balloon);
+                canvas.appendChild(balloon);
                 trackingBalloons.push(balloon);
             }
 
@@ -330,26 +357,24 @@
         }
 
         function updateDriftCycle() {
+            var canvasHeight = document.getElementById('playfield-canvas').clientHeight;
+
             for (var i = 0; i < trackingBalloons.length; i++) {
                 var bNode = trackingBalloons[i];
                 var currY = parseFloat(bNode.dataset.currentY);
+                var startY = parseFloat(bNode.dataset.startY);
                 
                 currY -= DRIFT_SPEED;
                 bNode.dataset.currentY = currY;
-                bNode.style.transform = "translateY(" + (currY - 500) + "px)";
+                bNode.style.transform = "translateX(-50%) translateY(" + (currY - startY) + "px)";
 
-                if (currY < -150) {
-                    resetFieldLoop();
-                    return;
+                // Loop balloon back to bottom if it goes past the top
+                if (currY < -120) {
+                    bNode.dataset.currentY = canvasHeight;
+                    bNode.dataset.startY = canvasHeight;
+                    bNode.style.top = canvasHeight + "px";
+                    bNode.style.transform = "translateX(-50%) translateY(0px)";
                 }
-            }
-            frameAnimationId = requestAnimationFrame(updateDriftCycle);
-        }
-
-        function resetFieldLoop() {
-            for (var i = 0; i < trackingBalloons.length; i++) {
-                trackingBalloons[i].dataset.currentY = 500;
-                trackingBalloons[i].style.transform = "translateY(0px)";
             }
             frameAnimationId = requestAnimationFrame(updateDriftCycle);
         }
@@ -359,7 +384,7 @@
             var correctNum = parseInt(hitElement.dataset.targetVal);
 
             if (selectedNum === correctNum) {
-                playSound('pop');
+                playSynthesizedSound('pop');
                 triggerSparkleBurst(hitElement);
                 totalScore += 10;
                 document.getElementById('label-score').innerText = totalScore;
@@ -374,14 +399,17 @@
                     } else {
                         concludeMatrixSystem();
                     }
-                }, 1000);
+                }, 800);
 
             } else {
-                playSound('wrong');
+                playSynthesizedSound('wrong');
+                var startY = parseFloat(hitElement.dataset.startY);
+                var currYOffset = parseFloat(hitElement.dataset.currentY) - startY;
+                
                 hitElement.animate([
-                    { transform: 'translateX(-8px) translateY(' + (parseFloat(hitElement.dataset.currentY) - 500) + 'px)' },
-                    { transform: 'translateX(8px) translateY(' + (parseFloat(hitElement.dataset.currentY) - 500) + 'px)' },
-                    { transform: 'translateX(0px) translateY(' + (parseFloat(hitElement.dataset.currentY) - 500) + 'px)' }
+                    { transform: 'translateX(-60%) translateY(' + currYOffset + 'px)' },
+                    { transform: 'translateX(-40%) translateY(' + currYOffset + 'px)' },
+                    { transform: 'translateX(-50%) translateY(' + currYOffset + 'px)' }
                 ], { duration: 200, iterations: 2 });
             }
         }
@@ -395,7 +423,7 @@
             var centerY = rect.top - canvasRect.top + (rect.height / 2);
             var color = originNode.style.backgroundColor;
 
-            for (var i = 0; i < 16; i++) {
+            for (var i = 0; i < 14; i++) {
                 var p = document.createElement('div');
                 p.className = 'pop-sparkle';
                 p.style.backgroundColor = color;
@@ -404,17 +432,17 @@
                 canvas.appendChild(p);
 
                 var ang = Math.random() * Math.PI * 2;
-                var dist = Math.random() * 80 + 40;
+                var dist = Math.random() * 60 + 30;
                 var finX = Math.cos(ang) * dist;
                 var finY = Math.sin(ang) * dist;
 
                 p.animate([
                     { transform: 'translate(-50%, -50%) scale(1)', opacity: 1 },
                     { transform: 'translate(calc(-50% + ' + finX + 'px), calc(-50% + ' + finY + 'px)) scale(0)', opacity: 0 }
-                ], { duration: 600, easing: 'ease-out', fill: 'forwards' });
+                ], { duration: 550, easing: 'ease-out', fill: 'forwards' });
 
                 (function(particle){
-                    setTimeout(function(){ if(particle) particle.remove(); }, 650);
+                    setTimeout(function(){ if(particle && particle.parentNode) particle.parentNode.removeChild(particle); }, 600);
                 })(p);
             }
         }
@@ -430,7 +458,6 @@
             clearActiveBalloons();
             document.getElementById('victory-card').style.display = 'flex';
             document.getElementById('final-stats').innerText = "Final Score: " + totalScore + " / 150 Points!";
-            playSound('victory');
         }
 
         function resetMathEngine() {
@@ -438,7 +465,6 @@
             document.getElementById('intro-card').style.display = 'flex';
         }
 
-        /* --- TIMED TIMEOUT SETUP --- */
         window.addEventListener('load', function() {
             var splashNode = document.getElementById('splash-screen');
             var mainFrame = document.getElementById('game-container');
@@ -448,7 +474,6 @@
                     splashNode.style.opacity = '0';
                     if (mainFrame) {
                         mainFrame.style.display = 'flex';
-                        // Ensure layout instructions view card displays correctly first
                         document.getElementById('intro-card').style.display = 'flex';
                         setTimeout(function() { 
                             if (splashNode.parentNode) splashNode.parentNode.removeChild(splashNode);
