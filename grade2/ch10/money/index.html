@@ -28,7 +28,7 @@
             justify-content: center;
             align-items: center;
             padding: 15px;
-            overflow: hidden;
+            overflow-y: auto; /* ALLOW SCROLLING ON SMALLER SCREENS */
             user-select: none;
         }
 
@@ -39,11 +39,12 @@
             background: white;
             border-radius: 24px;
             box-shadow: 0 12px 40px rgba(0,0,0,0.15);
-            overflow: hidden;
+            overflow-y: auto; /* ALLOW INTERACTION IF CONTENT EXCEEDS HEIGHT */
             display: flex;
             flex-direction: column;
             position: relative;
             min-height: 640px;
+            max-height: 95vh;
             z-index: 10;
             border: 4px solid #e1bee7;
         }
@@ -65,15 +66,9 @@
             align-items: center;
             background: #ffffff;
             text-align: center;
+            min-height: 500px;
         }
-        .splash-logo-container {
-            font-size: 2.5rem;
-            font-weight: bold;
-            color: var(--accent-purple);
-            letter-spacing: 1px;
-            line-height: 1.3;
-            animation: pulseScale 2s infinite ease-in-out;
-        }
+
         @keyframes pulseScale {
             0% { transform: scale(0.96); opacity: 0.9; }
             50% { transform: scale(1.03); opacity: 1; }
@@ -102,7 +97,7 @@
 
         /* --- HUD --- */
         .hud-row {
-            display: flex; justify-content: space-between; align-items: center;
+            display: flex; justify-space-between; align-items: center;
             margin-bottom: 10px; font-size: 1.2rem; font-weight: bold;
         }
         .level-badge {
@@ -114,6 +109,11 @@
 
         /* --- WORKSPACE LAYOUTS --- */
         .workspace-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; flex: 1; min-height: 0; }
+        
+        @media (max-width: 768px) {
+            .workspace-grid { grid-template-columns: 1fr; }
+        }
+
         .counter-shelf {
             background: #fafafa; border: 3px solid #d1c4e9; border-radius: 20px;
             padding: 15px; display: flex; flex-direction: column; position: relative;
@@ -165,7 +165,7 @@
         /* --- WALLET RACK --- */
         .wallet-rack {
             background: #efebe9; border: 3px solid #d7ccc8; border-radius: 20px;
-            padding: 15px; display: flex; flex-direction: column; justify-content: space-between; gap: 6px;
+            padding: 15px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px;
             overflow: hidden; height: 100%;
         }
         .wallet-title { text-align: center; font-weight: bold; font-size: 1.2rem; color: #5d4037; margin-bottom: 4px; }
@@ -210,12 +210,12 @@
         .currency-asset-img { width: 44px; height: 44px; object-fit: contain; pointer-events: none; mix-blend-mode: multiply; }
         .note-asset-img { width: 72px; height: 38px; object-fit: contain; pointer-events: none; mix-blend-mode: multiply; }
 
-        .dropped-currency-token { animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; display: inline-block; }
+        .dropped-currency-token { animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; display: inline-block; cursor: pointer; }
         @keyframes popIn { 0% { transform: scale(0); } 100% { transform: scale(0.95); } }
 
         /* --- FOOTER OPTIONS --- */
         .action-row { display: flex; justify-content: center; gap: 20px; padding-top: 15px; }
-        .banner-msg { text-align: center; height: 25px; font-size: 1.2rem; font-weight: bold; margin-top: 8px; }
+        .banner-msg { text-align: center; min-height: 25px; font-size: 1.2rem; font-weight: bold; margin-top: 8px; }
 
         /* --- Particle Rewards FX --- */
         .falling-star {
@@ -232,7 +232,7 @@
 
     <div class="game-container">
         
-        <!-- Screen 1: Brand Presentation (Updated Image Logo Splash Screen) -->
+        <!-- Screen 1: Brand Presentation -->
         <div class="screen-layer active" id="screen-splash">
             <img src="assets/innovine-logo.png" alt="Innovine Logo" style="max-width: 260px; height: auto; object-fit: contain; animation: pulseScale 2s infinite ease-in-out;">
             <div style="margin-top: 25px; font-size: 1.1rem; color: #7b1fa2; font-weight: bold; letter-spacing: 1px;">LOADING ADVENTURE...</div>
@@ -247,7 +247,7 @@
                 <p style="margin-bottom: 12px;">Get ready to unlock your Money Master Powers and level up your skills in a fun shopping world!</p>
                 <p style="font-weight: 600; color: #2e3d49;">Step into exciting challenges where every coin counts and every rupee matters! 🪙✨</p>
             </div>
-            <button class="cta-btn" onclick="switchActiveLayer('screen-play')">Start Adventure! 🚀</button>
+            <button class="cta-btn" onclick="startAdventure()">Start Adventure! 🚀</button>
         </div>
 
         <!-- Screen 3: Simulator HUD & Playground -->
@@ -284,7 +284,7 @@
                 <!-- Right Side Master Column Container -->
                 <div id="right-column-container" style="height: 100%;">
                     
-                    <!-- Cash Box Wallet with Original Images Restored -->
+                    <!-- Cash Box Wallet -->
                     <div class="wallet-rack" id="source-wallet-rack">
                         <div class="wallet-title">👛 Your Dynamic Cash Box</div>
                         
@@ -380,6 +380,13 @@
 
         const TOTAL_TURNS_MAX = masterSimulationPool.length;
 
+        // Auto-advance splash screen on launch
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                switchActiveLayer('screen-intro');
+            }, 2500);
+        });
+
         function playSound(soundId) {
             const sound = document.getElementById(soundId);
             if (sound) {
@@ -409,6 +416,17 @@
             if (screenId === 'screen-play') {
                 bindDragAndDropEngine();
             }
+        }
+
+        function startAdventure() {
+            currentScore = 0;
+            activeTurnIndex = 0;
+            switchActiveLayer('screen-play');
+            buildActiveGameLevel();
+        }
+
+        function reinitializeSimulation() {
+            startAdventure();
         }
 
         function buildActiveGameLevel() {
@@ -463,7 +481,8 @@
                     currentTargetPrice = currentConfig.target;
                     customRuleCheck = null;
                     document.getElementById('shelf-main-prompt').innerText = currentConfig.prompt;
-                    document.getElementById('shelf-price-badge').style.display = "none";
+                    document.getElementById('shelf-price-badge').style.display = "inline-block";
+                    document.getElementById('shelf-price-badge').innerText = `Target Change: ₹${currentTargetPrice}`;
                 }
 
             } else if (currentConfig.mode === 3) {
@@ -507,10 +526,20 @@
             }
         }
 
+        function clearCheckoutMat() {
+            runningBasketTotal = 0;
+            const dropMat = document.getElementById('checkout-mat-target');
+            dropMat.querySelectorAll('.dropped-currency-token').forEach(el => el.remove());
+            document.getElementById('mat-placeholder-hint').style.display = "block";
+            document.getElementById('mat-running-total').style.display = "none";
+            document.getElementById('mat-running-total').innerText = "Total Put Inside: ₹0";
+            document.getElementById('counter-status-feedback').innerText = "";
+        }
+
         function bindDragAndDropEngine() {
             const toolkits = document.querySelectorAll('.money-tool-item');
             toolkits.forEach(tool => {
-                tool.removeAttribute('data-bound');
+                if (tool.getAttribute('data-bound') === 'true') return;
                 tool.addEventListener('mousedown', initiateDragSequence, { passive: false });
                 tool.addEventListener('touchstart', initiateDragSequence, { passive: false });
                 tool.setAttribute('data-bound', 'true');
@@ -553,10 +582,12 @@
                 document.addEventListener('mousemove', trackMovement, { passive: false });
                 document.addEventListener('touchmove', trackMovement, { passive: false });
 
-                document.addEventListener('mouseup', function terminateSequence() {
+                function terminateSequence(endEvent) {
                     document.removeEventListener('mousemove', trackMovement);
                     document.removeEventListener('touchmove', trackMovement);
-                    
+                    document.removeEventListener('mouseup', terminateSequence);
+                    document.removeEventListener('touchend', terminateSequence);
+
                     const dropMat = document.getElementById('checkout-mat-target');
                     const matRect = dropMat.getBoundingClientRect();
                     const cloneRect = visualFloater.getBoundingClientRect();
@@ -573,147 +604,116 @@
                         let placementWrapper = document.createElement('div');
                         placementWrapper.className = 'dropped-currency-token';
                         placementWrapper.appendChild(placementClone);
+
+                        // Click to remove individual money item from mat
+                        placementWrapper.onclick = function() {
+                            runningBasketTotal -= incrementalValue;
+                            placementWrapper.remove();
+                            if (runningBasketTotal === 0) {
+                                document.getElementById('mat-placeholder-hint').style.display = "block";
+                                document.getElementById('mat-running-total').style.display = "none";
+                            } else {
+                                document.getElementById('mat-running-total').innerText = `Total Put Inside: ₹${runningBasketTotal}`;
+                            }
+                        };
+
                         dropMat.appendChild(placementWrapper);
-
-                        refreshMatVisualCounter();
+                        document.getElementById('mat-placeholder-hint').style.display = "none";
+                        const totalFeed = document.getElementById('mat-running-total');
+                        totalFeed.style.display = "block";
+                        totalFeed.innerText = `Total Put Inside: ₹${runningBasketTotal}`;
                     }
+
                     visualFloater.remove();
-                }, { once: true });
-            }
-        }
-
-        function refreshMatVisualCounter() {
-            let hint = document.getElementById('mat-placeholder-hint');
-            let feed = document.getElementById('mat-running-total');
-            
-            if (runningBasketTotal > 0) {
-                hint.style.display = 'none';
-                feed.style.display = 'block';
-                feed.innerText = `Tray Total: ₹${runningBasketTotal}`;
-            } else {
-                hint.style.display = 'block';
-                feed.style.display = 'none';
-            }
-        }
-
-        function clearCheckoutMat() {
-            runningBasketTotal = 0;
-            refreshMatVisualCounter();
-            document.getElementById('counter-status-feedback').innerText = "";
-            
-            const mat = document.getElementById('checkout-mat-target');
-            const elementsToRemove = mat.querySelectorAll('.dropped-currency-token');
-            elementsToRemove.forEach(el => el.remove());
-        }
-
-        function evaluateQuizSelection(buttonElement, clientValue, targetAnswer, hintMessage) {
-            if (clientValue === targetAnswer) {
-                document.querySelectorAll('.quiz-card-btn').forEach(b => b.disabled = true);
-                buttonElement.classList.add('correct');
-                currentScore += 10;
-                triggerRewardShower();
-                activeTurnIndex++;
-                setTimeout(buildActiveGameLevel, 2500);
-            } else {
-                turnWrongAttempts++;
-                playSound('sound-wrong');
-                buttonElement.classList.add('wrong');
-                buttonElement.disabled = true;
-
-                if (turnWrongAttempts === 1) {
-                    let banner = document.getElementById('game-hint-banner');
-                    banner.innerHTML = `💡 <b>Hint:</b> ${hintMessage}`;
-                    banner.style.display = "block";
-                } else {
-                    document.querySelectorAll('.quiz-card-btn').forEach(b => {
-                        b.disabled = true;
-                        if (b.innerText === targetAnswer) b.classList.add('correct');
-                    });
-                    activeTurnIndex++;
-                    setTimeout(buildActiveGameLevel, 2500);
                 }
+
+                document.addEventListener('mouseup', terminateSequence);
+                document.addEventListener('touchend', terminateSequence);
             }
         }
 
         function evaluateActivePuzzleOutput() {
             let feedback = document.getElementById('counter-status-feedback');
-            let currentConfig = masterSimulationPool[activeTurnIndex];
+            let config = masterSimulationPool[activeTurnIndex];
 
             if (runningBasketTotal === currentTargetPrice) {
-                currentScore += 10;
                 feedback.style.color = "#2e7d32";
-                feedback.innerText = "Excellent calculation! Correct! 🌟💰";
-                
+                feedback.innerText = "✨ Perfect! Outstanding money skills! ✨";
+                currentScore += 10;
                 triggerRewardShower();
-                activeTurnIndex++;
-                setTimeout(buildActiveGameLevel, 2000);
+                setTimeout(() => {
+                    activeTurnIndex++;
+                    buildActiveGameLevel();
+                }, 1600);
             } else {
-                turnWrongAttempts++;
                 playSound('sound-wrong');
+                turnWrongAttempts++;
                 feedback.style.color = "#c62828";
-                
-                if (runningBasketTotal > currentTargetPrice) {
-                    feedback.innerText = `Too much! Count is ₹${runningBasketTotal}. Try clearing the tray.`;
+                if (runningBasketTotal < currentTargetPrice) {
+                    feedback.innerText = `Almost there! You have ₹${runningBasketTotal}, but need ₹${currentTargetPrice}. Add a bit more!`;
                 } else {
-                    feedback.innerText = `Not quite enough. Currently at ₹${runningBasketTotal}. Add more cash!`;
+                    feedback.innerText = `Oops! You put ₹${runningBasketTotal}, which is more than ₹${currentTargetPrice}. Tap money on the tray to remove standard pieces!`;
                 }
 
-                if (turnWrongAttempts === 1) {
-                    let banner = document.getElementById('game-hint-banner');
-                    banner.innerHTML = `💡 <b>Hint:</b> ${currentConfig.hint}`;
-                    banner.style.display = "block";
-                } else {
-                    feedback.style.color = "#ef6c00";
-                    feedback.innerText = `Let's keep moving! The correct target was ₹${currentTargetPrice}.`;
+                if (turnWrongAttempts >= 2 && config.hint) {
+                    let hintBox = document.getElementById('game-hint-banner');
+                    hintBox.innerText = "💡 Hint: " + config.hint;
+                    hintBox.style.display = "block";
+                }
+            }
+        }
+
+        function evaluateQuizSelection(selectedBtn, chosenOpt, correctOpt, hintText) {
+            let allBtns = document.querySelectorAll('.quiz-card-btn');
+            
+            if (chosenOpt === correctOpt) {
+                selectedBtn.classList.add('correct');
+                allBtns.forEach(btn => btn.disabled = true);
+                currentScore += 10;
+                triggerRewardShower();
+                setTimeout(() => {
                     activeTurnIndex++;
-                    setTimeout(buildActiveGameLevel, 2500);
+                    buildActiveGameLevel();
+                }, 1600);
+            } else {
+                playSound('sound-wrong');
+                selectedBtn.classList.add('wrong');
+                selectedBtn.disabled = true;
+                turnWrongAttempts++;
+                
+                if (turnWrongAttempts >= 1 && hintText) {
+                    let hintBox = document.getElementById('game-hint-banner');
+                    hintBox.innerText = "💡 Hint: " + hintText;
+                    hintBox.style.display = "block";
                 }
             }
         }
 
         function concludeSimulationWorkflow() {
-            document.getElementById('progress-fill').style.width = "100%";
-            document.getElementById('screen-play').classList.remove('active');
-            document.getElementById('screen-end').classList.add('active');
-            
-            let totalPossibleScore = TOTAL_TURNS_MAX * 10;
-            document.getElementById('final-score-report').innerText = `Final Score: ${currentScore} / ${totalPossibleScore}`;
-            
-            let iconBox = document.getElementById('end-hero-icon');
-            let titleBox = document.getElementById('end-title-text');
-            let textSummary = document.getElementById('end-narrative-summary');
+            switchActiveLayer('screen-end');
+            const finalScoreElem = document.getElementById('final-score-report');
+            const summaryElem = document.getElementById('end-narrative-summary');
+            const heroIcon = document.getElementById('end-hero-icon');
+            const titleElem = document.getElementById('end-title-text');
 
-            let accuracyRate = currentScore / totalPossibleScore;
+            let maxPossible = TOTAL_TURNS_MAX * 10;
+            finalScoreElem.innerText = `Final Score: ${currentScore} / ${maxPossible}`;
 
-            if (accuracyRate >= 0.85) {
-                iconBox.innerText = "🏆🎓🎉";
-                titleBox.innerText = "Grand Master Scholar!";
-                textSummary.innerHTML = "Outstanding reasoning skills! You successfully balanced values, broke change totals cleanly, and managed your dynamic cash box like an absolute genius!";
-            } else if (accuracyRate >= 0.50) {
-                iconBox.innerText = "✨🛒👍";
-                titleBox.innerText = "Excellent Shop Manager!";
-                textSummary.innerHTML = "Great job out there! You figured out the right changes and values for most of the customers. Try again to get a perfect score next time!";
+            if (currentScore >= 100) {
+                heroIcon.innerText = "🏆👑🌟";
+                titleElem.innerText = "Grand Money Master!";
+                summaryElem.innerHTML = "Incredible work! You've mastered Indian Currency, calculating change, and breaking down bills with ease! You are ready for any shopping adventure! 🛍️✨";
+                triggerRewardShower();
+            } else if (currentScore >= 60) {
+                heroIcon.innerText = "🎉🪙🎓";
+                titleElem.innerText = "Smart Money Explorer!";
+                summaryElem.innerHTML = "Great job! You showed awesome skills counting coins and solving story problems. Keep practicing to reach Master status!";
             } else {
-                iconBox.innerText = "🪙💪🏃";
-                titleBox.innerText = "Keep Training, Explorer!";
-                textSummary.innerHTML = "You reached the end of the market route, but our registers noticed some mismatched values. Let's practice counting by 2s, 5s, and 10s to become a true Money Master!";
+                heroIcon.innerText = "💪🌟📚";
+                titleElem.innerText = "Good Practice Run!";
+                summaryElem.innerHTML = "Nice effort! Every trip to the store makes you smarter. Play again to boost your high score and earn top honors!";
             }
         }
-
-        function reinitializeSimulation() {
-            activeTurnIndex = 0;
-            currentScore = 0;
-            buildActiveGameLevel();
-            switchActiveLayer('screen-intro');
-        }
-
-        // CONTROL TIMEOUT WORKFLOW
-        window.addEventListener('DOMContentLoaded', function() {
-            buildActiveGameLevel();
-            setTimeout(function() {
-                switchActiveLayer('screen-intro');
-            }, 5000);
-        });
     </script>
 </body>
 </html>
