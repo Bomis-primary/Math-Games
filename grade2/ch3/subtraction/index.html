@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Innovine - Reena's Library Rescue</title>
   <style>
     :root {
@@ -13,32 +13,41 @@
       --forest-green: #2e7d32;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+      -webkit-tap-highlight-color: transparent;
+    }
 
     body {
       font-family: 'Trebuchet MS', 'Comic Sans MS', sans-serif;
       background: #e1f5fe;
       color: var(--text-dark);
       min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 15px;
+      padding: clamp(6px, 2vw, 15px);
       user-select: none;
+      overflow: hidden;
     }
 
     .game-container {
       width: 100%;
       max-width: 850px;
+      height: 96vh;
+      height: 96dvh;
+      max-height: 720px;
       background: white;
-      border-radius: 24px;
+      border-radius: clamp(12px, 3vw, 24px);
       box-shadow: 0 12px 35px rgba(0,0,0,0.15);
       overflow: hidden;
       display: flex;
       flex-direction: column;
       position: relative;
-      min-height: 650px;
-      border: 4px solid var(--library-blue);
+      border: clamp(2px, 1vw, 4px) solid var(--library-blue);
     }
 
     /* 4-Second Splash Screen Overlay */
@@ -62,19 +71,30 @@
     .game-header {
       background: var(--library-blue);
       color: white;
-      padding: 12px 20px;
+      padding: clamp(6px, 1.5vh, 12px) clamp(10px, 3vw, 20px);
       display: flex;
       justify-content: space-between;
       align-items: center;
+      flex-shrink: 0;
     }
-    .hud-title { font-weight: bold; font-size: 1.2rem; color: #fff9c4; }
-    .hud-stats { display: flex; gap: 20px; font-weight: bold; font-size: 1.1rem; }
+    .hud-title { 
+      font-weight: bold; 
+      font-size: clamp(0.85rem, 3vw, 1.2rem); 
+      color: #fff9c4; 
+    }
+    .hud-stats { 
+      display: flex; 
+      gap: 15px; 
+      font-weight: bold; 
+      font-size: clamp(0.85rem, 3vw, 1.1rem); 
+    }
     
     .progress-bar {
       width: 100%;
-      height: 10px;
+      height: 8px;
       background: #01579b;
       overflow: hidden;
+      flex-shrink: 0;
     }
     .progress-fill {
       height: 100%;
@@ -84,51 +104,65 @@
     }
 
     /* App Screens */
-    .screen { display: none; padding: 20px; text-align: center; position: relative; }
-    .screen.active { display: block; }
+    .screen { 
+      display: none; 
+      padding: clamp(10px, 2.5vw, 20px); 
+      text-align: center; 
+      position: relative; 
+      flex: 1;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow-y: auto;
+    }
+    .screen.active { 
+      display: flex; 
+    }
 
     .story-bubble {
       background: #f1f8e9;
-      border: 3px dashed #4caf50;
-      border-radius: 16px;
-      padding: 15px;
-      margin-bottom: 15px;
-      font-size: 1.2rem;
-      line-height: 1.4;
+      border: 2px dashed #4caf50;
+      border-radius: 12px;
+      padding: clamp(8px, 2vw, 14px);
+      margin-bottom: clamp(6px, 1.5vh, 12px);
+      font-size: clamp(0.85rem, 2.8vw, 1.1rem);
+      line-height: 1.35;
       text-align: left;
+      flex-shrink: 0;
     }
 
     /* Classroom Chalkboard Canvas containing the Vertical Columns */
     .chalkboard-canvas {
-      min-height: 250px;
+      flex: 1;
+      min-height: 0;
       background-color: var(--chalkboard-green); 
-      border-radius: 16px;
+      border-radius: 14px;
       position: relative;
-      margin-bottom: 20px;
-      border: 8px solid var(--wood-brown);
+      margin-bottom: clamp(6px, 1.5vh, 12px);
+      border: clamp(4px, 1.2vw, 8px) solid var(--wood-brown);
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 50px;
-      padding: 20px;
+      gap: clamp(10px, 4vw, 40px);
+      padding: clamp(8px, 2vw, 16px);
       box-shadow: inset 0 0 20px rgba(0,0,0,0.4), 0 4px 10px rgba(0,0,0,0.15);
     }
 
     .helper-avatar {
-      font-size: 4.5rem;
+      font-size: clamp(2.5rem, 8vw, 4.2rem);
       transition: transform 0.2s ease;
+      flex-shrink: 0;
     }
     .helper-avatar.happy { animation: jumpCelebrate 0.4s ease infinite alternate; }
     .helper-avatar.sad { animation: headShake 0.4s ease; }
 
     @keyframes jumpCelebrate {
       0% { transform: translateY(0) scale(1); }
-      100% { transform: translateY(-20px) scale(1.05); }
+      100% { transform: translateY(-15px) scale(1.05); }
     }
     @keyframes headShake {
       0%, 100% { transform: translateX(0); }
-      25% { transform: translateX(-8px) rotate(-3deg); }
-      75% { transform: translateX(8px) rotate(3deg); }
+      25% { transform: translateX(-6px) rotate(-3deg); }
+      75% { transform: translateX(6px) rotate(3deg); }
     }
 
     /* Vertical Place Value Column System */
@@ -136,54 +170,55 @@
       border-collapse: collapse;
       color: white;
       font-family: 'Courier New', Courier, monospace;
-      font-size: 2.5rem;
+      font-size: clamp(1.6rem, 5vw, 2.4rem);
       font-weight: bold;
       text-align: center;
     }
     .math-grid-table td {
-      width: 65px;
-      height: 55px;
-      padding: 2px;
+      width: clamp(38px, 10vw, 60px);
+      height: clamp(36px, 8vw, 50px);
+      padding: 1px;
       position: relative;
     }
     
     /* Place Value Headers (H, T, O) matching textbook format */
     .math-grid-table .header-row td {
       font-family: 'Trebuchet MS', sans-serif;
-      font-size: 1.6rem;
+      font-size: clamp(1.1rem, 3.5vw, 1.5rem);
       color: #fff9c4;
-      border-bottom: 3px dashed rgba(255,255,255,0.25);
-      height: 40px;
+      border-bottom: 2px dashed rgba(255,255,255,0.25);
+      height: clamp(28px, 6vw, 36px);
     }
     
     .math-grid-table .operator-cell {
       text-align: right;
-      padding-right: 15px;
+      padding-right: clamp(4px, 1.5vw, 12px);
       color: #ffb300;
-      font-size: 2.3rem;
+      font-size: clamp(1.5rem, 4.5vw, 2.2rem);
     }
     
     .math-grid-table .minus-row td {
-      border-bottom: 5px solid white;
+      border-bottom: clamp(3px, 0.8vw, 5px) solid white;
     }
     
     /* Interactive Rounded Box Answer Cells */
     .math-grid-table .result-cell {
       color: #ffeb3b;
       cursor: pointer;
-      border: 3px solid rgba(255, 255, 255, 0.3);
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.05);
-      width: 54px;
-      height: 54px;
-      line-height: 48px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      width: clamp(36px, 9vw, 52px);
+      height: clamp(36px, 9vw, 52px);
+      line-height: clamp(32px, 8.5vw, 48px);
       margin: 0 auto;
       transition: all 0.2s ease;
+      font-size: clamp(1.4rem, 4.5vw, 2.2rem);
     }
     .math-grid-table .result-cell.typing-active {
       color: #ff9800;
       border-color: #ff9800;
-      background: rgba(255, 152, 0, 0.15);
+      background: rgba(255, 152, 0, 0.2);
       box-shadow: 0 0 8px #ff9800;
     }
 
@@ -191,62 +226,67 @@
     .keypad-box {
       display: flex;
       justify-content: center;
-      gap: 8px;
-      margin: 5px auto;
+      gap: clamp(4px, 1vw, 8px);
+      margin: 2px auto;
+      width: 100%;
       max-width: 520px;
       flex-wrap: wrap;
+      flex-shrink: 0;
     }
     .key-btn {
-      width: 52px;
-      height: 52px;
-      font-size: 1.4rem;
+      width: clamp(36px, 8vw, 50px);
+      height: clamp(38px, 7vh, 48px);
+      font-size: clamp(1.1rem, 3.5vw, 1.3rem);
       font-weight: bold;
       background: #ffffff;
-      border: 3px solid #b0bec5;
-      border-radius: 12px;
+      border: 2px solid #b0bec5;
+      border-radius: 8px;
       cursor: pointer;
-      box-shadow: 0 4px 0 #b0bec5;
+      box-shadow: 0 3px 0 #b0bec5;
       color: var(--text-dark);
+      touch-action: manipulation;
     }
     .key-btn:active {
-      transform: translateY(3px);
+      transform: translateY(2px);
       box-shadow: 0 1px 0 #b0bec5;
     }
     .key-btn.action-key {
-      width: 75px;
+      width: clamp(56px, 12vw, 75px);
       background: #ffb300;
       border-color: #ff8f00;
-      box-shadow: 0 4px 0 #ff8f00;
+      box-shadow: 0 3px 0 #ff8f00;
       color: white;
     }
     .key-btn.go-key {
-      width: 95px;
+      width: clamp(70px, 15vw, 95px);
       background: var(--forest-green);
       border-color: #1b5e20;
-      box-shadow: 0 4px 0 #1b5e20;
+      box-shadow: 0 3px 0 #1b5e20;
       color: white;
     }
 
     .feedback-banner {
-      height: 30px;
-      font-size: 1.15rem;
+      min-height: 24px;
+      font-size: clamp(0.85rem, 2.5vw, 1.1rem);
       font-weight: bold;
-      margin-top: 5px;
+      margin-top: 4px;
+      flex-shrink: 0;
     }
 
     .action-btn {
       background: var(--library-blue);
       color: white;
       border: none;
-      padding: 15px 45px;
-      font-size: 1.4rem;
+      padding: clamp(10px, 2.5vh, 15px) clamp(25px, 6vw, 45px);
+      font-size: clamp(1.1rem, 3.5vw, 1.4rem);
       font-weight: bold;
       border-radius: 50px;
       cursor: pointer;
-      box-shadow: 0 5px 0 #01579b;
+      box-shadow: 0 4px 0 #01579b;
       margin-top: 10px;
+      touch-action: manipulation;
     }
-    .action-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #01579b; }
+    .action-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #01579b; }
   </style>
 </head>
 <body>
@@ -264,10 +304,10 @@
     </div>
     <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
  
-    <div id="screen-intro" class="screen active">
-      <div class="story-bubble">
+    <div id="screen-intro" class="screen active" style="justify-content: center; align-items: center;">
+      <div class="story-bubble" style="width: 100%;">
         <p><strong>Reena's Big Day at the School Library 📚👧</strong></p>
-        <p style="margin-top: 10px; font-size: 1.1rem; color: #2c3e50;">Help Reena organize book counts up to 500! Look closely at the Hundreds, Tens, and Ones grid on the chalkboard, subtract column by column, and type your answer!</p>
+        <p style="margin-top: 8px; color: #2c3e50;">Help Reena organize book counts up to 500! Look closely at the Hundreds, Tens, and Ones grid on the chalkboard, subtract column by column, and type your answer!</p>
       </div>
       <button class="action-btn" onclick="startGame()">Help Reena Sort! 🚀</button>
     </div>
@@ -323,13 +363,13 @@
       <div class="feedback-banner" id="feedback-box"></div>
     </div>
  
-    <div id="screen-end" class="screen">
-      <div class="story-bubble">
+    <div id="screen-end" class="screen" style="justify-content: center; align-items: center;">
+      <div class="story-bubble" style="width: 100%;">
         <p><strong>🎉 Phenomenal Library Assistant!</strong></p>
-        <p>You correctly calculated shelf balances and sorted all library resources flawlessly!</p>
+        <p style="margin-top: 6px;">You correctly calculated shelf balances and sorted all library resources flawlessly!</p>
       </div>
-      <h2 style="font-size: 2.4rem; color: var(--forest-green); margin-bottom: 20px;">Mission Accomplished! ⭐</h2>
-      <button class="action-btn" style="background: var(--text-dark); box-shadow: 0 5px 0 #111;" onclick="resetWholeGame()">Play Again 🔄</button>
+      <h2 style="font-size: clamp(1.5rem, 5vw, 2.4rem); color: var(--forest-green); margin: 15px 0;">Mission Accomplished! ⭐</h2>
+      <button class="action-btn" style="background: var(--text-dark); box-shadow: 0 4px 0 #111;" onclick="resetWholeGame()">Play Again 🔄</button>
     </div>
   </div>
  
@@ -341,7 +381,7 @@
     // Array storing answers for [Hundreds, Tens, Ones]
     let currentAnswerArray = ["?", "?", "?"];
     let activeSlotIndex = 2; // Default focus starts on the Ones column (Index 2)
- 
+
     const gameQuestions = [
       { total: 480, minus: 232, remain: 248, tag: "Mission 1: Fiction and Non-fiction", story: "The school library has 480 books. Out of these, 232 books are fiction books. How many books are non-fiction books?" },
       { total: 232, minus: 102, remain: 130, tag: "Mission 2: Stories and Novels", story: "Out of the 232 fiction books, 102 are story books. The rest are novels. How many novels are there?" },
@@ -355,7 +395,7 @@
       { total: 480, minus: 156, remain: 324, tag: "Mission 10: End-of-Day Shelf Check", story: "The library started the day with 480 books. By closing time, 156 books were borrowed. How many books are still on the shelves?" },
       { total: 500, minus: 278, remain: 222, tag: "👑 BONUS BOSS LEVEL", story: "The library had 500 bookmarks. During Reading Week, students used 278 bookmarks. How many bookmarks are left?" }
     ];
- 
+
     function triggerAudioTone(freq, wave, duration) {
       try {
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -371,58 +411,58 @@
         osc.stop(audioCtx.currentTime + duration);
       } catch (e) {}
     }
- 
+
     function startGame() {
       document.getElementById('screen-intro').classList.remove('active');
       document.getElementById('screen-play').classList.add('active');
       renderActiveTurn();
     }
- 
+
     function renderActiveTurn() {
       if (turnIndex >= gameQuestions.length) {
         showEndGameSummary();
         return;
       }
- 
+
       currentAnswerArray = ["?", "?", "?"];
       activeSlotIndex = 2; // Default focus back to Ones column
       
       document.getElementById('feedback-box').style.color = "var(--text-dark)";
-      document.getElementById('feedback-box').innerText = "👉 Select a place value column (H, T, or O) and use the keyboard to type its digit!";
-       
+      document.getElementById('feedback-box').innerText = "👉 Select a column (H, T, O) and type its digit!";
+        
       currentLevelData = gameQuestions[turnIndex];
- 
+
       document.getElementById('stage-label').innerText = `${currentLevelData.tag}`;
       document.getElementById('progress-fill').style.width = `${(turnIndex / gameQuestions.length) * 100}%`;
       document.getElementById('score-val').innerText = runningScore;
       document.getElementById('story-text').innerHTML = `<strong>Challenge:</strong> ${currentLevelData.story}`;
- 
+
       let topStr = String(currentLevelData.total).padStart(3, '0');
       document.getElementById('cell-top-h').innerText = topStr[0] === '0' ? ' ' : topStr[0];
       document.getElementById('cell-top-t').innerText = (topStr[0] === '0' && topStr[1] === '0') ? ' ' : topStr[1];
       document.getElementById('cell-top-o').innerText = topStr[2];
- 
+
       let botStr = String(currentLevelData.minus).padStart(3, '0');
       document.getElementById('cell-bot-h').innerText = botStr[0] === '0' ? ' ' : botStr[0];
       document.getElementById('cell-bot-t').innerText = (botStr[0] === '0' && botStr[1] === '0') ? ' ' : botStr[1];
       document.getElementById('cell-bot-o').innerText = botStr[2];
- 
+
       updateAnswerGridDisplay();
     }
- 
+
     function selectSlot(index) {
       triggerAudioTone(700, 'sine', 0.04);
       activeSlotIndex = index;
       updateAnswerGridDisplay();
     }
- 
+
     function updateAnswerGridDisplay() {
       const slots = [
         document.getElementById('cell-ans-h'),
         document.getElementById('cell-ans-t'),
         document.getElementById('cell-ans-o')
       ];
- 
+
       slots.forEach((cell, idx) => {
         cell.innerText = currentAnswerArray[idx];
         if (idx === activeSlotIndex) {
@@ -432,11 +472,10 @@
         }
       });
     }
- 
+
     function pressKey(val) {
       triggerAudioTone(600, 'sine', 0.05);
       if (val === 'CLEAR') {
-        // If an active slot is highlighted, clear just that slot, else clear all
         if (activeSlotIndex !== null && currentAnswerArray[activeSlotIndex] !== "?") {
           currentAnswerArray[activeSlotIndex] = "?";
         } else {
@@ -448,7 +487,6 @@
         if (activeSlotIndex !== null && activeSlotIndex >= 0 && activeSlotIndex <= 2) {
           currentAnswerArray[activeSlotIndex] = val;
           
-          // Auto-advance backward systematically only if moving naturally from right-to-left
           if (activeSlotIndex === 2) activeSlotIndex = 1;
           else if (activeSlotIndex === 1) activeSlotIndex = 0;
           else if (activeSlotIndex === 0) activeSlotIndex = null; // Typing finished
@@ -457,31 +495,30 @@
         }
       }
     }
- 
+
     function submitLibraryAnswer() {
       const helper = document.getElementById('helper-character');
       
-      // Clean string conversion: replace blanks or question marks safely with 0
       let strH = (currentAnswerArray[0] === "?" || currentAnswerArray[0] === " ") ? "0" : currentAnswerArray[0];
       let strT = (currentAnswerArray[1] === "?" || currentAnswerArray[1] === " ") ? "0" : currentAnswerArray[1];
       let strO = (currentAnswerArray[2] === "?" || currentAnswerArray[2] === " ") ? "0" : currentAnswerArray[2];
       
       const numericSubmission = parseInt(strH + strT + strO, 10);
- 
+
       if (!isNaN(numericSubmission) && numericSubmission === currentLevelData.remain) {
         runningScore += 10;
         document.getElementById('score-val').innerText = runningScore;
-         
+          
         document.getElementById('feedback-box').style.color = 'var(--forest-green)';
-        document.getElementById('feedback-box').innerText = "Excellent calculation! That is completely correct! 🎉";
-         
+        document.getElementById('feedback-box').innerText = "Excellent calculation! Correct! 🎉";
+          
         activeSlotIndex = null;
         updateAnswerGridDisplay();
-         
+          
         helper.classList.add('happy');
         triggerAudioTone(587.33, 'sine', 0.15);
         setTimeout(() => triggerAudioTone(880, 'sine', 0.4), 120);
-         
+          
         turnIndex++;
         setTimeout(() => {
           helper.classList.remove('happy');
@@ -492,27 +529,27 @@
         triggerAudioTone(150, 'sawtooth', 0.4);
         document.getElementById('feedback-box').style.color = '#c62828';
         document.getElementById('feedback-box').innerText = "Try working it out column by column from right to left!";
-         
+          
         currentAnswerArray = ["?", "?", "?"];
         activeSlotIndex = 2; // Always realign to Ones upon failure
         updateAnswerGridDisplay();
         setTimeout(() => helper.classList.remove('sad'), 500);
       }
     }
- 
+
     function showEndGameSummary() {
       document.getElementById('progress-fill').style.width = "100%";
       document.getElementById('screen-play').classList.remove('active');
       document.getElementById('screen-end').classList.add('active');
     }
- 
+
     function resetWholeGame() {
       turnIndex = 0;
       runningScore = 0;
       document.getElementById('screen-end').classList.remove('active');
       document.getElementById('screen-intro').classList.add('active');
     }
- 
+
     window.onload = function() {
       setTimeout(() => {
         const splash = document.getElementById('screen-splash');
