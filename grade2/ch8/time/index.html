@@ -16,6 +16,8 @@
             --correct: #4caf50;
             --wrong: #f44336;
             --case-bg: #f5f5f5;
+            --hint-bg: #fff8e1;
+            --hint-border: #ffa000;
         }
 
         * {
@@ -35,6 +37,53 @@
             min-height: 100vh;
         }
 
+        /* -------------------------------------------
+           5-SECOND INNOVINE SPLASH SCREEN
+        ------------------------------------------- */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        .splash-logo-container {
+            text-align: center;
+            animation: pulseLogo 2s infinite ease-in-out;
+            padding: 20px;
+        }
+
+        .splash-logo-img {
+            max-width: 280px;
+            width: 80%;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .splash-tagline {
+            font-size: 16px;
+            color: #558b2f;
+            margin-top: 15px;
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        @keyframes pulseLogo {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        /* -------------------------------------------
+           MAIN GAME CONTAINER & UI
+        ------------------------------------------- */
         .game-container {
             width: 100%;
             max-width: 550px;
@@ -119,14 +168,42 @@
             gap: 6px;
         }
 
-        /* Question Layout */
+        /* Question & Status Row */
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #558b2f;
+        }
+
         .question-box {
             font-size: 18px;
             font-weight: bold;
             text-align: left;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             color: #1a237e;
             line-height: 1.4;
+        }
+
+        /* Hint Display Box */
+        .hint-box {
+            background-color: var(--hint-bg);
+            border: 2px dashed var(--hint-border);
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-size: 14px;
+            color: #795548;
+            margin-bottom: 15px;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         /* Options Wrapper */
@@ -152,11 +229,10 @@
             gap: 10px;
         }
 
-        .option-btn:active {
+        .option-btn:active:not(:disabled) {
             transform: scale(0.98);
         }
 
-        /* Evaluation States */
         .option-btn.correct {
             background-color: #e8f5e9 !important;
             border-color: var(--correct) !important;
@@ -167,9 +243,14 @@
             background-color: #ffebee !important;
             border-color: var(--wrong) !important;
             color: #c62828 !important;
+            opacity: 0.7;
         }
 
-        /* End Game Cards */
+        .option-btn:disabled {
+            cursor: not-allowed;
+        }
+
+        /* End Game Summary Card */
         .summary-card {
             text-align: center;
             padding: 20px 10px;
@@ -197,6 +278,15 @@
 </head>
 <body>
 
+    <!-- 5-Second Innovine Splash Screen using assets/logo.png -->
+    <div id="splash-screen">
+        <div class="splash-logo-container">
+            <img src="assets/logo.png" alt="Innovine Logo" class="splash-logo-img">
+            <div class="splash-tagline">Igniting Young Minds</div>
+        </div>
+    </div>
+
+    <!-- Main Game UI -->
     <div class="game-container">
         <!-- Top Controls Panel -->
         <div class="header-panel">
@@ -207,85 +297,89 @@
             </div>
         </div>
 
-        <!-- Progress Tracking -->
+        <!-- Progress Tracking Bar -->
         <div class="progress-container">
             <div class="progress-bar" id="progress-bar"></div>
         </div>
 
-        <!-- Main Dynamic Canvas Area -->
+        <!-- Main Dynamic Quiz Screen -->
         <div id="game-arena">
-            <!-- Dynamic Content Injected via Script -->
+            <!-- Questions rendered via JS -->
         </div>
     </div>
 
     <script>
-        // Data Bank mapping exact structural parameters of the generated CBQs
         const cbqQuestionsList = [
-            // Case 1: Rahul's Sunday Routine
             {
                 caseTitle: "Case Study 1: Rahul's Sunday Routine",
                 caseText: "Rahul wakes up in the morning when the short hand points to 7 and the long hand points to 12. He eats breakfast when the short hand is between 8 and 9, and the long hand points exactly to 6. In the evening, his friends come over to play at 5 o'clock.",
                 question: "Q1. What exact time does Rahul wake up in the morning?",
                 options: ["7 o'clock", "12 o'clock", "Half past 7", "8 o'clock"],
-                answer: "7 o'clock"
+                answer: "7 o'clock",
+                hint: "Look at the short hand for the hour when the long hand is pointing straight up at 12!"
             },
             {
                 caseTitle: "Case Study 1: Rahul's Sunday Routine",
                 caseText: "Rahul wakes up in the morning when the short hand points to 7 and the long hand points to 12. He eats breakfast when the short hand is between 8 and 9, and the long hand points exactly to 6. In the evening, his friends come over to play at 5 o'clock.",
                 question: "Q2. What time does Rahul have his breakfast?",
                 options: ["Half past 8", "Half past 9", "8 o'clock", "6 o'clock"],
-                answer: "Half past 8"
+                answer: "Half past 8",
+                hint: "When the long hand points at 6, it means 'Half past'. Check which number the short hand just passed."
             },
             {
                 caseTitle: "Case Study 1: Rahul's Sunday Routine",
                 caseText: "Rahul wakes up in the morning when the short hand points to 7 and the long hand points to 12. He eats breakfast when the short hand is between 8 and 9, and the long hand points exactly to 6. In the evening, his friends come over to play at 5 o'clock.",
                 question: "Q3. If Rahul finishes playing 1 hour after his friends arrive at 5 o'clock, what time do they stop playing?",
                 options: ["6 o'clock", "4 o'clock", "Half past 5", "5 o'clock"],
-                answer: "6 o'clock"
+                answer: "6 o'clock",
+                hint: "Add 1 hour to 5 o'clock (5 + 1 = ?)."
             },
-            // Case 2: The School Project Timeline
             {
                 caseTitle: "Case Study 2: The School Project Timeline",
                 caseText: "Sana is working on a special science project. Today is Wednesday, and she is busy assembling her model. She collected all her raw materials yesterday. She has to submit the completed project to her teacher tomorrow.",
                 question: "Q4. On which day of the week did Sana collect her raw materials (yesterday)?",
                 options: ["Tuesday", "Thursday", "Monday", "Friday"],
-                answer: "Tuesday"
+                answer: "Tuesday",
+                hint: "'Yesterday' is the day right before Wednesday."
             },
             {
                 caseTitle: "Case Study 2: The School Project Timeline",
                 caseText: "Sana is working on a special science project. Today is Wednesday, and she is busy assembling her model. She collected all her raw materials yesterday. She has to submit the completed project to her teacher tomorrow.",
                 question: "Q5. On which day of the week does Sana need to submit her project (tomorrow)?",
                 options: ["Thursday", "Tuesday", "Friday", "Wednesday"],
-                answer: "Thursday"
+                answer: "Thursday",
+                hint: "'Tomorrow' is the day right after Wednesday."
             },
-            // Case 3: Planning the Year
             {
                 caseTitle: "Case Study 3: Planning the Year",
                 caseText: "Aarav is looking at a calendar. His birthday falls in the second month of the year. He is currently in the month of July, looking forward to Independence Day, which comes in the very next month. He notices this year is a leap year.",
                 question: "Q6. In which month is Aarav's birthday (the second month of the year)?",
                 options: ["February", "January", "March", "April"],
-                answer: "February"
+                answer: "February",
+                hint: "Count the months starting from January as the first month."
             },
             {
                 caseTitle: "Case Study 3: Planning the Year",
                 caseText: "Aarav is looking at a calendar. His birthday falls in the second month of the year. He is currently in the month of July, looking forward to Independence Day, which comes in the very next month. He notices this year is a leap year.",
                 question: "Q7. Since Aarav noticed it is a leap year, how many days will there be in February this year?",
                 options: ["29 Days", "28 Days", "30 Days", "31 Days"],
-                answer: "29 Days"
+                answer: "29 Days",
+                hint: "A normal February has 28 days, but a leap year adds 1 extra day!"
             },
-            // Case 4: Changing Seasons
             {
                 caseTitle: "Case Study 4: Changing Seasons",
                 caseText: "Riya is wearing cotton clothes, drinking cold mango juice, and using an air conditioner because the weather is very hot. She knows that after a few months, the sky will be filled with dark clouds, and she will need to carry an umbrella.",
                 question: "Q8. Which current season is Riya experiencing right now?",
                 options: ["Summer Season", "Winter Season", "Monsoon Season", "Autumn Season"],
-                answer: "Summer Season"
+                answer: "Summer Season",
+                hint: "Think about which season is very hot and makes us want cold juice."
             }
         ];
 
         let activeDeck = [];
         let currentIndex = 0;
         let runningScore = 0;
+        let currentAttempt = 1;
         let isInputLocked = false;
 
         function playBeep(isCorrect) {
@@ -320,11 +414,19 @@
             }
         }
 
+        function handleSplashScreen() {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                splash.style.visibility = 'hidden';
+            }, 5000);
+        }
+
         function initGameLoop() {
-            // Keep case studies ordered or shuffle questions natively
             activeDeck = [...cbqQuestionsList];
             currentIndex = 0;
             runningScore = 0;
+            currentAttempt = 1;
             isInputLocked = false;
             
             updateScoreHeader();
@@ -340,6 +442,7 @@
 
         function renderQuestionScreen() {
             isInputLocked = false;
+            currentAttempt = 1;
             updateScoreHeader();
 
             if (currentIndex >= activeDeck.length) {
@@ -356,7 +459,14 @@
                     <div class="case-title">📖 ${activeQuestionData.caseTitle}</div>
                     <div>${activeQuestionData.caseText}</div>
                 </div>
+                <div class="status-row">
+                    <span>Question ${currentIndex + 1} of ${activeDeck.length}</span>
+                    <span id="attempt-badge">Attempt 1 of 2</span>
+                </div>
                 <div class="question-box">${activeQuestionData.question}</div>
+                <div class="hint-box" id="hint-box">
+                    💡 <strong>Hint:</strong> ${activeQuestionData.hint}
+                </div>
                 <div class="options-list">
                     ${randomizedChoices.map(choice => `
                         <button class="option-btn" onclick="handleChoiceSubmission(this, '${choice.replace(/'/g, "\\'")}')">
@@ -369,12 +479,12 @@
 
         function handleChoiceSubmission(selectedBtn, pickedString) {
             if (isInputLocked) return;
-            isInputLocked = true;
 
             const targetQuestion = activeDeck[currentIndex];
             const allOptionNodes = document.querySelectorAll('.option-btn');
 
             if (pickedString === targetQuestion.answer) {
+                isInputLocked = true;
                 selectedBtn.classList.add('correct');
                 selectedBtn.querySelector('span').innerText = '🎉';
                 runningScore++;
@@ -383,23 +493,37 @@
                 if (typeof confetti === 'function') {
                     confetti({ particleCount: 40, spread: 50, origin: { y: 0.75 } });
                 }
+
+                setTimeout(() => {
+                    currentIndex++;
+                    renderQuestionScreen();
+                }, 2000);
+
             } else {
+                playBeep(false);
                 selectedBtn.classList.add('wrong');
                 selectedBtn.querySelector('span').innerText = '❌';
-                playBeep(false);
+                selectedBtn.disabled = true;
 
-                allOptionNodes.forEach(btn => {
-                    if (btn.innerText.includes(targetQuestion.answer)) {
-                        btn.classList.add('correct');
-                        btn.querySelector('span').innerText = '✨';
-                    }
-                });
+                if (currentAttempt === 1) {
+                    currentAttempt = 2;
+                    document.getElementById('attempt-badge').innerText = 'Attempt 2 of 2';
+                    document.getElementById('hint-box').style.display = 'block';
+                } else {
+                    isInputLocked = true;
+                    allOptionNodes.forEach(btn => {
+                        if (btn.innerText.includes(targetQuestion.answer)) {
+                            btn.classList.add('correct');
+                            btn.querySelector('span').innerText = '✨';
+                        }
+                    });
+
+                    setTimeout(() => {
+                        currentIndex++;
+                        renderQuestionScreen();
+                    }, 2500);
+                }
             }
-
-            setTimeout(() => {
-                currentIndex++;
-                renderQuestionScreen();
-            }, 2500); // 2.5 seconds text review window for CBQ tracking
         }
 
         function renderEndGameScreen() {
@@ -432,7 +556,10 @@
             `;
         }
 
-        window.addEventListener('DOMContentLoaded', initGameLoop);
+        window.addEventListener('DOMContentLoaded', () => {
+            handleSplashScreen();
+            initGameLoop();
+        });
     </script>
 </body>
 </html>
