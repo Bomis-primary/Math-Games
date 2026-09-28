@@ -22,7 +22,7 @@
             -webkit-user-select: none;
             user-select: none;
         }
-        h1, h2, h3, .action-btn, .hud-bar, .combo-badge, .target-announcer, .asteroid-text {
+        h1, h2, h3, .action-btn, .hud-bar, .combo-badge, .target-announcer, .asteroid-text, .level-badge {
             font-family: 'Fredoka One', sans-serif;
         }
         body {
@@ -129,6 +129,18 @@
         }
         .hud-shields { display: flex; align-items: center; gap: 4px; min-width: 80px; }
         .shield-cell { width: 24px; height: 24px; object-fit: contain; }
+        
+        .level-badge {
+            padding: 3px 10px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+        .lvl-1-badge { background: #00F0FF; color: #05070A; box-shadow: 0 0 10px rgba(0,240,255,0.5); }
+        .lvl-2-badge { background: #A855F7; color: #FFFFFF; box-shadow: 0 0 10px rgba(168,85,247,0.5); }
+        .lvl-3-badge { background: #FF007F; color: #FFFFFF; box-shadow: 0 0 10px rgba(255,0,127,0.5); }
+
         .progress-container {
             width: 100%; background: #141A29; height: 10px;
             border-radius: 50px; margin-bottom: 12px;
@@ -139,6 +151,8 @@
             background: linear-gradient(90deg, var(--neon-cyan), var(--neon-green));
             transition: width 0.3s ease;
         }
+        
+        /* --- VISUAL ARENA DIFFERENTIATION --- */
         #space-arena {
             width: 100%; height: 340px;
             background: #07090D; border-radius: 18px;
@@ -146,18 +160,67 @@
             overflow: hidden; box-shadow: inset 0 0 30px rgba(0,0,0,0.9);
             transition: background 1s ease, border-color 0.5s ease;
         }
+        
+        /* Level 1: Ice Cyan Realm */
         #space-arena.level-1-theme {
-            background: radial-gradient(circle at center, #0B162E 0%, #040814 100%);
-            border-color: #1F3D7A;
+            background: radial-gradient(circle at 50% 30%, #0D2847 0%, #040A14 100%);
+            border-color: #00F0FF;
         }
+        /* Level 2: Deep Purple Nebula */
         #space-arena.level-2-theme {
-            background: radial-gradient(circle at center, #270F38 0%, #0E0414 100%);
-            border-color: #63228A;
+            background: radial-gradient(circle at 50% 30%, #3B1154 0%, #0E0314 100%);
+            border-color: #A855F7;
         }
+        /* Level 3: Fiery Red Supernova */
         #space-arena.level-3-theme {
-            background: radial-gradient(circle at center, #3B0D1B 0%, #170308 100%);
-            border-color: #8C1C3A;
+            background: radial-gradient(circle at 50% 30%, #540D1E 0%, #170208 100%);
+            border-color: #FF007F;
         }
+
+        /* Level Specific Planet Graphics */
+        .level-planet {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.85;
+            animation: planetOrbit 20s infinite alternate ease-in-out;
+        }
+        @keyframes planetOrbit {
+            0% { transform: translateY(0px) rotate(0deg); }
+            100% { transform: translateY(12px) rotate(10deg); }
+        }
+
+        .planet-lvl-1 {
+            width: 120px; height: 120px;
+            right: -20px; top: 20px;
+            background: radial-gradient(circle at 30% 30%, #00F0FF, #004466, #02111A);
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.4);
+        }
+
+        .planet-lvl-2 {
+            width: 140px; height: 140px;
+            left: -30px; top: 15px;
+            background: radial-gradient(circle at 30% 30%, #D8B4FE, #7E22CE, #2E1065);
+            box-shadow: 0 0 30px rgba(168, 85, 247, 0.5);
+        }
+        /* Ring for Level 2 Planet */
+        .planet-lvl-2::after {
+            content: '';
+            position: absolute;
+            top: 50%; left: -20%;
+            width: 140%; height: 30px;
+            border: 4px solid rgba(216, 180, 254, 0.6);
+            border-radius: 50%;
+            transform: translateY(-50%) rotate(-20deg);
+        }
+
+        .planet-lvl-3 {
+            width: 130px; height: 130px;
+            right: -10px; top: 10px;
+            background: radial-gradient(circle at 30% 30%, #FF8C00, #B91C1C, #450A0A);
+            box-shadow: 0 0 35px rgba(255, 0, 127, 0.6);
+        }
+
         .star {
             position: absolute; background: white; border-radius: 50%;
             animation: fallStar linear infinite;
@@ -166,12 +229,19 @@
             from { transform: translateY(-10px); }
             to { transform: translateY(350px); }
         }
+
+        /* Dynamic Asteroid Glows per level */
+        .level-1-theme .asteroid-sprite { filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.6)); }
+        .level-2-theme .asteroid-sprite { filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.6)); }
+        .level-3-theme .asteroid-sprite { filter: drop-shadow(0 0 8px rgba(255, 0, 127, 0.6)); }
+
         .asteroid-sprite {
             position: absolute; width: 85px; height: 85px;
             background-image: url('assets/asteroid.png');
             background-size: contain; background-repeat: no-repeat; background-position: center;
             display: flex; justify-content: center; align-items: center;
             cursor: pointer; transition: top 0.1s linear;
+            z-index: 5;
         }
         .asteroid-text {
             color: #FFFFFF; font-size: 1.1rem;
@@ -186,12 +256,14 @@
             transform: translateX(-50%);
             transition: left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2);
             pointer-events: none;
+            z-index: 6;
         }
         .laser-beam {
             position: absolute; width: 12px; height: 350px;
             background-image: url('assets/laser.png');
             background-size: 100% 100%; transform: translateX(-50%);
             animation: fireLaser 0.3s forwards ease-out; pointer-events: none;
+            z-index: 4;
         }
         @keyframes fireLaser {
             0% { height: 0; bottom: 75px; opacity: 1; }
@@ -225,6 +297,7 @@
             position: absolute; background: var(--laser-orange);
             width: 5px; height: 5px; border-radius: 50%;
             animation: scatterDebris 0.6s forwards ease-out;
+            z-index: 7;
         }
         @keyframes scatterDebris {
             0% { opacity: 1; transform: translate(0,0) scale(1); }
@@ -240,7 +313,7 @@
         </div>
     </div>
 
-    <!-- Intro Card with Tapping Instruction -->
+    <!-- Intro Card -->
     <div id="intro-card" class="adventure-card">
         <div class="avatar-view">🚀</div>
         <h2 class="card-title">SPACE MISSION START!</h2>
@@ -258,7 +331,7 @@
         <p class="scroll-text">
             Great shooting, Captain! Level 1 is safe!
             <br><br>
-            Get ready for bigger numbers in Level 2!
+            Entering Sector 2: Purple Vortex Zone! Get ready for bigger numbers!
         </p>
         <button class="action-btn" style="background: linear-gradient(135deg, var(--neon-green), #1E7E0A);" onclick="startLevel(2)">LEVEL 2 ➡️</button>
     </div>
@@ -269,14 +342,15 @@
         <p class="scroll-text">
             Awesome math skills! You cleared Level 2!
             <br><br>
-            Final round! Tap the correct rocks to solve the hardest multiplication questions!
+            Entering Final Sector: Red Supernova! Tap the correct rocks to win!
         </p>
         <button class="action-btn" style="background: linear-gradient(135deg, var(--neon-cyan), #0066CC);" onclick="startLevel(3)">FINAL LEVEL 🔍</button>
     </div>
 
     <div id="game-container">
         <div class="hud-bar">
-            <span>QUESTION: <span id="hud-index" style="color: var(--neon-cyan);">1 / 15</span></span>
+            <span>Q: <span id="hud-index" style="color: var(--neon-cyan);">1 / 15</span></span>
+            <span id="hud-level-badge" class="level-badge lvl-1-badge">LEVEL 1</span>
             <div id="hud-shields-tray" class="hud-shields"></div>
             <span>SCORE: <span id="hud-score" style="color: var(--neon-green);">0</span></span>
         </div>
@@ -284,6 +358,7 @@
             <div id="game-progress" class="progress-bar"></div>
         </div>
         <div id="space-arena">
+            <div id="planet-bg" class="level-planet planet-lvl-1"></div>
             <div id="player-ship"></div>
         </div>
         <div class="dashboard-controls">
@@ -293,7 +368,7 @@
         </div>
     </div>
 
-    <!-- Enhanced, Student-Relevant Victory Screen -->
+    <!-- Victory Screen -->
     <div id="victory-card" class="adventure-card">
         <div class="avatar-view" style="background: radial-gradient(#141A29, var(--laser-orange));">🏆</div>
         <h2 class="card-title" style="color: var(--laser-orange);">MATH CHAMPION OF THE GALAXY!</h2>
@@ -463,11 +538,31 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
+        /* Swaps theme, planet, and HUD badges based on level */
         function updateVisualTheme(level) {
             const arena = document.getElementById('space-arena');
-            if(!arena) return;
+            const planet = document.getElementById('planet-bg');
+            const badge = document.getElementById('hud-level-badge');
+            
+            if(!arena || !planet || !badge) return;
+            
             arena.className = '';
             arena.classList.add(`level-${level}-theme`);
+            
+            planet.className = 'level-planet';
+            planet.classList.add(`planet-lvl-${level}`);
+
+            badge.className = 'level-badge';
+            if (level === 1) {
+                badge.innerText = 'LEVEL 1';
+                badge.classList.add('lvl-1-badge');
+            } else if (level === 2) {
+                badge.innerText = 'LEVEL 2';
+                badge.classList.add('lvl-2-badge');
+            } else {
+                badge.innerText = 'LEVEL 3';
+                badge.classList.add('lvl-3-badge');
+            }
         }
 
         function startAdventure() {
@@ -548,7 +643,6 @@
             startAsteroidMovement();
         }
 
-        // Loop rocks continuously from top to bottom until tapped
         function startAsteroidMovement() {
             clearInterval(gameState.asteroidInterval);
             let speedIncrement = 0.35 + (gameState.currentTier * 0.12);
@@ -560,7 +654,6 @@
                         let parsedTop = parseFloat(rock.style.top);
                         parsedTop += speedIncrement;
                         
-                        // Loop back to top if it reaches bottom (260px)
                         if (parsedTop > 260) {
                             parsedTop = -90;
                         }
@@ -626,7 +719,6 @@
                 gameState.attemptsLeft--;
                 playAudioFeedback('wrong');
                 
-                // Disable the wrong choice asteroid visually
                 rock.style.pointerEvents = 'none';
                 rock.style.opacity = '0.25';
 
@@ -637,7 +729,6 @@
                 }
 
                 if (gameState.attemptsLeft > 0) {
-                    // Give Hint on 1st Wrong Attempt
                     if (status) {
                         status.innerText = `💡 HINT: ${currentData.hint || "Try calculating carefully!"}`;
                         status.style.color = "var(--laser-orange)";
@@ -645,7 +736,6 @@
                     gameState.transitionLock = false;
                     startAsteroidMovement();
                 } else {
-                    // Out of 2 attempts
                     gameState.streak = 0;
                     const combo = document.getElementById('combo-meter');
                     if (combo) combo.classList.remove('show');
@@ -657,11 +747,7 @@
                         status.style.color = "var(--neon-pink)";
                     }
 
-                    if (gameState.lives > 0) {
-                        setTimeout(advanceLogisticsQueue, 1800);
-                    } else {
-                        setTimeout(advanceLogisticsQueue, 1800);
-                    }
+                    setTimeout(advanceLogisticsQueue, 1800);
                 }
             }
         }
