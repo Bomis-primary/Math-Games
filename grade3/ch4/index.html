@@ -152,7 +152,6 @@
             transition: width 0.3s ease;
         }
         
-        /* --- VISUAL ARENA DIFFERENTIATION --- */
         #space-arena {
             width: 100%; height: 340px;
             background: #07090D; border-radius: 18px;
@@ -161,23 +160,19 @@
             transition: background 1s ease, border-color 0.5s ease;
         }
         
-        /* Level 1: Ice Cyan Realm */
         #space-arena.level-1-theme {
             background: radial-gradient(circle at 50% 30%, #0D2847 0%, #040A14 100%);
             border-color: #00F0FF;
         }
-        /* Level 2: Deep Purple Nebula */
         #space-arena.level-2-theme {
             background: radial-gradient(circle at 50% 30%, #3B1154 0%, #0E0314 100%);
             border-color: #A855F7;
         }
-        /* Level 3: Fiery Red Supernova */
         #space-arena.level-3-theme {
             background: radial-gradient(circle at 50% 30%, #540D1E 0%, #170208 100%);
             border-color: #FF007F;
         }
 
-        /* Level Specific Planet Graphics */
         .level-planet {
             position: absolute;
             border-radius: 50%;
@@ -203,7 +198,6 @@
             background: radial-gradient(circle at 30% 30%, #D8B4FE, #7E22CE, #2E1065);
             box-shadow: 0 0 30px rgba(168, 85, 247, 0.5);
         }
-        /* Ring for Level 2 Planet */
         .planet-lvl-2::after {
             content: '';
             position: absolute;
@@ -230,7 +224,6 @@
             to { transform: translateY(350px); }
         }
 
-        /* Dynamic Asteroid Glows per level */
         .level-1-theme .asteroid-sprite { filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.6)); }
         .level-2-theme .asteroid-sprite { filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.6)); }
         .level-3-theme .asteroid-sprite { filter: drop-shadow(0 0 8px rgba(255, 0, 127, 0.6)); }
@@ -254,21 +247,24 @@
             background-image: url('assets/spaceship.png');
             background-size: contain; background-repeat: no-repeat; background-position: center;
             transform: translateX(-50%);
-            transition: left 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+            transition: left 0.3s ease-out;
             pointer-events: none;
             z-index: 6;
         }
         .laser-beam {
-            position: absolute; width: 12px; height: 350px;
-            background-image: url('assets/laser.png');
-            background-size: 100% 100%; transform: translateX(-50%);
-            animation: fireLaser 0.3s forwards ease-out; pointer-events: none;
+            position: absolute; width: 10px; height: 350px;
+            background: linear-gradient(to top, var(--laser-orange), var(--neon-cyan));
+            box-shadow: 0 0 12px var(--laser-orange);
+            border-radius: 6px;
+            transform: translateX(-50%);
+            animation: fireLaser 0.35s forwards ease-out; pointer-events: none;
             z-index: 4;
+            bottom: 70px;
         }
         @keyframes fireLaser {
-            0% { height: 0; bottom: 75px; opacity: 1; }
-            50% { height: 330px; bottom: 75px; opacity: 1; }
-            100% { opacity: 0; }
+            0% { height: 0px; opacity: 1; }
+            50% { height: 300px; opacity: 1; }
+            100% { height: 320px; opacity: 0; }
         }
         .dashboard-controls {
             margin-top: 12px; background: #141A29; padding: 12px;
@@ -368,14 +364,14 @@
         </div>
     </div>
 
-    <!-- Victory Screen -->
+    <!-- Victory Screen with Accurate Text -->
     <div id="victory-card" class="adventure-card">
         <div class="avatar-view" style="background: radial-gradient(#141A29, var(--laser-orange));">🏆</div>
-        <h2 class="card-title" style="color: var(--laser-orange);">MATH CHAMPION OF THE GALAXY!</h2>
+        <h2 class="card-title" style="color: var(--laser-orange);">MISSION COMPLETE!</h2>
         <p class="scroll-text" style="text-align: center; font-size: 1.15rem; font-weight: 700; line-height: 1.6;">
-            🌟 Outstanding Work, Commander! 🌟
+            🌟 Great Job, Commander! 🌟
             <br><br>
-            You mastered all Grade 3 multiplication problems, blasted away every space rock, and safely guided your ship home!
+            You completed all 3 space sectors, practiced Grade 3 multiplication, and safely guided your starship home!
         </p>
         <h3 id="victory-stats" style="color: var(--neon-cyan); font-size: 1.6rem; margin-bottom: 20px;">TOTAL SCORE: 0</h3>
         <button class="action-btn" onclick="resetAdventureSystem()">PLAY AGAIN 🔄</button>
@@ -538,7 +534,6 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        /* Swaps theme, planet, and HUD badges based on level */
         function updateVisualTheme(level) {
             const arena = document.getElementById('space-arena');
             const planet = document.getElementById('planet-bg');
@@ -663,29 +658,35 @@
             }, 60);
         }
 
+        // Fixed shooting animation
         function fireQuantumLaser(selectedAsteroid) {
             if (gameState.transitionLock) return;
             gameState.transitionLock = true;
             clearInterval(gameState.asteroidInterval);
+
             const arena = document.getElementById('space-arena');
             const ship = document.getElementById('player-ship');
-            if(!arena || !ship) return;
-            
-            const targetX = selectedAsteroid.offsetLeft + (selectedAsteroid.offsetWidth / 2);
-            const arenaWidth = arena.offsetWidth;
-            const percentageX = (targetX / arenaWidth) * 100;
-            ship.style.left = `${percentageX}%`;
+            if (!arena || !ship) return;
 
+            // Align ship under chosen rock
+            const rockX = selectedAsteroid.offsetLeft + (selectedAsteroid.offsetWidth / 2);
+            ship.style.left = `${rockX}px`;
+
+            // Fire laser after ship moves
             setTimeout(() => {
                 const laser = document.createElement('div');
                 laser.className = 'laser-beam';
-                laser.style.left = `${percentageX}%`;
+                laser.style.left = `${rockX}px`;
                 arena.appendChild(laser);
+
+                // Force reflow to ensure animation triggers correctly on first attempt
+                void laser.offsetWidth;
+
                 setTimeout(() => {
                     evaluateImpactResult(selectedAsteroid);
                     laser.remove();
-                }, 250);
-            }, 350);
+                }, 300);
+            }, 250);
         }
 
         function evaluateImpactResult(rock) {
