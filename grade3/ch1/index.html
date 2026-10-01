@@ -105,11 +105,11 @@
             transition: background 0.5s ease-in-out;
         }
 
-        /* --- SEAMLESS LITTER BLENDING --- */
+        /* --- CENTERED & RESIZED LITTER --- */
         .trash-item {
             position: absolute;
-            width: 40px;
-            height: 40px;
+            width: 30px;
+            height: 30px;
             object-fit: contain;
             mix-blend-mode: multiply;
             filter: brightness(1.05) contrast(1.1);
@@ -120,11 +120,11 @@
             animation: shrinkAway 0.6s forwards !important; 
         }
 
-        /* --- TURTLE INTERACTIVE NODES --- */
+        /* --- TURTLE NODES (BACKGROUND REMOVED VIA TRANSPARENCY & BLEND) --- */
         .turtle-interactive {
             position: absolute;
-            width: 65px;
-            height: 65px;
+            width: 50px;
+            height: 50px;
             cursor: pointer;
             user-select: none;
             transition: all 0.4s ease;
@@ -141,7 +141,18 @@
             top: 0; 
             left: 0;
             background: transparent !important;
-            mix-blend-mode: multiply; 
+            mix-blend-mode: multiply; /* Blends out white backgrounds seamlessly */
+            filter: contrast(1.15) brightness(1.02);
+        }
+
+        /* Direct image style on intro/victory screens for background transparency */
+        .intro-turtle-img {
+            height: 90px;
+            width: auto;
+            margin-bottom: 10px;
+            animation: float 3s infinite ease-in-out;
+            mix-blend-mode: multiply;
+            background: transparent;
         }
         
         .turtle-interactive.pulse { animation: seaGlowPulse 1.5s infinite alternate; }
@@ -278,7 +289,7 @@
 
         /* --- ANIMATIONS --- */
         @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-        @keyframes seaGlowPulse { 0% { filter: drop-shadow(0 0 2px #FFEB3B); } 100% { filter: drop-shadow(0 0 8px #FFEB3B); } }
+        @keyframes seaGlowPulse { 0% { filter: drop-shadow(0 0 2px #FFEB3B) contrast(1.15); } 100% { filter: drop-shadow(0 0 8px #FFEB3B) contrast(1.15); } }
         
         @keyframes swimAway { 
             0% { transform: scale(1) translateX(0); opacity: 1; } 
@@ -286,7 +297,7 @@
             100% { transform: scale(0.3) translateX(-300px) translateY(-30px); opacity: 0; } 
         }
         @keyframes shrinkAway {
-            0% { transform: scale(1.3) translateY(0); opacity: 1; }
+            0% { transform: scale(1.2) translateY(0); opacity: 1; }
             100% { transform: scale(0) translateY(-50px); opacity: 0; }
         }
         @keyframes shake {
@@ -301,8 +312,8 @@
             .interactive-split { flex-direction: row; }
             .left-panel { flex: 1.2; }
             .keypad-panel { flex: 0.8; }
-            .trash-item { width: 50px; height: 50px; }
-            .turtle-interactive { width: 85px; height: 85px; }
+            .trash-item { width: 40px; height: 40px; }
+            .turtle-interactive { width: 68px; height: 68px; }
             .key-btn { padding: 12px 0; }
         }
     </style>
@@ -318,7 +329,7 @@
 
     <div id="game-container">
         <div id="intro-card">
-            <img src="assets/turtle-happy.png" style="height: 90px; width: auto; margin-bottom: 10px; animation: float 3s infinite ease-in-out;" alt="Happy Turtle" onerror="this.src='assets/turtle-happy.png';">
+            <img class="intro-turtle-img" src="assets/turtle-happy.png" alt="Happy Turtle" onerror="this.src='assets/turtle-happy.png';">
             <h2 style="color: var(--primary-teal); font-size: 1.8rem; margin-bottom: 10px;">Mission: Code Cracker Rescue!</h2>
             <p class="mission-text">
                 Litter items and marine traps have system locks protection grids. 
@@ -378,7 +389,7 @@
         </div>
 
         <div id="victory-card" style="display: none;">
-            <img src="assets/turtle-happy.png" style="height: 100px; margin-bottom: 10px; animation: float 2.5s infinite ease-in-out;" alt="Winner">
+            <img class="intro-turtle-img" src="assets/turtle-happy.png" alt="Winner">
             <h1 style="color: var(--accent-green); font-size: 2rem; margin: 15px 0;">Code Breaker Verified!</h1>
             <p style="font-size: 1.1rem; margin-bottom: 20px; color: #37474F;">
                 Incredible computation speed! Every trap has been bypassed and all environmental wildlife are swimming free.
@@ -451,21 +462,21 @@
         let isProcessing = false;
         let activeTurtleId = null;
 
-        /* Scaled positioning using percentage values for keyframes and responsive stage */
+        /* Centered placement coordinates well inside screen margins */
         const beachLitter = [
-            { src: "assets/bottle1.png", top: "55%", left: "5%" },
-            { src: "assets/wrapper-purple.png", top: "70%", left: "20%" },
-            { src: "assets/bottle2.png", top: "52%", left: "36%" },
-            { src: "assets/tetra.png", top: "68%", left: "52%" },
+            { src: "assets/bottle1.png", top: "52%", left: "18%" },
+            { src: "assets/wrapper-purple.png", top: "68%", left: "30%" },
+            { src: "assets/bottle2.png", top: "48%", left: "44%" },
+            { src: "assets/tetra.png", top: "68%", left: "56%" },
             { src: "assets/wrapper-red.png", top: "50%", left: "68%" },
-            { src: "assets/bottle1.png", top: "65%", left: "82%" }
+            { src: "assets/bottle1.png", top: "66%", left: "78%" }
         ];
 
         const reefTurtles = [
-            { id: 0, top: "20%", left: "8%", solved: false },
-            { id: 1, top: "55%", left: "28%", solved: false },
-            { id: 2, top: "18%", left: "50%", solved: false },
-            { id: 3, top: "52%", left: "72%", solved: false }
+            { id: 0, top: "25%", left: "20%", solved: false },
+            { id: 1, top: "58%", left: "36%", solved: false },
+            { id: 2, top: "22%", left: "54%", solved: false },
+            { id: 3, top: "55%", left: "70%", solved: false }
         ];
 
         function engageMission() {
@@ -515,7 +526,7 @@
                 });
                 const activeTrash = document.getElementById('litter-' + poolIndex);
                 if (activeTrash && !activeTrash.classList.contains('cleared')) {
-                    activeTrash.style.transform = "scale(1.3) rotate(12deg)";
+                    activeTrash.style.transform = "scale(1.2) rotate(12deg)";
                 }
             } else {
                 if (activeTurtleId === null) {
